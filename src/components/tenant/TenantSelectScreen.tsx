@@ -60,7 +60,7 @@ const TenantSelectScreen: React.FC = () => {
               href="/admin"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
             >
-              Acessar Painel Alvita
+              Acessar Painel All Vita
             </a>
           </div>
         )}
