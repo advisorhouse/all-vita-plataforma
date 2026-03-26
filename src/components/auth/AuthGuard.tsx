@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
 import TenantSelectScreen from "@/components/tenant/TenantSelectScreen";
 
 interface AuthGuardProps {
@@ -9,18 +10,38 @@ interface AuthGuardProps {
   requireTenant?: boolean;
 }
 
-/**
- * Guards routes requiring authentication.
- * - Redirects to /auth/login if not authenticated
- * - Shows tenant selection if user has multiple tenants
- * - Passes through if authenticated + tenant selected (or not required)
- */
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true }) => {
   const { user, loading } = useAuth();
   const { currentTenant, availableTenants, isSuperAdmin, memberships } = useTenant();
   const location = useLocation();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    if (!user || location.pathname === "/onboarding") {
+      setOnboardingChecked(true);
+      return;
+    }
+
+    const checkOnboarding = async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("must_change_password, onboarding_completed")
+        .eq("id", user.id)
+        .single();
+
+      if (profile && (profile.must_change_password || !profile.onboarding_completed)) {
+        // Check if user has any non-super_admin memberships (tenant users need onboarding)
+        const hasNonComplete = profile.must_change_password || !profile.onboarding_completed;
+        setNeedsOnboarding(hasNonComplete);
+      }
+      setOnboardingChecked(true);
+    };
+
+    checkOnboarding();
+  }, [user, location.pathname]);
+
+  if (loading || !onboardingChecked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground" />
@@ -30,6 +51,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true })
 
   if (!user) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+
+  // Redirect to onboarding if needed (but not if already on onboarding page)
+  if (needsOnboarding && location.pathname !== "/onboarding") {
+    return <Navigate to="/onboarding" replace />;
   }
 
   // Super admin without tenant context goes to admin

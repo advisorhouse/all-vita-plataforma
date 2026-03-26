@@ -65,6 +65,7 @@ import CoreSelectRole from "./pages/core/CoreSelectRole";
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminTenants from "./pages/admin/AdminTenants";
+import AdminOnboarding from "./pages/admin/AdminOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,9 @@ const App = () => (
                 <Route index element={<AdminDashboard />} />
                 <Route path="tenants" element={<AdminTenants />} />
               </Route>
+
+              {/* Onboarding */}
+              <Route path="/onboarding" element={<AuthGuard requireTenant={false}><AdminOnboarding /></AuthGuard>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
