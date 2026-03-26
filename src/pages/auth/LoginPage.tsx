@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { logAccessEvent } from "@/lib/security-logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +35,7 @@ const LoginPage: React.FC = () => {
         }
         return;
       }
-      // Redirect will be handled by AuthGuard after memberships load
+      await logAccessEvent("login", { method: "password" });
       navigate("/");
     } catch {
       toast.error("Erro ao fazer login");
