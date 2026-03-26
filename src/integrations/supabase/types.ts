@@ -261,6 +261,47 @@ export type Database = {
           },
         ]
       }
+      commission_to_coin_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          level: number
+          metadata: Json | null
+          multiplier: number
+          percentage: number
+          tenant_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          level?: number
+          metadata?: Json | null
+          multiplier?: number
+          percentage?: number
+          tenant_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          level?: number
+          metadata?: Json | null
+          multiplier?: number
+          percentage?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_to_coin_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content: {
         Row: {
           body: string | null
@@ -301,6 +342,68 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversions: {
+        Row: {
+          attributed_at: string
+          created_at: string
+          id: string
+          link_id: string | null
+          metadata: Json | null
+          partner_id: string
+          tenant_id: string
+          transaction_id: string
+        }
+        Insert: {
+          attributed_at?: string
+          created_at?: string
+          id?: string
+          link_id?: string | null
+          metadata?: Json | null
+          partner_id: string
+          tenant_id: string
+          transaction_id: string
+        }
+        Update: {
+          attributed_at?: string
+          created_at?: string
+          id?: string
+          link_id?: string | null
+          metadata?: Json | null
+          partner_id?: string
+          tenant_id?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversions_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversions_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -659,6 +762,50 @@ export type Database = {
           },
         ]
       }
+      payment_integrations: {
+        Row: {
+          active: boolean
+          api_key_encrypted: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          provider: string
+          tenant_id: string
+          updated_at: string
+          webhook_secret: string | null
+        }
+        Insert: {
+          active?: boolean
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          provider: string
+          tenant_id: string
+          updated_at?: string
+          webhook_secret?: string | null
+        }
+        Update: {
+          active?: boolean
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          provider?: string
+          tenant_id?: string
+          updated_at?: string
+          webhook_secret?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_integrations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active: boolean
@@ -845,6 +992,66 @@ export type Database = {
           },
         ]
       }
+      redemption_requests: {
+        Row: {
+          amount: number
+          catalog_item_id: string | null
+          created_at: string
+          id: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          catalog_item_id?: string | null
+          created_at?: string
+          id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          catalog_item_id?: string | null
+          created_at?: string
+          id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "redemption_catalog_fk"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "rewards_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "redemption_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           attribution_type: string | null
@@ -944,6 +1151,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "rewards_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards_catalog: {
+        Row: {
+          active: boolean
+          cost_in_coins: number
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          name: string
+          stock: number | null
+          tenant_id: string
+          type: string
+        }
+        Insert: {
+          active?: boolean
+          cost_in_coins: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name: string
+          stock?: number | null
+          tenant_id: string
+          type?: string
+        }
+        Update: {
+          active?: boolean
+          cost_in_coins?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name?: string
+          stock?: number | null
+          tenant_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_catalog_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1128,6 +1385,76 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          external_id: string | null
+          id: string
+          integration_id: string | null
+          product_id: string | null
+          raw_data: Json | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          external_id?: string | null
+          id?: string
+          integration_id?: string | null
+          product_id?: string | null
+          raw_data?: Json | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          external_id?: string | null
+          id?: string
+          integration_id?: string | null
+          product_id?: string | null
+          raw_data?: Json | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "payment_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_progress: {
         Row: {
           id: string
@@ -1166,6 +1493,126 @@ export type Database = {
           },
           {
             foreignKeyName: "user_progress_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vitacoin_settings: {
+        Row: {
+          conversion_rate: number
+          id: string
+          max_redemption_daily: number | null
+          metadata: Json | null
+          min_redemption: number
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          conversion_rate?: number
+          id?: string
+          max_redemption_daily?: number | null
+          metadata?: Json | null
+          min_redemption?: number
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          conversion_rate?: number
+          id?: string
+          max_redemption_daily?: number | null
+          metadata?: Json | null
+          min_redemption?: number
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vitacoin_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vitacoin_transactions: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          source: string
+          tenant_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          source?: string
+          tenant_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          source?: string
+          tenant_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vitacoin_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet: {
+        Row: {
+          balance: number
+          id: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          id?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
