@@ -1,7 +1,9 @@
 import React from "react";
 import AppShell from "@/components/layout/AppShell";
-import { Home, Users, Package, DollarSign, BarChart3, Settings, Shield, Handshake, Percent, Brain, Gift, Bell, ShoppingBag } from "lucide-react";
+import { Home, Users, Package, DollarSign, BarChart3, Settings, Shield, Handshake, Percent, Brain, Gift, ShoppingBag } from "lucide-react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useTenant } from "@/contexts/TenantContext";
+import TenantSwitcher from "@/components/tenant/TenantSwitcher";
 
 const coreLinks = [
   { label: "Dashboard", href: "/core", icon: Home },
@@ -31,16 +33,26 @@ const pageTitles: Record<string, string> = {
   "/core/settings": "Configurações",
 };
 
+const PoweredByFooter: React.FC = () => (
+  <p className="text-[10px] text-muted-foreground text-center py-2">
+    Powered by <span className="font-medium">Alvita</span>
+  </p>
+);
+
 const CoreLayout: React.FC = () => {
   const location = useLocation();
-  const headerTitle = pageTitles[location.pathname] || "Vision Core";
+  const { currentTenant } = useTenant();
+  const headerTitle = pageTitles[location.pathname] || "Admin";
+  const tenantName = currentTenant?.name || "Vision Lift";
 
   return (
     <AppShell
-      sidebarTitle="Vision Lift"
+      sidebarTitle={tenantName}
       sidebarSubtitle="Core"
       sidebarLinks={coreLinks}
       sidebarAccentLabel="Admin"
+      sidebarHeader={<TenantSwitcher />}
+      sidebarFooter={<PoweredByFooter />}
       headerTitle={headerTitle}
     >
       <Outlet />

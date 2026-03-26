@@ -3,6 +3,7 @@ import AppShell from "@/components/layout/AppShell";
 import { Home, Package, Gift, BookOpen, Users, Heart, HelpCircle } from "lucide-react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTenant } from "@/contexts/TenantContext";
 
 const clubLinks = [
   { label: "Início", href: "/club", icon: Home },
@@ -25,9 +26,17 @@ const pageTitles: Record<string, string> = {
   "/club/settings": "Configurações",
 };
 
+const PoweredByFooter: React.FC = () => (
+  <p className="text-[10px] text-muted-foreground text-center py-2">
+    Powered by <span className="font-medium">Alvita</span>
+  </p>
+);
+
 const ClubLayout: React.FC = () => {
   const location = useLocation();
-  const headerTitle = pageTitles[location.pathname] || "Vision Lift Club";
+  const { currentTenant } = useTenant();
+  const headerTitle = pageTitles[location.pathname] || "Club";
+  const tenantName = currentTenant?.name || "Vision Lift";
 
   const headerActions = (
     <div className="flex items-center gap-3">
@@ -47,9 +56,10 @@ const ClubLayout: React.FC = () => {
 
   return (
     <AppShell
-      sidebarTitle="Vision Lift"
+      sidebarTitle={tenantName}
       sidebarSubtitle="Club"
       sidebarLinks={clubLinks}
+      sidebarFooter={<PoweredByFooter />}
       headerTitle={headerTitle}
       headerActions={headerActions}
     >
