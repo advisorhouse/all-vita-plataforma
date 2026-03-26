@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { useTenant } from "@/contexts/TenantContext";
 
 const partnerLinks = [
   { label: "Dashboard", href: "/partner", icon: Home },
@@ -26,27 +27,35 @@ const partnerLinks = [
 const SidebarFooterContent: React.FC = () => {
   const navigate = useNavigate();
   return (
-    <button
-      onClick={() => navigate("/partner/levels")}
-      className="w-full rounded-xl border border-warning/30 bg-gradient-to-br from-warning/10 via-warning/5 to-transparent p-3 space-y-2 text-left hover:from-warning/20 hover:via-warning/10 transition-all cursor-pointer"
-    >
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-foreground">Nível de Progressão</p>
-        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-warning/15">
-          <Star className="h-3.5 w-3.5 text-warning" />
+    <div className="space-y-3">
+      <button
+        onClick={() => navigate("/partner/levels")}
+        className="w-full rounded-xl border border-warning/30 bg-gradient-to-br from-warning/10 via-warning/5 to-transparent p-3 space-y-2 text-left hover:from-warning/20 hover:via-warning/10 transition-all cursor-pointer"
+      >
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold text-foreground">Nível de Progressão</p>
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-warning/15">
+            <Star className="h-3.5 w-3.5 text-warning" />
+          </div>
         </div>
-      </div>
-      <p className="text-lg font-bold text-warning">OURO</p>
-      <Progress value={75} className="h-1.5 [&>div]:bg-warning" />
-      <p className="text-[10px] text-warning/70">Ver detalhes →</p>
-    </button>
+        <p className="text-lg font-bold text-warning">OURO</p>
+        <Progress value={75} className="h-1.5 [&>div]:bg-warning" />
+        <p className="text-[10px] text-warning/70">Ver detalhes →</p>
+      </button>
+      <p className="text-[10px] text-muted-foreground text-center">
+        Powered by <span className="font-medium">Alvita</span>
+      </p>
+    </div>
   );
 };
 
 const PartnerLayout: React.FC = () => {
+  const { currentTenant } = useTenant();
+  const tenantName = currentTenant?.name || "Vision Lift";
+
   return (
     <AppShell
-      sidebarTitle="Vision Lift"
+      sidebarTitle={tenantName}
       sidebarSubtitle="Partner"
       sidebarLinks={partnerLinks}
       sidebarFooter={<SidebarFooterContent />}
