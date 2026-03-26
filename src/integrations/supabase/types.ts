@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          action: string
+          created_at: string
+          device: string | null
+          id: string
+          ip: string | null
+          metadata: Json | null
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          device?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          device?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_links: {
         Row: {
           active: boolean
@@ -1064,6 +1108,30 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          count: number
+          expires_at: string
+          id: string
+          key: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          expires_at?: string
+          id?: string
+          key: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          expires_at?: string
+          id?: string
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       redemption_requests: {
         Row: {
           amount: number
@@ -1307,6 +1375,33 @@ export type Database = {
           id?: string
           resource?: string
           role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string
+          id: string
+          ip: string | null
+          metadata: Json | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json | null
+          type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1737,6 +1832,33 @@ export type Database = {
           },
         ]
       }
+      user_security: {
+        Row: {
+          backup_codes: Json | null
+          last_2fa_at: string | null
+          two_fa_enabled: boolean
+          two_fa_secret: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: Json | null
+          last_2fa_at?: string | null
+          two_fa_enabled?: boolean
+          two_fa_secret?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          backup_codes?: Json | null
+          last_2fa_at?: string | null
+          two_fa_enabled?: boolean
+          two_fa_secret?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vitacoin_settings: {
         Row: {
           conversion_rate: number
@@ -1874,6 +1996,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_rate_limit: {
+        Args: { _key: string; _max_count?: number; _window_minutes?: number }
+        Returns: boolean
+      }
       get_partner_id: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: string
@@ -1891,6 +2017,15 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_security_event: {
+        Args: {
+          _ip?: string
+          _metadata?: Json
+          _type: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "super_admin" | "admin" | "manager" | "partner" | "client"
