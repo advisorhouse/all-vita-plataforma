@@ -65,6 +65,7 @@ import CoreSelectRole from "./pages/core/CoreSelectRole";
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminTenants from "./pages/admin/AdminTenants";
+import AdminOnboarding from "./pages/admin/AdminOnboarding";
 
 const queryClient = new QueryClient();
 
