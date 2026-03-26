@@ -890,6 +890,8 @@ export type Database = {
           id: string
           is_active: boolean
           last_name: string | null
+          must_change_password: boolean
+          onboarding_completed: boolean
           phone: string | null
           updated_at: string
         }
@@ -902,6 +904,8 @@ export type Database = {
           id: string
           is_active?: boolean
           last_name?: string | null
+          must_change_password?: boolean
+          onboarding_completed?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -914,6 +918,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_name?: string | null
+          must_change_password?: boolean
+          onboarding_completed?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -1409,9 +1415,104 @@ export type Database = {
           },
         ]
       }
+      tenant_addresses: {
+        Row: {
+          cep: string | null
+          city: string | null
+          complement: string | null
+          country: string
+          created_at: string
+          district: string | null
+          id: string
+          number: string | null
+          state: string | null
+          street: string | null
+          tenant_id: string
+        }
+        Insert: {
+          cep?: string | null
+          city?: string | null
+          complement?: string | null
+          country?: string
+          created_at?: string
+          district?: string | null
+          id?: string
+          number?: string | null
+          state?: string | null
+          street?: string | null
+          tenant_id: string
+        }
+        Update: {
+          cep?: string | null
+          city?: string | null
+          complement?: string | null
+          country?: string
+          created_at?: string
+          district?: string | null
+          id?: string
+          number?: string | null
+          state?: string | null
+          street?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_addresses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_owners: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          rg: string | null
+          role: string
+          tenant_id: string
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          rg?: string | null
+          role?: string
+          tenant_id: string
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          rg?: string | null
+          role?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_owners_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           active: boolean
+          cnpj: string | null
           created_at: string
           domain: string | null
           id: string
@@ -1421,10 +1522,13 @@ export type Database = {
           secondary_color: string | null
           settings: Json | null
           slug: string
+          status: string
+          trade_name: string | null
           updated_at: string
         }
         Insert: {
           active?: boolean
+          cnpj?: string | null
           created_at?: string
           domain?: string | null
           id?: string
@@ -1434,10 +1538,13 @@ export type Database = {
           secondary_color?: string | null
           settings?: Json | null
           slug: string
+          status?: string
+          trade_name?: string | null
           updated_at?: string
         }
         Update: {
           active?: boolean
+          cnpj?: string | null
           created_at?: string
           domain?: string | null
           id?: string
@@ -1447,6 +1554,8 @@ export type Database = {
           secondary_color?: string | null
           settings?: Json | null
           slug?: string
+          status?: string
+          trade_name?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1520,6 +1629,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_consents: {
+        Row: {
+          accepted_at: string
+          id: string
+          ip: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          id?: string
+          ip?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          id?: string
+          ip?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_progress: {
         Row: {
