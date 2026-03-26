@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function logAccessEvent(
   action: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
+  module?: string
 ) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -16,9 +17,9 @@ export async function logAccessEvent(
       user_id: user.id,
       action,
       metadata: metadata || {},
+      module: module || null,
     });
   } catch (e) {
-    // Non-blocking
     console.warn("Access log failed:", e);
   }
 }
