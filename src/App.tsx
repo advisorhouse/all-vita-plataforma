@@ -1,0 +1,123 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import ActivatePage from "./pages/activate/ActivatePage";
+import InviteLanding from "./pages/invite/InviteLanding";
+import ProposalPresentation from "./pages/proposal/ProposalPresentation";
+import WebsiteProposal from "./pages/proposal/WebsiteProposal";
+import PublicQuizPage from "./pages/quiz/PublicQuizPage";
+
+// Layouts
+import ClubLayout from "./layouts/ClubLayout";
+import PartnerLayout from "./layouts/PartnerLayout";
+import CoreLayout from "./layouts/CoreLayout";
+
+// Club pages
+import ClubStart from "./pages/club/ClubStart";
+import ClubDashboard from "./pages/club/ClubDashboard";
+import ClubSubscription from "./pages/club/ClubSubscription";
+import ClubOrders from "./pages/club/ClubOrders";
+import ClubBenefits from "./pages/club/ClubBenefits";
+import ClubContent from "./pages/club/ClubContent";
+import ClubCommunity from "./pages/club/ClubCommunity";
+import ClubSettings from "./pages/club/ClubSettings";
+import ClubReferrals from "./pages/club/ClubReferrals";
+import ClubSupport from "./pages/club/ClubSupport";
+
+// Partner pages
+import PartnerStart from "./pages/partner/PartnerStart";
+import PartnerDashboard from "./pages/partner/PartnerDashboard";
+import PartnerClients from "./pages/partner/PartnerClients";
+import PartnerRevenue from "./pages/partner/PartnerRevenue";
+import PartnerMaterials from "./pages/partner/PartnerMaterials";
+import PartnerLinksPage from "./pages/partner/PartnerLinksPage";
+import PartnerLevels from "./pages/partner/PartnerLevels";
+import PartnerSettings from "./pages/partner/PartnerSettings";
+import PartnerOnboarding from "./pages/partner/PartnerOnboarding";
+import PartnerFormation from "./pages/partner/PartnerFormation";
+import PartnerNetwork from "./pages/partner/PartnerNetwork";
+import PartnerReferrals from "./pages/partner/PartnerReferrals";
+import PartnerRanking from "./pages/partner/PartnerRanking";
+import PartnerSupport from "./pages/partner/PartnerSupport";
+import PartnerReferredPartners from "./pages/partner/PartnerReferredPartners";
+
+// Core pages
+import { CoreDashboard, CoreCustomers, CoreSubscriptions, CoreFinance, CoreReports, CorePermissions, CoreSettings, CorePartners, CoreCommissions, CoreGamification, CoreProducts } from "./pages/core";
+import CoreSelectRole from "./pages/core/CoreSelectRole";
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/activate" element={<ActivatePage />} />
+          <Route path="/invite/:token" element={<InviteLanding />} />
+          <Route path="/proposta" element={<ProposalPresentation />} />
+          <Route path="/proposta-site" element={<WebsiteProposal />} />
+          <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
+
+          {/* Club (Cliente) */}
+          <Route path="/club/start" element={<ClubStart />} />
+          <Route path="/club" element={<ClubLayout />}>
+            <Route index element={<ClubDashboard />} />
+            <Route path="subscription" element={<ClubSubscription />} />
+            <Route path="orders" element={<ClubOrders />} />
+            <Route path="benefits" element={<ClubBenefits />} />
+            <Route path="content" element={<ClubContent />} />
+            <Route path="community" element={<ClubCommunity />} />
+            <Route path="referrals" element={<ClubReferrals />} />
+            <Route path="support" element={<ClubSupport />} />
+            <Route path="settings" element={<ClubSettings />} />
+          </Route>
+
+          {/* Partner (Afiliado) */}
+          <Route path="/partner/start" element={<PartnerStart />} />
+          <Route path="/partner/onboarding" element={<PartnerOnboarding />} />
+          <Route path="/partner" element={<PartnerLayout />}>
+            <Route index element={<PartnerDashboard />} />
+            <Route path="network" element={<PartnerNetwork />} />
+            <Route path="referrals" element={<PartnerReferrals />} />
+            <Route path="formation" element={<PartnerFormation />} />
+            <Route path="clients" element={<PartnerClients />} />
+            <Route path="revenue" element={<PartnerRevenue />} />
+            <Route path="materials" element={<PartnerMaterials />} />
+            <Route path="links" element={<PartnerLinksPage />} />
+            <Route path="levels" element={<PartnerLevels />} />
+            <Route path="ranking" element={<PartnerRanking />} />
+            <Route path="referred-partners" element={<PartnerReferredPartners />} />
+            <Route path="support" element={<PartnerSupport />} />
+            <Route path="settings" element={<PartnerSettings />} />
+          </Route>
+
+          {/* Core (Admin) */}
+          <Route path="/core/select-role" element={<CoreSelectRole />} />
+          <Route path="/core" element={<CoreLayout />}>
+            <Route index element={<CoreDashboard />} />
+            <Route path="customers" element={<CoreCustomers />} />
+            <Route path="partners" element={<CorePartners />} />
+            <Route path="subscriptions" element={<CoreSubscriptions />} />
+            <Route path="commissions" element={<CoreCommissions />} />
+            <Route path="finance" element={<CoreFinance />} />
+            <Route path="reports" element={<CoreReports />} />
+            <Route path="gamification" element={<CoreGamification />} />
+            <Route path="products" element={<CoreProducts />} />
+            <Route path="permissions" element={<CorePermissions />} />
+            <Route path="settings" element={<CoreSettings />} />
+          </Route>
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;

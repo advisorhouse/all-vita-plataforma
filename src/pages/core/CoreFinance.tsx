@@ -1,0 +1,434 @@
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
+  CreditCard, Wallet, Receipt, Download, Calendar, FileText,
+  BarChart3, PieChart as PieChartIcon, Landmark, CircleDollarSign,
+  CheckCircle, Clock, XCircle, Users, Banknote,
+} from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { InfoTip } from "@/components/ui/info-tip";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
+  ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell,
+  ComposedChart, Line,
+} from "recharts";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.05, duration: 0.38, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+  }),
+};
+
+/* ─── Mock Data ─── */
+const REVENUE_MONTHLY = [
+  { month: "Set", receita: 42800, custos: 14980, comissoes: 5350, lucro: 22470 },
+  { month: "Out", receita: 51200, custos: 17920, comissoes: 6400, lucro: 26880 },
+  { month: "Nov", receita: 58900, custos: 20615, comissoes: 7360, lucro: 30925 },
+  { month: "Dez", receita: 64300, custos: 22505, comissoes: 8040, lucro: 33755 },
+  { month: "Jan", receita: 71500, custos: 25025, comissoes: 8940, lucro: 37535 },
+  { month: "Fev", receita: 78200, custos: 27370, comissoes: 9780, lucro: 41050 },
+];
+
+const CASHFLOW_DATA = [
+  { month: "Set", entradas: 42800, saidas: 20330, saldo: 22470 },
+  { month: "Out", entradas: 51200, saidas: 24320, saldo: 26880 },
+  { month: "Nov", entradas: 58900, saidas: 27975, saldo: 30925 },
+  { month: "Dez", entradas: 64300, saidas: 30545, saldo: 33755 },
+  { month: "Jan", entradas: 71500, saidas: 33965, saldo: 37535 },
+  { month: "Fev", entradas: 78200, saidas: 37150, saldo: 41050 },
+];
+
+const EXPENSE_BREAKDOWN = [
+  { name: "Produto/Envio", value: 27370, color: "hsl(var(--primary))" },
+  { name: "Comissões", value: 9780, color: "hsl(var(--accent))" },
+  { name: "Marketing", value: 4690, color: "hsl(var(--destructive))" },
+  { name: "Operacional", value: 3910, color: "hsl(var(--muted-foreground))" },
+  { name: "Plataforma", value: 1560, color: "hsl(var(--warning))" },
+];
+
+const PAYOUTS = [
+  { id: "PAY-042", partner: "Dra. Marina Costa", amount: 2450.80, status: "paid", date: "28/02/2026", method: "PIX", clients: 12 },
+  { id: "PAY-041", partner: "Dr. Ricardo Alves", amount: 1890.50, status: "paid", date: "28/02/2026", method: "PIX", clients: 9 },
+  { id: "PAY-040", partner: "Dra. Camila Reis", amount: 1340.20, status: "paid", date: "28/02/2026", method: "PIX", clients: 7 },
+  { id: "PAY-039", partner: "Dr. Felipe Santos", amount: 980.00, status: "paid", date: "28/02/2026", method: "PIX", clients: 5 },
+  { id: "PAY-038", partner: "Dra. Marina Costa", amount: 2280.40, status: "paid", date: "28/01/2026", method: "PIX", clients: 11 },
+  { id: "PAY-037", partner: "Dr. Ricardo Alves", amount: 1750.90, status: "paid", date: "28/01/2026", method: "PIX", clients: 8 },
+];
+
+const PENDING_PAYOUTS = [
+  { partner: "Dra. Marina Costa", amount: 2680.30, clients: 13, dueDate: "28/03/2026" },
+  { partner: "Dr. Ricardo Alves", amount: 2010.70, clients: 10, dueDate: "28/03/2026" },
+  { partner: "Dra. Camila Reis", amount: 1520.40, clients: 8, dueDate: "28/03/2026" },
+  { partner: "Dr. Felipe Santos", amount: 1180.60, clients: 6, dueDate: "28/03/2026" },
+  { partner: "Dra. Juliana Mota", amount: 890.20, clients: 4, dueDate: "28/03/2026" },
+];
+
+const INVOICES = [
+  { id: "NF-1892", client: "Maria S.", amount: 199.90, status: "paid", date: "15/02/2026", partner: "Dra. Marina Costa" },
+  { id: "NF-1891", client: "Ana P.", amount: 149.90, status: "paid", date: "15/02/2026", partner: "Dr. Ricardo Alves" },
+  { id: "NF-1890", client: "Juliana M.", amount: 199.90, status: "paid", date: "14/02/2026", partner: "Dra. Marina Costa" },
+  { id: "NF-1889", client: "Carla R.", amount: 149.90, status: "pending", date: "14/02/2026", partner: "Dra. Camila Reis" },
+  { id: "NF-1888", client: "Fernanda L.", amount: 499.70, status: "paid", date: "13/02/2026", partner: "Dr. Ricardo Alves" },
+  { id: "NF-1887", client: "Patrícia D.", amount: 149.90, status: "overdue", date: "10/02/2026", partner: "Dra. Camila Reis" },
+  { id: "NF-1886", client: "Beatriz G.", amount: 199.90, status: "paid", date: "08/02/2026", partner: "Dra. Marina Costa" },
+  { id: "NF-1885", client: "Camila V.", amount: 199.90, status: "paid", date: "08/02/2026", partner: "Dr. Ricardo Alves" },
+];
+
+const CoreFinance: React.FC = () => {
+  const totalRevenue = 78200;
+  const totalExpenses = 37150;
+  const netProfit = 41050;
+  const profitMargin = ((netProfit / totalRevenue) * 100).toFixed(1);
+  const pendingTotal = PENDING_PAYOUTS.reduce((s, p) => s + p.amount, 0);
+  const paidThisMonth = PAYOUTS.filter(p => p.date.includes("02/2026")).reduce((s, p) => s + p.amount, 0);
+
+  return (
+    <TooltipProvider delayDuration={200}>
+    <div className="space-y-6 pb-12">
+      {/* KPIs */}
+      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+        {[
+          { label: "Receita Mensal", value: `R$ ${(totalRevenue / 1000).toFixed(1)}k`, change: "+9.4%", up: true, icon: DollarSign, tip: "Receita bruta total do mês corrente, somando todas as assinaturas e vendas avulsas." },
+          { label: "Lucro Líquido", value: `R$ ${(netProfit / 1000).toFixed(1)}k`, change: "+9.3%", up: true, icon: TrendingUp, tip: "Receita menos todos os custos (produto, envio, comissões, marketing, plataforma)." },
+          { label: "Margem Líquida", value: `${profitMargin}%`, change: "+0.2pp", up: true, icon: BarChart3, tip: "Percentual de lucro sobre a receita. Acima de 50% é considerado excelente para o segmento." },
+          { label: "Comissões Pagas", value: `R$ ${(paidThisMonth / 1000).toFixed(1)}k`, change: "+8.1%", up: true, icon: Banknote, tip: "Total de comissões já pagas aos partners neste mês." },
+          { label: "A Pagar (Próx.)", value: `R$ ${(pendingTotal / 1000).toFixed(1)}k`, change: `${PENDING_PAYOUTS.length} partners`, up: false, icon: Clock, tip: "Comissões pendentes de pagamento para o próximo ciclo." },
+        ].map(({ label, value, change, up, icon: Icon, tip }) => (
+          <Card key={label} className="border border-border shadow-sm">
+            <CardContent className="p-4 space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+                  <InfoTip text={tip} />
+                </div>
+              </div>
+              <p className="text-xl font-semibold text-foreground">{value}</p>
+              <p className={cn("text-[10px] font-medium flex items-center gap-0.5",
+                up ? "text-primary" : "text-muted-foreground"
+              )}>
+                {up && <ArrowUpRight className="h-3 w-3" />}
+                {change}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </motion.div>
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="flex flex-wrap h-auto gap-1">
+          <TabsTrigger value="overview" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Visão Geral</TabsTrigger>
+          <TabsTrigger value="payouts" className="gap-1.5 text-xs"><Banknote className="h-3.5 w-3.5" />Repasses</TabsTrigger>
+          <TabsTrigger value="invoices" className="gap-1.5 text-xs"><Receipt className="h-3.5 w-3.5" />Faturamento</TabsTrigger>
+          <TabsTrigger value="cashflow" className="gap-1.5 text-xs"><Wallet className="h-3.5 w-3.5" />Fluxo de Caixa</TabsTrigger>
+        </TabsList>
+
+        {/* ===== VISÃO GERAL ===== */}
+        <TabsContent value="overview" className="space-y-4 mt-4">
+          <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-4 lg:grid-cols-5">
+            {/* Revenue vs Expenses Chart */}
+            <Card className="border border-border shadow-sm lg:col-span-3">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Receita vs. Custos vs. Lucro</CardTitle>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />CSV</Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={REVENUE_MONTHLY}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                      <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }}
+                        formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]} />
+                      <Legend wrapperStyle={{ fontSize: 10 }} />
+                      <Bar dataKey="receita" name="Receita" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="custos" name="Custos" fill="hsl(var(--muted-foreground)/0.4)" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="comissoes" name="Comissões" fill="hsl(var(--accent))" radius={[3, 3, 0, 0]} />
+                      <Line type="monotone" dataKey="lucro" name="Lucro" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Expense Breakdown */}
+            <Card className="border border-border shadow-sm lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Composição de Custos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-40 flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={EXPENSE_BREAKDOWN} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={2} dataKey="value">
+                        {EXPENSE_BREAKDOWN.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      </Pie>
+                      <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }}
+                        formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-1.5 mt-2">
+                  {EXPENSE_BREAKDOWN.map((e) => (
+                    <div key={e.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: e.color }} />
+                        <span className="text-[10px] text-muted-foreground">{e.name}</span>
+                      </div>
+                      <span className="text-[10px] font-medium text-foreground">R$ {(e.value / 1000).toFixed(1)}k</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Margin Health */}
+          <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Saúde Financeira</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    { label: "Margem Bruta", value: "65.0%", bar: 65, status: "Saudável" },
+                    { label: "Margem Líquida", value: `${profitMargin}%`, bar: parseFloat(profitMargin), status: "Saudável" },
+                    { label: "Comissão/Receita", value: "12.5%", bar: 12.5, status: "Dentro da meta" },
+                    { label: "CAC Payback", value: "2.8 meses", bar: 72, status: "Eficiente" },
+                  ].map((m) => (
+                    <div key={m.label} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] text-muted-foreground uppercase">{m.label}</p>
+                        <Badge variant="secondary" className="text-[9px]">{m.status}</Badge>
+                      </div>
+                      <p className="text-lg font-semibold text-foreground">{m.value}</p>
+                      <Progress value={m.bar} className="h-1.5" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ===== REPASSES ===== */}
+        <TabsContent value="payouts" className="space-y-4 mt-4">
+          {/* Pending Payouts */}
+          <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  Repasses Pendentes — Março/2026
+                </CardTitle>
+                <Badge variant="outline" className="text-[10px]">R$ {pendingTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {PENDING_PAYOUTS.map((p) => (
+                    <div key={p.partner} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-foreground">
+                          {p.partner.split(" ").slice(-1)[0][0]}{p.partner.split(" ").slice(-2)[0][0]}
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-foreground">{p.partner}</p>
+                          <p className="text-[10px] text-muted-foreground">{p.clients} clientes · Venc. {p.dueDate}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">R$ {p.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Payout History */}
+          <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm overflow-hidden">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Histórico de Repasses</CardTitle>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />Exportar</Button>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[10px]">ID</TableHead>
+                    <TableHead className="text-[10px]">Partner</TableHead>
+                    <TableHead className="text-[10px]">Clientes</TableHead>
+                    <TableHead className="text-[10px]">Método</TableHead>
+                    <TableHead className="text-[10px]">Data</TableHead>
+                    <TableHead className="text-[10px] text-right">Valor</TableHead>
+                    <TableHead className="text-[10px]">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {PAYOUTS.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="text-[11px] font-mono text-muted-foreground">{p.id}</TableCell>
+                      <TableCell className="text-xs font-medium text-foreground">{p.partner}</TableCell>
+                      <TableCell className="text-xs text-foreground">{p.clients}</TableCell>
+                      <TableCell><Badge variant="secondary" className="text-[9px]">{p.method}</Badge></TableCell>
+                      <TableCell className="text-[11px] text-muted-foreground">{p.date}</TableCell>
+                      <TableCell className="text-right text-xs font-semibold text-foreground">R$ {p.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell>
+                        <Badge variant="default" className="text-[9px] gap-1">
+                          <CheckCircle className="h-3 w-3" /> Pago
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ===== FATURAMENTO ===== */}
+        <TabsContent value="invoices" className="space-y-4 mt-4">
+          <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 sm:grid-cols-3">
+            {[
+              { label: "Pagas", count: INVOICES.filter(i => i.status === "paid").length, total: INVOICES.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0), icon: CheckCircle, color: "text-primary" },
+              { label: "Pendentes", count: INVOICES.filter(i => i.status === "pending").length, total: INVOICES.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0), icon: Clock, color: "text-accent-foreground" },
+              { label: "Vencidas", count: INVOICES.filter(i => i.status === "overdue").length, total: INVOICES.filter(i => i.status === "overdue").reduce((s, i) => s + i.amount, 0), icon: XCircle, color: "text-destructive" },
+            ].map((g) => (
+              <Card key={g.label} className="border border-border shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <g.icon className={cn("h-5 w-5", g.color)} />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase">{g.label} ({g.count})</p>
+                    <p className="text-lg font-semibold text-foreground">R$ {g.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </motion.div>
+
+          <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm overflow-hidden">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Notas Fiscais</CardTitle>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />Exportar</Button>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[10px]">NF</TableHead>
+                    <TableHead className="text-[10px]">Cliente</TableHead>
+                    <TableHead className="text-[10px]">Partner</TableHead>
+                    <TableHead className="text-[10px]">Data</TableHead>
+                    <TableHead className="text-[10px] text-right">Valor</TableHead>
+                    <TableHead className="text-[10px]">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {INVOICES.map((inv) => (
+                    <TableRow key={inv.id}>
+                      <TableCell className="text-[11px] font-mono text-muted-foreground">{inv.id}</TableCell>
+                      <TableCell className="text-xs font-medium text-foreground">{inv.client}</TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground">{inv.partner}</TableCell>
+                      <TableCell className="text-[11px] text-muted-foreground">{inv.date}</TableCell>
+                      <TableCell className="text-right text-xs font-semibold text-foreground">R$ {inv.amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant={inv.status === "paid" ? "default" : inv.status === "pending" ? "secondary" : "destructive"} className="text-[9px] gap-1">
+                          {inv.status === "paid" ? <><CheckCircle className="h-3 w-3" /> Paga</> :
+                           inv.status === "pending" ? <><Clock className="h-3 w-3" /> Pendente</> :
+                           <><XCircle className="h-3 w-3" /> Vencida</>}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ===== FLUXO DE CAIXA ===== */}
+        <TabsContent value="cashflow" className="space-y-4 mt-4">
+          <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Fluxo de Caixa — Últimos 6 Meses</CardTitle>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />CSV</Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={CASHFLOW_DATA}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                      <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }}
+                        formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]} />
+                      <Legend wrapperStyle={{ fontSize: 10 }} />
+                      <Bar dataKey="entradas" name="Entradas" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="saidas" name="Saídas" fill="hsl(var(--destructive)/0.5)" radius={[3, 3, 0, 0]} />
+                      <Line type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(var(--foreground))" strokeWidth={2} dot={{ r: 3 }} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Cash flow table */}
+          <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Detalhamento Mensal</CardTitle>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[10px]">Mês</TableHead>
+                    <TableHead className="text-[10px] text-right">Entradas</TableHead>
+                    <TableHead className="text-[10px] text-right">Saídas</TableHead>
+                    <TableHead className="text-[10px] text-right">Saldo</TableHead>
+                    <TableHead className="text-[10px] text-right">Margem</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {CASHFLOW_DATA.map((row) => {
+                    const margin = ((row.saldo / row.entradas) * 100).toFixed(1);
+                    return (
+                      <TableRow key={row.month}>
+                        <TableCell className="text-xs font-medium text-foreground">{row.month}/2026</TableCell>
+                        <TableCell className="text-right text-xs text-primary font-medium">R$ {row.entradas.toLocaleString("pt-BR")}</TableCell>
+                        <TableCell className="text-right text-xs text-destructive font-medium">R$ {row.saidas.toLocaleString("pt-BR")}</TableCell>
+                        <TableCell className="text-right text-xs font-semibold text-foreground">R$ {row.saldo.toLocaleString("pt-BR")}</TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant="secondary" className="text-[9px]">{margin}%</Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Card>
+          </motion.div>
+        </TabsContent>
+      </Tabs>
+    </div>
+    </TooltipProvider>
+  );
+};
+
+export default CoreFinance;
