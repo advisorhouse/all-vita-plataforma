@@ -105,7 +105,7 @@ const PublicQuizPage: React.FC = () => {
     if (!doctorCode) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("quiz_submissions").insert({
+      const { error } = await (supabase.from as any)("quiz_submissions").insert({
         full_name: data.fullName,
         cpf: data.cpf,
         phone: data.phone,

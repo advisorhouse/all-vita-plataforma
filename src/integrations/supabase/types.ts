@@ -14,7 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      quiz_submissions: {
+        Row: {
+          age: number | null
+          consent_contact_email: boolean | null
+          consent_contact_phone: boolean | null
+          consent_contact_sms: boolean | null
+          consent_contact_social: boolean | null
+          consent_contact_whatsapp: boolean | null
+          consent_data_usage: boolean | null
+          consultation_reason: string | null
+          continuous_medications: boolean | null
+          cpf: string
+          created_at: string | null
+          doctor_code: string
+          email: string
+          eye_drops_detail: string | null
+          full_name: string
+          had_eye_surgery: boolean | null
+          had_eye_trauma: boolean | null
+          health_conditions: string[] | null
+          id: string
+          medications_detail: string | null
+          other_conditions: string | null
+          other_reason: string | null
+          phone: string
+          sex: string | null
+          surgery_detail: string | null
+          uses_eye_drops: boolean | null
+        }
+        Insert: {
+          age?: number | null
+          consent_contact_email?: boolean | null
+          consent_contact_phone?: boolean | null
+          consent_contact_sms?: boolean | null
+          consent_contact_social?: boolean | null
+          consent_contact_whatsapp?: boolean | null
+          consent_data_usage?: boolean | null
+          consultation_reason?: string | null
+          continuous_medications?: boolean | null
+          cpf: string
+          created_at?: string | null
+          doctor_code: string
+          email: string
+          eye_drops_detail?: string | null
+          full_name: string
+          had_eye_surgery?: boolean | null
+          had_eye_trauma?: boolean | null
+          health_conditions?: string[] | null
+          id?: string
+          medications_detail?: string | null
+          other_conditions?: string | null
+          other_reason?: string | null
+          phone: string
+          sex?: string | null
+          surgery_detail?: string | null
+          uses_eye_drops?: boolean | null
+        }
+        Update: {
+          age?: number | null
+          consent_contact_email?: boolean | null
+          consent_contact_phone?: boolean | null
+          consent_contact_sms?: boolean | null
+          consent_contact_social?: boolean | null
+          consent_contact_whatsapp?: boolean | null
+          consent_data_usage?: boolean | null
+          consultation_reason?: string | null
+          continuous_medications?: boolean | null
+          cpf?: string
+          created_at?: string | null
+          doctor_code?: string
+          email?: string
+          eye_drops_detail?: string | null
+          full_name?: string
+          had_eye_surgery?: boolean | null
+          had_eye_trauma?: boolean | null
+          health_conditions?: string[] | null
+          id?: string
+          medications_detail?: string | null
+          other_conditions?: string | null
+          other_reason?: string | null
+          phone?: string
+          sex?: string | null
+          surgery_detail?: string | null
+          uses_eye_drops?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
