@@ -35,7 +35,7 @@ const LoginPage: React.FC = () => {
         }
         return;
       }
-      // Redirect will be handled by AuthGuard after memberships load
+      await logAccessEvent("login", { method: "password" });
       navigate("/");
     } catch {
       toast.error("Erro ao fazer login");

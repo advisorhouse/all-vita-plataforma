@@ -36,6 +36,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
+    try {
+      const { logAccessEvent } = await import("@/lib/security-logger");
+      await logAccessEvent("logout");
+    } catch {}
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
