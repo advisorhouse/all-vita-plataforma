@@ -1,0 +1,284 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tenant-id",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return jsonRes(401, { error: "Unauthorized" });
+  }
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data: userData, error: authError } = await userClient.auth.getUser(token);
+  if (authError || !userData?.user) {
+    return jsonRes(401, { error: "Invalid token" });
+  }
+
+  const callerUserId = userData.user.id;
+  const tenantId = req.headers.get("X-Tenant-Id");
+  const adminClient = createClient(supabaseUrl, serviceKey);
+
+  if (!tenantId) {
+    return jsonRes(400, { error: "X-Tenant-Id header required" });
+  }
+
+  // Check caller is admin or super_admin for this tenant
+  const { data: callerMembership } = await adminClient
+    .from("memberships")
+    .select("role")
+    .eq("user_id", callerUserId)
+    .eq("active", true)
+    .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
+    .limit(10);
+
+  const isAdmin = callerMembership?.some(
+    (m: any) => m.role === "super_admin" || m.role === "admin"
+  );
+
+  if (!isAdmin) {
+    return jsonRes(403, { error: "Only admins can manage users" });
+  }
+
+  const url = new URL(req.url);
+  const pathParts = url.pathname.split("/").filter(Boolean);
+  const action = pathParts[2] || "";
+
+  try {
+    switch (action) {
+      case "list": {
+        // List all memberships + profiles for this tenant
+        const { data: members, error } = await adminClient
+          .from("memberships")
+          .select("id, user_id, role, active, created_at")
+          .eq("tenant_id", tenantId)
+          .eq("active", true);
+
+        if (error) return jsonRes(400, { error: error.message });
+
+        // Fetch profiles for these users
+        const userIds = members?.map((m: any) => m.user_id) || [];
+        const { data: profiles } = await adminClient
+          .from("profiles")
+          .select("id, email, first_name, last_name, phone, avatar_url")
+          .in("id", userIds);
+
+        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+
+        const enriched = (members || []).map((m: any) => ({
+          ...m,
+          profile: profileMap.get(m.user_id) || null,
+        }));
+
+        return jsonRes(200, { data: enriched });
+      }
+
+      case "create": {
+        const body = await req.json();
+        const { email, full_name, phone, role } = body;
+
+        if (!email || !full_name || !role) {
+          return jsonRes(400, { error: "email, full_name and role are required" });
+        }
+
+        const validRoles = ["admin", "manager", "partner", "client"];
+        if (!validRoles.includes(role)) {
+          return jsonRes(400, { error: `Invalid role. Must be one of: ${validRoles.join(", ")}` });
+        }
+
+        // Generate temp password
+        const tempPassword = generateTempPassword();
+
+        // Create user via Supabase Auth
+        let userId: string;
+        const { data: authUser, error: signupError } = await adminClient.auth.admin.createUser({
+          email,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: {
+            first_name: full_name.split(" ")[0],
+            last_name: full_name.split(" ").slice(1).join(" "),
+          },
+        });
+
+        if (signupError) {
+          if (signupError.message?.includes("already been registered")) {
+            // Find existing user
+            const { data: existingUsers } = await adminClient.auth.admin.listUsers();
+            const existing = existingUsers?.users?.find((u: any) => u.email === email);
+            if (!existing) return jsonRes(400, { error: "User exists but could not be found" });
+            userId = existing.id;
+          } else {
+            return jsonRes(400, { error: signupError.message });
+          }
+        } else {
+          userId = authUser.user.id;
+        }
+
+        // Update profile flags
+        await adminClient
+          .from("profiles")
+          .update({ must_change_password: true, onboarding_completed: false })
+          .eq("id", userId);
+
+        // Create membership
+        const { error: memberError } = await adminClient.from("memberships").upsert({
+          user_id: userId,
+          tenant_id: tenantId,
+          role,
+          active: true,
+        }, { onConflict: "user_id,tenant_id" }).select();
+
+        // The upsert may fail if there's no unique constraint on (user_id, tenant_id)
+        // In that case, just insert
+        if (memberError) {
+          await adminClient.from("memberships").insert({
+            user_id: userId,
+            tenant_id: tenantId,
+            role,
+            active: true,
+          });
+        }
+
+        // If role is admin/manager, create tenant_staff record
+        if (["admin", "manager"].includes(role)) {
+          await adminClient.from("tenant_staff").upsert({
+            tenant_id: tenantId,
+            user_id: userId,
+            role: role === "admin" ? "admin" : "manager",
+            is_active: true,
+          }, { onConflict: "tenant_id,user_id" });
+        }
+
+        // Send welcome email
+        try {
+          const { data: tenant } = await adminClient
+            .from("tenants")
+            .select("name, trade_name, slug")
+            .eq("id", tenantId)
+            .single();
+
+          await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${serviceKey}`,
+            },
+            body: JSON.stringify({
+              to: email,
+              subject: `Você foi convidado para ${tenant?.trade_name || tenant?.name || "a plataforma"}`,
+              html: `
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
+                  <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo!</h1>
+                  <p>Olá <strong>${full_name}</strong>,</p>
+                  <p>Você foi convidado para a plataforma <strong>${tenant?.trade_name || tenant?.name}</strong>.</p>
+                  <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
+                    <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
+                  </div>
+                  <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Troque sua senha no primeiro acesso.</p>
+                  <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
+                </div>
+              `,
+            }),
+          });
+        } catch (e) {
+          console.warn("Email send failed (non-blocking):", e);
+        }
+
+        // Audit
+        await adminClient.from("audit_logs").insert({
+          user_id: callerUserId,
+          tenant_id: tenantId,
+          action: "user_created",
+          resource: "memberships",
+          resource_id: userId,
+          details: { email, role, full_name },
+        });
+
+        return jsonRes(201, { user_id: userId, email, role });
+      }
+
+      case "update": {
+        const body = await req.json();
+        const { user_id, role, active } = body;
+
+        if (!user_id) return jsonRes(400, { error: "user_id required" });
+
+        const updates: any = {};
+        if (role !== undefined) updates.role = role;
+        if (active !== undefined) updates.active = active;
+
+        const { error } = await adminClient
+          .from("memberships")
+          .update(updates)
+          .eq("user_id", user_id)
+          .eq("tenant_id", tenantId);
+
+        if (error) return jsonRes(400, { error: error.message });
+
+        return jsonRes(200, { success: true });
+      }
+
+      case "deactivate": {
+        const body = await req.json();
+        const { user_id } = body;
+
+        if (!user_id) return jsonRes(400, { error: "user_id required" });
+
+        await adminClient
+          .from("memberships")
+          .update({ active: false })
+          .eq("user_id", user_id)
+          .eq("tenant_id", tenantId);
+
+        await adminClient
+          .from("tenant_staff")
+          .update({ is_active: false })
+          .eq("user_id", user_id)
+          .eq("tenant_id", tenantId);
+
+        return jsonRes(200, { success: true });
+      }
+
+      default:
+        return jsonRes(404, { error: `Unknown action: ${action}` });
+    }
+  } catch (error) {
+    console.error("User management error:", error);
+    return jsonRes(500, { error: error.message });
+  }
+});
+
+function generateTempPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+  let pw = "";
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  for (const b of arr) pw += chars[b % chars.length];
+  return pw;
+}
+
+function jsonRes(status: number, body: any) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tenant-id",
+      "Content-Type": "application/json",
+    },
+  });
+}

@@ -59,7 +59,7 @@ import PartnerSupport from "./pages/partner/PartnerSupport";
 import PartnerReferredPartners from "./pages/partner/PartnerReferredPartners";
 
 // Core pages
-import { CoreDashboard, CoreCustomers, CoreSubscriptions, CoreFinance, CoreReports, CorePermissions, CoreSettings, CorePartners, CoreCommissions, CoreGamification, CoreProducts } from "./pages/core";
+import { CoreDashboard, CoreCustomers, CoreSubscriptions, CoreFinance, CoreReports, CorePermissions, CoreSettings, CorePartners, CoreCommissions, CoreGamification, CoreProducts, CoreUsers } from "./pages/core";
 import CoreSelectRole from "./pages/core/CoreSelectRole";
 
 // Admin pages
@@ -140,6 +140,7 @@ const App = () => (
                 <Route path="products" element={<CoreProducts />} />
                 <Route path="permissions" element={<CorePermissions />} />
                 <Route path="settings" element={<CoreSettings />} />
+                <Route path="users" element={<CoreUsers />} />
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
