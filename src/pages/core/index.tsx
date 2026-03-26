@@ -12,3 +12,4 @@ export { default as CoreCommissions } from "./CoreCommissions";
 export { default as CoreSettings } from "./CoreSettings";
 export { default as CoreGamification } from "./CoreGamification";
 export { default as CoreProducts } from "./CoreProducts";
+export { default as CoreUsers } from "./CoreUsers";

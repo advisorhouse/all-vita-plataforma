@@ -140,6 +140,7 @@ const App = () => (
                 <Route path="products" element={<CoreProducts />} />
                 <Route path="permissions" element={<CorePermissions />} />
                 <Route path="settings" element={<CoreSettings />} />
+                <Route path="users" element={<CoreUsers />} />
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
