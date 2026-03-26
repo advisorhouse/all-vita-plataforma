@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function logAccessEvent(
   action: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
+  module?: string
 ) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -16,9 +17,9 @@ export async function logAccessEvent(
       user_id: user.id,
       action,
       metadata: metadata || {},
+      module: module || null,
     });
   } catch (e) {
-    // Non-blocking
     console.warn("Access log failed:", e);
   }
 }
@@ -28,7 +29,8 @@ export async function logAccessEvent(
  */
 export async function logSecurityEvent(
   type: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
+  severity: "low" | "medium" | "high" | "critical" = "medium"
 ) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -36,6 +38,7 @@ export async function logSecurityEvent(
       user_id: user?.id || null,
       type,
       metadata: metadata || {},
+      severity,
     });
   } catch (e) {
     console.warn("Security event log failed:", e);

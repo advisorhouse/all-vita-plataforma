@@ -21,7 +21,9 @@ export type Database = {
           device: string | null
           id: string
           ip: string | null
+          location: string | null
           metadata: Json | null
+          module: string | null
           tenant_id: string | null
           user_agent: string | null
           user_id: string | null
@@ -32,7 +34,9 @@ export type Database = {
           device?: string | null
           id?: string
           ip?: string | null
+          location?: string | null
           metadata?: Json | null
+          module?: string | null
           tenant_id?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -43,7 +47,9 @@ export type Database = {
           device?: string | null
           id?: string
           ip?: string | null
+          location?: string | null
           metadata?: Json | null
+          module?: string | null
           tenant_id?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -174,35 +180,53 @@ export type Database = {
       audit_logs: {
         Row: {
           action: string
+          actor_type: string | null
           created_at: string
           details: Json | null
+          entity_id: string | null
+          entity_type: string | null
           id: string
           ip: string | null
+          new_data: Json | null
+          old_data: Json | null
           resource: string | null
           resource_id: string | null
           tenant_id: string | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
           action: string
+          actor_type?: string | null
           created_at?: string
           details?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
           ip?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
           resource?: string | null
           resource_id?: string | null
           tenant_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           action?: string
+          actor_type?: string | null
           created_at?: string
           details?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
           ip?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
           resource?: string | null
           resource_id?: string | null
           tenant_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -522,6 +546,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      entity_versions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          data_snapshot: Json
+          entity_id: string
+          entity_type: string
+          id: string
+          version: number
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          data_snapshot?: Json
+          entity_id: string
+          entity_type: string
+          id?: string
+          version?: number
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          data_snapshot?: Json
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          version?: number
+        }
+        Relationships: []
       }
       gamification: {
         Row: {
@@ -1384,6 +1438,7 @@ export type Database = {
           id: string
           ip: string | null
           metadata: Json | null
+          severity: string | null
           type: string
           user_id: string | null
         }
@@ -1392,6 +1447,7 @@ export type Database = {
           id?: string
           ip?: string | null
           metadata?: Json | null
+          severity?: string | null
           type: string
           user_id?: string | null
         }
@@ -1400,6 +1456,7 @@ export type Database = {
           id?: string
           ip?: string | null
           metadata?: Json | null
+          severity?: string | null
           type?: string
           user_id?: string | null
         }
@@ -1984,6 +2041,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anonymize_user_data: { Args: { _user_id: string }; Returns: undefined }
       belongs_to_tenant: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -1999,6 +2057,31 @@ export type Database = {
       check_rate_limit: {
         Args: { _key: string; _max_count?: number; _window_minutes?: number }
         Returns: boolean
+      }
+      create_audit_log: {
+        Args: {
+          _action: string
+          _actor_type: string
+          _entity_id?: string
+          _entity_type?: string
+          _ip?: string
+          _metadata?: Json
+          _new_data?: Json
+          _old_data?: Json
+          _tenant_id: string
+          _user_agent?: string
+          _user_id: string
+        }
+        Returns: string
+      }
+      create_entity_version: {
+        Args: {
+          _changed_by?: string
+          _data_snapshot: Json
+          _entity_id: string
+          _entity_type: string
+        }
+        Returns: number
       }
       get_partner_id: {
         Args: { _tenant_id: string; _user_id: string }
