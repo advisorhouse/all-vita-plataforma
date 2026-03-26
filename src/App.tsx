@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import AppBootstrap from "@/components/tenant/AppBootstrap";
+import AuthGuard from "@/components/auth/AuthGuard";
+
+// Public pages
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ActivatePage from "./pages/activate/ActivatePage";
@@ -13,6 +16,12 @@ import InviteLanding from "./pages/invite/InviteLanding";
 import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
+
+// Auth pages
+import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 // Layouts
 import ClubLayout from "./layouts/ClubLayout";
@@ -69,6 +78,7 @@ const App = () => (
           <TenantProvider>
             <AppBootstrap />
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/activate" element={<ActivatePage />} />
               <Route path="/invite/:token" element={<InviteLanding />} />
@@ -76,9 +86,15 @@ const App = () => (
               <Route path="/proposta-site" element={<WebsiteProposal />} />
               <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
 
-              {/* Club (Cliente) */}
-              <Route path="/club/start" element={<ClubStart />} />
-              <Route path="/club" element={<ClubLayout />}>
+              {/* Auth routes */}
+              <Route path="/auth/login" element={<LoginPage />} />
+              <Route path="/auth/signup" element={<SignupPage />} />
+              <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+
+              {/* Club (Cliente) - Protected */}
+              <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />
+              <Route path="/club" element={<AuthGuard><ClubLayout /></AuthGuard>}>
                 <Route index element={<ClubDashboard />} />
                 <Route path="subscription" element={<ClubSubscription />} />
                 <Route path="orders" element={<ClubOrders />} />
@@ -90,10 +106,10 @@ const App = () => (
                 <Route path="settings" element={<ClubSettings />} />
               </Route>
 
-              {/* Partner (Afiliado) */}
-              <Route path="/partner/start" element={<PartnerStart />} />
-              <Route path="/partner/onboarding" element={<PartnerOnboarding />} />
-              <Route path="/partner" element={<PartnerLayout />}>
+              {/* Partner (Afiliado) - Protected */}
+              <Route path="/partner/start" element={<AuthGuard><PartnerStart /></AuthGuard>} />
+              <Route path="/partner/onboarding" element={<AuthGuard><PartnerOnboarding /></AuthGuard>} />
+              <Route path="/partner" element={<AuthGuard><PartnerLayout /></AuthGuard>}>
                 <Route index element={<PartnerDashboard />} />
                 <Route path="network" element={<PartnerNetwork />} />
                 <Route path="referrals" element={<PartnerReferrals />} />
@@ -109,9 +125,9 @@ const App = () => (
                 <Route path="settings" element={<PartnerSettings />} />
               </Route>
 
-              {/* Core (Admin da empresa) */}
-              <Route path="/core/select-role" element={<CoreSelectRole />} />
-              <Route path="/core" element={<CoreLayout />}>
+              {/* Core (Admin da empresa) - Protected */}
+              <Route path="/core/select-role" element={<AuthGuard><CoreSelectRole /></AuthGuard>} />
+              <Route path="/core" element={<AuthGuard><CoreLayout /></AuthGuard>}>
                 <Route index element={<CoreDashboard />} />
                 <Route path="customers" element={<CoreCustomers />} />
                 <Route path="partners" element={<CorePartners />} />
@@ -125,8 +141,8 @@ const App = () => (
                 <Route path="settings" element={<CoreSettings />} />
               </Route>
 
-              {/* Admin (Alvita - Super Admin) */}
-              <Route path="/admin" element={<AdminLayout />}>
+              {/* Admin (Alvita - Super Admin) - Protected */}
+              <Route path="/admin" element={<AuthGuard requireTenant={false}><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="tenants" element={<AdminTenants />} />
               </Route>
