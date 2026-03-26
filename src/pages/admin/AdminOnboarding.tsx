@@ -200,11 +200,11 @@ const AdminOnboarding: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-            <Shield className="h-6 w-6 text-green-600" />
-          </div>
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
           <CardTitle>Tudo pronto!</CardTitle>
           <CardDescription>Seu acesso foi configurado com segurança.</CardDescription>
         </CardHeader>
