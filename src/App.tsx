@@ -148,6 +148,9 @@ const App = () => (
                 <Route path="tenants" element={<AdminTenants />} />
               </Route>
 
+              {/* Onboarding */}
+              <Route path="/onboarding" element={<AuthGuard requireTenant={false}><AdminOnboarding /></AuthGuard>} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>
