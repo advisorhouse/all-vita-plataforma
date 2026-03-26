@@ -14,26 +14,271 @@ export type Database = {
   }
   public: {
     Tables: {
-      platform_users: {
+      clients: {
         Row: {
           created_at: string
+          full_name: string | null
           id: string
-          role: Database["public"]["Enums"]["platform_role"]
+          metadata: Json | null
+          phone: string | null
+          tenant_id: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          full_name?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["platform_role"]
+          metadata?: Json | null
+          phone?: string | null
+          tenant_id: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          full_name?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["platform_role"]
+          metadata?: Json | null
+          phone?: string | null
+          tenant_id?: string
+          updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content: {
+        Row: {
+          body: string | null
+          content_type: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          published: boolean
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          published?: boolean
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          published?: boolean
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification: {
+        Row: {
+          id: string
+          level: string | null
+          metadata: Json | null
+          points: number
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          level?: string | null
+          metadata?: Json | null
+          points?: number
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          level?: string | null
+          metadata?: Json | null
+          points?: number
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memberships: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mt_commissions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          partner_id: string
+          source_id: string | null
+          source_type: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          partner_id: string
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          partner_id?: string
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mt_commissions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mt_commissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          level: string | null
+          metadata: Json | null
+          parent_partner_id: string | null
+          referral_code: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          level?: string | null
+          metadata?: Json | null
+          parent_partner_id?: string | null
+          referral_code: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          level?: string | null
+          metadata?: Json | null
+          parent_partner_id?: string | null
+          referral_code?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partners_parent_partner_id_fkey"
+            columns: ["parent_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partners_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_submissions: {
         Row: {
@@ -133,37 +378,48 @@ export type Database = {
           },
         ]
       }
-      tenant_users: {
+      referrals: {
         Row: {
-          active: boolean
+          client_id: string
           created_at: string
           id: string
-          role: Database["public"]["Enums"]["tenant_role"]
+          partner_id: string
+          status: string
           tenant_id: string
-          updated_at: string
-          user_id: string
         }
         Insert: {
-          active?: boolean
+          client_id: string
           created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["tenant_role"]
+          partner_id: string
+          status?: string
           tenant_id: string
-          updated_at?: string
-          user_id: string
         }
         Update: {
-          active?: boolean
+          client_id?: string
           created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["tenant_role"]
+          partner_id?: string
+          status?: string
           tenant_id?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_users_tenant_id_fkey"
+            foreignKeyName: "referrals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -218,24 +474,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_tenant_ids: { Args: { _user_id: string }; Returns: string[] }
-      has_tenant_role: {
+      belongs_to_tenant: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["tenant_role"]
+          _role: Database["public"]["Enums"]["app_role"]
           _tenant_id: string
           _user_id: string
         }
         Returns: boolean
       }
-      is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
-      is_tenant_member: {
-        Args: { _tenant_id: string; _user_id: string }
-        Returns: boolean
-      }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      platform_role: "super_admin" | "support" | "viewer"
-      tenant_role: "owner" | "admin" | "manager" | "member"
+      app_role: "super_admin" | "admin" | "manager" | "partner" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -363,8 +617,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      platform_role: ["super_admin", "support", "viewer"],
-      tenant_role: ["owner", "admin", "manager", "member"],
+      app_role: ["super_admin", "admin", "manager", "partner", "client"],
     },
   },
 } as const
