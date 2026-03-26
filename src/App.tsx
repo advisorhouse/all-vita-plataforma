@@ -141,7 +141,7 @@ const App = () => (
                 <Route path="settings" element={<CoreSettings />} />
               </Route>
 
-              {/* Admin (Alvita - Super Admin) - Protected */}
+              {/* Admin (All Vita - Super Admin) - Protected */}
               <Route path="/admin" element={<AuthGuard requireTenant={false}><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="tenants" element={<AdminTenants />} />

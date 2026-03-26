@@ -46,7 +46,7 @@ const TenantSwitcher: React.FC = () => {
               onClick={() => window.location.href = "/admin"}
               className="text-muted-foreground"
             >
-              Painel Alvita
+              Painel All Vita
             </DropdownMenuItem>
           </>
         )}

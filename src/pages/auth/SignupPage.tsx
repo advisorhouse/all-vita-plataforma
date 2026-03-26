@@ -62,7 +62,7 @@ const SignupPage: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Cadastre-se na plataforma Alvita
+            Cadastre-se na plataforma All Vita
           </p>
         </div>
 
@@ -138,7 +138,7 @@ const SignupPage: React.FC = () => {
         </Card>
 
         <p className="text-center text-[11px] text-muted-foreground mt-6">
-          Powered by <span className="font-medium">Alvita</span>
+          Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
     </div>

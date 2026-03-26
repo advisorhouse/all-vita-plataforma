@@ -74,8 +74,8 @@ export function useRoleNavigation() {
   };
 
   const getSidebarTitle = () => {
-    if (isSuperAdmin && !currentTenant) return "Alvita";
-    return currentTenant?.name || "Alvita";
+    if (isSuperAdmin && !currentTenant) return "All Vita";
+    return currentTenant?.name || "All Vita";
   };
 
   const getSidebarSubtitle = () => {

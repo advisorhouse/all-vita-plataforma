@@ -13,7 +13,7 @@ const adminLinks = [
 const AdminLayout: React.FC = () => {
   return (
     <AppShell
-      sidebarTitle="Alvita"
+      sidebarTitle="All Vita"
       sidebarSubtitle="Platform"
       sidebarLinks={adminLinks}
       sidebarAccentLabel="Super Admin"
