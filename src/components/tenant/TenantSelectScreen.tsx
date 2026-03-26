@@ -66,7 +66,7 @@ const TenantSelectScreen: React.FC = () => {
         )}
 
         <p className="text-center text-[11px] text-muted-foreground">
-          Powered by Alvita
+          Powered by All Vita
         </p>
       </motion.div>
     </div>

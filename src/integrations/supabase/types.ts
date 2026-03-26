@@ -62,6 +62,33 @@ export type Database = {
           },
         ]
       }
+      all_vita_staff: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          permissions: Json
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          role?: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          role?: Database["public"]["Enums"]["staff_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           created_at: string
@@ -852,6 +879,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          cpf_encrypted: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          cpf_encrypted?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          is_active?: boolean
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          cpf_encrypted?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       quiz_submissions: {
         Row: {
@@ -1657,6 +1723,7 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "admin" | "manager" | "partner" | "client"
+      staff_role: "super_admin" | "ops" | "finance" | "support" | "growth"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1785,6 +1852,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "admin", "manager", "partner", "client"],
+      staff_role: ["super_admin", "ops", "finance", "support", "growth"],
     },
   },
 } as const

@@ -166,7 +166,7 @@ const LoginPage: React.FC = () => {
         </Card>
 
         <p className="text-center text-[11px] text-muted-foreground mt-6">
-          Powered by <span className="font-medium">Alvita</span>
+          Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
     </div>

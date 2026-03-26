@@ -28,7 +28,7 @@ const pageTitles: Record<string, string> = {
 
 const PoweredByFooter: React.FC = () => (
   <p className="text-[10px] text-muted-foreground text-center py-2">
-    Powered by <span className="font-medium">Alvita</span>
+    Powered by <span className="font-medium">All Vita</span>
   </p>
 );
 

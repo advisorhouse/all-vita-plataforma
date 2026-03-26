@@ -43,7 +43,7 @@ const SidebarFooterContent: React.FC = () => {
         <p className="text-[10px] text-warning/70">Ver detalhes →</p>
       </button>
       <p className="text-[10px] text-muted-foreground text-center">
-        Powered by <span className="font-medium">Alvita</span>
+        Powered by <span className="font-medium">All Vita</span>
       </p>
     </div>
   );
