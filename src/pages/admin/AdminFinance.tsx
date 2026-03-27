@@ -11,6 +11,7 @@ import VitacoinsFinancePanel from "@/components/admin/finance/VitacoinsFinancePa
 import TransactionsTable from "@/components/admin/finance/TransactionsTable";
 import PendingActionsPanel from "@/components/admin/finance/PendingActionsPanel";
 import MarginChart from "@/components/admin/finance/MarginChart";
+import TenantDrillDownDrawer from "@/components/admin/finance/TenantDrillDownDrawer";
 import type { TenantRevenue } from "@/components/admin/finance/RevenueByTenantTable";
 import type { TransactionRow } from "@/components/admin/finance/TransactionsTable";
 import type { PendingItem } from "@/components/admin/finance/PendingActionsPanel";
@@ -20,6 +21,7 @@ const periodDays: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90, "365
 const AdminFinance: React.FC = () => {
   const [period, setPeriod] = useState("30d");
   const [tenantFilter, setTenantFilter] = useState("all");
+  const [drillDownTenantId, setDrillDownTenantId] = useState<string | null>(null);
 
   const since = useMemo(() => subDays(new Date(), periodDays[period] || 30).toISOString(), [period]);
 
@@ -239,7 +241,7 @@ const AdminFinance: React.FC = () => {
 
       {/* Revenue by tenant + Margin */}
       <div className="grid lg:grid-cols-2 gap-4">
-        <RevenueByTenantTable tenants={tenantRevenue} />
+        <RevenueByTenantTable tenants={tenantRevenue} onTenantClick={setDrillDownTenantId} />
         <MarginChart data={marginData} />
       </div>
 
@@ -259,6 +261,9 @@ const AdminFinance: React.FC = () => {
         <TransactionsTable transactions={txRows} />
         <PendingActionsPanel items={pendingItems} />
       </div>
+
+      {/* Drill-down drawer */}
+      <TenantDrillDownDrawer tenantId={drillDownTenantId} onClose={() => setDrillDownTenantId(null)} since={since} />
     </div>
   );
 };
