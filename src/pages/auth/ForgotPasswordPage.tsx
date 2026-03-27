@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
+import logoAllVita from "@/assets/logo-allvita.jpeg";
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -48,6 +49,7 @@ const ForgotPasswordPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
+          <img src={logoAllVita} alt="All Vita" className="h-10 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-semibold tracking-tight">Recuperar senha</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Enviaremos um link para redefinir sua senha
