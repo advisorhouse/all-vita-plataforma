@@ -1,6 +1,6 @@
 import React from "react";
 import AppShell from "@/components/layout/AppShell";
-import { Home, Users, Package, DollarSign, BarChart3, Settings, Shield, Handshake, Percent, Brain, Gift, ShoppingBag } from "lucide-react";
+import { Home, Users, Package, DollarSign, BarChart3, Settings, Shield, Handshake, Percent, Brain, Gift, ShoppingBag, Plug } from "lucide-react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useTenant } from "@/contexts/TenantContext";
 import TenantSwitcher from "@/components/tenant/TenantSwitcher";
