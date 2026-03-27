@@ -164,6 +164,7 @@ const App = () => (
                 <Route path="audit" element={<AdminAudit />} />
                 <Route path="security" element={<AdminSecurity />} />
                 <Route path="finance" element={<AdminFinance />} />
+                <Route path="vitacoins" element={<AdminVitacoins />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
               </Route>
