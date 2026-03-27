@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Building2, Globe, Users, Loader2 } from "lucide-react";
+import { Plus, Building2, Globe, Users, Loader2, Upload, X, Image } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TenantFormData {
   name: string;
@@ -41,7 +42,27 @@ const emptyForm: TenantFormData = {
 const AdminTenants: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A logo deve ter no máximo 2MB");
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const { data: tenants, isLoading } = useQuery({
     queryKey: ["admin-tenants"],
@@ -87,6 +108,30 @@ const AdminTenants: React.FC = () => {
       });
 
       if (res.error) throw new Error(res.error.message);
+
+      // Upload logo if provided
+      if (logoFile && res.data?.tenant_id) {
+        const tenantId = res.data.tenant_id;
+        const ext = logoFile.name.split(".").pop() || "png";
+        const filePath = `${tenantId}/logo.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("tenant-logos")
+          .upload(filePath, logoFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from("tenant-logos")
+            .getPublicUrl(filePath);
+
+          // Update tenant with logo URL
+          await supabase
+            .from("tenants")
+            .update({ logo_url: urlData.publicUrl })
+            .eq("id", tenantId);
+        }
+      }
+
       return res.data;
     },
     onSuccess: (data: any) => {
@@ -94,8 +139,10 @@ const AdminTenants: React.FC = () => {
         description: `Subdomínio: ${data.subdomain}`,
       });
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dash-tenants"] });
       setOpen(false);
       setForm(emptyForm);
+      removeLogo();
     },
     onError: (error: any) => {
       toast.error("Erro ao criar empresa", { description: error.message });
@@ -138,6 +185,52 @@ const AdminTenants: React.FC = () => {
               onSubmit={(e) => { e.preventDefault(); createTenant.mutate(form); }}
               className="space-y-6"
             >
+              {/* Logo Upload */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Logo da Empresa</h3>
+                <div className="flex items-center gap-4">
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img src={logoPreview} alt="Logo preview" className="h-20 w-20 rounded-lg object-contain border border-border bg-secondary/30" />
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-20 w-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-accent/50 hover:bg-secondary/30 transition-colors"
+                    >
+                      <Image className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-[9px] text-muted-foreground">Upload</span>
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />
+                      {logoFile ? "Trocar logo" : "Selecionar logo"}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground">PNG, JPG ou WebP · Máx 2MB</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    className="hidden"
+                    onChange={handleLogoSelect}
+                  />
+                </div>
+              </div>
+
               {/* Company Info */}
               <div className="space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Dados da Empresa</h3>
