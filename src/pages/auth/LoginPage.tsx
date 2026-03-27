@@ -201,6 +201,7 @@ const LoginPage: React.FC = () => {
         </p>
       </motion.div>
     </div>
+    </>
   );
 };
 
