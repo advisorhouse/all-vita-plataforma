@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
-import logoAllVita from "@/assets/logo-allvita.jpeg";
+import logoAllVita from "@/assets/logo-allvita.png";
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
