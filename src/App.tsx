@@ -93,6 +93,7 @@ const App = () => (
               <Route path="/auth/signup" element={<SignupPage />} />
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/auth/mfa-setup" element={<AuthGuard requireTenant={false}><MfaSetupPage /></AuthGuard>} />
 
               {/* Club (Cliente) - Protected */}
               <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />
