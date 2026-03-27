@@ -50,6 +50,21 @@ const LoginPage: React.FC = () => {
         return;
       }
 
+      // Super admins without MFA → force MFA setup
+      const { data: membership } = await supabase
+        .from("memberships")
+        .select("role")
+        .eq("user_id", data.user!.id)
+        .eq("role", "super_admin")
+        .eq("active", true)
+        .maybeSingle();
+
+      if (membership) {
+        toast.info("Configure a autenticação em duas etapas para proteger sua conta.");
+        navigate("/auth/mfa-setup");
+        return;
+      }
+
       await logAccessEvent("login", { method: "password" });
       navigate("/");
     } catch {

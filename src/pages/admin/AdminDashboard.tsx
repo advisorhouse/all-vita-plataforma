@@ -1,278 +1,276 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import {
-  Building2, Users, ShieldCheck, Activity, TrendingUp,
-  AlertTriangle, DollarSign, ArrowUpRight, ChevronRight,
-  Globe, UserPlus, FileText, Lock,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { CalendarDays, Filter } from "lucide-react";
+import KpiCards from "@/components/admin/dashboard/KpiCards";
+import RevenueCharts from "@/components/admin/dashboard/RevenueCharts";
+import TenantTable from "@/components/admin/dashboard/TenantTable";
+import ActivityFeed from "@/components/admin/dashboard/ActivityFeed";
+import ConversionFunnel from "@/components/admin/dashboard/ConversionFunnel";
+import GamificationMetrics from "@/components/admin/dashboard/GamificationMetrics";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
-  }),
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
 };
 
 const AdminDashboard: React.FC = () => {
-  const navigate = useNavigate();
+  const [period, setPeriod] = useState("30d");
 
+  const periodDays = period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365;
+  const sinceDate = new Date(Date.now() - periodDays * 86400000).toISOString();
+
+  // Tenants
   const { data: tenants } = useQuery({
-    queryKey: ["admin-tenants"],
+    queryKey: ["admin-dash-tenants"],
     queryFn: async () => {
-      const { data } = await supabase.from("tenants").select("id, name, trade_name, slug, active, status, created_at").order("created_at", { ascending: false });
+      const { data } = await supabase.from("tenants").select("id, name, trade_name, slug, active, created_at").order("created_at", { ascending: false });
       return data || [];
     },
   });
 
-  const { data: profiles } = useQuery({
-    queryKey: ["admin-profiles-count"],
+  // Profiles count
+  const { data: profilesCount } = useQuery({
+    queryKey: ["admin-dash-profiles"],
     queryFn: async () => {
       const { count } = await supabase.from("profiles").select("id", { count: "exact", head: true });
       return count || 0;
     },
   });
 
-  const { data: recentAudit } = useQuery({
-    queryKey: ["admin-recent-audit"],
+  // Partners count
+  const { data: partnersCount } = useQuery({
+    queryKey: ["admin-dash-partners"],
     queryFn: async () => {
-      const { data } = await supabase.from("audit_logs").select("id, action, entity_type, created_at, user_id").order("created_at", { ascending: false }).limit(5);
+      const { count } = await supabase.from("partners").select("id", { count: "exact", head: true }).eq("active", true);
+      return count || 0;
+    },
+  });
+
+  // Clients count
+  const { data: clientsCount } = useQuery({
+    queryKey: ["admin-dash-clients"],
+    queryFn: async () => {
+      const { count } = await supabase.from("clients").select("id", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
+
+  // Orders
+  const { data: orders } = useQuery({
+    queryKey: ["admin-dash-orders", sinceDate],
+    queryFn: async () => {
+      const { data } = await supabase.from("orders").select("id, amount, tenant_id, created_at, status, payment_status").gte("created_at", sinceDate).order("created_at", { ascending: false });
       return data || [];
     },
   });
 
+  // Clicks
+  const { data: clicksCount } = useQuery({
+    queryKey: ["admin-dash-clicks", sinceDate],
+    queryFn: async () => {
+      const { count } = await supabase.from("clicks").select("id", { count: "exact", head: true }).gte("created_at", sinceDate);
+      return count || 0;
+    },
+  });
+
+  // Referrals (leads)
+  const { data: referralsCount } = useQuery({
+    queryKey: ["admin-dash-referrals", sinceDate],
+    queryFn: async () => {
+      const { count } = await supabase.from("referrals").select("id", { count: "exact", head: true }).gte("created_at", sinceDate);
+      return count || 0;
+    },
+  });
+
+  // Gamification
+  const { data: gamificationData } = useQuery({
+    queryKey: ["admin-dash-gamification"],
+    queryFn: async () => {
+      const { data } = await supabase.from("gamification").select("points, user_id");
+      return data || [];
+    },
+  });
+
+  // Redemptions
+  const { data: redemptions } = useQuery({
+    queryKey: ["admin-dash-redemptions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("redemption_requests").select("amount, status");
+      return data || [];
+    },
+  });
+
+  // Subscriptions (active)
+  const { data: subsCount } = useQuery({
+    queryKey: ["admin-dash-subs"],
+    queryFn: async () => {
+      const { count } = await supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active");
+      return count || 0;
+    },
+  });
+
+  // Memberships per tenant (for tenant table counts)
+  const { data: memberships } = useQuery({
+    queryKey: ["admin-dash-memberships"],
+    queryFn: async () => {
+      const { data } = await supabase.from("memberships").select("tenant_id, role").eq("active", true);
+      return data || [];
+    },
+  });
+
+  // Audit logs
+  const { data: auditLogs } = useQuery({
+    queryKey: ["admin-dash-audit"],
+    queryFn: async () => {
+      const { data } = await supabase.from("audit_logs").select("id, action, entity_type, created_at").order("created_at", { ascending: false }).limit(8);
+      return data || [];
+    },
+  });
+
+  // Security events
   const { data: securityEvents } = useQuery({
-    queryKey: ["admin-security-events"],
+    queryKey: ["admin-dash-security"],
     queryFn: async () => {
-      const { data } = await supabase.from("security_events").select("id, type, severity, created_at").order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase.from("security_events").select("id, type, severity, created_at").order("created_at", { ascending: false }).limit(8);
       return data || [];
     },
   });
 
+  // Compute KPIs
+  const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.amount), 0) || 0;
   const activeTenants = tenants?.filter((t) => t.active).length || 0;
-  const totalTenants = tenants?.length || 0;
-  const criticalEvents = securityEvents?.filter((e) => e.severity === "high" || e.severity === "critical").length || 0;
+  const totalOrders = orders?.length || 0;
+  const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  const churnRate = 0; // Would need historical data
 
-  const KPI_CARDS = [
-    { label: "Empresas Ativas", value: String(activeTenants), sub: `${totalTenants} total`, icon: Building2, href: "/admin/tenants", color: "text-accent" },
-    { label: "Usuários Totais", value: String(profiles || 0), sub: "na plataforma", icon: Users, href: "/admin/users", color: "text-primary" },
-    { label: "Eventos de Segurança", value: String(securityEvents?.length || 0), sub: `${criticalEvents} críticos`, icon: ShieldCheck, href: "/admin/security", color: criticalEvents > 0 ? "text-destructive" : "text-success" },
-    { label: "Logs de Auditoria", value: String(recentAudit?.length || 0), sub: "últimos registros", icon: FileText, href: "/admin/audit", color: "text-muted-foreground" },
-  ];
+  // Revenue by month
+  const revenueByMonth = React.useMemo(() => {
+    if (!orders?.length) return [];
+    const map = new Map<string, number>();
+    orders.forEach((o) => {
+      const d = new Date(o.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      map.set(key, (map.get(key) || 0) + Number(o.amount));
+    });
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, value]) => ({ month, value }));
+  }, [orders]);
+
+  // Revenue by tenant
+  const revenueByTenant = React.useMemo(() => {
+    if (!orders?.length || !tenants?.length) return [];
+    const map = new Map<string, number>();
+    orders.forEach((o) => {
+      map.set(o.tenant_id, (map.get(o.tenant_id) || 0) + Number(o.amount));
+    });
+    return Array.from(map.entries()).map(([tid, value]) => {
+      const t = tenants.find((x) => x.id === tid);
+      return { name: t?.trade_name || t?.name || "—", value };
+    }).sort((a, b) => b.value - a.value).slice(0, 8);
+  }, [orders, tenants]);
+
+  // Tenant table rows
+  const tenantRows = React.useMemo(() => {
+    if (!tenants) return [];
+    return tenants.map((t) => {
+      const tMembers = memberships?.filter((m) => m.tenant_id === t.id) || [];
+      const clientCount = tMembers.filter((m) => m.role === "client").length;
+      const partnerCount = tMembers.filter((m) => m.role === "partner").length;
+      const revenue = orders?.filter((o) => o.tenant_id === t.id).reduce((s, o) => s + Number(o.amount), 0) || 0;
+      return { ...t, trade_name: t.trade_name, clientCount, partnerCount, revenue };
+    });
+  }, [tenants, memberships, orders]);
+
+  // Gamification metrics
+  const gamificationMetrics = React.useMemo(() => {
+    const totalDistributed = gamificationData?.reduce((s, g) => s + g.points, 0) || 0;
+    const totalRedeemed = redemptions?.filter((r) => r.status === "approved").reduce((s, r) => s + Number(r.amount), 0) || 0;
+    return {
+      totalDistributed,
+      totalRedeemed,
+      totalBalance: totalDistributed - totalRedeemed,
+      topPartners: [] as { name: string; points: number }[],
+    };
+  }, [gamificationData, redemptions]);
+
+  // Funnel
+  const paidOrders = orders?.filter((o) => o.payment_status === "paid").length || 0;
+  const funnelData = {
+    clicks: clicksCount || 0,
+    leads: referralsCount || 0,
+    purchases: paidOrders,
+    retained: subsCount || 0,
+  };
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Greeting */}
-      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
-        <div className="flex items-center justify-between">
+      {/* Header + Filters */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Painel All Vita</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Visão geral da plataforma multi-tenant</p>
+            <h1 className="text-xl font-bold text-foreground">Dashboard Global</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Visão executiva da plataforma All Vita</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-lg bg-success/10 px-3 py-1.5 text-xs text-success font-medium">
-              <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-600 font-medium">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Plataforma online
             </div>
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-[130px] h-8 text-xs">
+                <CalendarDays className="h-3 w-3 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                <SelectItem value="90d">Últimos 90 dias</SelectItem>
+                <SelectItem value="365d">Último ano</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </motion.div>
 
       {/* KPIs */}
-      <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {KPI_CARDS.map(({ label, value, sub, icon: Icon, href, color }) => (
-            <Card
-              key={label}
-              className="cursor-pointer hover:border-accent/30 hover:shadow-md transition-all"
-              onClick={() => navigate(href)}
-            >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg bg-secondary")}>
-                    <Icon className={cn("h-4 w-4", color)} />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{value}</p>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="text-[10px] text-muted-foreground/60 mt-0.5">{sub}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <KpiCards data={{
+        totalRevenue,
+        activeTenants,
+        totalUsers: profilesCount || 0,
+        totalPartners: partnersCount || 0,
+        totalClients: clientsCount || 0,
+        totalOrders,
+        avgTicket,
+        churnRate,
+      }} />
+
+      {/* Revenue Charts */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <RevenueCharts revenueByMonth={revenueByMonth} revenueByTenant={revenueByTenant} />
+      </motion.div>
+
+      {/* Tenant Performance */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <TenantTable tenants={tenantRows} />
+      </motion.div>
+
+      {/* Gamification + Funnel */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <ConversionFunnel data={funnelData} />
+          <GamificationMetrics data={gamificationMetrics} />
         </div>
       </motion.div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Tenants */}
-        <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
-          <Card>
-            <CardContent className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-accent" />
-                  <h3 className="text-sm font-semibold">Empresas Recentes</h3>
-                </div>
-                <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/admin/tenants")}>
-                  Ver todas <ChevronRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {tenants?.slice(0, 5).map((t) => (
-                  <div key={t.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-secondary/30 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                        <Globe className="h-3.5 w-3.5 text-accent" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{t.trade_name || t.name}</p>
-                        <p className="text-[11px] text-muted-foreground">{t.slug}.allvita.com.br</p>
-                      </div>
-                    </div>
-                    <Badge variant={t.active ? "default" : "secondary"} className="text-[10px]">
-                      {t.active ? "Ativa" : "Inativa"}
-                    </Badge>
-                  </div>
-                ))}
-                {(!tenants || tenants.length === 0) && (
-                  <div className="text-center py-8 text-sm text-muted-foreground">
-                    Nenhuma empresa cadastrada ainda
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Recent Audit Logs */}
-        <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
-          <Card>
-            <CardContent className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold">Atividade Recente</h3>
-                </div>
-                <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/admin/audit")}>
-                  Ver tudo <ChevronRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {recentAudit?.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                        <FileText className="h-3.5 w-3.5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{log.action}</p>
-                        <p className="text-[11px] text-muted-foreground">{log.entity_type || "sistema"}</p>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      {new Date(log.created_at).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                ))}
-                {(!recentAudit || recentAudit.length === 0) && (
-                  <div className="text-center py-8 text-sm text-muted-foreground">
-                    Nenhum log registrado
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Security Events */}
-        <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
-          <Card>
-            <CardContent className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-warning" />
-                  <h3 className="text-sm font-semibold">Eventos de Segurança</h3>
-                </div>
-                <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/admin/security")}>
-                  Ver tudo <ChevronRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {securityEvents?.map((evt) => (
-                  <div key={evt.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-lg",
-                        evt.severity === "high" || evt.severity === "critical" ? "bg-destructive/10" : "bg-warning/10"
-                      )}>
-                        <AlertTriangle className={cn(
-                          "h-3.5 w-3.5",
-                          evt.severity === "high" || evt.severity === "critical" ? "text-destructive" : "text-warning"
-                        )} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{evt.type}</p>
-                        <Badge variant="outline" className="text-[9px] mt-0.5">
-                          {evt.severity || "medium"}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      {new Date(evt.created_at).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                ))}
-                {(!securityEvents || securityEvents.length === 0) && (
-                  <div className="text-center py-8 text-sm text-muted-foreground">
-                    Nenhum evento registrado
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Quick Actions */}
-        <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
-          <Card>
-            <CardContent className="p-5 space-y-4">
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-accent" />
-                Ações Rápidas
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Nova Empresa", icon: Building2, href: "/admin/tenants", color: "bg-accent/10 text-accent" },
-                  { label: "Gerenciar Usuários", icon: Users, href: "/admin/users", color: "bg-primary/10 text-primary" },
-                  { label: "Auditoria", icon: FileText, href: "/admin/audit", color: "bg-warning/10 text-warning" },
-                  { label: "Segurança", icon: ShieldCheck, href: "/admin/security", color: "bg-destructive/10 text-destructive" },
-                ].map(({ label, icon: Icon, href, color }) => (
-                  <button
-                    key={label}
-                    onClick={() => navigate(href)}
-                    className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-secondary/30 transition-colors text-left"
-                  >
-                    <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", color)}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-sm font-medium text-foreground">{label}</span>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+      {/* Activity + Security + Quick Actions */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <ActivityFeed auditLogs={auditLogs || []} securityEvents={securityEvents || []} />
+      </motion.div>
     </div>
   );
 };
