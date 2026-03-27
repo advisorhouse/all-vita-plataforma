@@ -71,6 +71,7 @@ import AdminAudit from "./pages/admin/AdminAudit";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettingsPage from "./pages/admin/AdminSettings";
+import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
 
@@ -111,6 +112,7 @@ const App = () => (
                 <Route path="referrals" element={<ClubReferrals />} />
                 <Route path="support" element={<ClubSupport />} />
                 <Route path="settings" element={<ClubSettings />} />
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
 
               {/* Partner (Afiliado) - Protected */}
@@ -130,6 +132,7 @@ const App = () => (
                 <Route path="referred-partners" element={<PartnerReferredPartners />} />
                 <Route path="support" element={<PartnerSupport />} />
                 <Route path="settings" element={<PartnerSettings />} />
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
 
               {/* Core (Admin da empresa) - Protected */}
@@ -147,6 +150,7 @@ const App = () => (
                 <Route path="permissions" element={<CorePermissions />} />
                 <Route path="settings" element={<CoreSettings />} />
                 <Route path="users" element={<CoreUsers />} />
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
@@ -157,6 +161,7 @@ const App = () => (
                 <Route path="audit" element={<AdminAudit />} />
                 <Route path="security" element={<AdminSecurity />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
 
               {/* Onboarding */}
