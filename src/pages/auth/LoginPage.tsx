@@ -29,7 +29,7 @@ const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         if (error.message.includes("Invalid login")) {
           toast.error("Email ou senha inválidos");
@@ -38,6 +38,17 @@ const LoginPage: React.FC = () => {
         }
         return;
       }
+
+      // Check if MFA is required
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const verifiedFactor = factors?.totp?.find((f: any) => f.status === "verified");
+
+      if (verifiedFactor) {
+        setMfaFactorId(verifiedFactor.id);
+        setShowMfa(true);
+        return;
+      }
+
       await logAccessEvent("login", { method: "password" });
       navigate("/");
     } catch {
