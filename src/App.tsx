@@ -156,6 +156,7 @@ const App = () => (
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="audit" element={<AdminAudit />} />
                 <Route path="security" element={<AdminSecurity />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
               </Route>
 
               {/* Onboarding */}

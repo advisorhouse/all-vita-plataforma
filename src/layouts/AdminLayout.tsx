@@ -9,6 +9,7 @@ const adminLinks = [
   { label: "Usuários", href: "/admin/users", icon: Users },
   { label: "Auditoria", href: "/admin/audit", icon: FileText },
   { label: "Segurança", href: "/admin/security", icon: ShieldCheck },
+  { label: "Configurações", href: "/admin/settings", icon: Settings },
 ];
 
 const AdminLayout: React.FC = () => {
