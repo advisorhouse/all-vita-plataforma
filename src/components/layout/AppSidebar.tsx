@@ -3,8 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { LucideIcon, ChevronsLeft, ChevronsRight, Star } from "lucide-react";
-import logoVisionLift from "@/assets/logo-vision-lift.png";
-import iconVisionLift from "@/assets/icon-vision-lift.png";
+import logoAllVita from "@/assets/logo-allvita.png";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -60,9 +59,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
               {collapsed ? (
                 <motion.img
                   key="icon"
-                  src={iconVisionLift}
-                  alt="Vision Lift"
-                  className="h-8 w-8 object-contain shrink-0"
+                  src={logoAllVita}
+                  alt="All Vita"
+                  className="h-6 w-6 object-contain shrink-0"
                   initial={{ opacity: 0, scale: 0.94 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
@@ -78,7 +77,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
                   transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
                 >
                   <div className="h-7 w-[118px] shrink-0">
-                    <img src={logoVisionLift} alt="Vision Lift" className="h-7 w-full object-contain object-left" />
+                    <img src={logoAllVita} alt="All Vita" className="h-7 w-full object-contain object-left" />
                   </div>
                   <span className="text-caption text-muted-foreground whitespace-nowrap">{subtitle}</span>
                 </motion.div>
