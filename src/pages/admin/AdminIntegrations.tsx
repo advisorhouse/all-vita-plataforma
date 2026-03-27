@@ -150,7 +150,7 @@ const AdminIntegrations: React.FC = () => {
   };
 
   const handleAddWebhook = async (data: { tenant_id: string; name: string; config: object }) => {
-    await supabase.from("integrations").insert({ tenant_id: data.tenant_id, name: data.name, type: "webhook", config: data.config });
+    await supabase.from("integrations").insert({ tenant_id: data.tenant_id, name: data.name, type: "webhook", config: data.config as Json });
     toast.success("Webhook criado!");
     refetchInt();
   };
