@@ -40,7 +40,7 @@ const MfaSetupPage: React.FC = () => {
       }
 
       // Unenroll any unverified factors first
-      for (const f of totpFactors.filter((f) => f.status === "unverified")) {
+      for (const f of totpFactors.filter((f: any) => f.status === "unverified")) {
         await supabase.auth.mfa.unenroll({ factorId: f.id });
       }
 
