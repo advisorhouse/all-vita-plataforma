@@ -72,6 +72,7 @@ import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettingsPage from "./pages/admin/AdminSettings";
 import AdminFinance from "./pages/admin/AdminFinance";
+import AdminVitacoins from "./pages/admin/AdminVitacoins";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
