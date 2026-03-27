@@ -15,6 +15,7 @@ const coreLinks = [
   { label: "Insights & BI", href: "/core/reports", icon: Brain },
   { label: "Gamificação", href: "/core/gamification", icon: Gift },
   { label: "Produtos", href: "/core/products", icon: ShoppingBag },
+  { label: "Integrações", href: "/core/integrations", icon: Plug },
   { label: "Permissões", href: "/core/permissions", icon: Shield },
   { label: "Configurações", href: "/core/settings", icon: Settings },
 ];
