@@ -70,6 +70,7 @@ import AdminOnboarding from "./pages/admin/AdminOnboarding";
 import AdminAudit from "./pages/admin/AdminAudit";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSettingsPage from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
