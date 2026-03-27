@@ -108,6 +108,30 @@ const AdminTenants: React.FC = () => {
       });
 
       if (res.error) throw new Error(res.error.message);
+
+      // Upload logo if provided
+      if (logoFile && res.data?.tenant_id) {
+        const tenantId = res.data.tenant_id;
+        const ext = logoFile.name.split(".").pop() || "png";
+        const filePath = `${tenantId}/logo.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("tenant-logos")
+          .upload(filePath, logoFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from("tenant-logos")
+            .getPublicUrl(filePath);
+
+          // Update tenant with logo URL
+          await supabase
+            .from("tenants")
+            .update({ logo_url: urlData.publicUrl })
+            .eq("id", tenantId);
+        }
+      }
+
       return res.data;
     },
     onSuccess: (data: any) => {
