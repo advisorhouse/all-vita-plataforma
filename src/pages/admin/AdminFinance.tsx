@@ -11,6 +11,7 @@ import VitacoinsFinancePanel from "@/components/admin/finance/VitacoinsFinancePa
 import TransactionsTable from "@/components/admin/finance/TransactionsTable";
 import PendingActionsPanel from "@/components/admin/finance/PendingActionsPanel";
 import MarginChart from "@/components/admin/finance/MarginChart";
+import TenantDrillDownDrawer from "@/components/admin/finance/TenantDrillDownDrawer";
 import type { TenantRevenue } from "@/components/admin/finance/RevenueByTenantTable";
 import type { TransactionRow } from "@/components/admin/finance/TransactionsTable";
 import type { PendingItem } from "@/components/admin/finance/PendingActionsPanel";
