@@ -132,6 +132,7 @@ const App = () => (
                 <Route path="referred-partners" element={<PartnerReferredPartners />} />
                 <Route path="support" element={<PartnerSupport />} />
                 <Route path="settings" element={<PartnerSettings />} />
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
 
               {/* Core (Admin da empresa) - Protected */}
