@@ -1,6 +1,6 @@
 import React from "react";
 import AppShell from "@/components/layout/AppShell";
-import { Home, Users, Package, DollarSign, BarChart3, Settings, Shield, Handshake, Percent, Brain, Gift, ShoppingBag } from "lucide-react";
+import { Home, Users, Package, DollarSign, BarChart3, Settings, Shield, Handshake, Percent, Brain, Gift, ShoppingBag, Plug } from "lucide-react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useTenant } from "@/contexts/TenantContext";
 import TenantSwitcher from "@/components/tenant/TenantSwitcher";
@@ -15,6 +15,7 @@ const coreLinks = [
   { label: "Insights & BI", href: "/core/reports", icon: Brain },
   { label: "Gamificação", href: "/core/gamification", icon: Gift },
   { label: "Produtos", href: "/core/products", icon: ShoppingBag },
+  { label: "Integrações", href: "/core/integrations", icon: Plug },
   { label: "Permissões", href: "/core/permissions", icon: Shield },
   { label: "Configurações", href: "/core/settings", icon: Settings },
 ];
@@ -29,6 +30,7 @@ const pageTitles: Record<string, string> = {
   "/core/reports": "Insights & BI",
   "/core/gamification": "Gamificação",
   "/core/products": "Catálogo de Produtos",
+  "/core/integrations": "Integrações",
   "/core/permissions": "Permissões",
   "/core/settings": "Configurações",
 };
