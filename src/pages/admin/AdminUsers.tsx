@@ -1,66 +1,46 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import {
-  Users, Search, Filter, ChevronLeft, ChevronRight,
-  Mail, Phone, Shield, Building2,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { Users } from "lucide-react";
+import { toast } from "sonner";
+import UserKpiCards from "@/components/admin/users/UserKpiCards";
+import UserFilters from "@/components/admin/users/UserFilters";
+import UserTable, { type UserRow } from "@/components/admin/users/UserTable";
+import UserDrawer from "@/components/admin/users/UserDrawer";
+import CreateUserDialog from "@/components/admin/users/CreateUserDialog";
 
 const PAGE_SIZE = 20;
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-};
-
-const roleLabels: Record<string, string> = {
-  super_admin: "Super Admin",
-  admin: "Admin",
-  manager: "Gerente",
-  partner: "Parceiro",
-  client: "Cliente",
-};
-
-const roleBadgeColor: Record<string, string> = {
-  super_admin: "bg-destructive/10 text-destructive",
-  admin: "bg-accent/10 text-accent",
-  manager: "bg-primary/10 text-primary",
-  partner: "bg-warning/10 text-warning",
-  client: "bg-secondary text-muted-foreground",
-};
-
 const AdminUsers: React.FC = () => {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [tenantFilter, setTenantFilter] = useState("all");
   const [page, setPage] = useState(0);
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Fetch profiles
   const { data: profilesData, isLoading } = useQuery({
-    queryKey: ["admin-users-list", page, search],
+    queryKey: ["admin-users", page, search],
     queryFn: async () => {
       let query = supabase
         .from("profiles")
         .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
       if (search) {
         query = query.or(`email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`);
       }
-
       const { data, count } = await query;
       return { profiles: data || [], total: count || 0 };
     },
   });
 
+  // Fetch all memberships
   const { data: memberships } = useQuery({
     queryKey: ["admin-all-memberships"],
     queryFn: async () => {
@@ -69,168 +49,196 @@ const AdminUsers: React.FC = () => {
     },
   });
 
-  const { data: tenants } = useQuery({
-    queryKey: ["admin-tenants-map"],
+  // Fetch all vita staff
+  const { data: staffList } = useQuery({
+    queryKey: ["admin-all-vita-staff"],
     queryFn: async () => {
-      const { data } = await supabase.from("tenants").select("id, name, trade_name");
-      const map: Record<string, string> = {};
-      data?.forEach((t) => { map[t.id] = t.trade_name || t.name; });
-      return map;
+      const { data } = await supabase.from("all_vita_staff").select("user_id, role, is_active");
+      return data || [];
     },
   });
 
-  const profiles = profilesData?.profiles || [];
-  const total = profilesData?.total || 0;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  // Fetch tenants
+  const { data: tenantsRaw } = useQuery({
+    queryKey: ["admin-tenants-list"],
+    queryFn: async () => {
+      const { data } = await supabase.from("tenants").select("id, name, trade_name");
+      return data || [];
+    },
+  });
 
-  const getUserRoles = (userId: string) => {
-    return memberships?.filter((m) => m.user_id === userId && m.active) || [];
+  const tenantMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    tenantsRaw?.forEach((t) => { map[t.id] = t.trade_name || t.name; });
+    return map;
+  }, [tenantsRaw]);
+
+  const tenantsList = useMemo(() =>
+    (tenantsRaw || []).map((t) => ({ id: t.id, name: t.trade_name || t.name })),
+    [tenantsRaw]
+  );
+
+  // Fetch audit logs for selected user
+  const { data: auditLogs } = useQuery({
+    queryKey: ["admin-user-audit", selectedUser?.id],
+    enabled: !!selectedUser,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("audit_logs")
+        .select("id, action, created_at, ip")
+        .eq("user_id", selectedUser!.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return data || [];
+    },
+  });
+
+  // Build enriched user rows
+  const users: UserRow[] = useMemo(() => {
+    const profiles = profilesData?.profiles || [];
+    return profiles.map((p) => {
+      const userMemberships = (memberships || []).filter((m) => m.user_id === p.id && m.active);
+      const isStaff = (staffList || []).some((s) => s.user_id === p.id && s.is_active);
+
+      const roles = userMemberships.map((m) => ({
+        role: m.role,
+        tenant_id: m.tenant_id,
+        tenant_name: m.tenant_id ? (tenantMap[m.tenant_id] || m.tenant_id.slice(0, 8)) : "Global",
+      }));
+
+      let userType = "unknown";
+      if (isStaff || roles.some((r) => r.role === "super_admin")) userType = "staff";
+      else if (roles.some((r) => r.role === "admin" || r.role === "manager")) userType = "tenant";
+      else if (roles.some((r) => r.role === "partner")) userType = "partner";
+      else if (roles.some((r) => r.role === "client")) userType = "client";
+
+      return {
+        id: p.id,
+        email: p.email,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        avatar_url: p.avatar_url,
+        is_active: p.is_active,
+        created_at: p.created_at,
+        phone: p.phone,
+        roles,
+        userType,
+        has2FA: false, // TODO: check MFA factors
+      };
+    });
+  }, [profilesData, memberships, staffList, tenantMap]);
+
+  // Apply client-side filters
+  const filteredUsers = useMemo(() => {
+    let list = users;
+    if (typeFilter !== "all") list = list.filter((u) => u.userType === typeFilter);
+    if (roleFilter !== "all") list = list.filter((u) => u.roles.some((r) => r.role === roleFilter));
+    if (statusFilter !== "all") {
+      list = list.filter((u) => statusFilter === "active" ? u.is_active : !u.is_active);
+    }
+    if (tenantFilter !== "all") {
+      list = list.filter((u) => u.roles.some((r) => r.tenant_id === tenantFilter));
+    }
+    return list;
+  }, [users, typeFilter, roleFilter, statusFilter, tenantFilter]);
+
+  // KPIs
+  const kpis = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    return {
+      total: profilesData?.total || 0,
+      active: users.filter((u) => u.is_active).length,
+      newThisMonth: users.filter((u) => new Date(u.created_at) > thirtyDaysAgo).length,
+      byType: {
+        staff: users.filter((u) => u.userType === "staff").length,
+        tenant: users.filter((u) => u.userType === "tenant").length,
+        partner: users.filter((u) => u.userType === "partner").length,
+        client: users.filter((u) => u.userType === "client").length,
+      },
+    };
+  }, [users, profilesData]);
+
+  const totalPages = Math.ceil((profilesData?.total || 0) / PAGE_SIZE);
+
+  // Block/unblock user
+  const blockMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const user = users.find((u) => u.id === userId);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_active: !user?.is_active })
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Status do usuário atualizado");
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setDrawerOpen(false);
+    },
+    onError: (e: any) => toast.error("Erro", { description: e.message }),
+  });
+
+  // Reset password (placeholder — needs edge function)
+  const handleResetPassword = (userId: string) => {
+    toast.info("Funcionalidade de reset de senha via e-mail será implementada em breve.");
   };
 
-  const filteredProfiles = roleFilter === "all"
-    ? profiles
-    : profiles.filter((p) => getUserRoles(p.id).some((m) => m.role === roleFilter));
+  const handleViewUser = (user: UserRow) => {
+    setSelectedUser(user);
+    setDrawerOpen(true);
+  };
 
   return (
     <div className="space-y-6 pb-12">
-      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Users className="h-5 w-5 text-accent" /> Usuários
+              <Users className="h-5 w-5 text-primary" /> Usuários
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Todos os usuários da plataforma All Vita
+              Gestão de acessos e permissões da plataforma
             </p>
           </div>
-          <Badge variant="outline" className="text-xs">{total} usuários</Badge>
+          <CreateUserDialog tenants={tenantsList} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["admin-users"] })} />
         </div>
       </motion.div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome ou email..."
-                className="pl-10"
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              />
-            </div>
-            <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(0); }}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrar role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os papéis</SelectItem>
-                <SelectItem value="super_admin">Super Admin</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="manager">Gerente</SelectItem>
-                <SelectItem value="partner">Parceiro</SelectItem>
-                <SelectItem value="client">Cliente</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <UserKpiCards {...kpis} />
 
-      {/* Users Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-secondary/30">
-                  <th className="p-3 text-left font-medium text-muted-foreground">Usuário</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Email</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Papéis</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Empresas</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Status</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground">Criado em</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProfiles.map((profile) => {
-                  const roles = getUserRoles(profile.id);
-                  return (
-                    <tr key={profile.id} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
-                      <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10 text-accent text-xs font-semibold">
-                            {(profile.first_name?.[0] || profile.email[0]).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {[profile.first_name, profile.last_name].filter(Boolean).join(" ") || "—"}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3 text-xs text-muted-foreground">{profile.email}</td>
-                      <td className="p-3">
-                        <div className="flex flex-wrap gap-1">
-                          {roles.length > 0 ? roles.map((r, i) => (
-                            <Badge key={i} variant="outline" className={cn("text-[9px]", roleBadgeColor[r.role] || "")}>
-                              {roleLabels[r.role] || r.role}
-                            </Badge>
-                          )) : (
-                            <span className="text-[10px] text-muted-foreground">Sem vínculo</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-wrap gap-1">
-                          {roles.filter((r) => r.tenant_id).map((r, i) => (
-                            <Badge key={i} variant="secondary" className="text-[9px]">
-                              {tenants?.[r.tenant_id!] || r.tenant_id?.slice(0, 8)}
-                            </Badge>
-                          ))}
-                          {roles.some((r) => !r.tenant_id) && (
-                            <Badge variant="outline" className="text-[9px] bg-accent/5 text-accent">Global</Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <Badge variant={profile.is_active ? "default" : "secondary"} className="text-[10px]">
-                          {profile.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
-                      </td>
-                      <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(profile.created_at).toLocaleDateString("pt-BR")}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {filteredProfiles.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      {isLoading ? "Carregando..." : "Nenhum usuário encontrado"}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+      <UserFilters
+        search={search} onSearchChange={(v) => { setSearch(v); setPage(0); }}
+        typeFilter={typeFilter} onTypeChange={(v) => { setTypeFilter(v); setPage(0); }}
+        roleFilter={roleFilter} onRoleChange={(v) => { setRoleFilter(v); setPage(0); }}
+        statusFilter={statusFilter} onStatusChange={(v) => { setStatusFilter(v); setPage(0); }}
+        tenantFilter={tenantFilter} onTenantChange={(v) => { setTenantFilter(v); setPage(0); }}
+        tenants={tenantsList}
+      />
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between p-3 border-t border-border">
-              <p className="text-xs text-muted-foreground">Página {page + 1} de {totalPages}</p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <UserTable
+        users={filteredUsers}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        onViewUser={handleViewUser}
+        onBlockUser={(id) => blockMutation.mutate(id)}
+        onResetPassword={handleResetPassword}
+        isLoading={isLoading}
+      />
+
+      <UserDrawer
+        user={selectedUser}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onBlockUser={(id) => blockMutation.mutate(id)}
+        onResetPassword={handleResetPassword}
+        auditLogs={auditLogs || []}
+      />
     </div>
   );
 };
