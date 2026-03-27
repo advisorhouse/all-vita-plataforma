@@ -82,10 +82,26 @@ const LoginPage: React.FC = () => {
   };
 
   return (
+    <>
+      <MfaVerifyDialog
+        open={showMfa}
+        factorId={mfaFactorId || ""}
+        onVerified={async () => {
+          await logAccessEvent("login", { method: "password", mfa: true });
+          navigate("/");
+        }}
+        onCancel={() => {
+          setShowMfa(false);
+          supabase.auth.signOut();
+        }}
+      />
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-sm"
+      >
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm"
       >
