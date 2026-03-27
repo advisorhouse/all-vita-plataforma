@@ -49,6 +49,8 @@ const superAdminLinks: SidebarLink[] = [
   { label: "Visão Geral", href: "/admin", icon: Home },
   { label: "Empresas", href: "/admin/tenants", icon: ShoppingBag },
   { label: "Usuários", href: "/admin/users", icon: Users },
+  { label: "Auditoria", href: "/admin/audit", icon: ClipboardList },
+  { label: "Segurança", href: "/admin/security", icon: Shield },
   { label: "Configurações", href: "/admin/settings", icon: Settings },
 ];
 

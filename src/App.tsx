@@ -70,6 +70,7 @@ import AdminOnboarding from "./pages/admin/AdminOnboarding";
 import AdminAudit from "./pages/admin/AdminAudit";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSettingsPage from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -155,6 +156,7 @@ const App = () => (
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="audit" element={<AdminAudit />} />
                 <Route path="security" element={<AdminSecurity />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
               </Route>
 
               {/* Onboarding */}
