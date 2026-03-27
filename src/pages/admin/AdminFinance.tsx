@@ -21,6 +21,7 @@ const periodDays: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90, "365
 const AdminFinance: React.FC = () => {
   const [period, setPeriod] = useState("30d");
   const [tenantFilter, setTenantFilter] = useState("all");
+  const [drillDownTenantId, setDrillDownTenantId] = useState<string | null>(null);
 
   const since = useMemo(() => subDays(new Date(), periodDays[period] || 30).toISOString(), [period]);
 
