@@ -104,6 +104,7 @@ const LoginPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
+          <img src={logoAllVita} alt="All Vita" className="h-10 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-semibold tracking-tight">Entrar na plataforma</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Acesse sua conta All Vita

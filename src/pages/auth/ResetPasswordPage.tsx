@@ -79,6 +79,7 @@ const ResetPasswordPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
+          <img src={logoAllVita} alt="All Vita" className="h-10 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-semibold tracking-tight">Nova senha</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Defina sua nova senha de acesso
