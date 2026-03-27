@@ -84,7 +84,7 @@ const App = () => (
             <AppBootstrap />
             <Routes>
               {/* Public routes */}
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<AuthGuard requireTenant={false}><Index /></AuthGuard>} />
               <Route path="/activate" element={<ActivatePage />} />
               <Route path="/invite/:token" element={<InviteLanding />} />
               <Route path="/proposta" element={<ProposalPresentation />} />
