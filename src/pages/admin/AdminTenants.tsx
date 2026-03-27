@@ -42,7 +42,27 @@ const emptyForm: TenantFormData = {
 const AdminTenants: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A logo deve ter no máximo 2MB");
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const { data: tenants, isLoading } = useQuery({
     queryKey: ["admin-tenants"],
