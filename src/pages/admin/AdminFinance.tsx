@@ -241,7 +241,7 @@ const AdminFinance: React.FC = () => {
 
       {/* Revenue by tenant + Margin */}
       <div className="grid lg:grid-cols-2 gap-4">
-        <RevenueByTenantTable tenants={tenantRevenue} />
+        <RevenueByTenantTable tenants={tenantRevenue} onTenantClick={setDrillDownTenantId} />
         <MarginChart data={marginData} />
       </div>
 
