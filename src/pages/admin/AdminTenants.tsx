@@ -107,11 +107,20 @@ const AdminTenants: React.FC = () => {
         },
       });
 
-      if (res.error) throw new Error(res.error.message);
+      if (res.error) {
+        // Edge function may return error in data body
+        const errorMsg = res.error?.message || (typeof res.data === 'object' && res.data?.error) || "Erro desconhecido";
+        throw new Error(errorMsg);
+      }
 
-      // Upload logo if provided
-      if (logoFile && res.data?.tenant_id) {
-        const tenantId = res.data.tenant_id;
+      // Check for error in response body (non-2xx wrapped by invoke)
+      if (res.data?.error) {
+        throw new Error(res.data.error);
+      }
+
+      // Upload logo if provided — tenant object is in res.data.tenant
+      const tenantId = res.data?.tenant?.id;
+      if (logoFile && tenantId) {
         const ext = logoFile.name.split(".").pop() || "png";
         const filePath = `${tenantId}/logo.${ext}`;
 
@@ -124,7 +133,6 @@ const AdminTenants: React.FC = () => {
             .from("tenant-logos")
             .getPublicUrl(filePath);
 
-          // Update tenant with logo URL
           await supabase
             .from("tenants")
             .update({ logo_url: urlData.publicUrl })
