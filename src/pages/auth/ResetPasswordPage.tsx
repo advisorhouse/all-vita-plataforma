@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Lock, Eye, EyeOff } from "lucide-react";
+import logoAllVita from "@/assets/logo-allvita.jpeg";
 
 const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
