@@ -71,6 +71,7 @@ import AdminAudit from "./pages/admin/AdminAudit";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettingsPage from "./pages/admin/AdminSettings";
+import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
 
