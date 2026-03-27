@@ -261,6 +261,9 @@ const AdminFinance: React.FC = () => {
         <TransactionsTable transactions={txRows} />
         <PendingActionsPanel items={pendingItems} />
       </div>
+
+      {/* Drill-down drawer */}
+      <TenantDrillDownDrawer tenantId={drillDownTenantId} onClose={() => setDrillDownTenantId(null)} since={since} />
     </div>
   );
 };
