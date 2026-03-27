@@ -30,6 +30,7 @@ const pageTitles: Record<string, string> = {
   "/core/reports": "Insights & BI",
   "/core/gamification": "Gamificação",
   "/core/products": "Catálogo de Produtos",
+  "/core/integrations": "Integrações",
   "/core/permissions": "Permissões",
   "/core/settings": "Configurações",
 };
