@@ -15,9 +15,10 @@ export interface TenantRevenue {
 
 interface RevenueByTenantTableProps {
   tenants: TenantRevenue[];
+  onTenantClick?: (tenantId: string) => void;
 }
 
-const RevenueByTenantTable: React.FC<RevenueByTenantTableProps> = ({ tenants }) => {
+const RevenueByTenantTable: React.FC<RevenueByTenantTableProps> = ({ tenants, onTenantClick }) => {
   return (
     <Card>
       <CardHeader className="pb-2">
