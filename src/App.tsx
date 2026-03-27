@@ -22,6 +22,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import MfaSetupPage from "./pages/auth/MfaSetupPage";
 
 // Layouts
 import ClubLayout from "./layouts/ClubLayout";
@@ -92,6 +93,7 @@ const App = () => (
               <Route path="/auth/signup" element={<SignupPage />} />
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/auth/mfa-setup" element={<AuthGuard requireTenant={false}><MfaSetupPage /></AuthGuard>} />
 
               {/* Club (Cliente) - Protected */}
               <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />

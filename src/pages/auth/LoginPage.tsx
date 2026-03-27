@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { logAccessEvent } from "@/lib/security-logger";
+import MfaVerifyDialog from "@/components/auth/MfaVerifyDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,8 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [showMfa, setShowMfa] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +29,7 @@ const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         if (error.message.includes("Invalid login")) {
           toast.error("Email ou senha inválidos");
@@ -35,6 +38,17 @@ const LoginPage: React.FC = () => {
         }
         return;
       }
+
+      // Check if MFA is required
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const verifiedFactor = factors?.totp?.find((f: any) => f.status === "verified");
+
+      if (verifiedFactor) {
+        setMfaFactorId(verifiedFactor.id);
+        setShowMfa(true);
+        return;
+      }
+
       await logAccessEvent("login", { method: "password" });
       navigate("/");
     } catch {
@@ -68,6 +82,19 @@ const LoginPage: React.FC = () => {
   };
 
   return (
+    <>
+      <MfaVerifyDialog
+        open={showMfa}
+        factorId={mfaFactorId || ""}
+        onVerified={async () => {
+          await logAccessEvent("login", { method: "password", mfa: true });
+          navigate("/");
+        }}
+        onCancel={() => {
+          setShowMfa(false);
+          supabase.auth.signOut();
+        }}
+      />
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -171,6 +198,7 @@ const LoginPage: React.FC = () => {
         </p>
       </motion.div>
     </div>
+    </>
   );
 };
 
