@@ -112,6 +112,7 @@ const App = () => (
                 <Route path="referrals" element={<ClubReferrals />} />
                 <Route path="support" element={<ClubSupport />} />
                 <Route path="settings" element={<ClubSettings />} />
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
 
               {/* Partner (Afiliado) - Protected */}
