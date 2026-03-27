@@ -45,9 +45,9 @@ const RevenueByTenantTable: React.FC<RevenueByTenantTableProps> = ({ tenants, on
               </TableRow>
             )}
             {tenants.map((t, i) => (
-              <TableRow key={t.id}>
+              <TableRow key={t.id} className={onTenantClick ? "cursor-pointer hover:bg-muted/50" : ""} onClick={() => onTenantClick?.(t.id)}>
                 <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
-                <TableCell className="font-medium">{t.name}</TableCell>
+                <TableCell className="font-medium text-primary underline-offset-2 hover:underline">{t.name}</TableCell>
                 <TableCell className="text-right font-semibold">
                   R$ {t.revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </TableCell>
