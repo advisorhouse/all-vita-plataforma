@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { LucideIcon, ChevronsLeft, ChevronsRight, Star } from "lucide-react";
 import logoAllVita from "@/assets/logo-allvita.png";
+import iconAllVita from "@/assets/icon-allvita.png";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -59,27 +60,27 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
               {collapsed ? (
                 <motion.img
                   key="icon"
-                  src={logoAllVita}
+                  src={iconAllVita}
                   alt="All Vita"
-                  className="h-6 w-6 object-contain shrink-0"
-                  initial={{ opacity: 0, scale: 0.94 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
+                  className="h-8 w-8 object-contain shrink-0"
+                  initial={{ opacity: 0, scale: 0.7, rotate: -10 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, rotate: 10 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                 />
               ) : (
                 <motion.div
                   key="logo"
                   className="flex items-center gap-3 min-w-0"
-                  initial={{ opacity: 0, y: 1 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -1 }}
-                  transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                 >
                   <div className="h-7 w-[118px] shrink-0">
                     <img src={logoAllVita} alt="All Vita" className="h-7 w-full object-contain object-left" />
                   </div>
-                  <span className="text-caption text-muted-foreground whitespace-nowrap">{subtitle}</span>
+                  {subtitle && <span className="text-caption text-muted-foreground whitespace-nowrap">{subtitle}</span>}
                 </motion.div>
               )}
             </AnimatePresence>
