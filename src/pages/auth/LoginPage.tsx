@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import logoAllVita from "@/assets/logo-allvita.jpeg";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
