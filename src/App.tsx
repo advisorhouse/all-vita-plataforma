@@ -72,6 +72,7 @@ import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettingsPage from "./pages/admin/AdminSettings";
 import AdminFinance from "./pages/admin/AdminFinance";
+import AdminVitacoins from "./pages/admin/AdminVitacoins";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
@@ -163,6 +164,7 @@ const App = () => (
                 <Route path="audit" element={<AdminAudit />} />
                 <Route path="security" element={<AdminSecurity />} />
                 <Route path="finance" element={<AdminFinance />} />
+                <Route path="vitacoins" element={<AdminVitacoins />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
               </Route>
