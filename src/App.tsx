@@ -19,7 +19,7 @@ import PublicQuizPage from "./pages/quiz/PublicQuizPage";
 
 // Auth pages
 import LoginPage from "./pages/auth/LoginPage";
-import SignupPage from "./pages/auth/SignupPage";
+
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import MfaSetupPage from "./pages/auth/MfaSetupPage";
@@ -90,7 +90,7 @@ const App = () => (
 
               {/* Auth routes */}
               <Route path="/auth/login" element={<LoginPage />} />
-              <Route path="/auth/signup" element={<SignupPage />} />
+              
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
               <Route path="/auth/mfa-setup" element={<AuthGuard requireTenant={false}><MfaSetupPage /></AuthGuard>} />
