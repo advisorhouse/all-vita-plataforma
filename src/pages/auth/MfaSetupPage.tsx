@@ -31,7 +31,7 @@ const MfaSetupPage: React.FC = () => {
     try {
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const totpFactors = factors?.totp || [];
-      const verified = totpFactors.find((f) => f.status === "verified");
+      const verified = totpFactors.find((f: any) => f.status === "verified");
 
       if (verified) {
         setAlreadyEnrolled(true);
