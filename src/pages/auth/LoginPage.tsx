@@ -102,9 +102,6 @@ const LoginPage: React.FC = () => {
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm"
       >
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm"
-      >
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold tracking-tight">Entrar na plataforma</h1>
           <p className="text-sm text-muted-foreground mt-1">
