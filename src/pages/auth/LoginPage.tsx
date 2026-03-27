@@ -183,12 +183,6 @@ const LoginPage: React.FC = () => {
               >
                 Esqueci minha senha
               </Link>
-              <p className="text-sm text-muted-foreground">
-                Não tem conta?{" "}
-                <Link to="/auth/signup" className="text-foreground font-medium hover:underline">
-                  Criar conta
-                </Link>
-              </p>
             </div>
           </CardContent>
         </Card>
