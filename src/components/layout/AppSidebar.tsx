@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { LucideIcon, ChevronsLeft, ChevronsRight, Star } from "lucide-react";
 import logoAllVita from "@/assets/logo-allvita.png";
+import iconAllVita from "@/assets/icon-allvita.png";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
