@@ -139,8 +139,10 @@ const AdminTenants: React.FC = () => {
         description: `Subdomínio: ${data.subdomain}`,
       });
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dash-tenants"] });
       setOpen(false);
       setForm(emptyForm);
+      removeLogo();
     },
     onError: (error: any) => {
       toast.error("Erro ao criar empresa", { description: error.message });
