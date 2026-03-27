@@ -3,8 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { LucideIcon, ChevronsLeft, ChevronsRight, Star } from "lucide-react";
-import logoVisionLift from "@/assets/logo-vision-lift.png";
-import iconVisionLift from "@/assets/icon-vision-lift.png";
+import logoAllVita from "@/assets/logo-allvita.png";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
