@@ -19,7 +19,7 @@ import PublicQuizPage from "./pages/quiz/PublicQuizPage";
 
 // Auth pages
 import LoginPage from "./pages/auth/LoginPage";
-import SignupPage from "./pages/auth/SignupPage";
+
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import MfaSetupPage from "./pages/auth/MfaSetupPage";
