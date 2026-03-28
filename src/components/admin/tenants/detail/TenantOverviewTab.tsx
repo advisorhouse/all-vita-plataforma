@@ -100,23 +100,11 @@ const TenantOverviewTab: React.FC<TenantOverviewTabProps> = ({ tenant, metrics }
           {/* Branding */}
           <Separator className="my-4" />
           <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Branding</h4>
-          <div className="flex items-center gap-6 flex-wrap">
+          <div className="flex items-center gap-4">
             {tenant.logo_url && (
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Logo</p>
-                <img src={tenant.logo_url} alt="Logo" className="h-16 w-16 rounded-lg object-contain border bg-white" />
-              </div>
-            )}
-            {tenant.isotipo_url && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Isotipo</p>
-                <img src={tenant.isotipo_url} alt="Isotipo" className="h-16 w-16 rounded-lg object-contain border bg-white" />
-              </div>
-            )}
-            {tenant.favicon_url && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Favicon</p>
-                <img src={tenant.favicon_url} alt="Favicon" className="h-16 w-16 rounded-lg object-contain border bg-white" />
+                <img src={tenant.logo_url} alt="Logo" className="h-16 w-16 rounded-lg object-contain border" />
               </div>
             )}
             <div>

@@ -2122,9 +2122,7 @@ export type Database = {
           cnpj: string | null
           created_at: string
           domain: string | null
-          favicon_url: string | null
           id: string
-          isotipo_url: string | null
           logo_url: string | null
           name: string
           primary_color: string | null
@@ -2140,9 +2138,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string
           domain?: string | null
-          favicon_url?: string | null
           id?: string
-          isotipo_url?: string | null
           logo_url?: string | null
           name: string
           primary_color?: string | null
@@ -2158,9 +2154,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string
           domain?: string | null
-          favicon_url?: string | null
           id?: string
-          isotipo_url?: string | null
           logo_url?: string | null
           name?: string
           primary_color?: string | null
