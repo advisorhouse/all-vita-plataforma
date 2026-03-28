@@ -10,6 +10,7 @@ const adminLinks = [
   { label: "Financeiro", href: "/admin/finance", icon: DollarSign },
   { label: "Vitacoins", href: "/admin/vitacoins", icon: Coins },
   { label: "Integrações", href: "/admin/integrations", icon: Plug },
+  { label: "BI & Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Auditoria", href: "/admin/audit", icon: FileText },
   { label: "Segurança", href: "/admin/security", icon: ShieldCheck },
   { label: "Configurações", href: "/admin/settings", icon: Settings },
