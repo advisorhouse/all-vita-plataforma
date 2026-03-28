@@ -38,9 +38,8 @@ const slideVariants = {
 };
 
 const ActivatePage: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const tenantParam = searchParams.get("tenant");
+  const baseNavigate = useNavigate();
+  const { navigate: tenantNavigate, tenantParam } = useTenantNavigation();
   const { currentTenant } = useTenant();
   const [step, setStep] = useState<Step>("welcome");
   const [direction, setDirection] = useState(1);
