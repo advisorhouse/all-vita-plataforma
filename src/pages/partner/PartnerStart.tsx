@@ -1,10 +1,11 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Coins, Gift, ShieldCheck, ArrowRight, Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
+import { useTenant } from "@/contexts/TenantContext";
 import logoVisionLift from "@/assets/logo-vision-lift.png";
 
 const PILLARS = [
@@ -31,7 +32,10 @@ const PILLARS = [
 ];
 
 const PartnerStart: React.FC = () => {
-  const navigate = useNavigate();
+  const { navigate } = useTenantNavigation();
+  const { currentTenant } = useTenant();
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
+  const tenantLogo = currentTenant?.logo_url || logoVisionLift;
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-16 relative">
@@ -47,10 +51,10 @@ const PartnerStart: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-lg flex flex-col items-center text-center"
       >
-        <img src={logoVisionLift} alt="Vision Lift" className="h-8 w-auto mb-6" />
+        <img src={tenantLogo} alt={tenantName} className="h-8 w-auto mb-6" />
 
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Bem-vindo(a) ao Vision Lift Partners
+          Bem-vindo(a) ao {tenantName} Partners
         </h1>
         <p className="mt-2 text-sm text-muted-foreground max-w-md">
           Plataforma para profissionais de saúde. Vincule pacientes, acumule VisionPoints Coin e resgate como preferir.

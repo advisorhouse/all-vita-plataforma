@@ -7,8 +7,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 import iconVisionLift from "@/assets/icon-vision-lift.png";
@@ -38,9 +39,8 @@ const slideVariants = {
 };
 
 const ActivatePage: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const tenantParam = searchParams.get("tenant");
+  const baseNavigate = useNavigate();
+  const { navigate: tenantNavigate, tenantParam } = useTenantNavigation();
   const { currentTenant } = useTenant();
   const [step, setStep] = useState<Step>("welcome");
   const [direction, setDirection] = useState(1);
@@ -248,7 +248,7 @@ const ActivatePage: React.FC = () => {
                   <p className="text-sm text-muted-foreground pt-1">Leva menos de 2 minutos.</p>
                   <Button
                     variant="ghost"
-                    onClick={() => navigate(tenantParam ? `/auth/login?tenant=${tenantParam}` : "/auth/login")}
+                    onClick={() => tenantNavigate("/auth/login")}
                     className="w-full h-12 text-muted-foreground text-base font-normal rounded-xl"
                   >
                     Já tenho conta
@@ -394,7 +394,7 @@ const ActivatePage: React.FC = () => {
                   transition={{ delay: 0.6, duration: 0.5 }}
                 >
                   <Button
-                    onClick={() => navigate(tenantParam ? `/club?tenant=${tenantParam}` : "/club")}
+                    onClick={() => tenantNavigate("/club")}
                     className="w-full h-16 bg-foreground hover:bg-foreground/90 text-background rounded-2xl text-lg font-medium"
                   >
                     Ver meus prêmios

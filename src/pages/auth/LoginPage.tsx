@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { logAccessEvent } from "@/lib/security-logger";
 import { useTenant } from "@/contexts/TenantContext";
@@ -14,9 +15,8 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import logoAllVita from "@/assets/logo-allvita.png";
 
 const LoginPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const { navigate, tenantPath, tenantParam } = useTenantNavigation();
   const { currentTenant } = useTenant();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
       }
 
       await logAccessEvent("login", { method: "password" });
-      navigate(`/${searchParams.get("tenant") ? `?tenant=${searchParams.get("tenant")}` : ""}`);
+      navigate("/");
     } catch {
       toast.error("Erro ao fazer login");
     } finally {
@@ -107,7 +107,7 @@ const LoginPage: React.FC = () => {
         factorId={mfaFactorId || ""}
         onVerified={async () => {
           await logAccessEvent("login", { method: "password", mfa: true });
-          navigate(`/${searchParams.get("tenant") ? `?tenant=${searchParams.get("tenant")}` : ""}`);
+          navigate("/");
         }}
         onCancel={() => {
           setShowMfa(false);
@@ -201,7 +201,7 @@ const LoginPage: React.FC = () => {
 
             <div className="mt-6 text-center space-y-2">
               <Link
-                to="/auth/forgot-password"
+                to={tenantPath("/auth/forgot-password")}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Esqueci minha senha
