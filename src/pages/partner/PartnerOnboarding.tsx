@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import {
   Stethoscope, BarChart3, Handshake, ArrowRight, ChevronLeft, Check,
   Eye, EyeOff, Repeat, Heart, Monitor, Lock, Shield, Coins, Users,

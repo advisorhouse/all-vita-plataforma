@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ChevronLeft, Check, Lock,
-  Gift, Percent, Glasses, Heart, Sparkles,
+  Gift, Percent, Glasses, Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import iconVisionLift from "@/assets/icon-vision-lift.png";
 import product1Month from "@/assets/product-vision-lift-1month.png";
 import product3Month from "@/assets/product-vision-lift-3month.png";
@@ -36,8 +39,12 @@ const slideVariants = {
 
 const ActivatePage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get("tenant");
+  const { currentTenant } = useTenant();
   const [step, setStep] = useState<Step>("welcome");
   const [direction, setDirection] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -55,6 +62,75 @@ const ActivatePage: React.FC = () => {
 
   const canProceed = name.trim().length > 1 && email.includes("@") && password.length >= 6 && product !== "";
 
+  const handleActivate = async () => {
+    if (!currentTenant) {
+      toast.error("Tenant não identificado. Acesse via link do tenant.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Sign up
+      const nameParts = name.trim().split(" ");
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(" ");
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: {
+            full_name: name,
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
+      });
+
+      if (signUpError) {
+        toast.error(signUpError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!signUpData.session) {
+        // Email confirmation required — still create tenant records
+        toast.info("Verifique seu email para confirmar a conta.");
+      }
+
+      // 2. Call tenant-signup edge function
+      if (signUpData.session) {
+        const selectedProduct = products.find((p) => p.id === product);
+        const { error: fnError } = await supabase.functions.invoke("tenant-signup", {
+          body: {
+            tenant_id: currentTenant.id,
+            role: "client",
+            metadata: {
+              product_label: selectedProduct?.label,
+              product_selection: product,
+              source: "club_activation",
+            },
+          },
+        });
+
+        if (fnError) {
+          console.error("tenant-signup error:", fnError);
+          toast.error("Erro ao configurar acesso. Tente novamente.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      goTo("confirmation");
+    } catch (err) {
+      console.error("Activation error:", err);
+      toast.error("Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const SecurityFooter = () => (
     <div className="flex items-center justify-center gap-1.5 pt-6">
       <Lock className="h-3 w-3 text-muted-foreground/50" />
@@ -66,7 +142,6 @@ const ActivatePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Simple progress — only on register */}
       {step === "register" && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm">
           <div className="max-w-lg mx-auto px-6 py-4 flex items-center gap-4">
@@ -85,7 +160,6 @@ const ActivatePage: React.FC = () => {
         </div>
       )}
 
-      {/* Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
@@ -106,7 +180,7 @@ const ActivatePage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <img src={iconVisionLift} alt="Vision Lift" className="h-16 w-16 object-contain mx-auto" />
+                  <img src={currentTenant?.logo_url || iconVisionLift} alt="Logo" className="h-16 w-16 object-contain mx-auto" />
                 </motion.div>
 
                 <motion.div
@@ -118,14 +192,13 @@ const ActivatePage: React.FC = () => {
                   <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                     Bem-vinda ao
                     <br />
-                    Vision Lift Club.
+                    {currentTenant?.name || "Vision Lift"} Club.
                   </h1>
                   <p className="text-muted-foreground text-lg font-light max-w-xs mx-auto">
                     Ative seu acesso e ganhe prêmios a cada mês.
                   </p>
                 </motion.div>
 
-                {/* Benefits preview — premium cards with icons */}
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -175,7 +248,7 @@ const ActivatePage: React.FC = () => {
                   <p className="text-sm text-muted-foreground pt-1">Leva menos de 2 minutos.</p>
                   <Button
                     variant="ghost"
-                    onClick={() => navigate("/club")}
+                    onClick={() => navigate(tenantParam ? `/auth/login?tenant=${tenantParam}` : "/auth/login")}
                     className="w-full h-12 text-muted-foreground text-base font-normal rounded-xl"
                   >
                     Já tenho conta
@@ -258,12 +331,12 @@ const ActivatePage: React.FC = () => {
                 </div>
 
                 <Button
-                  onClick={() => goTo("confirmation")}
-                  disabled={!canProceed}
+                  onClick={handleActivate}
+                  disabled={!canProceed || loading}
                   className="w-full h-16 bg-foreground hover:bg-foreground/90 text-background rounded-2xl text-lg font-medium disabled:opacity-30"
                 >
-                  Ativar meu acesso
-                  <ArrowRight className="h-5 w-5 ml-2" />
+                  {loading ? "Ativando..." : "Ativar meu acesso"}
+                  {!loading && <ArrowRight className="h-5 w-5 ml-2" />}
                 </Button>
 
                 <SecurityFooter />
@@ -284,7 +357,7 @@ const ActivatePage: React.FC = () => {
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
                   >
-                    <img src={iconVisionLift} alt="Vision Lift" className="h-20 w-20 object-contain mx-auto" />
+                    <img src={currentTenant?.logo_url || iconVisionLift} alt="Logo" className="h-20 w-20 object-contain mx-auto" />
                   </motion.div>
                   <h2 className="text-3xl font-semibold tracking-tight text-foreground">
                     Tudo pronto!
@@ -294,7 +367,6 @@ const ActivatePage: React.FC = () => {
                   </p>
                 </motion.div>
 
-                {/* First reward preview — premium card, no emoji */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -322,7 +394,7 @@ const ActivatePage: React.FC = () => {
                   transition={{ delay: 0.6, duration: 0.5 }}
                 >
                   <Button
-                    onClick={() => navigate("/club")}
+                    onClick={() => navigate(tenantParam ? `/club?tenant=${tenantParam}` : "/club")}
                     className="w-full h-16 bg-foreground hover:bg-foreground/90 text-background rounded-2xl text-lg font-medium"
                   >
                     Ver meus prêmios
