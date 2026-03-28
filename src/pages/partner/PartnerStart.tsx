@@ -16,8 +16,8 @@ const PILLARS = [
   },
   {
     icon: Coins,
-    title: "VisionPoints Coin",
-    desc: "Moeda interna da plataforma. Acumule pontos por vendas, quizzes e indicações — sem comissão direta.",
+    title: "Vitacoins",
+    desc: "Moeda interna da plataforma. Acumule Vitacoins por vendas, quizzes e indicações — sem comissão direta.",
   },
   {
     icon: Gift,
