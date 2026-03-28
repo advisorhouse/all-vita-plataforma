@@ -82,28 +82,31 @@ export function useSubdomainTenant() {
     }
   }, []);
 
-  // Auto-select tenant when memberships load
+  // Fetch tenant branding by slug immediately (even before login/memberships)
+  useEffect(() => {
+    if (!subdomainSlug || currentTenant) return;
+
+    const fetchTenantBySlug = async () => {
+      const { data } = await (supabase.from as any)("tenants")
+        .select("id, name, slug, logo_url, primary_color, secondary_color, domain, active, settings")
+        .eq("slug", subdomainSlug)
+        .eq("active", true)
+        .single();
+
+      if (data) {
+        setCurrentTenant(data as Tenant);
+      }
+    };
+    fetchTenantBySlug();
+  }, [subdomainSlug, currentTenant, setCurrentTenant]);
+
+  // Auto-select from memberships when they load
   useEffect(() => {
     if (!subdomainSlug || availableTenants.length === 0 || currentTenant) return;
 
     const match = availableTenants.find((t) => t.slug === subdomainSlug);
     if (match) {
       setCurrentTenant(match);
-    } else {
-      // User doesn't have membership for this tenant subdomain —
-      // try to fetch tenant info anyway for branding on login page
-      const fetchTenantBySlug = async () => {
-        const { data } = await (supabase.from as any)("tenants")
-          .select("id, name, slug, logo_url, primary_color, secondary_color, domain, active, settings")
-          .eq("slug", subdomainSlug)
-          .eq("active", true)
-          .single();
-
-        if (data) {
-          setCurrentTenant(data as Tenant);
-        }
-      };
-      fetchTenantBySlug();
     }
   }, [subdomainSlug, availableTenants, currentTenant, setCurrentTenant]);
 
