@@ -63,8 +63,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true })
     return <>{children}</>;
   }
 
-  // Need tenant but none selected + multiple available
-  if (requireTenant && !currentTenant && availableTenants.length > 1) {
+  // Need tenant but none selected + multiple available (skip if subdomain access — will auto-select)
+  if (requireTenant && !currentTenant && availableTenants.length > 1 && !isSubdomainAccess) {
     return <TenantSelectScreen />;
   }
 
