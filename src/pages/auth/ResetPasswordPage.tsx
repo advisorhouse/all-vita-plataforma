@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,15 +12,18 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import logoAllVita from "@/assets/logo-allvita.png";
 
 const ResetPasswordPage: React.FC = () => {
-  const navigate = useNavigate();
+  const { navigate } = useTenantNavigation();
+  const { currentTenant } = useTenant();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
 
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "All Vita";
+  const tenantLogo = currentTenant?.logo_url || logoAllVita;
+
   useEffect(() => {
-    // Check for recovery token in URL hash
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) {
       setIsRecovery(true);
@@ -79,7 +83,7 @@ const ResetPasswordPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <img src={logoAllVita} alt="All Vita" className="h-10 w-auto mx-auto mb-4" />
+          <img src={tenantLogo} alt={tenantName} className="h-10 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-semibold tracking-tight">Nova senha</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Defina sua nova senha de acesso
@@ -134,6 +138,10 @@ const ResetPasswordPage: React.FC = () => {
             </form>
           </CardContent>
         </Card>
+
+        <p className="text-center text-[11px] text-muted-foreground mt-6">
+          Powered by <span className="font-medium">All Vita</span>
+        </p>
       </motion.div>
     </div>
   );
