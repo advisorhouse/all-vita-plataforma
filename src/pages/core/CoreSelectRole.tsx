@@ -1,8 +1,10 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Crown, Users, Eye, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import logoVisionLift from "@/assets/logo-vision-lift.png";
 
 const fadeUp = {
@@ -14,13 +16,14 @@ const fadeUp = {
   }),
 };
 
-const ROLES = [
+const ALL_ROLES = [
   {
     key: "master",
     icon: Crown,
     label: "Master Admin",
     desc: "Acesso global total à plataforma.",
     href: "/core",
+    requiredRoles: ["super_admin", "admin"],
   },
   {
     key: "partner_mgr",
@@ -28,6 +31,7 @@ const ROLES = [
     label: "Partner Manager",
     desc: "Gestão de partners e performance.",
     href: "/core",
+    requiredRoles: ["super_admin", "admin", "manager"],
   },
   {
     key: "client_mgr",
@@ -35,6 +39,7 @@ const ROLES = [
     label: "Client Manager",
     desc: "Gestão de clientes e retenção.",
     href: "/core/customers",
+    requiredRoles: ["super_admin", "admin", "manager"],
   },
   {
     key: "content_mgr",
@@ -42,20 +47,37 @@ const ROLES = [
     label: "Content Manager",
     desc: "Conteúdo, formação e materiais.",
     href: "/core",
+    requiredRoles: ["super_admin", "admin", "manager"],
   },
 ];
 
 const CoreSelectRole: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get("tenant");
+  const { user } = useAuth();
+  const { currentTenant, userRole, isSuperAdmin } = useTenant();
+
+  const tenantLogo = currentTenant?.logo_url || logoVisionLift;
+  const tenantName = currentTenant?.name || "Vision Lift";
+
+  // Filter roles based on user's actual role
+  const isDemo = !user;
+  const visibleRoles = isDemo
+    ? ALL_ROLES
+    : ALL_ROLES.filter((role) =>
+        isSuperAdmin || (userRole && role.requiredRoles.includes(userRole))
+      );
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-16 relative">
-      {/* Demo badge */}
-      <div className="absolute top-4 right-4">
-        <span className="rounded-full border border-border bg-secondary px-3 py-1 text-[11px] font-medium text-muted-foreground">
-          Modo demonstração
-        </span>
-      </div>
+      {isDemo && (
+        <div className="absolute top-4 right-4">
+          <span className="rounded-full border border-border bg-secondary px-3 py-1 text-[11px] font-medium text-muted-foreground">
+            Modo demonstração
+          </span>
+        </div>
+      )}
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -63,9 +85,9 @@ const CoreSelectRole: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="flex flex-col items-center mb-10"
       >
-        <img src={logoVisionLift} alt="Vision Lift" className="h-8 w-auto mb-5" />
+        <img src={tenantLogo} alt={tenantName} className="h-8 w-auto mb-5" />
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground text-center">
-          Vision Core
+          {tenantName} Core
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground text-center">
           Selecione o nível de acesso para continuar.
@@ -73,12 +95,18 @@ const CoreSelectRole: React.FC = () => {
       </motion.div>
 
       <div className="grid gap-3 sm:grid-cols-2 w-full max-w-lg">
-        {ROLES.map((role, i) => {
+        {visibleRoles.map((role, i) => {
           const Icon = role.icon;
           return (
             <motion.div key={role.key} custom={i} variants={fadeUp} initial="hidden" animate="visible">
               <button
-                onClick={() => navigate(role.href)}
+                onClick={() => {
+                  if (!user && tenantParam) {
+                    navigate(`/auth/login?tenant=${tenantParam}`);
+                  } else {
+                    navigate(role.href);
+                  }
+                }}
                 className="w-full text-left"
               >
                 <Card className="border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer h-full">
@@ -102,7 +130,7 @@ const CoreSelectRole: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        onClick={() => navigate("/")}
+        onClick={() => navigate(tenantParam ? `/?tenant=${tenantParam}` : "/")}
         className="mt-8 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
       >
         ← Voltar ao hub
