@@ -33,7 +33,7 @@ const Index = () => {
       return <Navigate to={`/auth/login${search}`} replace />;
     }
 
-    const tenantName = currentTenant?.name || slugToName(tenantParam);
+    const tenantName = currentTenant?.trade_name || currentTenant?.name || slugToName(tenantParam);
     const tenantLogo = currentTenant?.logo_url || logoVisionLift;
     const tenantQuery = `tenant=${encodeURIComponent(tenantParam)}`;
 
