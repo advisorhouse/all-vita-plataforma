@@ -51,7 +51,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true })
 
   if (!user) {
     const tenantParam = new URLSearchParams(location.search).get("tenant");
-    if (location.pathname === "/" && tenantParam) {
+    const publicTenantPaths = ["/", "/club/start", "/partner/start", "/core/select-role"];
+    if (tenantParam && publicTenantPaths.includes(location.pathname)) {
       return <>{children}</>;
     }
 
