@@ -180,7 +180,7 @@ const ActivatePage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <img src={currentTenant?.logo_url || iconVisionLift} alt="Logo" className="h-16 w-16 object-contain mx-auto" />
+                  <img src={currentTenant?.logo_url || iconVisionLift} alt={currentTenant?.trade_name || "Logo"} className="h-12 w-auto object-contain mx-auto" />
                 </motion.div>
 
                 <motion.div
@@ -192,7 +192,7 @@ const ActivatePage: React.FC = () => {
                   <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                     Bem-vinda ao
                     <br />
-                    {currentTenant?.name || "Vision Lift"} Club.
+                    {currentTenant?.trade_name || currentTenant?.name || "Vision Lift"} Club.
                   </h1>
                   <p className="text-muted-foreground text-lg font-light max-w-xs mx-auto">
                     Ative seu acesso e ganhe prêmios a cada mês.
@@ -357,7 +357,7 @@ const ActivatePage: React.FC = () => {
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
                   >
-                    <img src={currentTenant?.logo_url || iconVisionLift} alt="Logo" className="h-20 w-20 object-contain mx-auto" />
+                    <img src={currentTenant?.logo_url || iconVisionLift} alt={currentTenant?.trade_name || "Logo"} className="h-14 w-auto object-contain mx-auto" />
                   </motion.div>
                   <h2 className="text-3xl font-semibold tracking-tight text-foreground">
                     Tudo pronto!

@@ -36,7 +36,7 @@ const ClubLayout: React.FC = () => {
   const location = useLocation();
   const { currentTenant } = useTenant();
   const headerTitle = pageTitles[location.pathname] || "Club";
-  const tenantName = currentTenant?.name || "Vision Lift";
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
 
   const headerActions = (
     <div className="flex items-center gap-3">

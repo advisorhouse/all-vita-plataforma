@@ -45,7 +45,7 @@ const CoreLayout: React.FC = () => {
   const location = useLocation();
   const { currentTenant } = useTenant();
   const headerTitle = pageTitles[location.pathname] || "Admin";
-  const tenantName = currentTenant?.name || "Vision Lift";
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
 
   return (
     <AppShell
