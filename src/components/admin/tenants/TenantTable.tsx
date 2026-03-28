@@ -54,7 +54,7 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
               <TableRow
                 key={t.id}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() => onViewTenant(t)}
+                onClick={() => navigate(`/admin/tenants/${t.id}`)}
               >
                 <TableCell>
                   <div className="flex items-center gap-3">
