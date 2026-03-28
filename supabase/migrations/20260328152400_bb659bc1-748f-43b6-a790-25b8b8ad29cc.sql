@@ -1,0 +1,1 @@
+GRANT SELECT ON TABLE public.tenants TO anon;
