@@ -89,6 +89,74 @@ const PartnerOnboarding: React.FC = () => {
     if (currentIndex < STEP_ORDER.length - 1) goTo(STEP_ORDER[currentIndex + 1]);
   };
 
+  const handleFinishSignup = async () => {
+    if (!currentTenant) {
+      toast.error("Tenant não identificado.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const nameParts = data.fullName.trim().split(" ");
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(" ");
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { full_name: data.fullName, first_name: firstName, last_name: lastName },
+        },
+      });
+
+      if (signUpError) {
+        toast.error(signUpError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!signUpData.session) {
+        toast.info("Verifique seu email para confirmar a conta.");
+      }
+
+      if (signUpData.session) {
+        const { error: fnError } = await supabase.functions.invoke("tenant-signup", {
+          body: {
+            tenant_id: currentTenant.id,
+            role: "partner",
+            metadata: {
+              crm: data.crm,
+              crm_state: data.crmState,
+              specialty: data.specialty,
+              clinic_name: data.clinicName,
+              clinic_city: data.clinicCity,
+              clinic_state: data.clinicState,
+              cpf_cnpj: data.cpfCnpj,
+              pix_key: data.pixKey,
+              payment_name: data.paymentName,
+              phone: data.phone,
+              source: "partner_onboarding",
+            },
+          },
+        });
+
+        if (fnError) {
+          console.error("tenant-signup error:", fnError);
+          toast.error("Erro ao configurar acesso.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      goTo("done");
+    } catch (err) {
+      console.error("Signup error:", err);
+      toast.error("Erro inesperado.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const update = (partial: Partial<DoctorFormData>) => setData((d) => ({ ...d, ...partial }));
 
   // ─── Shared sub-components ─────────────────────────────────
