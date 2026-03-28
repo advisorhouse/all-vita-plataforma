@@ -60,13 +60,26 @@ export function useSubdomainTenant() {
       setSubdomainSlug(slug);
       setIsSubdomainAccess(true);
 
-      // Fetch tenant branding immediately (even before login/memberships)
+      // Normalize: try exact slug first, then without hyphens (vision-lift → visionlift)
+      const normalizedSlug = slug.replace(/-/g, "").toLowerCase();
       const fetchBranding = async () => {
-        const { data } = await (supabase.from as any)("tenants")
+        // Try exact match first
+        let { data } = await (supabase.from as any)("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
           .eq("slug", slug)
           .eq("active", true)
           .single();
+
+        // If no match, try normalized (without hyphens)
+        if (!data && normalizedSlug !== slug) {
+          const res = await (supabase.from as any)("tenants")
+            .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
+            .eq("slug", normalizedSlug)
+            .eq("active", true)
+            .single();
+          data = res.data;
+        }
+
         if (data) {
           setCurrentTenant(data as Tenant);
         }
