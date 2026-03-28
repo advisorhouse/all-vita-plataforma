@@ -103,19 +103,19 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewTenant(t)}>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}`)}>
                         <Eye className="h-4 w-4 mr-2" /> Ver empresa
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}?tab=edit`)}>
                         <Pencil className="h-4 w-4 mr-2" /> Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}?tab=config`)}>
                         <Settings className="h-4 w-4 mr-2" /> Configurar
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}?tab=analytics`)}>
                         <BarChart3 className="h-4 w-4 mr-2" /> Ver analytics
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem className="text-destructive" onClick={() => navigate(`/admin/tenants/${t.id}?suspend=true`)}>
                         <Ban className="h-4 w-4 mr-2" /> {active ? "Suspender" : "Reativar"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>

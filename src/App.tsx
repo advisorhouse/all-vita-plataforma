@@ -164,6 +164,7 @@ const App = () => (
               <Route path="/admin" element={<AuthGuard requireTenant={false}><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="tenants" element={<AdminTenants />} />
+                <Route path="tenants/:id" element={<AdminTenantDetail />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="audit" element={<AdminAudit />} />
                 <Route path="security" element={<AdminSecurity />} />
