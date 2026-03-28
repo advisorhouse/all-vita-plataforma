@@ -1,17 +1,62 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Loader2, Save, Upload, X } from "lucide-react";
+import { Loader2, Save, Upload, X, Globe } from "lucide-react";
 
 interface TenantEditTabProps {
   tenant: any;
 }
+
+interface ImageUploadProps {
+  label: string;
+  hint: string;
+  preview: string | null;
+  onFileChange: (file: File) => void;
+  onClear: () => void;
+  accept?: string;
+  previewClass?: string;
+}
+
+const ImageUploadField: React.FC<ImageUploadProps> = ({
+  label, hint, preview, onFileChange, onClear, accept = "image/png,image/svg+xml,image/webp", previewClass = "h-16 w-16"
+}) => (
+  <div className="space-y-2">
+    <Label>{label}</Label>
+    <p className="text-xs text-muted-foreground">{hint}</p>
+    <div className="flex items-center gap-4">
+      {preview ? (
+        <div className="relative">
+          <img src={preview} alt={label} className={`${previewClass} rounded-lg object-contain border bg-muted/30`} />
+          <button
+            type="button"
+            onClick={onClear}
+            className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      ) : (
+        <label className={`${previewClass} rounded-lg border-2 border-dashed flex items-center justify-center cursor-pointer hover:border-primary transition`}>
+          <Upload className="h-5 w-5 text-muted-foreground" />
+          <input
+            type="file"
+            accept={accept}
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onFileChange(file);
+            }}
+          />
+        </label>
+      )}
+    </div>
+  </div>
+);
 
 const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
   const queryClient = useQueryClient();
@@ -24,35 +69,43 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
     primary_color: tenant.primary_color || "#6366f1",
     secondary_color: tenant.secondary_color || "#818cf8",
   });
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(tenant.logo_url);
+  const [isotipoFile, setIsotipoFile] = useState<File | null>(null);
+  const [isotipoPreview, setIsotipoPreview] = useState<string | null>(tenant.isotipo_url);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(tenant.favicon_url);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
+  const uploadImage = async (file: File, key: string) => {
+    const ext = file.name.split(".").pop();
+    const path = `${tenant.id}/${key}.${ext}`;
+    const { error } = await supabase.storage
+      .from("tenant-logos")
+      .upload(path, file, { upsert: true });
+    if (error) throw error;
+    const { data } = supabase.storage.from("tenant-logos").getPublicUrl(path);
+    return data.publicUrl;
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
       let logo_url = tenant.logo_url;
+      let isotipo_url = tenant.isotipo_url;
+      let favicon_url = tenant.favicon_url;
 
-      if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
-        const path = `${tenant.id}/logo.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("tenant-logos")
-          .upload(path, logoFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("tenant-logos").getPublicUrl(path);
-        logo_url = urlData.publicUrl;
-      }
+      if (logoFile) logo_url = await uploadImage(logoFile, "logo");
+      if (isotipoFile) isotipo_url = await uploadImage(isotipoFile, "isotipo");
+      if (faviconFile) favicon_url = await uploadImage(faviconFile, "favicon");
+
+      // Handle cleared images
+      if (!logoPreview) logo_url = null;
+      if (!isotipoPreview) isotipo_url = null;
+      if (!faviconPreview) favicon_url = null;
 
       const { error } = await supabase
         .from("tenants")
@@ -65,6 +118,8 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
           primary_color: form.primary_color,
           secondary_color: form.secondary_color,
           logo_url,
+          isotipo_url,
+          favicon_url,
         })
         .eq("id", tenant.id);
 
@@ -104,9 +159,22 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
               <Label>Slug</Label>
               <Input value={form.slug} onChange={(e) => handleChange("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
+          </div>
+
+          {/* Domain section */}
+          <div className="space-y-3 pt-2">
+            <div className="space-y-1.5">
+              <Label>Subdomínio Padrão</Label>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50 text-sm">
+                <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="font-medium">{form.slug || "slug"}.allvita.com.br</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Gerado automaticamente a partir do slug</p>
+            </div>
+            <div className="space-y-1.5">
               <Label>Domínio Personalizado</Label>
               <Input value={form.domain} onChange={(e) => handleChange("domain", e.target.value)} placeholder="exemplo.com.br" />
+              <p className="text-xs text-muted-foreground">Opcional. Configure o DNS para apontar para a plataforma.</p>
             </div>
           </div>
         </CardContent>
@@ -115,33 +183,42 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Branding</CardTitle>
+          <CardDescription>Identidade visual da empresa nos portais white-label</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {/* Logo */}
-          <div className="space-y-2">
-            <Label>Logo</Label>
-            <div className="flex items-center gap-4">
-              {logoPreview ? (
-                <div className="relative">
-                  <img src={logoPreview} alt="Logo" className="h-16 w-16 rounded-lg object-contain border" />
-                  <button
-                    onClick={() => { setLogoFile(null); setLogoPreview(null); }}
-                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ) : (
-                <label className="h-16 w-16 rounded-lg border-2 border-dashed flex items-center justify-center cursor-pointer hover:border-primary transition">
-                  <Upload className="h-5 w-5 text-muted-foreground" />
-                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-                </label>
-              )}
-            </div>
-          </div>
+          <ImageUploadField
+            label="Logo Principal"
+            hint="Formato: PNG, SVG ou WebP · Recomendado: 400×120px · Fundo transparente"
+            preview={logoPreview}
+            onFileChange={(file) => { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }}
+            onClear={() => { setLogoFile(null); setLogoPreview(null); }}
+            previewClass="h-16 w-40"
+          />
+
+          {/* Isotipo */}
+          <ImageUploadField
+            label="Isotipo (Ícone da Marca)"
+            hint="Formato: PNG ou SVG · Tamanho: 128×128px · Usado em avatares e ícones compactos"
+            preview={isotipoPreview}
+            onFileChange={(file) => { setIsotipoFile(file); setIsotipoPreview(URL.createObjectURL(file)); }}
+            onClear={() => { setIsotipoFile(null); setIsotipoPreview(null); }}
+            previewClass="h-14 w-14"
+          />
+
+          {/* Favicon */}
+          <ImageUploadField
+            label="Favicon"
+            hint="Formato: PNG, ICO ou SVG · Tamanho: 32×32px ou 64×64px · Ícone da aba do navegador"
+            preview={faviconPreview}
+            onFileChange={(file) => { setFaviconFile(file); setFaviconPreview(URL.createObjectURL(file)); }}
+            onClear={() => { setFaviconFile(null); setFaviconPreview(null); }}
+            accept="image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+            previewClass="h-10 w-10"
+          />
 
           {/* Colors */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 pt-2">
             <div className="space-y-1.5">
               <Label>Cor Principal</Label>
               <div className="flex items-center gap-2">
