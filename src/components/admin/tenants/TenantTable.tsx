@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Building2, Eye, Pencil, Ban, BarChart3, MoreVertical, Globe, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface TenantTableProps {
   tenants: any[];
@@ -18,6 +19,7 @@ function formatCnpj(cnpj: string): string {
 }
 
 const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant }) => {
+  const navigate = useNavigate();
   const isActive = (t: any) => t.status === "active" || t.active !== false;
 
   if (tenants.length === 0) {
@@ -52,7 +54,7 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
               <TableRow
                 key={t.id}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() => onViewTenant(t)}
+                onClick={() => navigate(`/admin/tenants/${t.id}`)}
               >
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -101,19 +103,19 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewTenant(t)}>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}`)}>
                         <Eye className="h-4 w-4 mr-2" /> Ver empresa
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}?tab=edit`)}>
                         <Pencil className="h-4 w-4 mr-2" /> Editar
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}?tab=config`)}>
                         <Settings className="h-4 w-4 mr-2" /> Configurar
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}?tab=analytics`)}>
                         <BarChart3 className="h-4 w-4 mr-2" /> Ver analytics
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem className="text-destructive" onClick={() => navigate(`/admin/tenants/${t.id}?suspend=true`)}>
                         <Ban className="h-4 w-4 mr-2" /> {active ? "Suspender" : "Reativar"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>

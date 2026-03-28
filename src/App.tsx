@@ -66,6 +66,7 @@ import CoreSelectRole from "./pages/core/CoreSelectRole";
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminTenants from "./pages/admin/AdminTenants";
+import AdminTenantDetail from "./pages/admin/AdminTenantDetail";
 import AdminOnboarding from "./pages/admin/AdminOnboarding";
 import AdminAudit from "./pages/admin/AdminAudit";
 import AdminSecurity from "./pages/admin/AdminSecurity";
@@ -163,6 +164,7 @@ const App = () => (
               <Route path="/admin" element={<AuthGuard requireTenant={false}><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="tenants" element={<AdminTenants />} />
+                <Route path="tenants/:id" element={<AdminTenantDetail />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="audit" element={<AdminAudit />} />
                 <Route path="security" element={<AdminSecurity />} />
