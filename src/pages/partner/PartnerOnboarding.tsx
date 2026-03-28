@@ -274,7 +274,7 @@ const PartnerOnboarding: React.FC = () => {
                     Profissional Parceiro.
                   </h1>
                   <p className="text-muted-foreground text-base font-light">
-                    Vincule seus pacientes e acumule VisionPoints Coin a cada jornada acompanhada.
+                    Vincule seus pacientes e acumule Vitacoins a cada jornada acompanhada.
                   </p>
                 </motion.div>
 
