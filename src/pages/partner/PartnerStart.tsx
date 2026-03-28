@@ -57,7 +57,7 @@ const PartnerStart: React.FC = () => {
           Bem-vindo(a) ao {tenantName} Partners
         </h1>
         <p className="mt-2 text-sm text-muted-foreground max-w-md">
-          Plataforma para profissionais de saúde. Vincule pacientes, acumule VisionPoints Coin e resgate como preferir.
+          Plataforma para profissionais de saúde. Vincule pacientes, acumule Vitacoins e resgate como preferir.
         </p>
 
         {/* Pillars */}
