@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import {
   Stethoscope, BarChart3, Handshake, ArrowRight, ChevronLeft, Check,
   Eye, EyeOff, Repeat, Heart, Monitor, Lock, Shield, Coins, Users,
@@ -59,10 +62,14 @@ const slideVariants = {
 // ─── Component ───────────────────────────────────────────────
 const PartnerOnboarding: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get("tenant");
+  const { currentTenant } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<DoctorFormData>(defaultData);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const currentIndex = STEP_ORDER.indexOf(screen);
   const formStepIndex = FORM_STEPS.indexOf(screen) + 1;
@@ -80,6 +87,74 @@ const PartnerOnboarding: React.FC = () => {
 
   const goNext = () => {
     if (currentIndex < STEP_ORDER.length - 1) goTo(STEP_ORDER[currentIndex + 1]);
+  };
+
+  const handleFinishSignup = async () => {
+    if (!currentTenant) {
+      toast.error("Tenant não identificado.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const nameParts = data.fullName.trim().split(" ");
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(" ");
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { full_name: data.fullName, first_name: firstName, last_name: lastName },
+        },
+      });
+
+      if (signUpError) {
+        toast.error(signUpError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!signUpData.session) {
+        toast.info("Verifique seu email para confirmar a conta.");
+      }
+
+      if (signUpData.session) {
+        const { error: fnError } = await supabase.functions.invoke("tenant-signup", {
+          body: {
+            tenant_id: currentTenant.id,
+            role: "partner",
+            metadata: {
+              crm: data.crm,
+              crm_state: data.crmState,
+              specialty: data.specialty,
+              clinic_name: data.clinicName,
+              clinic_city: data.clinicCity,
+              clinic_state: data.clinicState,
+              cpf_cnpj: data.cpfCnpj,
+              pix_key: data.pixKey,
+              payment_name: data.paymentName,
+              phone: data.phone,
+              source: "partner_onboarding",
+            },
+          },
+        });
+
+        if (fnError) {
+          console.error("tenant-signup error:", fnError);
+          toast.error("Erro ao configurar acesso.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      goTo("done");
+    } catch (err) {
+      console.error("Signup error:", err);
+      toast.error("Erro inesperado.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const update = (partial: Partial<DoctorFormData>) => setData((d) => ({ ...d, ...partial }));
@@ -689,11 +764,14 @@ const PartnerOnboarding: React.FC = () => {
                   </div>
                 </div>
 
-                <ContinueButton
-                  onClick={goNext}
-                  label="Finalizar cadastro"
-                  disabled={!data.cpfCnpj || !data.paymentName}
-                />
+                <Button
+                  onClick={handleFinishSignup}
+                  disabled={!data.cpfCnpj || !data.paymentName || loading}
+                  className="w-full h-13 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-[15px] font-medium disabled:opacity-30"
+                >
+                  {loading ? "Criando conta..." : "Finalizar cadastro"}
+                  {!loading && <ArrowRight className="h-4 w-4 ml-2" />}
+                </Button>
                 <SecurityFooter />
               </div>
             )}
@@ -738,7 +816,7 @@ const PartnerOnboarding: React.FC = () => {
                 </div>
 
                 <Button
-                  onClick={() => navigate("/partner")}
+                  onClick={() => navigate(tenantParam ? `/partner?tenant=${tenantParam}` : "/partner")}
                   className="w-full h-13 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-[15px] font-medium"
                 >
                   Acessar painel
