@@ -24,8 +24,12 @@ function extractTenantSlug(): string | null {
   for (const base of BASE_DOMAINS) {
     if (hostname.endsWith(`.${base}`)) {
       const sub = hostname.slice(0, hostname.length - base.length - 1);
-      if (!sub || sub.includes("--") || sub.includes(".")) return null;
-      if (RESERVED_SUBDOMAINS.some((r) => sub.startsWith(r))) return null;
+
+      // In Lovable preview/published domains we may be on a reserved host,
+      // so keep going and allow ?tenant=slug fallback instead of early returning null.
+      if (!sub || sub.includes("--") || sub.includes(".")) break;
+      if (RESERVED_SUBDOMAINS.some((r) => sub.startsWith(r))) break;
+
       return sub;
     }
   }
