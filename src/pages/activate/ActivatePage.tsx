@@ -180,7 +180,7 @@ const ActivatePage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <img src={currentTenant?.logo_url || iconVisionLift} alt="Logo" className="h-16 w-16 object-contain mx-auto" />
+                  <img src={currentTenant?.logo_url || iconVisionLift} alt={currentTenant?.trade_name || "Logo"} className="h-12 w-auto object-contain mx-auto" />
                 </motion.div>
 
                 <motion.div
