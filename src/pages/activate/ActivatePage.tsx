@@ -248,7 +248,7 @@ const ActivatePage: React.FC = () => {
                   <p className="text-sm text-muted-foreground pt-1">Leva menos de 2 minutos.</p>
                   <Button
                     variant="ghost"
-                    onClick={() => tenantNavigate("/auth/login")}
+                    onClick={() => tenantNavigate("/auth/login?redirect=/club")}
                     className="w-full h-12 text-muted-foreground text-base font-normal rounded-xl"
                   >
                     Já tenho conta

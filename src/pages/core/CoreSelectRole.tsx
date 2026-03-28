@@ -100,7 +100,7 @@ const CoreSelectRole: React.FC = () => {
               <button
                 onClick={() => {
                   if (!user) {
-                    navigate("/auth/login");
+                    navigate(`/auth/login?redirect=${encodeURIComponent(role.href)}`);
                   } else {
                     navigate(role.href);
                   }

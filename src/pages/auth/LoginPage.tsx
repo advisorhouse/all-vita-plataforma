@@ -17,6 +17,8 @@ import logoAllVita from "@/assets/logo-allvita.png";
 const LoginPage: React.FC = () => {
   const { navigate, tenantPath, tenantParam } = useTenantNavigation();
   const { currentTenant } = useTenant();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
