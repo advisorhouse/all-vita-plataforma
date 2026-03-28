@@ -47,6 +47,8 @@ function extractTenantSlug(): string | null {
  */
 export function useSubdomainTenant() {
   const { setCurrentTenant, currentTenant, availableTenants, setIsSubdomainAccess } = useTenant();
+  const [searchParams] = useSearchParams();
+  const tenantQueryParam = searchParams.get("tenant");
   const [subdomainSlug, setSubdomainSlug] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
 
