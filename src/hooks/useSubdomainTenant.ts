@@ -5,7 +5,6 @@ import { useTenant, type Tenant } from "@/contexts/TenantContext";
 /**
  * Base domains where the app is hosted.
  * Subdomains of these are treated as tenant slugs.
- * E.g. vision-lift.allvita.com.br → slug = "vision-lift"
  */
 const BASE_DOMAINS = [
   "allvita.com.br",
@@ -13,15 +12,11 @@ const BASE_DOMAINS = [
   "lovable.dev",
 ];
 
-/**
- * Reserved subdomains that should NOT trigger tenant routing.
- */
-const RESERVED_SUBDOMAINS = ["www", "app", "api", "admin", "all-vita-plataforma"];
+const RESERVED_SUBDOMAINS = ["www", "app", "api", "admin", "all-vita-plataforma", "id-preview"];
 
 function extractTenantSlug(): string | null {
   const hostname = window.location.hostname;
 
-  // localhost or IP — no subdomain routing
   if (hostname === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
     return null;
   }
@@ -29,26 +24,22 @@ function extractTenantSlug(): string | null {
   for (const base of BASE_DOMAINS) {
     if (hostname.endsWith(`.${base}`)) {
       const sub = hostname.slice(0, hostname.length - base.length - 1);
-      // Could be nested: "id-preview--abc.lovable.app" — skip those
       if (!sub || sub.includes("--") || sub.includes(".")) return null;
-      if (RESERVED_SUBDOMAINS.includes(sub)) return null;
+      if (RESERVED_SUBDOMAINS.some((r) => sub.startsWith(r))) return null;
       return sub;
     }
   }
 
-  // Custom domain — check against tenant domains
   return null;
 }
 
 /**
- * Detects tenant slug from the current subdomain and auto-selects
- * the tenant in context. Also handles custom domain lookup.
+ * Detects tenant slug from subdomain or custom domain and auto-selects tenant.
  */
 export function useSubdomainTenant() {
-  const { setCurrentTenant, currentTenant, availableTenants } = useTenant();
+  const { setCurrentTenant, currentTenant, availableTenants, setIsSubdomainAccess } = useTenant();
   const [subdomainSlug, setSubdomainSlug] = useState<string | null>(null);
-  const [isSubdomainAccess, setIsSubdomainAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     const slug = extractTenantSlug();
@@ -57,17 +48,16 @@ export function useSubdomainTenant() {
     if (slug) {
       setSubdomainSlug(slug);
       setIsSubdomainAccess(true);
-      setLoading(false);
+      setChecked(true);
       return;
     }
 
-    // No slug found — check if it's a custom domain
+    // Check custom domain
     if (
       hostname !== "localhost" &&
       !/^\d+\.\d+\.\d+\.\d+$/.test(hostname) &&
       !BASE_DOMAINS.some((d) => hostname.endsWith(`.${d}`) || hostname === d)
     ) {
-      // This might be a custom domain — look up tenant
       const lookupCustomDomain = async () => {
         const { data } = await (supabase.from as any)("tenants")
           .select("id, name, slug, logo_url, primary_color, secondary_color, domain, active, settings")
@@ -80,23 +70,38 @@ export function useSubdomainTenant() {
           setIsSubdomainAccess(true);
           setCurrentTenant(data as Tenant);
         }
-        setLoading(false);
+        setChecked(true);
       };
       lookupCustomDomain();
     } else {
-      setLoading(false);
+      setChecked(true);
     }
   }, []);
 
-  // When slug is detected and availableTenants are loaded, auto-select
+  // Auto-select tenant when memberships load
   useEffect(() => {
     if (!subdomainSlug || availableTenants.length === 0 || currentTenant) return;
 
     const match = availableTenants.find((t) => t.slug === subdomainSlug);
     if (match) {
       setCurrentTenant(match);
+    } else {
+      // User doesn't have membership for this tenant subdomain —
+      // try to fetch tenant info anyway for branding on login page
+      const fetchTenantBySlug = async () => {
+        const { data } = await (supabase.from as any)("tenants")
+          .select("id, name, slug, logo_url, primary_color, secondary_color, domain, active, settings")
+          .eq("slug", subdomainSlug)
+          .eq("active", true)
+          .single();
+
+        if (data) {
+          setCurrentTenant(data as Tenant);
+        }
+      };
+      fetchTenantBySlug();
     }
   }, [subdomainSlug, availableTenants, currentTenant, setCurrentTenant]);
 
-  return { isSubdomainAccess, subdomainSlug, loading };
+  return { subdomainSlug, checked };
 }
