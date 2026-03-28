@@ -77,7 +77,7 @@ export function useSubdomainTenant() {
     ) {
       const lookupCustomDomain = async () => {
         const { data } = await (supabase.from as any)("tenants")
-          .select("id, name, slug, logo_url, primary_color, secondary_color, domain, active, settings")
+          .select("id, name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
           .eq("domain", hostname)
           .eq("active", true)
           .single();
