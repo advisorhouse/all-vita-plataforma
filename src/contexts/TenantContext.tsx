@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 export interface Tenant {
   id: string;
   name: string;
+  trade_name: string | null;
   slug: string;
   logo_url: string | null;
   favicon_url: string | null;

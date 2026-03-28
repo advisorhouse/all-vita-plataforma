@@ -19,8 +19,8 @@ export function useTenantBranding() {
       root.style.setProperty("--tenant-secondary", currentTenant.secondary_color);
       root.dataset.tenant = currentTenant.slug;
 
-      // Dynamic document title
-      document.title = `${currentTenant.name} | Plataforma`;
+      const displayName = currentTenant.trade_name || currentTenant.name;
+      document.title = `${displayName} | Plataforma`;
 
       // Dynamic favicon
       if (currentTenant.favicon_url) {
