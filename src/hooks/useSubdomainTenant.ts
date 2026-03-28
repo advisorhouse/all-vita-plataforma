@@ -100,7 +100,7 @@ export function useSubdomainTenant() {
     } else {
       setChecked(true);
     }
-  }, []);
+  }, [tenantQueryParam]);
 
   // Auto-select from memberships when they load
   useEffect(() => {
