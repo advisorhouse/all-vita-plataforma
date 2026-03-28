@@ -19,6 +19,7 @@ function formatCnpj(cnpj: string): string {
 }
 
 const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant }) => {
+  const navigate = useNavigate();
   const isActive = (t: any) => t.status === "active" || t.active !== false;
 
   if (tenants.length === 0) {
