@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant, type Tenant } from "@/contexts/TenantContext";
 
@@ -46,6 +47,8 @@ function extractTenantSlug(): string | null {
  */
 export function useSubdomainTenant() {
   const { setCurrentTenant, currentTenant, availableTenants, setIsSubdomainAccess } = useTenant();
+  const [searchParams] = useSearchParams();
+  const tenantQueryParam = searchParams.get("tenant");
   const [subdomainSlug, setSubdomainSlug] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
 
@@ -97,7 +100,7 @@ export function useSubdomainTenant() {
     } else {
       setChecked(true);
     }
-  }, []);
+  }, [tenantQueryParam]);
 
   // Auto-select from memberships when they load
   useEffect(() => {
