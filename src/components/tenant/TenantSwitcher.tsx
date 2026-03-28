@@ -21,7 +21,7 @@ const TenantSwitcher: React.FC = () => {
         <button className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-secondary transition-colors">
           <Building2 className="h-4 w-4 text-muted-foreground" />
           <span className="max-w-[140px] truncate">
-            {currentTenant?.name || "Selecionar empresa"}
+            {currentTenant?.trade_name || currentTenant?.name || "Selecionar empresa"}
           </span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
         </button>

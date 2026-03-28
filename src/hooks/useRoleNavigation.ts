@@ -77,7 +77,7 @@ export function useRoleNavigation() {
 
   const getSidebarTitle = () => {
     if (isSuperAdmin && !currentTenant) return "All Vita";
-    return currentTenant?.name || "All Vita";
+    return currentTenant?.trade_name || currentTenant?.name || "All Vita";
   };
 
   const getSidebarSubtitle = () => {

@@ -192,7 +192,7 @@ const ActivatePage: React.FC = () => {
                   <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                     Bem-vinda ao
                     <br />
-                    {currentTenant?.name || "Vision Lift"} Club.
+                    {currentTenant?.trade_name || currentTenant?.name || "Vision Lift"} Club.
                   </h1>
                   <p className="text-muted-foreground text-lg font-light max-w-xs mx-auto">
                     Ative seu acesso e ganhe prêmios a cada mês.

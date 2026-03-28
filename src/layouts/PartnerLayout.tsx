@@ -51,7 +51,7 @@ const SidebarFooterContent: React.FC = () => {
 
 const PartnerLayout: React.FC = () => {
   const { currentTenant } = useTenant();
-  const tenantName = currentTenant?.name || "Vision Lift";
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
 
   return (
     <AppShell
