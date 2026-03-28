@@ -122,9 +122,13 @@ const LoginPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <img src={logoAllVita} alt="All Vita" className="h-10 w-auto mx-auto mb-4" />
+          <img
+            src={currentTenant?.logo_url || logoAllVita}
+            alt={currentTenant?.name || "All Vita"}
+            className="h-10 w-auto mx-auto mb-4"
+          />
           <p className="text-sm text-muted-foreground mt-1">
-            Acesse sua conta All Vita
+            Acesse sua conta {currentTenant?.name || "All Vita"}
           </p>
         </div>
 
