@@ -380,7 +380,7 @@ const PartnerOnboarding: React.FC = () => {
               </div>
             )}
 
-            {/* ═══ POINTS — VisionPoints Coin ═══ */}
+            {/* ═══ POINTS — Vitacoins ═══ */}
             {screen === "points" && (
               <div className="text-center space-y-8 py-8">
                 <div className="space-y-3">
@@ -389,7 +389,7 @@ const PartnerOnboarding: React.FC = () => {
                     <span className="text-[12px] font-semibold text-accent">Moeda interna</span>
                   </div>
                   <h2 className="text-[1.75rem] font-semibold tracking-tight text-foreground">
-                    VisionPoints Coin
+                    Vitacoins
                   </h2>
                   <p className="text-muted-foreground text-[15px] font-light">
                     Sua moeda dentro da plataforma. Acumule e resgate como preferir.
