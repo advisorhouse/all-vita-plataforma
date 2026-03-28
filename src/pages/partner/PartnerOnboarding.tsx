@@ -62,10 +62,14 @@ const slideVariants = {
 // ─── Component ───────────────────────────────────────────────
 const PartnerOnboarding: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get("tenant");
+  const { currentTenant } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<DoctorFormData>(defaultData);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const currentIndex = STEP_ORDER.indexOf(screen);
   const formStepIndex = FORM_STEPS.indexOf(screen) + 1;
