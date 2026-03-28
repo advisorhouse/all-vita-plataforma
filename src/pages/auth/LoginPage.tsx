@@ -107,7 +107,7 @@ const LoginPage: React.FC = () => {
         factorId={mfaFactorId || ""}
         onVerified={async () => {
           await logAccessEvent("login", { method: "password", mfa: true });
-          navigate(`/${searchParams.get("tenant") ? `?tenant=${searchParams.get("tenant")}` : ""}`);
+          navigate("/");
         }}
         onCancel={() => {
           setShowMfa(false);
