@@ -90,7 +90,7 @@ const PartnerStart: React.FC = () => {
           transition={{ delay: 0.7 }}
           className="mt-8 w-full space-y-3"
         >
-          <Button className="w-full gap-2" onClick={() => navigate("/partner/onboarding")}>
+          <Button className="w-full gap-2" onClick={() => navigate("/partner/onboarding?redirect=/partner")}>
             Cadastrar meu CRM <ArrowRight className="h-4 w-4" />
           </Button>
           <button

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { logAccessEvent } from "@/lib/security-logger";
@@ -17,6 +17,8 @@ import logoAllVita from "@/assets/logo-allvita.png";
 const LoginPage: React.FC = () => {
   const { navigate, tenantPath, tenantParam } = useTenantNavigation();
   const { currentTenant } = useTenant();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -69,7 +71,7 @@ const LoginPage: React.FC = () => {
       }
 
       await logAccessEvent("login", { method: "password" });
-      navigate("/");
+      navigate(redirectTo || "/");
     } catch {
       toast.error("Erro ao fazer login");
     } finally {
@@ -107,7 +109,7 @@ const LoginPage: React.FC = () => {
         factorId={mfaFactorId || ""}
         onVerified={async () => {
           await logAccessEvent("login", { method: "password", mfa: true });
-          navigate("/");
+          navigate(redirectTo || "/");
         }}
         onCancel={() => {
           setShowMfa(false);

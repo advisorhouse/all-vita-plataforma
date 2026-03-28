@@ -112,7 +112,7 @@ const ClubStart: React.FC = () => {
       >
         <Button
           className="w-full h-12 text-[15px] gap-2"
-          onClick={() => navigate("/activate")}
+          onClick={() => navigate("/activate?redirect=/club")}
         >
           Ativar meu acesso
           <ArrowRight className="h-4 w-4" />
