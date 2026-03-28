@@ -74,6 +74,7 @@ import AdminSettingsPage from "./pages/admin/AdminSettings";
 import AdminFinance from "./pages/admin/AdminFinance";
 import AdminVitacoins from "./pages/admin/AdminVitacoins";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
@@ -167,6 +168,7 @@ const App = () => (
                 <Route path="finance" element={<AdminFinance />} />
                 <Route path="vitacoins" element={<AdminVitacoins />} />
                 <Route path="integrations" element={<AdminIntegrations />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
               </Route>
