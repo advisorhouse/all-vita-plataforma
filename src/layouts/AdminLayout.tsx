@@ -8,6 +8,7 @@ const adminLinks = [
   { label: "Empresas", href: "/admin/tenants", icon: Building2 },
   { label: "Usuários", href: "/admin/users", icon: Users },
   { label: "Financeiro", href: "/admin/finance", icon: DollarSign },
+  { label: "Monetização", href: "/admin/monetization", icon: Coins },
   { label: "Vitacoins", href: "/admin/vitacoins", icon: Coins },
   { label: "Integrações", href: "/admin/integrations", icon: Plug },
   { label: "BI & Analytics", href: "/admin/analytics", icon: BarChart3 },
