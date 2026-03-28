@@ -50,6 +50,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true })
   }
 
   if (!user) {
+    const tenantParam = new URLSearchParams(location.search).get("tenant");
+    if (location.pathname === "/" && tenantParam) {
+      return <>{children}</>;
+    }
+
     const search = location.search || window.location.search;
     return <Navigate to={`/auth/login${search}`} state={{ from: location }} replace />;
   }
