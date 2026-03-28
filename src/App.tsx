@@ -75,6 +75,7 @@ import AdminFinance from "./pages/admin/AdminFinance";
 import AdminVitacoins from "./pages/admin/AdminVitacoins";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminMonetization from "./pages/admin/AdminMonetization";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
