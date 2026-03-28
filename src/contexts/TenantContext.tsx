@@ -115,6 +115,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isSuperAdmin,
         userRole,
         availableTenants,
+        isSubdomainAccess,
+        setIsSubdomainAccess,
       }}
     >
       {children}
