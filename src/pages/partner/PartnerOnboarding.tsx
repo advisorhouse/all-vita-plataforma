@@ -695,7 +695,7 @@ const PartnerOnboarding: React.FC = () => {
                     <p className="text-[13px] font-semibold text-foreground">Ético e transparente</p>
                   </div>
                   <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    O programa é baseado em <strong className="text-foreground">VisionPoints Coin</strong> — uma moeda interna da plataforma. Não é comissão por venda. Você acumula pontos pela jornada dos seus pacientes e resgata como preferir. Compliance LGPD e sem vínculo com prescrição.
+                    O programa é baseado em <strong className="text-foreground">Vitacoins</strong> — uma moeda interna da plataforma. Não é comissão por venda. Você acumula pontos pela jornada dos seus pacientes e resgata como preferir. Compliance LGPD e sem vínculo com prescrição.
                   </p>
                 </div>
 
