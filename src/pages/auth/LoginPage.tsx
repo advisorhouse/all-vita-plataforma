@@ -201,7 +201,7 @@ const LoginPage: React.FC = () => {
 
             <div className="mt-6 text-center space-y-2">
               <Link
-                to="/auth/forgot-password"
+                to={tenantPath("/auth/forgot-password")}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Esqueci minha senha

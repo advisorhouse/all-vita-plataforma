@@ -1,10 +1,10 @@
 import React from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Crown, Users, Eye, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import logoVisionLift from "@/assets/logo-vision-lift.png";
 
 const fadeUp = {
@@ -52,14 +52,12 @@ const ALL_ROLES = [
 ];
 
 const CoreSelectRole: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const tenantParam = searchParams.get("tenant");
+  const { navigate, tenantParam } = useTenantNavigation();
   const { user } = useAuth();
   const { currentTenant, userRole, isSuperAdmin } = useTenant();
 
   const tenantLogo = currentTenant?.logo_url || logoVisionLift;
-  const tenantName = currentTenant?.name || "Vision Lift";
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
 
   // Filter roles based on user's actual role
   const isDemo = !user;
@@ -101,8 +99,8 @@ const CoreSelectRole: React.FC = () => {
             <motion.div key={role.key} custom={i} variants={fadeUp} initial="hidden" animate="visible">
               <button
                 onClick={() => {
-                  if (!user && tenantParam) {
-                    navigate(`/auth/login?tenant=${tenantParam}`);
+                  if (!user) {
+                    navigate("/auth/login");
                   } else {
                     navigate(role.href);
                   }
@@ -130,7 +128,7 @@ const CoreSelectRole: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        onClick={() => navigate(tenantParam ? `/?tenant=${tenantParam}` : "/")}
+        onClick={() => navigate("/")}
         className="mt-8 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
       >
         ← Voltar ao hub

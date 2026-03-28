@@ -1,11 +1,12 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, ShieldCheck, Sparkles, BookOpen, Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
+import { useTenant } from "@/contexts/TenantContext";
 import logoVisionLift from "@/assets/logo-vision-lift.png";
 
 const BENEFITS = [
@@ -41,7 +42,10 @@ const fadeUp = {
 };
 
 const ClubStart: React.FC = () => {
-  const navigate = useNavigate();
+  const { navigate } = useTenantNavigation();
+  const { currentTenant } = useTenant();
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
+  const tenantLogo = currentTenant?.logo_url || logoVisionLift;
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-16 relative">
@@ -58,13 +62,13 @@ const ClubStart: React.FC = () => {
         className="w-full max-w-lg flex flex-col items-center text-center"
       >
         <img
-          src={logoVisionLift}
-          alt="Vision Lift"
+          src={tenantLogo}
+          alt={tenantName}
           className="h-10 w-auto mb-10 object-contain"
         />
 
         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground leading-tight">
-          Bem-vindo ao Vision Lift Club
+          Bem-vindo ao {tenantName} Club
         </h1>
         <p className="mt-3 text-[15px] text-muted-foreground max-w-sm leading-relaxed">
           Sua jornada de saúde e bem-estar começa aqui. Conheça os benefícios reservados para você como membro.
