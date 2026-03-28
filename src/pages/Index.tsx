@@ -111,6 +111,11 @@ const Index = () => {
               );
             })}
           </div>
+
+          {/* Footer */}
+          <p className="mt-12 text-xs text-muted-foreground/60">
+            Powered by <span className="font-medium">All Vita</span>
+          </p>
         </div>
       </div>
     );
