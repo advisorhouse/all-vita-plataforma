@@ -1,10 +1,21 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+const slugToName = (slug: string) =>
+  slug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 
 const Index = () => {
   const { user, loading } = useAuth();
   const { isSuperAdmin, memberships, currentTenant, userRole, availableTenants } = useTenant();
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get("tenant");
 
   if (loading) {
     return (
@@ -15,8 +26,59 @@ const Index = () => {
   }
 
   if (!user) {
-    const search = window.location.search;
-    return <Navigate to={`/auth/login${search}`} replace />;
+    if (!tenantParam) {
+      const search = window.location.search;
+      return <Navigate to={`/auth/login${search}`} replace />;
+    }
+
+    const tenantName = currentTenant?.name || slugToName(tenantParam);
+    const tenantQuery = `tenant=${encodeURIComponent(tenantParam)}`;
+
+    return (
+      <div className="min-h-screen bg-background px-4 py-12">
+        <div className="mx-auto w-full max-w-5xl space-y-8">
+          <header className="space-y-3">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">{tenantName} Platform</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-4xl">
+              {tenantName} Platform é o ecossistema digital que conecta clientes, parceiros e administração em uma única infraestrutura inteligente. A plataforma organiza a jornada de longevidade visual dos assinantes, estrutura o crescimento recorrente dos parceiros e oferece à gestão uma visão completa de dados, retenção e performance.
+            </p>
+            <p className="text-sm font-medium text-foreground">Selecione o ambiente para continuar.</p>
+          </header>
+
+          <section className="grid gap-4 md:grid-cols-3">
+            <Card className="border-border">
+              <CardContent className="space-y-3 p-5">
+                <h2 className="text-lg font-semibold text-foreground">{tenantName} Club</h2>
+                <p className="text-sm text-muted-foreground">Área do assinante. Jornada, assinatura, conteúdo e acompanhamento.</p>
+                <Button asChild className="w-full">
+                  <Link to={`/auth/login?${tenantQuery}&portal=club`}>Explorar experiência</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border">
+              <CardContent className="space-y-3 p-5">
+                <h2 className="text-lg font-semibold text-foreground">Vision Partner</h2>
+                <p className="text-sm text-muted-foreground">Área do parceiro. Formação, catálogo, comissões e crescimento recorrente.</p>
+                <Button asChild className="w-full">
+                  <Link to={`/auth/login?${tenantQuery}&portal=partner`}>Explorar experiência</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border">
+              <CardContent className="space-y-3 p-5">
+                <h2 className="text-lg font-semibold text-foreground">Vision Core</h2>
+                <p className="text-sm text-muted-foreground">Administração. Gestão completa da operação, dados e estratégia.</p>
+                <Button asChild className="w-full">
+                  <Link to={`/auth/login?${tenantQuery}&portal=core`}>Acessar administração</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </section>
+        </div>
+      </div>
+    );
   }
 
   // Wait for memberships to load
