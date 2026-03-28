@@ -51,27 +51,27 @@ const Index = () => {
                 <h2 className="text-lg font-semibold text-foreground">{tenantName} Club</h2>
                 <p className="text-sm text-muted-foreground">Área do assinante. Jornada, assinatura, conteúdo e acompanhamento.</p>
                 <Button asChild className="w-full">
-                  <Link to={`/auth/login?${tenantQuery}&portal=club`}>Explorar experiência</Link>
+                  <Link to={`/club/start?${tenantQuery}`}>Explorar experiência</Link>
                 </Button>
               </CardContent>
             </Card>
 
             <Card className="border-border">
               <CardContent className="space-y-3 p-5">
-                <h2 className="text-lg font-semibold text-foreground">Vision Partner</h2>
+                <h2 className="text-lg font-semibold text-foreground">{tenantName} Partner</h2>
                 <p className="text-sm text-muted-foreground">Área do parceiro. Formação, catálogo, comissões e crescimento recorrente.</p>
                 <Button asChild className="w-full">
-                  <Link to={`/auth/login?${tenantQuery}&portal=partner`}>Explorar experiência</Link>
+                  <Link to={`/partner/start?${tenantQuery}`}>Explorar experiência</Link>
                 </Button>
               </CardContent>
             </Card>
 
             <Card className="border-border">
               <CardContent className="space-y-3 p-5">
-                <h2 className="text-lg font-semibold text-foreground">Vision Core</h2>
+                <h2 className="text-lg font-semibold text-foreground">{tenantName} Core</h2>
                 <p className="text-sm text-muted-foreground">Administração. Gestão completa da operação, dados e estratégia.</p>
                 <Button asChild className="w-full">
-                  <Link to={`/auth/login?${tenantQuery}&portal=core`}>Acessar administração</Link>
+                  <Link to={`/core/select-role?${tenantQuery}`}>Acessar administração</Link>
                 </Button>
               </CardContent>
             </Card>
