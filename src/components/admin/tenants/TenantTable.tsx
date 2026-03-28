@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Building2, Eye, Pencil, Ban, BarChart3, MoreVertical, Globe, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface TenantTableProps {
   tenants: any[];
