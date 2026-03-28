@@ -350,7 +350,7 @@ const PartnerOnboarding: React.FC = () => {
                     { icon: Link2, title: "Envie o quiz", body: "Compartilhe seu link exclusivo do quiz pré-consulta com seus pacientes — na clínica, por WhatsApp ou QR Code." },
                     { icon: Stethoscope, title: "Paciente preenche", body: "O paciente responde um questionário de saúde digital antes da consulta. Dados protegidos pela LGPD." },
                     { icon: Shield, title: "Autorização LGPD", body: "O paciente autoriza o uso dos dados e o vínculo médico–paciente é criado automaticamente no sistema." },
-                    { icon: Coins, title: "Pontos automáticos", body: "Toda compra futura desse paciente na plataforma gera VisionPoints Coin para você — de forma automática e recorrente." },
+                    { icon: Coins, title: "Pontos automáticos", body: "Toda compra futura desse paciente na plataforma gera Vitacoins para você — de forma automática e recorrente." },
                   ].map(({ icon: Icon, title, body }) => (
                     <div key={title} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-card">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
