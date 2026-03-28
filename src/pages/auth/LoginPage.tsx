@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
       }
 
       await logAccessEvent("login", { method: "password" });
-      navigate("/");
+      navigate(`/${searchParams.get("tenant") ? `?tenant=${searchParams.get("tenant")}` : ""}`);
     } catch {
       toast.error("Erro ao fazer login");
     } finally {
