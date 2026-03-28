@@ -16,8 +16,8 @@ const PILLARS = [
   },
   {
     icon: Coins,
-    title: "VisionPoints Coin",
-    desc: "Moeda interna da plataforma. Acumule pontos por vendas, quizzes e indicações — sem comissão direta.",
+    title: "Vitacoins",
+    desc: "Moeda interna da plataforma. Acumule Vitacoins por vendas, quizzes e indicações — sem comissão direta.",
   },
   {
     icon: Gift,
@@ -57,7 +57,7 @@ const PartnerStart: React.FC = () => {
           Bem-vindo(a) ao {tenantName} Partners
         </h1>
         <p className="mt-2 text-sm text-muted-foreground max-w-md">
-          Plataforma para profissionais de saúde. Vincule pacientes, acumule VisionPoints Coin e resgate como preferir.
+          Plataforma para profissionais de saúde. Vincule pacientes, acumule Vitacoins e resgate como preferir.
         </p>
 
         {/* Pillars */}

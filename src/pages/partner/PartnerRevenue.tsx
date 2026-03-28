@@ -202,7 +202,7 @@ const PartnerRevenue: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-bold text-foreground">Meus VisionPoints</h1>
+                <h1 className="text-xl font-bold text-foreground">Meus Vitacoins</h1>
                 <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent flex items-center gap-1">
                   <Coins className="h-3 w-3" />
                   {WALLET.available.toLocaleString("pt-BR")} pts disponíveis
@@ -302,7 +302,7 @@ const PartnerRevenue: React.FC = () => {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
                     <Coins className="h-4 w-4" />
                   </div>
-                  <p className="text-[11px] font-medium text-accent-foreground/60 uppercase tracking-wider">VisionPoints do Mês</p>
+                  <p className="text-[11px] font-medium text-accent-foreground/60 uppercase tracking-wider">Vitacoins do Mês</p>
                 </div>
                 <h2 className="text-4xl font-bold leading-tight">12.480 pts</h2>
                 <p className="text-[13px] text-accent-foreground/70 mt-1 max-w-lg">
@@ -338,7 +338,7 @@ const PartnerRevenue: React.FC = () => {
                       <TrendingUp className="h-4 w-4" />
                       <h3 className="text-[12px] font-semibold">Acumulado Total</h3>
                     </div>
-                    <Tip text="Total de VisionPoints acumulados desde o início da sua parceria." />
+                    <Tip text="Total de Vitacoins acumulados desde o início da sua parceria." />
                   </div>
                   <p className="text-2xl font-bold">{WALLET.total.toLocaleString("pt-BR")} pts</p>
                   <div className="flex items-center gap-1 text-accent">
@@ -395,7 +395,7 @@ const PartnerRevenue: React.FC = () => {
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-[15px] font-semibold text-foreground">Evolução de VisionPoints</h3>
+                    <h3 className="text-[15px] font-semibold text-foreground">Evolução de Vitacoins</h3>
                     <p className="text-[11px] text-muted-foreground mt-0.5">Detalhamento por tipo de pontuação</p>
                   </div>
                   <div className="flex items-center gap-4">
@@ -472,7 +472,7 @@ const PartnerRevenue: React.FC = () => {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b border-border">
-                      {["Plano", "Pacientes", "Ticket Médio", "Receita Gerada", "VisionPoints", "Retenção"].map((h) => (
+                      {["Plano", "Pacientes", "Ticket Médio", "Receita Gerada", "Vitacoins", "Retenção"].map((h) => (
                         <th key={h} className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium py-2 pr-4">{h}</th>
                       ))}
                     </tr>
@@ -499,7 +499,7 @@ const PartnerRevenue: React.FC = () => {
                 </table>
               </div>
               <p className="text-[11px] text-muted-foreground italic">
-                Pacientes no plano de 9 meses geram 82% mais VisionPoints ao longo da jornada.
+                Pacientes no plano de 9 meses geram 82% mais Vitacoins ao longo da jornada.
               </p>
             </CardContent>
           </Card>
@@ -513,7 +513,7 @@ const PartnerRevenue: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-[15px] font-semibold text-foreground">Saúde da Retenção</h3>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">Quanto mais longa a jornada, mais VisionPoints recorrentes você acumula.</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Quanto mais longa a jornada, mais Vitacoins recorrentes você acumula.</p>
                   </div>
                   <div className="flex items-center gap-2 bg-secondary/60 rounded-lg px-3 py-1.5">
                     <Heart className="h-3.5 w-3.5 text-accent" />
@@ -626,7 +626,7 @@ const PartnerRevenue: React.FC = () => {
                     <h3 className="text-[12px] font-semibold text-foreground">Insight</h3>
                   </div>
                   <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    Se 3 pacientes do plano de 3 meses migrarem para o de 5, seus VisionPoints recorrentes aumentariam 450 pts/mês.
+                    Se 3 pacientes do plano de 3 meses migrarem para o de 5, seus Vitacoins recorrentes aumentariam 450 pts/mês.
                   </p>
                 </CardContent>
               </Card>
@@ -678,7 +678,7 @@ const PartnerRevenue: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] text-muted-foreground">VisionPoints</p>
+                        <p className="text-[10px] text-muted-foreground">Vitacoins</p>
                         <p className="text-[12px] font-semibold text-accent">{c.points}</p>
                       </div>
                       <div className="text-right">
@@ -842,7 +842,7 @@ const PartnerRevenue: React.FC = () => {
                     <Gift className="h-4.5 w-4.5 text-accent" />
                   </div>
                   <div>
-                    <h2 className="text-[16px] font-bold text-foreground">Resgatar VisionPoints</h2>
+                    <h2 className="text-[16px] font-bold text-foreground">Resgatar Vitacoins</h2>
                     <p className="text-[11px] text-muted-foreground">
                       {WALLET.available.toLocaleString("pt-BR")} pts disponíveis
                     </p>
@@ -993,7 +993,7 @@ const PartnerRevenue: React.FC = () => {
                   <div>
                     <h3 className="text-[18px] font-bold text-foreground">Resgate solicitado!</h3>
                     <p className="text-[13px] text-muted-foreground mt-1">
-                      {redeemAmount[0].toLocaleString("pt-BR")} VisionPoints serão processados em até 48h.
+                      {redeemAmount[0].toLocaleString("pt-BR")} Vitacoins serão processados em até 48h.
                     </p>
                   </div>
                   <div className="rounded-xl bg-secondary/30 p-4 space-y-2">

@@ -274,7 +274,7 @@ const PartnerOnboarding: React.FC = () => {
                     Profissional Parceiro.
                   </h1>
                   <p className="text-muted-foreground text-base font-light">
-                    Vincule seus pacientes e acumule VisionPoints Coin a cada jornada acompanhada.
+                    Vincule seus pacientes e acumule Vitacoins a cada jornada acompanhada.
                   </p>
                 </motion.div>
 
@@ -350,7 +350,7 @@ const PartnerOnboarding: React.FC = () => {
                     { icon: Link2, title: "Envie o quiz", body: "Compartilhe seu link exclusivo do quiz pré-consulta com seus pacientes — na clínica, por WhatsApp ou QR Code." },
                     { icon: Stethoscope, title: "Paciente preenche", body: "O paciente responde um questionário de saúde digital antes da consulta. Dados protegidos pela LGPD." },
                     { icon: Shield, title: "Autorização LGPD", body: "O paciente autoriza o uso dos dados e o vínculo médico–paciente é criado automaticamente no sistema." },
-                    { icon: Coins, title: "Pontos automáticos", body: "Toda compra futura desse paciente na plataforma gera VisionPoints Coin para você — de forma automática e recorrente." },
+                    { icon: Coins, title: "Pontos automáticos", body: "Toda compra futura desse paciente na plataforma gera Vitacoins para você — de forma automática e recorrente." },
                   ].map(({ icon: Icon, title, body }) => (
                     <div key={title} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-card">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
@@ -380,7 +380,7 @@ const PartnerOnboarding: React.FC = () => {
               </div>
             )}
 
-            {/* ═══ POINTS — VisionPoints Coin ═══ */}
+            {/* ═══ POINTS — Vitacoins ═══ */}
             {screen === "points" && (
               <div className="text-center space-y-8 py-8">
                 <div className="space-y-3">
@@ -389,7 +389,7 @@ const PartnerOnboarding: React.FC = () => {
                     <span className="text-[12px] font-semibold text-accent">Moeda interna</span>
                   </div>
                   <h2 className="text-[1.75rem] font-semibold tracking-tight text-foreground">
-                    VisionPoints Coin
+                    Vitacoins
                   </h2>
                   <p className="text-muted-foreground text-[15px] font-light">
                     Sua moeda dentro da plataforma. Acumule e resgate como preferir.
@@ -464,7 +464,7 @@ const PartnerOnboarding: React.FC = () => {
                     <p>Paciente adquire plano de 5 meses por R$ 528:</p>
                     <div className="flex items-center gap-3 pl-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
-                      <span>Você recebe <strong className="text-foreground">528 VisionPoints</strong></span>
+                      <span>Você recebe <strong className="text-foreground">528 Vitacoins</strong></span>
                     </div>
                     <div className="flex items-center gap-3 pl-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
@@ -673,7 +673,7 @@ const PartnerOnboarding: React.FC = () => {
                 <div className="space-y-4">
                   {[
                     { step: "1", title: "Paciente preenche o quiz", desc: "Na sua clínica ou via link enviado por WhatsApp. O questionário de saúde vincula o paciente ao seu cadastro automaticamente." },
-                    { step: "2", title: "Paciente compra na plataforma", desc: "Quando o paciente fizer uma compra na Vision Lift, o sistema reconhece o vínculo e credita VisionPoints na sua wallet." },
+                    { step: "2", title: "Paciente compra na plataforma", desc: "Quando o paciente fizer uma compra na Vision Lift, o sistema reconhece o vínculo e credita Vitacoins na sua wallet." },
                     { step: "3", title: "Pontos ficam pendentes (30 dias)", desc: "Os pontos entram em carência de 30 dias para garantir a qualidade da venda. Após esse período, ficam liberados." },
                     { step: "4", title: "Resgate como preferir", desc: "Pontos liberados podem ser trocados por: transferência Pix, produtos, cursos, congressos ou equipamentos." },
                   ].map(({ step, title, desc }) => (
@@ -695,7 +695,7 @@ const PartnerOnboarding: React.FC = () => {
                     <p className="text-[13px] font-semibold text-foreground">Ético e transparente</p>
                   </div>
                   <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    O programa é baseado em <strong className="text-foreground">VisionPoints Coin</strong> — uma moeda interna da plataforma. Não é comissão por venda. Você acumula pontos pela jornada dos seus pacientes e resgata como preferir. Compliance LGPD e sem vínculo com prescrição.
+                    O programa é baseado em <strong className="text-foreground">Vitacoins</strong> — uma moeda interna da plataforma. Não é comissão por venda. Você acumula pontos pela jornada dos seus pacientes e resgata como preferir. Compliance LGPD e sem vínculo com prescrição.
                   </p>
                 </div>
 
@@ -712,14 +712,14 @@ const PartnerOnboarding: React.FC = () => {
                     Preferências de resgate.
                   </h2>
                   <p className="text-muted-foreground text-sm font-light">
-                    Configure como deseja utilizar seus VisionPoints.
+                    Configure como deseja utilizar seus Vitacoins.
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 space-y-2">
                   <p className="text-[13px] font-semibold text-foreground">Como funciona o resgate?</p>
                   <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    Seus VisionPoints ficam <strong className="text-foreground">pendentes por 30 dias</strong> (período de carência). Após a liberação, você pode resgatá-los por:
+                    Seus Vitacoins ficam <strong className="text-foreground">pendentes por 30 dias</strong> (período de carência). Após a liberação, você pode resgatá-los por:
                   </p>
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {["Produtos", "Cursos", "Congressos", "Equipamentos", "Pix"].map((opt) => (
@@ -810,7 +810,7 @@ const PartnerOnboarding: React.FC = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Início do acúmulo de VisionPoints
+                      Início do acúmulo de Vitacoins
                     </li>
                   </ul>
                 </div>

@@ -50,7 +50,7 @@ const KPI_CARDS = [
   { label: "Total na Rede", value: "48", change: "+3", icon: Users, tip: "Todos os pacientes que entraram pela sua indicação." },
   { label: "Comprando Agora", value: "42", change: "87.5%", icon: UserCheck, tip: "Pacientes com assinatura ativa neste momento.", accent: true },
   { label: "Tempo Médio", value: "5.2m", change: "+0.3", icon: Clock, tip: "Em média, seus pacientes ficam 5.2 meses comprando." },
-  { label: "VisionPoints do Mês", value: "23.600", change: "+12%", icon: Coins, tip: "Total de VisionPoints acumulados este mês com sua rede.", accent: true },
+  { label: "Vitacoins do Mês", value: "23.600", change: "+12%", icon: Coins, tip: "Total de Vitacoins acumulados este mês com sua rede.", accent: true },
 ];
 
 const GROWTH_CHART = [
@@ -794,7 +794,7 @@ const PartnerNetwork: React.FC = () => {
                   <CardContent className="p-4 space-y-1 text-background">
                     <div className="flex items-center gap-2">
                       <Coins className="h-3.5 w-3.5" />
-                      <h3 className="text-[12px] font-semibold">VisionPoints Totais</h3>
+                      <h3 className="text-[12px] font-semibold">Vitacoins Totais</h3>
                     </div>
                     <p className="text-xl font-bold">160.773</p>
                     <div className="flex items-center gap-1 text-accent">

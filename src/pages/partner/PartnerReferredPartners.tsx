@@ -188,7 +188,7 @@ const PartnerReferredPartners: React.FC = () => {
               { label: "Parceiros Indicados", value: totalReferred.toString(), icon: UserPlus, tip: "Total de colegas que você indicou para a plataforma." },
               { label: "Ativos", value: totalActive.toString(), icon: Users, tip: "Parceiros indicados que estão ativos e com pacientes.", accent: true },
               { label: "Pacientes da Rede", value: totalPatientsFromNetwork.toString(), icon: Stethoscope, tip: "Total de pacientes ativos dos parceiros que você indicou." },
-              { label: "Seus Pontos de Rede", value: totalYourPoints.toLocaleString("pt-BR"), icon: Coins, tip: "VisionPoints que você ganhou a partir das vendas dos parceiros indicados (10% dos pontos deles).", accent: true },
+              { label: "Seus Pontos de Rede", value: totalYourPoints.toLocaleString("pt-BR"), icon: Coins, tip: "Vitacoins que você ganhou a partir das vendas dos parceiros indicados (10% dos pontos deles).", accent: true },
             ].map(({ label, value, icon: Icon, tip, accent }) => (
               <Card key={label} className={accent ? "border-accent/20 shadow-sm bg-accent/5" : "border-border shadow-sm"}>
                 <CardContent className="p-4 space-y-2">

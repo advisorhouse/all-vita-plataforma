@@ -26,11 +26,11 @@ const PRODUCT_IMAGES: Record<string, string> = {
 };
 
 const CAMPAIGNS = [
-  { id: "1", name: "Blitz Vision Lift 5 Meses", product: "Vision Lift 5 Meses", status: "active" as const, goal: 50, achieved: 32, bonus: "+500 VisionPoints extra", bonusType: "percentage", startDate: "2026-02-15", endDate: "2026-03-15", description: "Indique 50 pacientes para o plano de 5 meses e ganhe 500 VisionPoints extras por indicação.", highlight: true },
-  { id: "2", name: "Desafio 10 Meses — Março", product: "Vision Lift 10 Meses", status: "active" as const, goal: 30, achieved: 18, bonus: "200 pts fixo por indicação", bonusType: "fixed", startDate: "2026-03-01", endDate: "2026-03-31", description: "Cada paciente indicado para o plano 10 meses gera 200 VisionPoints extras.", highlight: false },
+  { id: "1", name: "Blitz Vision Lift 5 Meses", product: "Vision Lift 5 Meses", status: "active" as const, goal: 50, achieved: 32, bonus: "+500 Vitacoins extra", bonusType: "percentage", startDate: "2026-02-15", endDate: "2026-03-15", description: "Indique 50 pacientes para o plano de 5 meses e ganhe 500 Vitacoins extras por indicação.", highlight: true },
+  { id: "2", name: "Desafio 10 Meses — Março", product: "Vision Lift 10 Meses", status: "active" as const, goal: 30, achieved: 18, bonus: "200 pts fixo por indicação", bonusType: "fixed", startDate: "2026-03-01", endDate: "2026-03-31", description: "Cada paciente indicado para o plano 10 meses gera 200 Vitacoins extras.", highlight: false },
   { id: "3", name: "Meta Trimestral", product: "Vision Lift 3 Meses", status: "active" as const, goal: 100, achieved: 67, bonus: "Prêmio especial ao atingir meta", bonusType: "prize", startDate: "2026-02-01", endDate: "2026-03-31", description: "Atinja 100 indicações de plano 3 meses e ganhe um kit exclusivo + badge de destaque.", highlight: false },
-  { id: "4", name: "Flash — Fevereiro", product: "Vision Lift 5 Meses", status: "ended" as const, goal: 40, achieved: 44, bonus: "+300 VisionPoints extra", bonusType: "percentage", startDate: "2026-02-01", endDate: "2026-02-28", description: "Campanha encerrada. Meta superada em 10%!", highlight: false },
-  { id: "5", name: "Lançamento Vision Lift — Jan", product: "Vision Lift 1 Mês", status: "ended" as const, goal: 60, achieved: 48, bonus: "+200 VisionPoints extra", bonusType: "percentage", startDate: "2026-01-10", endDate: "2026-01-31", description: "Campanha de lançamento. Meta não atingida.", highlight: false },
+  { id: "4", name: "Flash — Fevereiro", product: "Vision Lift 5 Meses", status: "ended" as const, goal: 40, achieved: 44, bonus: "+300 Vitacoins extra", bonusType: "percentage", startDate: "2026-02-01", endDate: "2026-02-28", description: "Campanha encerrada. Meta superada em 10%!", highlight: false },
+  { id: "5", name: "Lançamento Vision Lift — Jan", product: "Vision Lift 1 Mês", status: "ended" as const, goal: 60, achieved: 48, bonus: "+200 Vitacoins extra", bonusType: "percentage", startDate: "2026-01-10", endDate: "2026-01-31", description: "Campanha de lançamento. Meta não atingida.", highlight: false },
 ];
 
 const TOP_SELLERS = [
@@ -74,7 +74,7 @@ const PartnerCampaigns: React.FC = () => {
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
-                Participe das campanhas, bata metas e ganhe VisionPoints extras.
+                Participe das campanhas, bata metas e ganhe Vitacoins extras.
               </p>
             </div>
             <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
@@ -245,7 +245,7 @@ const PartnerCampaigns: React.FC = () => {
                 {[
                   { name: "Kit Exclusivo Vision Lift", req: "100 indicações 3 meses", progress: 67, total: 100, product: "Vision Lift 3 Meses" },
                   { name: "Badge Destaque Ouro", req: "Top 3 no ranking", progress: 4, total: 3, product: "Vision Lift 5 Meses" },
-                  { name: "Bônus 2.000 VisionPoints", req: "Todas as metas batidas", progress: 1, total: 3, product: "Vision Lift 10 Meses" },
+                  { name: "Bônus 2.000 Vitacoins", req: "Todas as metas batidas", progress: 1, total: 3, product: "Vision Lift 10 Meses" },
                 ].map((prize, i) => {
                   const done = prize.progress >= prize.total;
                   const pct = Math.min(Math.round((prize.progress / prize.total) * 100), 100);

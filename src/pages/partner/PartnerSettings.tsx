@@ -257,7 +257,7 @@ const PartnerSettings: React.FC = () => {
                   <Landmark className="h-4 w-4 text-accent" />
                   <h3 className="text-[15px] font-semibold text-foreground">Dados para Pagamento</h3>
                 </div>
-                <Tip text="Informações utilizadas para resgate de VisionPoints. O pagamento é processado todo dia 5." />
+                <Tip text="Informações utilizadas para resgate de Vitacoins. O pagamento é processado todo dia 5." />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -322,7 +322,7 @@ const PartnerSettings: React.FC = () => {
                   <FileText className="h-4 w-4 text-accent" />
                   <div>
                     <h3 className="text-[15px] font-semibold text-foreground">Comprovantes de Pagamento</h3>
-                    <p className="text-[11px] text-muted-foreground">Histórico de resgates de VisionPoints</p>
+                    <p className="text-[11px] text-muted-foreground">Histórico de resgates de Vitacoins</p>
                   </div>
                 </div>
                 <Tip text="Comprovantes disponíveis para download. Use como documento fiscal se necessário." />

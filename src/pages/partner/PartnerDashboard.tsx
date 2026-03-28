@@ -55,7 +55,7 @@ const KPI_CARDS = [
   { label: "Pacientes Vinculados", value: "48", change: "+5", icon: Users, tip: "Pacientes vinculados ao seu quiz com assinatura ativa." },
   { label: "Taxa de Retenção", value: "94%", change: "+2%", icon: ShieldCheck, tip: "Percentual de pacientes que renovaram. Acima de 90% é excelente." },
   { label: "Recorrência Média", value: "5.2 meses", change: "+0.3", icon: Repeat, tip: "Tempo médio que seus pacientes permanecem ativos." },
-  { label: "VisionPoints Total", value: "48.200", change: "+18%", icon: Coins, tip: "Total de VisionPoints acumulados. Resgate por Pix, produtos, cursos e mais.", accent: true },
+  { label: "Vitacoins Total", value: "48.200", change: "+18%", icon: Coins, tip: "Total de Vitacoins acumulados. Resgate por Pix, produtos, cursos e mais.", accent: true },
 ];
 
 const POINTS_CHART = [
@@ -246,7 +246,7 @@ const PartnerDashboard: React.FC = () => {
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
-                Acompanhe seus pacientes vinculados e gerencie seus VisionPoints.
+                Acompanhe seus pacientes vinculados e gerencie seus Vitacoins.
               </p>
             </div>
             <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
@@ -288,7 +288,7 @@ const PartnerDashboard: React.FC = () => {
               <CardContent className="p-5 space-y-3 h-full flex flex-col">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-[15px] font-semibold text-foreground">Evolução de VisionPoints</h3>
+                    <h3 className="text-[15px] font-semibold text-foreground">Evolução de Vitacoins</h3>
                     <p className="text-[11px] text-muted-foreground mt-0.5">Pontos mensais • últimos 6 meses</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -296,7 +296,7 @@ const PartnerDashboard: React.FC = () => {
                       <TrendingUp className="h-4 w-4" />
                       <span className="text-[12px] font-semibold">+197%</span>
                     </div>
-                    <Tip text="Crescimento percentual dos VisionPoints mensais comparando o primeiro e o último mês." />
+                    <Tip text="Crescimento percentual dos Vitacoins mensais comparando o primeiro e o último mês." />
                   </div>
                 </div>
                 <div className="flex-1 min-h-[180px]">
@@ -312,7 +312,7 @@ const PartnerDashboard: React.FC = () => {
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                       <RTooltip
                         contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }}
-                        formatter={(value: number) => [`${value.toLocaleString("pt-BR")} pts`, "VisionPoints"]}
+                        formatter={(value: number) => [`${value.toLocaleString("pt-BR")} pts`, "Vitacoins"]}
                       />
                       <Area type="monotone" dataKey="value" stroke="hsl(217, 91%, 60%)" strokeWidth={2.5} fill="url(#revGrad)" />
                     </AreaChart>
@@ -443,7 +443,7 @@ const PartnerDashboard: React.FC = () => {
                       <p className="text-[10px] text-muted-foreground">Vision Lift Original</p>
                     </div>
                   </div>
-                  <Tip text="Distribuição dos VisionPoints por tipo de plano neste mês." />
+                  <Tip text="Distribuição dos Vitacoins por tipo de plano neste mês." />
                 </div>
                 <div className="flex-1 min-h-[100px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -474,7 +474,7 @@ const PartnerDashboard: React.FC = () => {
                     <Gift className="h-4 w-4 text-accent" />
                     <h3 className="text-[13px] font-semibold text-foreground">Opções de Resgate</h3>
                   </div>
-                  <Tip text="Escolha como deseja utilizar seus VisionPoints liberados." />
+                  <Tip text="Escolha como deseja utilizar seus Vitacoins liberados." />
                 </div>
                 <div className="space-y-2">
                   {REDEMPTION_OPTIONS.map(({ icon: Icon, label, desc }) => (
