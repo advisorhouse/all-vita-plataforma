@@ -42,6 +42,7 @@ const TENANT_STORAGE_KEY = "allvita_active_tenant";
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTenant, setCurrentTenantState] = useState<Tenant | null>(null);
   const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [isSubdomainAccess, setIsSubdomainAccess] = useState(false);
 
   const isSuperAdmin = memberships.some(
     (m) => m.role === "super_admin" && m.tenant_id === null && m.active
