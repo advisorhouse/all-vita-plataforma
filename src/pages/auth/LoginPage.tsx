@@ -71,7 +71,7 @@ const LoginPage: React.FC = () => {
       }
 
       await logAccessEvent("login", { method: "password" });
-      navigate("/");
+      navigate(redirectTo || "/");
     } catch {
       toast.error("Erro ao fazer login");
     } finally {
