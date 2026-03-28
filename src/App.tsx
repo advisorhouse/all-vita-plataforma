@@ -66,6 +66,7 @@ import CoreSelectRole from "./pages/core/CoreSelectRole";
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminTenants from "./pages/admin/AdminTenants";
+import AdminTenantDetail from "./pages/admin/AdminTenantDetail";
 import AdminOnboarding from "./pages/admin/AdminOnboarding";
 import AdminAudit from "./pages/admin/AdminAudit";
 import AdminSecurity from "./pages/admin/AdminSecurity";
