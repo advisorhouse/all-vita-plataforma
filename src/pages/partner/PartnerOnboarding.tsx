@@ -764,11 +764,14 @@ const PartnerOnboarding: React.FC = () => {
                   </div>
                 </div>
 
-                <ContinueButton
-                  onClick={goNext}
-                  label="Finalizar cadastro"
-                  disabled={!data.cpfCnpj || !data.paymentName}
-                />
+                <Button
+                  onClick={handleFinishSignup}
+                  disabled={!data.cpfCnpj || !data.paymentName || loading}
+                  className="w-full h-13 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-[15px] font-medium disabled:opacity-30"
+                >
+                  {loading ? "Criando conta..." : "Finalizar cadastro"}
+                  {!loading && <ArrowRight className="h-4 w-4 ml-2" />}
+                </Button>
                 <SecurityFooter />
               </div>
             )}
