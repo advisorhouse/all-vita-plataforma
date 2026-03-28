@@ -30,6 +30,10 @@ function extractTenantSlug(): string | null {
     }
   }
 
+  // Fallback: ?tenant=slug query parameter (dev/preview simulation)
+  const tenantParam = new URLSearchParams(window.location.search).get("tenant");
+  if (tenantParam) return tenantParam;
+
   return null;
 }
 
