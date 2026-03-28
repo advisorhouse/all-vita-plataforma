@@ -109,7 +109,7 @@ const LoginPage: React.FC = () => {
         factorId={mfaFactorId || ""}
         onVerified={async () => {
           await logAccessEvent("login", { method: "password", mfa: true });
-          navigate("/");
+          navigate(redirectTo || "/");
         }}
         onCancel={() => {
           setShowMfa(false);
