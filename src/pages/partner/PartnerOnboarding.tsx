@@ -816,7 +816,7 @@ const PartnerOnboarding: React.FC = () => {
                 </div>
 
                 <Button
-                  onClick={() => navigate("/partner")}
+                  onClick={() => navigate(tenantParam ? `/partner?tenant=${tenantParam}` : "/partner")}
                   className="w-full h-13 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-[15px] font-medium"
                 >
                   Acessar painel
