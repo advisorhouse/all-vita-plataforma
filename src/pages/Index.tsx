@@ -15,7 +15,8 @@ const Index = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth/login" replace />;
+    const search = window.location.search;
+    return <Navigate to={`/auth/login${search}`} replace />;
   }
 
   // Wait for memberships to load

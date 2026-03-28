@@ -50,7 +50,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true })
   }
 
   if (!user) {
-    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+    const search = location.search || window.location.search;
+    return <Navigate to={`/auth/login${search}`} state={{ from: location }} replace />;
   }
 
   // Redirect to onboarding if needed (but not if already on onboarding page)

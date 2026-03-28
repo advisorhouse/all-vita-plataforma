@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { logAccessEvent } from "@/lib/security-logger";
+import { useTenant } from "@/contexts/TenantContext";
 import MfaVerifyDialog from "@/components/auth/MfaVerifyDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,8 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import logoAllVita from "@/assets/logo-allvita.png";
 
 const LoginPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const { currentTenant } = useTenant();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,7 +69,7 @@ const LoginPage: React.FC = () => {
       }
 
       await logAccessEvent("login", { method: "password" });
-      navigate("/");
+      navigate(`/${searchParams.get("tenant") ? `?tenant=${searchParams.get("tenant")}` : ""}`);
     } catch {
       toast.error("Erro ao fazer login");
     } finally {
@@ -104,7 +107,7 @@ const LoginPage: React.FC = () => {
         factorId={mfaFactorId || ""}
         onVerified={async () => {
           await logAccessEvent("login", { method: "password", mfa: true });
-          navigate("/");
+          navigate(`/${searchParams.get("tenant") ? `?tenant=${searchParams.get("tenant")}` : ""}`);
         }}
         onCancel={() => {
           setShowMfa(false);
@@ -119,9 +122,13 @@ const LoginPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <img src={logoAllVita} alt="All Vita" className="h-10 w-auto mx-auto mb-4" />
+          <img
+            src={currentTenant?.logo_url || logoAllVita}
+            alt={currentTenant?.name || "All Vita"}
+            className="h-10 w-auto mx-auto mb-4"
+          />
           <p className="text-sm text-muted-foreground mt-1">
-            Acesse sua conta All Vita
+            Acesse sua conta {currentTenant?.name || "All Vita"}
           </p>
         </div>
 
