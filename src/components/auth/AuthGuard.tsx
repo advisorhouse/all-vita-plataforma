@@ -12,7 +12,7 @@ interface AuthGuardProps {
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true }) => {
   const { user, loading } = useAuth();
-  const { currentTenant, availableTenants, isSuperAdmin, memberships } = useTenant();
+  const { currentTenant, availableTenants, isSuperAdmin, memberships, isSubdomainAccess } = useTenant();
   const location = useLocation();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
