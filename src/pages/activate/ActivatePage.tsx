@@ -393,7 +393,7 @@ const ActivatePage: React.FC = () => {
                   transition={{ delay: 0.6, duration: 0.5 }}
                 >
                   <Button
-                    onClick={() => navigate(tenantParam ? `/club?tenant=${tenantParam}` : "/club")}
+                    onClick={() => tenantNavigate("/club")}
                     className="w-full h-16 bg-foreground hover:bg-foreground/90 text-background rounded-2xl text-lg font-medium"
                   >
                     Ver meus prêmios
