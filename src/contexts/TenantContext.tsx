@@ -31,6 +31,8 @@ interface TenantContextValue {
   isSuperAdmin: boolean;
   userRole: Membership["role"] | null;
   availableTenants: Tenant[];
+  isSubdomainAccess: boolean;
+  setIsSubdomainAccess: (v: boolean) => void;
 }
 
 const TenantContext = createContext<TenantContextValue | undefined>(undefined);
