@@ -3,6 +3,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Users, Handshake, Settings } from "lucide-react";
+import logoVisionLift from "@/assets/logo-vision-lift.png";
 
 const slugToName = (slug: string) =>
   slug
@@ -32,50 +34,83 @@ const Index = () => {
     }
 
     const tenantName = currentTenant?.name || slugToName(tenantParam);
+    const tenantLogo = currentTenant?.logo_url || logoVisionLift;
     const tenantQuery = `tenant=${encodeURIComponent(tenantParam)}`;
 
+    const PORTALS = [
+      {
+        icon: Users,
+        title: `${tenantName} Club`,
+        desc: "Área do assinante. Jornada, assinatura, conteúdo e acompanhamento.",
+        cta: "Explorar experiência",
+        href: `/club/start?${tenantQuery}`,
+      },
+      {
+        icon: Handshake,
+        title: `${tenantName} Partner`,
+        desc: "Área do parceiro. Formação, catálogo, comissões e crescimento recorrente.",
+        cta: "Explorar experiência",
+        href: `/partner/start?${tenantQuery}`,
+      },
+      {
+        icon: Settings,
+        title: `${tenantName} Core`,
+        desc: "Administração. Gestão completa da operação, dados e estratégia.",
+        cta: "Acessar administração",
+        href: `/core/select-role?${tenantQuery}`,
+      },
+    ];
+
     return (
-      <div className="min-h-screen bg-background px-4 py-12">
-        <div className="mx-auto w-full max-w-5xl space-y-8">
-          <header className="space-y-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground">{tenantName} Platform</h1>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-4xl">
-              {tenantName} Platform é o ecossistema digital que conecta clientes, parceiros e administração em uma única infraestrutura inteligente. A plataforma organiza a jornada de longevidade visual dos assinantes, estrutura o crescimento recorrente dos parceiros e oferece à gestão uma visão completa de dados, retenção e performance.
-            </p>
-            <p className="text-sm font-medium text-foreground">Selecione o ambiente para continuar.</p>
-          </header>
+      <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center px-4 py-16">
+        <div className="w-full max-w-4xl flex flex-col items-center text-center">
+          {/* Logo */}
+          <img
+            src={tenantLogo}
+            alt={tenantName}
+            className="h-10 w-auto object-contain mb-8"
+          />
 
-          <section className="grid gap-4 md:grid-cols-3">
-            <Card className="border-border">
-              <CardContent className="space-y-3 p-5">
-                <h2 className="text-lg font-semibold text-foreground">{tenantName} Club</h2>
-                <p className="text-sm text-muted-foreground">Área do assinante. Jornada, assinatura, conteúdo e acompanhamento.</p>
-                <Button asChild className="w-full">
-                  <Link to={`/club/start?${tenantQuery}`}>Explorar experiência</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            {tenantName} Platform
+          </h1>
 
-            <Card className="border-border">
-              <CardContent className="space-y-3 p-5">
-                <h2 className="text-lg font-semibold text-foreground">{tenantName} Partner</h2>
-                <p className="text-sm text-muted-foreground">Área do parceiro. Formação, catálogo, comissões e crescimento recorrente.</p>
-                <Button asChild className="w-full">
-                  <Link to={`/partner/start?${tenantQuery}`}>Explorar experiência</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Description */}
+          <p className="mt-5 text-[15px] text-muted-foreground leading-relaxed max-w-2xl">
+            {tenantName} Platform é o ecossistema digital que conecta clientes, parceiros e administração em uma única infraestrutura inteligente. A plataforma organiza a jornada de longevidade visual dos assinantes, estrutura o crescimento recorrente dos parceiros e oferece à gestão uma visão completa de dados, retenção e performance.
+          </p>
 
-            <Card className="border-border">
-              <CardContent className="space-y-3 p-5">
-                <h2 className="text-lg font-semibold text-foreground">{tenantName} Core</h2>
-                <p className="text-sm text-muted-foreground">Administração. Gestão completa da operação, dados e estratégia.</p>
-                <Button asChild className="w-full">
-                  <Link to={`/core/select-role?${tenantQuery}`}>Acessar administração</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
+          {/* Subtitle */}
+          <p className="mt-6 text-sm text-muted-foreground">
+            Selecione o ambiente para continuar.
+          </p>
+
+          {/* Portal Cards */}
+          <div className="mt-10 grid gap-5 sm:grid-cols-3 w-full">
+            {PORTALS.map((portal) => {
+              const Icon = portal.icon;
+              return (
+                <Card
+                  key={portal.title}
+                  className="border border-border bg-card shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <CardContent className="flex flex-col items-center text-center p-6 space-y-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                      <Icon className="h-5 w-5 text-foreground" strokeWidth={1.5} />
+                    </div>
+                    <h2 className="text-base font-semibold text-foreground">{portal.title}</h2>
+                    <p className="text-[13px] text-muted-foreground leading-relaxed">
+                      {portal.desc}
+                    </p>
+                    <Button asChild variant="outline" className="w-full mt-auto">
+                      <Link to={portal.href}>{portal.cta}</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
