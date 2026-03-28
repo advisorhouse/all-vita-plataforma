@@ -29,11 +29,14 @@ export function useTenantNavigation() {
   /** Build a path string with tenant param preserved (for Link `to` props) */
   const tenantPath = useCallback(
     (path: string) => {
-      if (tenantParam && !path.includes("tenant=")) {
-        const separator = path.includes("?") ? "&" : "?";
-        return `${path}${separator}tenant=${encodeURIComponent(tenantParam)}`;
+      if (!tenantParam) return path;
+      const [basePath, existingQuery] = path.split("?");
+      const params = new URLSearchParams(existingQuery || "");
+      if (!params.has("tenant")) {
+        params.set("tenant", tenantParam);
       }
-      return path;
+      const qs = params.toString();
+      return `${basePath}${qs ? `?${qs}` : ""}`;
     },
     [tenantParam]
   );
