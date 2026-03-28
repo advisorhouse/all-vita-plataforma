@@ -15,9 +15,8 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import logoAllVita from "@/assets/logo-allvita.png";
 
 const LoginPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const { navigate, tenantPath, tenantParam } = useTenantNavigation();
   const { currentTenant } = useTenant();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
