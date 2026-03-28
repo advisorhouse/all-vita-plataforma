@@ -464,7 +464,7 @@ const PartnerOnboarding: React.FC = () => {
                     <p>Paciente adquire plano de 5 meses por R$ 528:</p>
                     <div className="flex items-center gap-3 pl-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
-                      <span>Você recebe <strong className="text-foreground">528 VisionPoints</strong></span>
+                      <span>Você recebe <strong className="text-foreground">528 Vitacoins</strong></span>
                     </div>
                     <div className="flex items-center gap-3 pl-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
@@ -673,7 +673,7 @@ const PartnerOnboarding: React.FC = () => {
                 <div className="space-y-4">
                   {[
                     { step: "1", title: "Paciente preenche o quiz", desc: "Na sua clínica ou via link enviado por WhatsApp. O questionário de saúde vincula o paciente ao seu cadastro automaticamente." },
-                    { step: "2", title: "Paciente compra na plataforma", desc: "Quando o paciente fizer uma compra na Vision Lift, o sistema reconhece o vínculo e credita VisionPoints na sua wallet." },
+                    { step: "2", title: "Paciente compra na plataforma", desc: "Quando o paciente fizer uma compra na Vision Lift, o sistema reconhece o vínculo e credita Vitacoins na sua wallet." },
                     { step: "3", title: "Pontos ficam pendentes (30 dias)", desc: "Os pontos entram em carência de 30 dias para garantir a qualidade da venda. Após esse período, ficam liberados." },
                     { step: "4", title: "Resgate como preferir", desc: "Pontos liberados podem ser trocados por: transferência Pix, produtos, cursos, congressos ou equipamentos." },
                   ].map(({ step, title, desc }) => (
@@ -712,14 +712,14 @@ const PartnerOnboarding: React.FC = () => {
                     Preferências de resgate.
                   </h2>
                   <p className="text-muted-foreground text-sm font-light">
-                    Configure como deseja utilizar seus VisionPoints.
+                    Configure como deseja utilizar seus Vitacoins.
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 space-y-2">
                   <p className="text-[13px] font-semibold text-foreground">Como funciona o resgate?</p>
                   <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    Seus VisionPoints ficam <strong className="text-foreground">pendentes por 30 dias</strong> (período de carência). Após a liberação, você pode resgatá-los por:
+                    Seus Vitacoins ficam <strong className="text-foreground">pendentes por 30 dias</strong> (período de carência). Após a liberação, você pode resgatá-los por:
                   </p>
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {["Produtos", "Cursos", "Congressos", "Equipamentos", "Pix"].map((opt) => (
@@ -810,7 +810,7 @@ const PartnerOnboarding: React.FC = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Início do acúmulo de VisionPoints
+                      Início do acúmulo de Vitacoins
                     </li>
                   </ul>
                 </div>
