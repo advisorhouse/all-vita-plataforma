@@ -62,7 +62,7 @@ const LEADERBOARD = [
 const RANKINGS_BY_METRIC = [
   { metric: "Pacientes Ativos", myRank: 7, icon: Users, value: "48", percentile: "Top 15%", tip: "Quantidade de pacientes com assinatura ativa na sua rede." },
   { metric: "Taxa de Retenção", myRank: 5, icon: Heart, value: "91%", percentile: "Top 10%", tip: "Percentual de pacientes que renovaram nos últimos 3 meses." },
-  { metric: "VisionPoints/mês", myRank: 7, icon: Coins, value: "12.4k", percentile: "Top 15%", tip: "Total de VisionPoints acumulados mensalmente pela sua carteira." },
+  { metric: "Vitacoins/mês", myRank: 7, icon: Coins, value: "12.4k", percentile: "Top 15%", tip: "Total de Vitacoins acumulados mensalmente pela sua carteira." },
   { metric: "Consistência da Rede", myRank: 4, icon: ShieldCheck, value: "82%", percentile: "Top 8%", tip: "Média de uso consistente dos seus pacientes. Alta consistência = menor churn." },
 ];
 
@@ -85,7 +85,7 @@ const MILESTONES = [
 const PRIZES = [
   { title: "Kit Exclusivo Vision Lift", desc: "Kit premium com produtos selecionados para uso pessoal — reconhecimento por estar entre os melhores.", img: productOriginal, requirement: "Top 10 do mês", unlocked: true },
   { title: "Vision Lift 5 Meses Premium", desc: "Plano completo de 5 meses enviado para você como parceiro(a) destaque por 2 meses consecutivos.", img: product5Month, requirement: "Top 5 por 2 meses", unlocked: false },
-  { title: "Vision Lift 10 Meses + 2.000 pts", desc: "Tratamento completo de 10 meses + bônus permanente de 2.000 VisionPoints.", img: product10Month, requirement: "Nível Platina", unlocked: false },
+  { title: "Vision Lift 10 Meses + 2.000 pts", desc: "Tratamento completo de 10 meses + bônus permanente de 2.000 Vitacoins.", img: product10Month, requirement: "Nível Platina", unlocked: false },
 ];
 
 const levelColors: Record<string, string> = {
@@ -247,7 +247,7 @@ const PartnerRanking: React.FC = () => {
           <div className="flex items-center gap-2 px-0.5">
             <Star className="h-4 w-4 text-accent" />
             <h2 className="text-[15px] font-semibold text-foreground">Sua Posição por Categoria</h2>
-            <Tip text="O ranking geral é composto pela média ponderada: 40% pacientes ativos, 30% retenção e 30% VisionPoints." />
+            <Tip text="O ranking geral é composto pela média ponderada: 40% pacientes ativos, 30% retenção e 30% Vitacoins." />
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {RANKINGS_BY_METRIC.map(({ metric, myRank, icon: Icon, value, percentile, tip }) => (
@@ -345,7 +345,7 @@ const PartnerRanking: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <Tip text="Por respeito à ética profissional, os nomes são exibidos apenas como iniciais + CRM parcial. A posição é calculada combinando: pacientes ativos (40%), retenção (30%) e VisionPoints (30%)." />
+                  <Tip text="Por respeito à ética profissional, os nomes são exibidos apenas como iniciais + CRM parcial. A posição é calculada combinando: pacientes ativos (40%), retenção (30%) e Vitacoins (30%)." />
                 </div>
 
                 {/* Top 3 Podium — anonymized */}

@@ -220,7 +220,7 @@ const PartnerClients: React.FC = () => {
                    Você tem {activeClients} pacientes vinculados
                  </h2>
                  <p className="text-[13px] text-accent-foreground/70 mt-1 max-w-lg">
-                   {riskClients} pacientes precisam de atenção. Consistência média de <strong className="text-accent-foreground">{avgConsistency}%</strong>. VisionPoints recorrentes: <strong className="text-accent-foreground">{totalMonthlyPoints.toLocaleString("pt-BR")} pts/mês</strong>.
+                   {riskClients} pacientes precisam de atenção. Consistência média de <strong className="text-accent-foreground">{avgConsistency}%</strong>. Vitacoins recorrentes: <strong className="text-accent-foreground">{totalMonthlyPoints.toLocaleString("pt-BR")} pts/mês</strong>.
                 </p>
 
                 <div className="mt-5 flex gap-3">
@@ -654,7 +654,7 @@ const PartnerClients: React.FC = () => {
                         </div>
 
                         <div className="space-y-3">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">VisionPoints</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Vitacoins</p>
                           <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] text-muted-foreground">Total acumulado</span>

@@ -114,7 +114,7 @@ const PartnerReferrals: React.FC = () => {
               { label: "Quiz Preenchidos", value: totalQuiz.toString(), icon: ClipboardList, tip: "Total de pacientes que preencheram o quiz pré-consulta." },
               { label: "Pacientes Vinculados", value: totalConverted.toString(), icon: Users, tip: "Pacientes do quiz que compraram e estão vinculados a você.", accent: true },
               { label: "Taxa de Conversão", value: `${conversionRate}%`, icon: BarChart3, tip: "Percentual de pacientes do quiz que viraram compradores." },
-              { label: "VisionPoints Gerados", value: pointsFromQuiz.toLocaleString("pt-BR"), icon: Coins, tip: "Total de VisionPoints acumulados a partir de compras via quiz.", accent: true },
+              { label: "Vitacoins Gerados", value: pointsFromQuiz.toLocaleString("pt-BR"), icon: Coins, tip: "Total de Vitacoins acumulados a partir de compras via quiz.", accent: true },
             ].map(({ label, value, icon: Icon, tip, accent }) => (
               <Card key={label} className={accent ? "border-accent/20 shadow-sm bg-accent/5" : "border-border shadow-sm"}>
                 <CardContent className="p-4 space-y-2">
@@ -148,7 +148,7 @@ const PartnerReferrals: React.FC = () => {
                 Envie o quiz antes da consulta.
               </h2>
               <p className="text-[13px] text-accent-foreground/70 mt-1 max-w-lg">
-                O paciente preenche dados de saúde, autoriza LGPD e fica vinculado ao seu cadastro <strong className="text-accent-foreground">automaticamente</strong>. Toda compra futura gera VisionPoints para você.
+                O paciente preenche dados de saúde, autoriza LGPD e fica vinculado ao seu cadastro <strong className="text-accent-foreground">automaticamente</strong>. Toda compra futura gera Vitacoins para você.
               </p>
 
               {/* Tab toggle: Link / QR */}

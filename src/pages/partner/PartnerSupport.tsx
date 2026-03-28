@@ -24,10 +24,10 @@ const Tip: React.FC<{ text: string }> = ({ text }) => (
 );
 
 const FAQ = [
-  { q: "Como funciona o vínculo com pacientes?", a: "Você compartilha seu link exclusivo do Quiz Pré-Consulta. O paciente preenche, autoriza LGPD e fica vinculado automaticamente ao seu cadastro. Toda compra futura gera VisionPoints para você." },
-  { q: "O que são VisionPoints?", a: "VisionPoints é a moeda interna da plataforma. Você acumula pontos automaticamente por indicações de pacientes, quizzes preenchidos e campanhas especiais. Pode resgatar por Pix, produtos, cursos, congressos ou equipamentos." },
+  { q: "Como funciona o vínculo com pacientes?", a: "Você compartilha seu link exclusivo do Quiz Pré-Consulta. O paciente preenche, autoriza LGPD e fica vinculado automaticamente ao seu cadastro. Toda compra futura gera Vitacoins para você." },
+  { q: "O que são Vitacoins?", a: "Vitacoins é a moeda interna da plataforma. Você acumula pontos automaticamente por indicações de pacientes, quizzes preenchidos e campanhas especiais. Pode resgatar por Pix, produtos, cursos, congressos ou equipamentos." },
   { q: "Como o paciente faz a compra?", a: "Após preencher o quiz, o paciente recebe o link de compra e escolhe seu plano de tratamento (1, 3, 5 ou 10 meses). Toda a compra e acompanhamento acontecem pela plataforma." },
-  { q: "Quando meus VisionPoints são liberados?", a: "Os pontos ficam em carência por 30 dias após a venda. Depois, são liberados automaticamente na sua Wallet Médica para resgate." },
+  { q: "Quando meus Vitacoins são liberados?", a: "Os pontos ficam em carência por 30 dias após a venda. Depois, são liberados automaticamente na sua Wallet Médica para resgate." },
   { q: "O que acontece se outro médico enviar o quiz para meu paciente?", a: "O modelo é Último Click. Se o paciente preencher um novo quiz de outro médico, o vínculo anterior é desativado e os pontos futuros passam para o novo médico ativo." },
 ];
 
