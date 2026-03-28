@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { logAccessEvent } from "@/lib/security-logger";
 import { useTenant } from "@/contexts/TenantContext";
