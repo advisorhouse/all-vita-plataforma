@@ -357,7 +357,7 @@ const ActivatePage: React.FC = () => {
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
                   >
-                    <img src={currentTenant?.logo_url || iconVisionLift} alt="Logo" className="h-20 w-20 object-contain mx-auto" />
+                    <img src={currentTenant?.logo_url || iconVisionLift} alt={currentTenant?.trade_name || "Logo"} className="h-14 w-auto object-contain mx-auto" />
                   </motion.div>
                   <h2 className="text-3xl font-semibold tracking-tight text-foreground">
                     Tudo pronto!
