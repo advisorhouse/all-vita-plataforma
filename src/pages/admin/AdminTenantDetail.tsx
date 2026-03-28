@@ -15,9 +15,10 @@ import SuspendTenantDialog from "@/components/admin/tenants/SuspendTenantDialog"
 const AdminTenantDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const [suspendOpen, setSuspendOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [suspendOpen, setSuspendOpen] = useState(searchParams.get("suspend") === "true");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
 
   const { data: tenant, isLoading } = useQuery({
     queryKey: ["admin-tenant", id],
