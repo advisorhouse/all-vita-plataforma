@@ -45,28 +45,13 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      // Check if MFA is required
+      // Check if MFA is required (only if user has a verified TOTP factor)
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const verifiedFactor = factors?.totp?.find((f: any) => f.status === "verified");
 
       if (verifiedFactor) {
         setMfaFactorId(verifiedFactor.id);
         setShowMfa(true);
-        return;
-      }
-
-      // Super admins without MFA → force MFA setup
-      const { data: membership } = await supabase
-        .from("memberships")
-        .select("role")
-        .eq("user_id", data.user!.id)
-        .eq("role", "super_admin")
-        .eq("active", true)
-        .maybeSingle();
-
-      if (membership) {
-        toast.info("Configure a autenticação em duas etapas para proteger sua conta.");
-        navigate("/auth/mfa-setup");
         return;
       }
 
