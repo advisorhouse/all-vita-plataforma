@@ -18,6 +18,7 @@ const AdminUsers: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [classificationFilter, setClassificationFilter] = useState("all");
   const [tenantFilter, setTenantFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
@@ -136,6 +137,12 @@ const AdminUsers: React.FC = () => {
     if (statusFilter !== "all") {
       list = list.filter((u) => statusFilter === "active" ? u.is_active : !u.is_active);
     }
+    if (classificationFilter !== "all") {
+      list = list.filter((u) => {
+        const isGlobal = u.userType === 'staff';
+        return classificationFilter === 'global' ? isGlobal : !isGlobal;
+      });
+    }
     if (tenantFilter !== "all") {
       list = list.filter((u) => u.roles.some((r) => r.tenant_id === tenantFilter));
     }
@@ -214,6 +221,7 @@ const AdminUsers: React.FC = () => {
       <UserFilters
         search={search} onSearchChange={(v) => { setSearch(v); setPage(0); }}
         typeFilter={typeFilter} onTypeChange={(v) => { setTypeFilter(v); setPage(0); }}
+        classificationFilter={classificationFilter} onClassificationChange={(v) => { setClassificationFilter(v); setPage(0); }}
         roleFilter={roleFilter} onRoleChange={(v) => { setRoleFilter(v); setPage(0); }}
         statusFilter={statusFilter} onStatusChange={(v) => { setStatusFilter(v); setPage(0); }}
         tenantFilter={tenantFilter} onTenantChange={(v) => { setTenantFilter(v); setPage(0); }}
