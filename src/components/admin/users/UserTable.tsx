@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import DeleteUserDialog from "./DeleteUserDialog";
 
 export interface UserRow {
   id: string;
