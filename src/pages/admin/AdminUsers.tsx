@@ -280,6 +280,7 @@ const AdminUsers: React.FC = () => {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onBlockUser={(id) => blockMutation.mutate(id)}
+        onDeleteUser={(id) => deleteMutation.mutate(id)}
         onResetPassword={handleResetPassword}
         auditLogs={auditLogs || []}
       />
