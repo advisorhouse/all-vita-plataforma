@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface UserRow {
@@ -48,13 +48,14 @@ interface Props {
   onPageChange: (p: number) => void;
   onViewUser: (user: UserRow) => void;
   onBlockUser: (userId: string) => void;
+  onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   isLoading: boolean;
 }
 
 const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
-  onBlockUser, onResetPassword, isLoading,
+  onBlockUser, onDeleteUser, onResetPassword, isLoading,
 }) => (
   <Card>
     <CardContent className="p-0">
@@ -176,9 +177,19 @@ const UserTable: React.FC<Props> = ({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onBlockUser(u.id)}
-                        className="text-destructive"
+                        className="text-amber-600"
                       >
                         <Lock className="h-4 w-4 mr-2" /> {u.is_active ? "Bloquear" : "Desbloquear"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
+                            onDeleteUser(u.id);
+                          }
+                        }}
+                        className="text-destructive font-medium"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Excluir Usuário
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

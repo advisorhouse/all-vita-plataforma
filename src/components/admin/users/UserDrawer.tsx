@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History } from "lucide-react";
+import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRow } from "./UserTable";
 
@@ -20,11 +20,12 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onBlockUser: (userId: string) => void;
+  onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   auditLogs: any[];
 }
 
-const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onResetPassword, auditLogs }) => {
+const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs }) => {
   if (!user) return null;
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Sem nome";
@@ -178,9 +179,20 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onReset
             <Button
               variant="outline"
               onClick={() => onBlockUser(user.id)}
-              className={cn("w-full justify-start", user.is_active ? "text-destructive hover:text-destructive" : "text-emerald-600")}
+              className={cn("w-full justify-start", user.is_active ? "text-amber-600 hover:text-amber-700" : "text-emerald-600")}
             >
               <Lock className="h-4 w-4 mr-2" /> {user.is_active ? "Bloquear Usuário" : "Desbloquear Usuário"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
+                  onDeleteUser(user.id);
+                }
+              }}
+              className="w-full justify-start text-destructive hover:bg-destructive/5"
+            >
+              <Trash2 className="h-4 w-4 mr-2" /> Excluir Usuário Permanentemente
             </Button>
           </div>
         </div>
