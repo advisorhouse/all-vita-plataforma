@@ -11,6 +11,8 @@ interface UserFiltersProps {
   onSearchChange: (v: string) => void;
   typeFilter: string;
   onTypeChange: (v: string) => void;
+  classificationFilter: string;
+  onClassificationChange: (v: string) => void;
   roleFilter: string;
   onRoleChange: (v: string) => void;
   statusFilter: string;
