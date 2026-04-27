@@ -104,7 +104,9 @@ const AdminUsers: React.FC = () => {
       const roles = userMemberships.map((m) => ({
         role: m.role,
         tenant_id: m.tenant_id,
-        tenant_name: m.tenant_id ? (tenantMap[m.tenant_id] || m.tenant_id.slice(0, 8)) : "Global",
+        tenant_name: m.tenant_id 
+          ? (tenantMap[m.tenant_id] || m.tenant_id.slice(0, 8)) 
+          : (isStaff ? "All Vita" : "Global"),
       }));
 
       let userType = "unknown";
