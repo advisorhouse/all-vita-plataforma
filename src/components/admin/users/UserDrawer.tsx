@@ -200,11 +200,7 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
-                  onDeleteUser(user.id);
-                }
-              }}
+              onClick={() => setConfirmOpen(true)}
               disabled={isDeleting || isBlocking}
               className="w-full justify-start text-destructive hover:bg-destructive/5"
             >
@@ -217,6 +213,17 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             </Button>
           </div>
         </div>
+        <DeleteUserDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          userFirstName={user.first_name}
+          userEmail={user.email}
+          isDeleting={isDeleting}
+          onConfirm={() => {
+            onDeleteUser(user.id);
+            setConfirmOpen(false);
+          }}
+        />
       </SheetContent>
     </Sheet>
   );
