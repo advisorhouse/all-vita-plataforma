@@ -20,6 +20,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onBlockUser: (userId: string) => void;
+  onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   auditLogs: any[];
 }
