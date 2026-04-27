@@ -177,9 +177,19 @@ const UserTable: React.FC<Props> = ({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onBlockUser(u.id)}
-                        className="text-destructive"
+                        className="text-amber-600"
                       >
                         <Lock className="h-4 w-4 mr-2" /> {u.is_active ? "Bloquear" : "Desbloquear"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
+                            onDeleteUser(u.id);
+                          }
+                        }}
+                        className="text-destructive font-medium"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Excluir Usuário
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
