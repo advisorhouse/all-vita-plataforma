@@ -55,7 +55,7 @@ interface Props {
 
 const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
-  onBlockUser, onResetPassword, isLoading,
+  onBlockUser, onDeleteUser, onResetPassword, isLoading,
 }) => (
   <Card>
     <CardContent className="p-0">
