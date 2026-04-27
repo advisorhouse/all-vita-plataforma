@@ -121,22 +121,49 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onReset
             </TabsContent>
 
             <TabsContent value="audit" className="space-y-3 mt-4">
-              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <History className="h-4 w-4" /> Histórico Recente
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <History className="h-4 w-4" /> Log de Atividades
+                </h4>
+                <div className="flex gap-1">
+                  <Badge variant="outline" className="text-[9px] bg-primary/5">Auditoria</Badge>
+                  <Badge variant="outline" className="text-[9px] bg-destructive/5 text-destructive">Segurança</Badge>
+                </div>
+              </div>
+              
               {auditLogs.length > 0 ? auditLogs.map((log: any) => (
-                <div key={log.id} className="flex items-start gap-3 text-sm border-b border-border pb-2">
-                  <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                <div key={log.id} className="flex items-start gap-3 text-sm border-b border-border pb-3 last:border-0">
+                  <div className={cn(
+                    "h-2 w-2 rounded-full mt-1.5 shrink-0",
+                    log.type === 'security' ? "bg-destructive animate-pulse" : "bg-primary"
+                  )} />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground">{log.action}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(log.created_at).toLocaleString("pt-BR")}
-                      {log.ip && ` • ${log.ip}`}
-                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium text-foreground truncate">{log.action.replace(/_/g, ' ')}</p>
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                        {log.entity_type || (log.type === 'security' ? 'Security' : 'System')}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(log.created_at).toLocaleString("pt-BR")}
+                        {log.ip && ` • IP: ${log.ip}`}
+                      </p>
+                      {log.severity && (
+                        <span className={cn(
+                          "text-[9px] font-bold uppercase",
+                          log.severity === 'high' ? "text-destructive" : "text-amber-600"
+                        )}>
+                          {log.severity}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-muted-foreground">Nenhum registro encontrado</p>
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">Nenhum registro de auditoria ou acesso encontrado.</p>
+                </div>
               )}
             </TabsContent>
           </Tabs>
