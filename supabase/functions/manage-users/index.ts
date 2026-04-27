@@ -78,9 +78,8 @@ serve(async (req) => {
     }
   }
 
-  const url = new URL(req.url);
-  const pathParts = url.pathname.split("/").filter(Boolean);
-  const action = pathParts[2] || "";
+
+
 
   try {
     switch (action) {
