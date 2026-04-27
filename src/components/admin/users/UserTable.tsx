@@ -34,7 +34,11 @@ const ROLE_COLORS: Record<string, string> = {
   client: "bg-secondary text-muted-foreground border-border",
 };
 const TYPE_LABELS: Record<string, string> = {
-  staff: "All Vita", tenant: "Empresa", partner: "Parceiro", client: "Cliente", unknown: "—",
+  staff: "All Vita",
+  tenant: "Gestão Core",
+  partner: "Parceiro",
+  client: "Paciente",
+  unknown: "—",
 };
 
 interface Props {
