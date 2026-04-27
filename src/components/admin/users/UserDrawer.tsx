@@ -23,9 +23,11 @@ interface Props {
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   auditLogs: any[];
+  isDeleting?: boolean;
+  isBlocking?: boolean;
 }
 
-const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs }) => {
+const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs, isDeleting, isBlocking }) => {
   if (!user) return null;
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Sem nome";
