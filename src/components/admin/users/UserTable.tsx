@@ -79,11 +79,18 @@ const UserTable: React.FC<Props> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((u) => (
+            {users.map((u) => {
+              const isDeletingThis = deletingUserId === u.id;
+              const isBlockingThis = blockingUserId === u.id;
+              const isBusy = isDeletingThis || isBlockingThis;
+              return (
               <TableRow
                 key={u.id}
-                className="cursor-pointer hover:bg-secondary/30"
-                onClick={() => onViewUser(u)}
+                className={cn(
+                  "hover:bg-secondary/30 transition-opacity",
+                  isBusy ? "opacity-50 cursor-wait" : "cursor-pointer"
+                )}
+                onClick={() => !isBusy && onViewUser(u)}
               >
                 <TableCell>
                   <div className="flex items-center gap-2">
