@@ -66,7 +66,7 @@ const UserTable: React.FC<Props> = ({
               <TableHead>Email</TableHead>
               <TableHead>Nível</TableHead>
               <TableHead>Classificação</TableHead>
-              <TableHead>Empresa(s)</TableHead>
+              <TableHead>Vínculo / Empresa</TableHead>
               <TableHead>Papel(is)</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>2FA</TableHead>
@@ -113,15 +113,22 @@ const UserTable: React.FC<Props> = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {u.roles.filter(r => r.tenant_id).map((r, i) => (
-                      <Badge key={i} variant="secondary" className="text-[9px]">
+                    {u.roles.map((r, i) => (
+                      <Badge 
+                        key={i} 
+                        variant={r.tenant_name === "All Vita" ? "default" : "secondary"} 
+                        className={cn(
+                          "text-[9px]",
+                          r.tenant_name === "All Vita" && "bg-primary text-primary-foreground border-transparent"
+                        )}
+                      >
                         {r.tenant_name}
                       </Badge>
                     ))}
-                    {u.roles.some(r => !r.tenant_id) && (
-                      <Badge variant="outline" className="text-[9px] bg-destructive/5 text-destructive">Global</Badge>
+                    {u.roles.length === 0 && u.userType === 'staff' && (
+                      <Badge variant="default" className="text-[9px] bg-primary text-primary-foreground">All Vita</Badge>
                     )}
-                    {u.roles.length === 0 && <span className="text-[10px] text-muted-foreground">—</span>}
+                    {u.roles.length === 0 && u.userType !== 'staff' && <span className="text-[10px] text-muted-foreground">—</span>}
                   </div>
                 </TableCell>
                 <TableCell>
