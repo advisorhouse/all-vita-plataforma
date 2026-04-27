@@ -84,27 +84,40 @@ const AdminDashboard: React.FC = () => {
 
   // Orders
   const { data: orders } = useQuery({
-    queryKey: ["admin-dash-orders", sinceDate],
+    queryKey: ["admin-dash-orders", sinceDate, untilDate],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("id, amount, tenant_id, created_at, status, payment_status").gte("created_at", sinceDate).order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("orders")
+        .select("id, amount, tenant_id, created_at, status, payment_status")
+        .gte("created_at", sinceDate)
+        .lte("created_at", untilDate)
+        .order("created_at", { ascending: false });
       return data || [];
     },
   });
 
   // Clicks
   const { data: clicksCount } = useQuery({
-    queryKey: ["admin-dash-clicks", sinceDate],
+    queryKey: ["admin-dash-clicks", sinceDate, untilDate],
     queryFn: async () => {
-      const { count } = await supabase.from("clicks").select("id", { count: "exact", head: true }).gte("created_at", sinceDate);
+      const { count } = await supabase
+        .from("clicks")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", sinceDate)
+        .lte("created_at", untilDate);
       return count || 0;
     },
   });
 
   // Referrals (leads)
   const { data: referralsCount } = useQuery({
-    queryKey: ["admin-dash-referrals", sinceDate],
+    queryKey: ["admin-dash-referrals", sinceDate, untilDate],
     queryFn: async () => {
-      const { count } = await supabase.from("referrals").select("id", { count: "exact", head: true }).gte("created_at", sinceDate);
+      const { count } = await supabase
+        .from("referrals")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", sinceDate)
+        .lte("created_at", untilDate);
       return count || 0;
     },
   });
