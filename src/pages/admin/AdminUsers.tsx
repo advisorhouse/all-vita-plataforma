@@ -314,6 +314,8 @@ const AdminUsers: React.FC = () => {
         onDeleteUser={(id) => deleteMutation.mutate(id)}
         onResetPassword={handleResetPassword}
         isLoading={isLoading}
+        deletingUserId={deleteMutation.isPending ? (deleteMutation.variables as string) : null}
+        blockingUserId={blockMutation.isPending ? (blockMutation.variables as string) : null}
       />
 
       <UserDrawer
@@ -324,6 +326,8 @@ const AdminUsers: React.FC = () => {
         onDeleteUser={(id) => deleteMutation.mutate(id)}
         onResetPassword={handleResetPassword}
         auditLogs={auditLogs || []}
+        isDeleting={deleteMutation.isPending}
+        isBlocking={blockMutation.isPending}
       />
     </div>
   );
