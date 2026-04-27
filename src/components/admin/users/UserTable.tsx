@@ -215,9 +215,6 @@ const UserTable: React.FC<Props> = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
               </TableRow>
               );
             })}
@@ -245,7 +242,20 @@ const UserTable: React.FC<Props> = ({
         </div>
       )}
     </CardContent>
+    <DeleteUserDialog
+      open={!!confirmDelete}
+      onOpenChange={(v) => { if (!v) setConfirmDelete(null); }}
+      userFirstName={confirmDelete?.first_name ?? null}
+      userEmail={confirmDelete?.email ?? ""}
+      isDeleting={!!confirmDelete && deletingUserId === confirmDelete.id}
+      onConfirm={() => {
+        if (confirmDelete) {
+          onDeleteUser(confirmDelete.id);
+          setConfirmDelete(null);
+        }
+      }}
+    />
   </Card>
-);
-
+  );
+};
 export default UserTable;
