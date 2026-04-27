@@ -51,11 +51,14 @@ interface Props {
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   isLoading: boolean;
+  deletingUserId?: string | null;
+  blockingUserId?: string | null;
 }
 
 const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
   onBlockUser, onDeleteUser, onResetPassword, isLoading,
+  deletingUserId, blockingUserId,
 }) => (
   <Card>
     <CardContent className="p-0">
