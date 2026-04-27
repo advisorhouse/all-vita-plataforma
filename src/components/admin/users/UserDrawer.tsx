@@ -179,9 +179,20 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             <Button
               variant="outline"
               onClick={() => onBlockUser(user.id)}
-              className={cn("w-full justify-start", user.is_active ? "text-destructive hover:text-destructive" : "text-emerald-600")}
+              className={cn("w-full justify-start", user.is_active ? "text-amber-600 hover:text-amber-700" : "text-emerald-600")}
             >
               <Lock className="h-4 w-4 mr-2" /> {user.is_active ? "Bloquear Usuário" : "Desbloquear Usuário"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
+                  onDeleteUser(user.id);
+                }
+              }}
+              className="w-full justify-start text-destructive hover:bg-destructive/5"
+            >
+              <Trash2 className="h-4 w-4 mr-2" /> Excluir Usuário Permanentemente
             </Button>
           </div>
         </div>
