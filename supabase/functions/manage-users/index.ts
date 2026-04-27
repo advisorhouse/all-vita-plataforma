@@ -33,25 +33,49 @@ serve(async (req) => {
   const tenantId = req.headers.get("X-Tenant-Id");
   const adminClient = createClient(supabaseUrl, serviceKey);
 
-  if (!tenantId) {
-    return jsonRes(400, { error: "X-Tenant-Id header required" });
-  }
+  const url = new URL(req.url);
+  const pathParts = url.pathname.split("/").filter(Boolean);
+  const action = pathParts[2] || "";
 
-  // Check caller is admin or super_admin for this tenant
-  const { data: callerMembership } = await adminClient
+  // Check if caller is super admin (global)
+  const { data: superAdminCheck } = await adminClient
     .from("memberships")
     .select("role")
     .eq("user_id", callerUserId)
+    .eq("role", "super_admin")
     .eq("active", true)
-    .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
-    .limit(10);
+    .is("tenant_id", null)
+    .maybeSingle();
 
-  const isAdmin = callerMembership?.some(
-    (m: any) => m.role === "super_admin" || m.role === "admin"
-  );
+  const isSuperAdmin = !!superAdminCheck;
 
-  if (!isAdmin) {
-    return jsonRes(403, { error: "Only admins can manage users" });
+  // For 'delete' action: only super admin can perform it (global operation, no tenant required)
+  if (action === "delete") {
+    if (!isSuperAdmin) {
+      return jsonRes(403, { error: "Apenas Super Administradores podem excluir usuários permanentemente." });
+    }
+  } else {
+    // All other actions still require X-Tenant-Id
+    if (!tenantId) {
+      return jsonRes(400, { error: "X-Tenant-Id header required" });
+    }
+
+    // Check caller is admin or super_admin for this tenant
+    const { data: callerMembership } = await adminClient
+      .from("memberships")
+      .select("role")
+      .eq("user_id", callerUserId)
+      .eq("active", true)
+      .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
+      .limit(10);
+
+    const isAdmin = callerMembership?.some(
+      (m: any) => m.role === "super_admin" || m.role === "admin"
+    );
+
+    if (!isAdmin) {
+      return jsonRes(403, { error: "Only admins can manage users" });
+    }
   }
 
   const url = new URL(req.url);
