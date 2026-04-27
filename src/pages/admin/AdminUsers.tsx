@@ -221,6 +221,7 @@ const AdminUsers: React.FC = () => {
       <UserFilters
         search={search} onSearchChange={(v) => { setSearch(v); setPage(0); }}
         typeFilter={typeFilter} onTypeChange={(v) => { setTypeFilter(v); setPage(0); }}
+        classificationFilter={classificationFilter} onClassificationChange={(v) => { setClassificationFilter(v); setPage(0); }}
         roleFilter={roleFilter} onRoleChange={(v) => { setRoleFilter(v); setPage(0); }}
         statusFilter={statusFilter} onStatusChange={(v) => { setStatusFilter(v); setPage(0); }}
         tenantFilter={tenantFilter} onTenantChange={(v) => { setTenantFilter(v); setPage(0); }}
