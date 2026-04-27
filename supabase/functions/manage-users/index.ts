@@ -277,8 +277,57 @@ serve(async (req) => {
         return jsonRes(200, { success: true });
       }
 
+      case "delete": {
+        const body = await req.json();
+        const { userId } = body;
+
+        if (!userId) return jsonRes(400, { error: "userId é obrigatório" });
+
+        // Prevent self-deletion
+        if (userId === callerUserId) {
+          return jsonRes(400, { error: "Você não pode excluir sua própria conta." });
+        }
+
+        // Verify the user exists in auth
+        const { data: targetUser, error: fetchError } = await adminClient.auth.admin.getUserById(userId);
+        if (fetchError || !targetUser?.user) {
+          return jsonRes(404, { error: "Usuário não encontrado no sistema de autenticação." });
+        }
+
+        // Audit log BEFORE deletion (so we keep the record)
+        await adminClient.from("audit_logs").insert({
+          user_id: callerUserId,
+          actor_type: "super_admin",
+          action: "user_deleted",
+          entity_type: "user",
+          entity_id: userId,
+          details: {
+            target_email: targetUser.user.email,
+            deleted_at: new Date().toISOString(),
+          },
+        });
+
+        // Clean up related records (best effort - some may not exist)
+        await adminClient.from("memberships").delete().eq("user_id", userId);
+        await adminClient.from("all_vita_staff").delete().eq("user_id", userId);
+        await adminClient.from("partners").delete().eq("user_id", userId);
+        await adminClient.from("clients").delete().eq("user_id", userId);
+        await adminClient.from("profiles").delete().eq("id", userId);
+
+        // Finally, delete from auth.users
+        const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+        if (deleteError) {
+          console.error("Auth deletion error:", deleteError);
+          return jsonRes(500, { 
+            error: `Falha ao excluir usuário do sistema de autenticação: ${deleteError.message}` 
+          });
+        }
+
+        return jsonRes(200, { success: true, message: "Usuário excluído com sucesso." });
+      }
+
       default:
-        return jsonRes(404, { error: `Unknown action: ${action}` });
+        return jsonRes(404, { error: `Ação desconhecida: ${action}` });
     }
   } catch (error) {
     console.error("User management error:", error);
