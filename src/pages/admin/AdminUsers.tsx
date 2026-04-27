@@ -205,20 +205,61 @@ const AdminUsers: React.FC = () => {
   // Delete user
   const deleteMutation = useMutation({
     mutationFn: async (userId: string) => {
-      // First delete from profiles (cascade usually handles the rest if configured)
-      // Note: deleting a user from auth.users requires a service role or edge function
       const { data, error } = await supabase.functions.invoke("manage-users/delete", {
         body: { userId }
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      
+      // Network/invocation error
+      if (error) {
+        // Try to extract response body for more details
+        const ctx: any = (error as any).context;
+        if (ctx?.body) {
+          try {
+            const parsed = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+            if (parsed?.error) throw new Error(parsed.error);
+          } catch (parseErr) {
+            // fall through
+          }
+        }
+        throw new Error(error.message || "Erro ao chamar a função de exclusão.");
+      }
+      
+      // Function returned an error in the body
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
+      return data;
     },
-    onSuccess: () => {
-      toast.success("Usuário excluído permanentemente");
+    onSuccess: (data) => {
+      toast.success("Usuário excluído com sucesso", {
+        description: data?.message || "O usuário foi removido permanentemente da plataforma.",
+      });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-memberships"] });
       setDrawerOpen(false);
     },
-    onError: (e: any) => toast.error("Erro ao excluir", { description: e.message }),
+    onError: (e: Error) => {
+      const message = e.message || "Erro desconhecido";
+      let title = "Falha ao excluir usuário";
+      let description = message;
+
+      // Map common errors to friendlier messages
+      if (message.includes("não pode excluir sua própria")) {
+        title = "Operação bloqueada";
+      } else if (message.includes("Super Administradores")) {
+        title = "Permissão negada";
+        description = "Apenas Super Administradores podem excluir usuários permanentemente.";
+      } else if (message.toLowerCase().includes("não encontrado")) {
+        title = "Usuário não encontrado";
+        description = "Este usuário pode já ter sido excluído. Atualize a página.";
+      } else if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+        title = "Erro de conexão";
+        description = "Não foi possível conectar ao servidor. Verifique sua conexão.";
+      }
+
+      toast.error(title, { description, duration: 6000 });
+    },
   });
 
   // Reset password (placeholder — needs edge function)
