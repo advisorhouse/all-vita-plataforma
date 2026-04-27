@@ -66,7 +66,7 @@ const UserTable: React.FC<Props> = ({
               <TableHead>Email</TableHead>
               <TableHead>Nível</TableHead>
               <TableHead>Classificação</TableHead>
-              <TableHead>Empresa(s)</TableHead>
+              <TableHead>Vínculo / Empresa</TableHead>
               <TableHead>Papel(is)</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>2FA</TableHead>
