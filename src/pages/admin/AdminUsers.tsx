@@ -18,6 +18,7 @@ const AdminUsers: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [classificationFilter, setClassificationFilter] = useState("all");
   const [tenantFilter, setTenantFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
