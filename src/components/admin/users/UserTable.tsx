@@ -60,7 +60,9 @@ const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
   onBlockUser, onDeleteUser, onResetPassword, isLoading,
   deletingUserId, blockingUserId,
-}) => (
+}) => {
+  const [confirmDelete, setConfirmDelete] = React.useState<UserRow | null>(null);
+  return (
   <Card>
     <CardContent className="p-0">
       <div className="overflow-x-auto">
