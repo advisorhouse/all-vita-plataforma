@@ -270,6 +270,7 @@ const AdminUsers: React.FC = () => {
         onPageChange={setPage}
         onViewUser={handleViewUser}
         onBlockUser={(id) => blockMutation.mutate(id)}
+        onDeleteUser={(id) => deleteMutation.mutate(id)}
         onResetPassword={handleResetPassword}
         isLoading={isLoading}
       />
