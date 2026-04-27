@@ -34,7 +34,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
     <TooltipProvider delayDuration={100}>
       <motion.aside
         animate={{ width: collapsed ? 68 : 256 }}
-        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        transition={{ type: "spring", stiffness: 300, damping: 32 }}
         className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-sidebar overflow-hidden"
       >
         {/* Brand + Toggle */}
