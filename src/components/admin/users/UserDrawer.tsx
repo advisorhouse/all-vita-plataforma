@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History } from "lucide-react";
+import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRow } from "./UserTable";
 
