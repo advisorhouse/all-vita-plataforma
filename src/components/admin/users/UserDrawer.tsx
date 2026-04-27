@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRow } from "./UserTable";
+import DeleteUserDialog from "./DeleteUserDialog";
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: "Super Admin", admin: "Admin", manager: "Gerente",
