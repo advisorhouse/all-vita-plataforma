@@ -41,9 +41,9 @@ const AppShell: React.FC<AppShellProps> = ({
       <TopBarActions />
       <motion.div
         animate={{ paddingLeft: collapsed ? 68 : 256 }}
-        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        transition={{ type: "spring", stiffness: 300, damping: 32 }}
       >
-        <main className="animate-fade-in p-8">{children}</main>
+        <main className="animate-fade-in p-8 pt-20">{children}</main>
       </motion.div>
     </div>
   );
