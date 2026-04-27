@@ -1,16 +1,23 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Filter } from "lucide-react";
+import { CalendarDays, Filter, X } from "lucide-react";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
 import KpiCards from "@/components/admin/dashboard/KpiCards";
 import RevenueCharts from "@/components/admin/dashboard/RevenueCharts";
 import TenantTable from "@/components/admin/dashboard/TenantTable";
 import ActivityFeed from "@/components/admin/dashboard/ActivityFeed";
 import ConversionFunnel from "@/components/admin/dashboard/ConversionFunnel";
 import GamificationMetrics from "@/components/admin/dashboard/GamificationMetrics";
+import { cn } from "@/lib/utils";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -19,9 +26,25 @@ const fadeUp = {
 
 const AdminDashboard: React.FC = () => {
   const [period, setPeriod] = useState("30d");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const periodDays = period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365;
-  const sinceDate = new Date(Date.now() - periodDays * 86400000).toISOString();
+  const getSinceDate = () => {
+    if (period === "custom" && dateRange?.from) {
+      return dateRange.from.toISOString();
+    }
+    const days = period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365;
+    return subDays(new Date(), days).toISOString();
+  };
+
+  const getUntilDate = () => {
+    if (period === "custom" && dateRange?.to) {
+      return endOfDay(dateRange.to).toISOString();
+    }
+    return new Date().toISOString();
+  };
+
+  const sinceDate = getSinceDate();
+  const untilDate = getUntilDate();
 
   // Tenants
   const { data: tenants } = useQuery({
