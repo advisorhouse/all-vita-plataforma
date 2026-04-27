@@ -29,6 +29,7 @@ interface Props {
 }
 
 const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs, isDeleting, isBlocking }) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
   if (!user) return null;
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Sem nome";
