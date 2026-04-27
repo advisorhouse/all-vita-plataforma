@@ -137,6 +137,12 @@ const AdminUsers: React.FC = () => {
     if (statusFilter !== "all") {
       list = list.filter((u) => statusFilter === "active" ? u.is_active : !u.is_active);
     }
+    if (classificationFilter !== "all") {
+      list = list.filter((u) => {
+        const isGlobal = u.userType === 'staff';
+        return classificationFilter === 'global' ? isGlobal : !isGlobal;
+      });
+    }
     if (tenantFilter !== "all") {
       list = list.filter((u) => u.roles.some((r) => r.tenant_id === tenantFilter));
     }
