@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2 } from "lucide-react";
+import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRow } from "./UserTable";
 
@@ -23,9 +23,11 @@ interface Props {
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   auditLogs: any[];
+  isDeleting?: boolean;
+  isBlocking?: boolean;
 }
 
-const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs }) => {
+const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs, isDeleting, isBlocking }) => {
   if (!user) return null;
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Sem nome";
@@ -173,15 +175,26 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
 
           {/* Actions */}
           <div className="flex flex-col gap-2">
-            <Button variant="outline" onClick={() => onResetPassword(user.id)} className="w-full justify-start">
+            <Button 
+              variant="outline" 
+              onClick={() => onResetPassword(user.id)} 
+              className="w-full justify-start"
+              disabled={isDeleting || isBlocking}
+            >
               <KeyRound className="h-4 w-4 mr-2" /> Resetar Senha
             </Button>
             <Button
               variant="outline"
               onClick={() => onBlockUser(user.id)}
+              disabled={isDeleting || isBlocking}
               className={cn("w-full justify-start", user.is_active ? "text-amber-600 hover:text-amber-700" : "text-emerald-600")}
             >
-              <Lock className="h-4 w-4 mr-2" /> {user.is_active ? "Bloquear Usuário" : "Desbloquear Usuário"}
+              {isBlocking ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Lock className="h-4 w-4 mr-2" />
+              )}
+              {isBlocking ? "Processando..." : (user.is_active ? "Bloquear Usuário" : "Desbloquear Usuário")}
             </Button>
             <Button
               variant="outline"
@@ -190,9 +203,15 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
                   onDeleteUser(user.id);
                 }
               }}
+              disabled={isDeleting || isBlocking}
               className="w-full justify-start text-destructive hover:bg-destructive/5"
             >
-              <Trash2 className="h-4 w-4 mr-2" /> Excluir Usuário Permanentemente
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              {isDeleting ? "Excluindo usuário..." : "Excluir Usuário Permanentemente"}
             </Button>
           </div>
         </div>

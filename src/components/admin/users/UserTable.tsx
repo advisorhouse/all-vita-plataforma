@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface UserRow {
@@ -51,11 +51,14 @@ interface Props {
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   isLoading: boolean;
+  deletingUserId?: string | null;
+  blockingUserId?: string | null;
 }
 
 const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
   onBlockUser, onDeleteUser, onResetPassword, isLoading,
+  deletingUserId, blockingUserId,
 }) => (
   <Card>
     <CardContent className="p-0">
@@ -76,11 +79,18 @@ const UserTable: React.FC<Props> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((u) => (
+            {users.map((u) => {
+              const isDeletingThis = deletingUserId === u.id;
+              const isBlockingThis = blockingUserId === u.id;
+              const isBusy = isDeletingThis || isBlockingThis;
+              return (
               <TableRow
                 key={u.id}
-                className="cursor-pointer hover:bg-secondary/30"
-                onClick={() => onViewUser(u)}
+                className={cn(
+                  "hover:bg-secondary/30 transition-opacity",
+                  isBusy ? "opacity-50 cursor-wait" : "cursor-pointer"
+                )}
+                onClick={() => !isBusy && onViewUser(u)}
               >
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -164,22 +174,28 @@ const UserTable: React.FC<Props> = ({
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isBusy}>
+                        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewUser(u)}>
+                      <DropdownMenuItem onClick={() => onViewUser(u)} disabled={isBusy}>
                         <Eye className="h-4 w-4 mr-2" /> Ver detalhes
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onResetPassword(u.id)}>
+                      <DropdownMenuItem onClick={() => onResetPassword(u.id)} disabled={isBusy}>
                         <KeyRound className="h-4 w-4 mr-2" /> Resetar senha
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onBlockUser(u.id)}
+                        disabled={isBusy}
                         className="text-amber-600"
                       >
-                        <Lock className="h-4 w-4 mr-2" /> {u.is_active ? "Bloquear" : "Desbloquear"}
+                        {isBlockingThis ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Lock className="h-4 w-4 mr-2" />
+                        )}
+                        {u.is_active ? "Bloquear" : "Desbloquear"}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
@@ -187,15 +203,22 @@ const UserTable: React.FC<Props> = ({
                             onDeleteUser(u.id);
                           }
                         }}
+                        disabled={isBusy}
                         className="text-destructive font-medium"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" /> Excluir Usuário
+                        {isDeletingThis ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4 mr-2" />
+                        )}
+                        {isDeletingThis ? "Excluindo..." : "Excluir Usuário"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
             {users.length === 0 && (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">

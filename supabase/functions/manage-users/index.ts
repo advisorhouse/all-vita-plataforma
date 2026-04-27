@@ -33,30 +33,53 @@ serve(async (req) => {
   const tenantId = req.headers.get("X-Tenant-Id");
   const adminClient = createClient(supabaseUrl, serviceKey);
 
-  if (!tenantId) {
-    return jsonRes(400, { error: "X-Tenant-Id header required" });
-  }
-
-  // Check caller is admin or super_admin for this tenant
-  const { data: callerMembership } = await adminClient
-    .from("memberships")
-    .select("role")
-    .eq("user_id", callerUserId)
-    .eq("active", true)
-    .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
-    .limit(10);
-
-  const isAdmin = callerMembership?.some(
-    (m: any) => m.role === "super_admin" || m.role === "admin"
-  );
-
-  if (!isAdmin) {
-    return jsonRes(403, { error: "Only admins can manage users" });
-  }
-
   const url = new URL(req.url);
   const pathParts = url.pathname.split("/").filter(Boolean);
   const action = pathParts[2] || "";
+
+  // Check if caller is super admin (global)
+  const { data: superAdminCheck } = await adminClient
+    .from("memberships")
+    .select("role")
+    .eq("user_id", callerUserId)
+    .eq("role", "super_admin")
+    .eq("active", true)
+    .is("tenant_id", null)
+    .maybeSingle();
+
+  const isSuperAdmin = !!superAdminCheck;
+
+  // For 'delete' action: only super admin can perform it (global operation, no tenant required)
+  if (action === "delete") {
+    if (!isSuperAdmin) {
+      return jsonRes(403, { error: "Apenas Super Administradores podem excluir usuários permanentemente." });
+    }
+  } else {
+    // All other actions still require X-Tenant-Id
+    if (!tenantId) {
+      return jsonRes(400, { error: "X-Tenant-Id header required" });
+    }
+
+    // Check caller is admin or super_admin for this tenant
+    const { data: callerMembership } = await adminClient
+      .from("memberships")
+      .select("role")
+      .eq("user_id", callerUserId)
+      .eq("active", true)
+      .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
+      .limit(10);
+
+    const isAdmin = callerMembership?.some(
+      (m: any) => m.role === "super_admin" || m.role === "admin"
+    );
+
+    if (!isAdmin) {
+      return jsonRes(403, { error: "Only admins can manage users" });
+    }
+  }
+
+
+
 
   try {
     switch (action) {
@@ -254,8 +277,57 @@ serve(async (req) => {
         return jsonRes(200, { success: true });
       }
 
+      case "delete": {
+        const body = await req.json();
+        const { userId } = body;
+
+        if (!userId) return jsonRes(400, { error: "userId é obrigatório" });
+
+        // Prevent self-deletion
+        if (userId === callerUserId) {
+          return jsonRes(400, { error: "Você não pode excluir sua própria conta." });
+        }
+
+        // Verify the user exists in auth
+        const { data: targetUser, error: fetchError } = await adminClient.auth.admin.getUserById(userId);
+        if (fetchError || !targetUser?.user) {
+          return jsonRes(404, { error: "Usuário não encontrado no sistema de autenticação." });
+        }
+
+        // Audit log BEFORE deletion (so we keep the record)
+        await adminClient.from("audit_logs").insert({
+          user_id: callerUserId,
+          actor_type: "super_admin",
+          action: "user_deleted",
+          entity_type: "user",
+          entity_id: userId,
+          details: {
+            target_email: targetUser.user.email,
+            deleted_at: new Date().toISOString(),
+          },
+        });
+
+        // Clean up related records (best effort - some may not exist)
+        await adminClient.from("memberships").delete().eq("user_id", userId);
+        await adminClient.from("all_vita_staff").delete().eq("user_id", userId);
+        await adminClient.from("partners").delete().eq("user_id", userId);
+        await adminClient.from("clients").delete().eq("user_id", userId);
+        await adminClient.from("profiles").delete().eq("id", userId);
+
+        // Finally, delete from auth.users
+        const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+        if (deleteError) {
+          console.error("Auth deletion error:", deleteError);
+          return jsonRes(500, { 
+            error: `Falha ao excluir usuário do sistema de autenticação: ${deleteError.message}` 
+          });
+        }
+
+        return jsonRes(200, { success: true, message: "Usuário excluído com sucesso." });
+      }
+
       default:
-        return jsonRes(404, { error: `Unknown action: ${action}` });
+        return jsonRes(404, { error: `Ação desconhecida: ${action}` });
     }
   } catch (error) {
     console.error("User management error:", error);
