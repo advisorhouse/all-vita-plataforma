@@ -41,13 +41,21 @@ const UserFilters: React.FC<UserFiltersProps> = ({
           />
         </div>
         <Select value={typeFilter} onValueChange={onTypeChange}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Nível" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os tipos</SelectItem>
-            <SelectItem value="staff">All Vita Staff</SelectItem>
-            <SelectItem value="tenant">Empresa</SelectItem>
+            <SelectItem value="all">Todos os níveis</SelectItem>
+            <SelectItem value="staff">All Vita</SelectItem>
+            <SelectItem value="tenant">Gestão Core</SelectItem>
             <SelectItem value="partner">Parceiro</SelectItem>
-            <SelectItem value="client">Cliente</SelectItem>
+            <SelectItem value="client">Paciente</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={classificationFilter} onValueChange={onClassificationChange}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Classificação" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Classificação</SelectItem>
+            <SelectItem value="global">Global</SelectItem>
+            <SelectItem value="tenant">Tenant</SelectItem>
           </SelectContent>
         </Select>
         <Select value={roleFilter} onValueChange={onRoleChange}>
