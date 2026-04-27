@@ -48,6 +48,7 @@ interface Props {
   onPageChange: (p: number) => void;
   onViewUser: (user: UserRow) => void;
   onBlockUser: (userId: string) => void;
+  onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
   isLoading: boolean;
 }
