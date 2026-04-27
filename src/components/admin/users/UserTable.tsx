@@ -101,6 +101,17 @@ const UserTable: React.FC<Props> = ({
                   </Badge>
                 </TableCell>
                 <TableCell>
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      "text-[10px] font-normal",
+                      u.userType === 'staff' ? "bg-primary/5 text-primary border-primary/10" : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {u.userType === 'staff' ? "Global" : "Tenant"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {u.roles.filter(r => r.tenant_id).map((r, i) => (
                       <Badge key={i} variant="secondary" className="text-[9px]">
