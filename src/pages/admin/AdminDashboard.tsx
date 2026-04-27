@@ -252,23 +252,70 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-xl font-bold text-foreground">Dashboard Global</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Visão executiva da plataforma All Vita</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-600 font-medium">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="hidden xs:flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-600 font-medium">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Plataforma online
             </div>
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <CalendarDays className="h-3 w-3 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                <SelectItem value="90d">Últimos 90 dias</SelectItem>
-                <SelectItem value="365d">Último ano</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div className="flex items-center gap-2">
+              <Select value={period} onValueChange={(val) => {
+                setPeriod(val);
+                if (val !== "custom") setDateRange(undefined);
+              }}>
+                <SelectTrigger className="w-[130px] h-8 text-xs bg-card">
+                  <CalendarDays className="h-3 w-3 mr-1.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                  <SelectItem value="90d">Últimos 90 dias</SelectItem>
+                  <SelectItem value="365d">Último ano</SelectItem>
+                  <SelectItem value="custom">Período personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {period === "custom" && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-8 text-xs justify-start text-left font-normal bg-card min-w-[160px]",
+                        !dateRange && "text-muted-foreground"
+                      )}
+                    >
+                      <Filter className="mr-2 h-3 w-3" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "dd/MM", { locale: ptBR })} -{" "}
+                            {format(dateRange.to, "dd/MM", { locale: ptBR })}
+                          </>
+                        ) : (
+                          format(dateRange.from, "dd/MM", { locale: ptBR })
+                        )
+                      ) : (
+                        <span>Selecionar datas</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={2}
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>
