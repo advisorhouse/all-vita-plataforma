@@ -249,7 +249,13 @@ const AdminDashboard: React.FC = () => {
       <motion.div variants={fadeUp} initial="hidden" animate="visible">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Dashboard Global</h1>
+            <h1 className="text-xl font-bold text-foreground">
+              {(() => {
+                const hour = new Date().getHours();
+                const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+                return `${greeting}, Admin`;
+              })()}
+            </h1>
             <p className="text-sm text-muted-foreground mt-0.5">Visão executiva da plataforma All Vita</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
