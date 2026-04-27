@@ -202,6 +202,25 @@ const AdminUsers: React.FC = () => {
     onError: (e: any) => toast.error("Erro", { description: e.message }),
   });
 
+  // Delete user
+  const deleteMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      // First delete from profiles (cascade usually handles the rest if configured)
+      // Note: deleting a user from auth.users requires a service role or edge function
+      const { data, error } = await supabase.functions.invoke("manage-users/delete", {
+        body: { userId }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: () => {
+      toast.success("Usuário excluído permanentemente");
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setDrawerOpen(false);
+    },
+    onError: (e: any) => toast.error("Erro ao excluir", { description: e.message }),
+  });
+
   // Reset password (placeholder — needs edge function)
   const handleResetPassword = (userId: string) => {
     toast.info("Funcionalidade de reset de senha via e-mail será implementada em breve.");
