@@ -201,11 +201,7 @@ const UserTable: React.FC<Props> = ({
                         {u.is_active ? "Bloquear" : "Desbloquear"}
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => {
-                          if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
-                            onDeleteUser(u.id);
-                          }
-                        }}
+                        onClick={() => setConfirmDelete(u)}
                         disabled={isBusy}
                         className="text-destructive font-medium"
                       >
@@ -216,6 +212,9 @@ const UserTable: React.FC<Props> = ({
                         )}
                         {isDeletingThis ? "Excluindo..." : "Excluir Usuário"}
                       </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
