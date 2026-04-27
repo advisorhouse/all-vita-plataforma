@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import DeleteUserDialog from "./DeleteUserDialog";
 
 export interface UserRow {
   id: string;
@@ -59,7 +60,9 @@ const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
   onBlockUser, onDeleteUser, onResetPassword, isLoading,
   deletingUserId, blockingUserId,
-}) => (
+}) => {
+  const [confirmDelete, setConfirmDelete] = React.useState<UserRow | null>(null);
+  return (
   <Card>
     <CardContent className="p-0">
       <div className="overflow-x-auto">
@@ -198,11 +201,7 @@ const UserTable: React.FC<Props> = ({
                         {u.is_active ? "Bloquear" : "Desbloquear"}
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => {
-                          if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
-                            onDeleteUser(u.id);
-                          }
-                        }}
+                        onClick={() => setConfirmDelete(u)}
                         disabled={isBusy}
                         className="text-destructive font-medium"
                       >
@@ -243,7 +242,20 @@ const UserTable: React.FC<Props> = ({
         </div>
       )}
     </CardContent>
+    <DeleteUserDialog
+      open={!!confirmDelete}
+      onOpenChange={(v) => { if (!v) setConfirmDelete(null); }}
+      userFirstName={confirmDelete?.first_name ?? null}
+      userEmail={confirmDelete?.email ?? ""}
+      isDeleting={!!confirmDelete && deletingUserId === confirmDelete.id}
+      onConfirm={() => {
+        if (confirmDelete) {
+          onDeleteUser(confirmDelete.id);
+          setConfirmDelete(null);
+        }
+      }}
+    />
   </Card>
-);
-
+  );
+};
 export default UserTable;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRow } from "./UserTable";
+import DeleteUserDialog from "./DeleteUserDialog";
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: "Super Admin", admin: "Admin", manager: "Gerente",
@@ -28,6 +29,7 @@ interface Props {
 }
 
 const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs, isDeleting, isBlocking }) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
   if (!user) return null;
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Sem nome";
@@ -198,11 +200,7 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                if (confirm("Tem certeza que deseja excluir permanentemente este usuário? Esta ação não pode ser desfeita.")) {
-                  onDeleteUser(user.id);
-                }
-              }}
+              onClick={() => setConfirmOpen(true)}
               disabled={isDeleting || isBlocking}
               className="w-full justify-start text-destructive hover:bg-destructive/5"
             >
@@ -215,6 +213,17 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             </Button>
           </div>
         </div>
+        <DeleteUserDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          userFirstName={user.first_name}
+          userEmail={user.email}
+          isDeleting={isDeleting}
+          onConfirm={() => {
+            onDeleteUser(user.id);
+            setConfirmOpen(false);
+          }}
+        />
       </SheetContent>
     </Sheet>
   );
