@@ -59,7 +59,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
 
           {/* Brand area */}
           <div className={cn("flex items-center overflow-hidden transition-all duration-300", collapsed ? "order-1 justify-center px-0 h-9" : "flex-1 h-full pl-3 pr-10 gap-3")}>
-            <AnimatePresence initial={false} mode="wait">
+            <AnimatePresence initial={false}>
               {collapsed ? (
                 <motion.img
                   key="icon"
