@@ -84,13 +84,27 @@ const AdminUsers: React.FC = () => {
     queryKey: ["admin-user-audit", selectedUser?.id],
     enabled: !!selectedUser,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: logs } = await supabase
         .from("audit_logs")
-        .select("id, action, created_at, ip")
+        .select("id, action, created_at, ip, entity_type, details")
         .eq("user_id", selectedUser!.id)
         .order("created_at", { ascending: false })
         .limit(20);
-      return data || [];
+      
+      const { data: security } = await supabase
+        .from("security_events")
+        .select("id, type, created_at, ip, severity")
+        .eq("user_id", selectedUser!.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      // Merge and sort by date
+      const merged = [
+        ...(logs || []).map(l => ({ ...l, type: 'audit' })),
+        ...(security || []).map(s => ({ ...s, action: s.type, type: 'security' }))
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      return merged.slice(0, 30);
     },
   });
 
