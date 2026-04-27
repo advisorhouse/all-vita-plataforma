@@ -34,7 +34,11 @@ const ROLE_COLORS: Record<string, string> = {
   client: "bg-secondary text-muted-foreground border-border",
 };
 const TYPE_LABELS: Record<string, string> = {
-  staff: "All Vita", tenant: "Empresa", partner: "Parceiro", client: "Cliente", unknown: "—",
+  staff: "All Vita",
+  tenant: "Gestão Core",
+  partner: "Parceiro",
+  client: "Paciente",
+  unknown: "—",
 };
 
 interface Props {
@@ -60,7 +64,8 @@ const UserTable: React.FC<Props> = ({
             <TableRow>
               <TableHead>Usuário</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Tipo</TableHead>
+              <TableHead>Nível</TableHead>
+              <TableHead>Classificação</TableHead>
               <TableHead>Empresa(s)</TableHead>
               <TableHead>Papel(is)</TableHead>
               <TableHead>Status</TableHead>
@@ -93,6 +98,17 @@ const UserTable: React.FC<Props> = ({
                 <TableCell>
                   <Badge variant="outline" className="text-[10px]">
                     {TYPE_LABELS[u.userType] || u.userType}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      "text-[10px] font-normal",
+                      u.userType === 'staff' ? "bg-primary/5 text-primary border-primary/10" : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {u.userType === 'staff' ? "Global" : "Tenant"}
                   </Badge>
                 </TableCell>
                 <TableCell>
