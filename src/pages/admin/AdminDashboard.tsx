@@ -1,16 +1,23 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Filter } from "lucide-react";
+import { CalendarDays, Filter, X } from "lucide-react";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
 import KpiCards from "@/components/admin/dashboard/KpiCards";
 import RevenueCharts from "@/components/admin/dashboard/RevenueCharts";
 import TenantTable from "@/components/admin/dashboard/TenantTable";
 import ActivityFeed from "@/components/admin/dashboard/ActivityFeed";
 import ConversionFunnel from "@/components/admin/dashboard/ConversionFunnel";
 import GamificationMetrics from "@/components/admin/dashboard/GamificationMetrics";
+import { cn } from "@/lib/utils";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -19,9 +26,25 @@ const fadeUp = {
 
 const AdminDashboard: React.FC = () => {
   const [period, setPeriod] = useState("30d");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const periodDays = period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365;
-  const sinceDate = new Date(Date.now() - periodDays * 86400000).toISOString();
+  const getSinceDate = () => {
+    if (period === "custom" && dateRange?.from) {
+      return dateRange.from.toISOString();
+    }
+    const days = period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365;
+    return subDays(new Date(), days).toISOString();
+  };
+
+  const getUntilDate = () => {
+    if (period === "custom" && dateRange?.to) {
+      return endOfDay(dateRange.to).toISOString();
+    }
+    return new Date().toISOString();
+  };
+
+  const sinceDate = getSinceDate();
+  const untilDate = getUntilDate();
 
   // Tenants
   const { data: tenants } = useQuery({
@@ -61,27 +84,40 @@ const AdminDashboard: React.FC = () => {
 
   // Orders
   const { data: orders } = useQuery({
-    queryKey: ["admin-dash-orders", sinceDate],
+    queryKey: ["admin-dash-orders", sinceDate, untilDate],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("id, amount, tenant_id, created_at, status, payment_status").gte("created_at", sinceDate).order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("orders")
+        .select("id, amount, tenant_id, created_at, status, payment_status")
+        .gte("created_at", sinceDate)
+        .lte("created_at", untilDate)
+        .order("created_at", { ascending: false });
       return data || [];
     },
   });
 
   // Clicks
   const { data: clicksCount } = useQuery({
-    queryKey: ["admin-dash-clicks", sinceDate],
+    queryKey: ["admin-dash-clicks", sinceDate, untilDate],
     queryFn: async () => {
-      const { count } = await supabase.from("clicks").select("id", { count: "exact", head: true }).gte("created_at", sinceDate);
+      const { count } = await supabase
+        .from("clicks")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", sinceDate)
+        .lte("created_at", untilDate);
       return count || 0;
     },
   });
 
   // Referrals (leads)
   const { data: referralsCount } = useQuery({
-    queryKey: ["admin-dash-referrals", sinceDate],
+    queryKey: ["admin-dash-referrals", sinceDate, untilDate],
     queryFn: async () => {
-      const { count } = await supabase.from("referrals").select("id", { count: "exact", head: true }).gte("created_at", sinceDate);
+      const { count } = await supabase
+        .from("referrals")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", sinceDate)
+        .lte("created_at", untilDate);
       return count || 0;
     },
   });
@@ -216,23 +252,70 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-xl font-bold text-foreground">Dashboard Global</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Visão executiva da plataforma All Vita</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-600 font-medium">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="hidden xs:flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-600 font-medium">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Plataforma online
             </div>
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <CalendarDays className="h-3 w-3 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                <SelectItem value="90d">Últimos 90 dias</SelectItem>
-                <SelectItem value="365d">Último ano</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div className="flex items-center gap-2">
+              <Select value={period} onValueChange={(val) => {
+                setPeriod(val);
+                if (val !== "custom") setDateRange(undefined);
+              }}>
+                <SelectTrigger className="w-[130px] h-8 text-xs bg-card">
+                  <CalendarDays className="h-3 w-3 mr-1.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                  <SelectItem value="90d">Últimos 90 dias</SelectItem>
+                  <SelectItem value="365d">Último ano</SelectItem>
+                  <SelectItem value="custom">Período personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {period === "custom" && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-8 text-xs justify-start text-left font-normal bg-card min-w-[160px]",
+                        !dateRange && "text-muted-foreground"
+                      )}
+                    >
+                      <Filter className="mr-2 h-3 w-3" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "dd/MM", { locale: ptBR })} -{" "}
+                            {format(dateRange.to, "dd/MM", { locale: ptBR })}
+                          </>
+                        ) : (
+                          format(dateRange.from, "dd/MM", { locale: ptBR })
+                        )
+                      ) : (
+                        <span>Selecionar datas</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={2}
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>
