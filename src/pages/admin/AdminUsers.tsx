@@ -156,6 +156,8 @@ const AdminUsers: React.FC = () => {
       else if (roles.some((r) => r.role === "partner")) userType = "partner";
       else if (roles.some((r) => r.role === "client")) userType = "client";
 
+      const auth = authStatusMap[p.id];
+
       return {
         id: p.id,
         email: p.email,
@@ -168,9 +170,12 @@ const AdminUsers: React.FC = () => {
         roles,
         userType,
         has2FA: false, // TODO: check MFA factors
+        emailConfirmedAt: auth?.email_confirmed_at ?? null,
+        lastSignInAt: auth?.last_sign_in_at ?? null,
+        confirmationSentAt: auth?.confirmation_sent_at ?? null,
       };
     });
-  }, [profilesData, memberships, staffList, tenantMap]);
+  }, [profilesData, memberships, staffList, tenantMap, authStatusMap]);
 
   // Apply client-side filters
   const filteredUsers = useMemo(() => {
