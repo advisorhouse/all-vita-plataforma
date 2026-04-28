@@ -111,13 +111,28 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
         address_district: data.estabelecimento?.bairro || prev.address_district,
         address_city: data.estabelecimento?.cidade?.nome || prev.address_city,
         address_state: data.estabelecimento?.estado?.sigla || prev.address_state,
-        // Auto generate slug if empty
         slug: prev.slug || (data.estabelecimento?.nome_fantasia || data.razao_social || "")
           .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, ""),
-        // Take the first QSA member as owner if available
         owner_name: data.socios?.[0]?.nome || prev.owner_name,
       }));
+
+      // Try to fetch logo from Clearbit or similar service based on domain if available
+      // Or if the API provides a website, we can use that. 
+      // Most public CNPJ APIs don't return the logo directly, but they return the domain/email.
+      const domain = data.estabelecimento?.email?.split('@')[1];
+      if (domain && !['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'uol.com.br'].includes(domain)) {
+        const logoUrl = `https://logo.clearbit.com/${domain}`;
+        try {
+          const logoCheck = await fetch(logoUrl, { method: 'HEAD' });
+          if (logoCheck.ok) {
+            setLogoPreview(logoUrl);
+            // We'll handle downloading this image during form submission if it's a remote URL
+          }
+        } catch (e) {
+          console.log("Could not auto-fetch logo from domain");
+        }
+      }
 
       toast.success("Dados carregados com sucesso!");
     } catch (error) {
