@@ -151,7 +151,9 @@ const AdminOnboarding: React.FC = () => {
     toast.success("Onboarding concluído!");
     setStep("complete");
     setLoading(false);
-    navigate(isSuperAdmin ? "/admin" : "/core");
+    const destination = isSuperAdmin ? "/admin" : "/core";
+    await logOnboardingRedirect("complete", destination);
+    navigate(destination);
   };
 
 // Render logo and footer are now handled by reusable components
