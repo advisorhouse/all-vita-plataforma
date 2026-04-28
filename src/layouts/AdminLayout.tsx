@@ -5,10 +5,10 @@ import { Outlet } from "react-router-dom";
 
 const adminLinks = [
   { label: "Visão Geral", href: "/admin", icon: Home },
+  { label: "Permissões", href: "/admin/permissions", icon: KeyRound },
   { label: "Colaboradores", href: "/admin/staff", icon: UserCog },
   { label: "Empresas", href: "/admin/tenants", icon: Building2 },
   { label: "Usuários", href: "/admin/users", icon: Users },
-  { label: "Permissões", href: "/admin/permissions", icon: KeyRound },
   { label: "Financeiro", href: "/admin/finance", icon: DollarSign },
   { label: "Monetização", href: "/admin/monetization", icon: Coins },
   { label: "Vitacoins", href: "/admin/vitacoins", icon: Coins },
