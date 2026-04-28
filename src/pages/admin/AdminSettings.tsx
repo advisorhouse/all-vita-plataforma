@@ -284,31 +284,67 @@ const AdminSettings: React.FC = () => {
                 <Separator />
                 
                 <div className="grid md:grid-cols-3 gap-6">
-                  {[
-                    { label: "Cor Primária", color: "#1A1A1A", desc: "Cor principal da marca, usada em botões e elementos de destaque." },
-                    { label: "Cor Secundária", color: "#6B8E23", desc: "Cor complementar usada para equilíbrio visual e diferenciação." },
-                    { label: "Cor de Destaque", color: "#3B82F6", desc: "Cor de ação para chamar atenção para elementos específicos." },
-                  ].map((c) => (
-                    <div key={c.label} className="space-y-2">
-                      <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> {c.label}</Label>
-                      <div className="flex gap-2 items-center">
-                        <div className="relative">
-                          <Input 
-                            type="color" 
-                            defaultValue={c.color} 
-                            className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
-                          />
-                        </div>
-                        <Input defaultValue={c.color} className="font-mono text-sm" />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-tight">{c.desc}</p>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> Cor Primária</Label>
+                    <div className="flex gap-2 items-center">
+                      <Input 
+                        type="color" 
+                        value={platform?.primary_color || "#1A1A1A"} 
+                        onChange={(e) => setPlatform({ ...platform, primary_color: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
+                      />
+                      <Input 
+                        value={platform?.primary_color || "#1A1A1A"} 
+                        onChange={(e) => setPlatform({ ...platform, primary_color: e.target.value })}
+                        className="font-mono text-sm" 
+                      />
                     </div>
-                  ))}
+                    <p className="text-[10px] text-muted-foreground leading-tight">Cor principal da marca, usada em botões e elementos de destaque.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> Cor Secundária</Label>
+                    <div className="flex gap-2 items-center">
+                      <Input 
+                        type="color" 
+                        value={platform?.secondary_color || "#6B8E23"} 
+                        onChange={(e) => setPlatform({ ...platform, secondary_color: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
+                      />
+                      <Input 
+                        value={platform?.secondary_color || "#6B8E23"} 
+                        onChange={(e) => setPlatform({ ...platform, secondary_color: e.target.value })}
+                        className="font-mono text-sm" 
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-tight">Cor complementar usada para equilíbrio visual e diferenciação.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> Cor de Destaque</Label>
+                    <div className="flex gap-2 items-center">
+                      <Input 
+                        type="color" 
+                        value={platform?.highlight_color || "#3B82F6"} 
+                        onChange={(e) => setPlatform({ ...platform, highlight_color: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
+                      />
+                      <Input 
+                        value={platform?.highlight_color || "#3B82F6"} 
+                        onChange={(e) => setPlatform({ ...platform, highlight_color: e.target.value })}
+                        className="font-mono text-sm" 
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-tight">Cor de ação para chamar atenção para elementos específicos.</p>
+                  </div>
                 </div>
                 <Separator />
                 <div className="space-y-2">
                   <Label>Tipografia</Label>
-                  <Select defaultValue="inter">
+                  <Select 
+                    value={platform?.typography || "inter"} 
+                    onValueChange={(v) => setPlatform({ ...platform, typography: v })}
+                  >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="inter">Inter</SelectItem>
@@ -319,7 +355,11 @@ const AdminSettings: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Rodapé Padrão</Label>
-                  <Textarea defaultValue="Easymore Labs, uma empresa Advisor Legacy Ltda. Todos os direitos reservados." rows={2} />
+                  <Textarea 
+                    value={platform?.footer_text || ""} 
+                    onChange={(e) => setPlatform({ ...platform, footer_text: e.target.value })}
+                    rows={2} 
+                  />
                 </div>
               </CardContent>
             </Card>
