@@ -576,7 +576,10 @@ serve(async (req) => {
         const tempPassword = generateTempPassword();
 
         // Update auth user
-        await adminClient.auth.admin.updateUserById(userId, { password: tempPassword });
+        await adminClient.auth.admin.updateUserById(userId, { 
+          password: tempPassword,
+          email_confirm: true 
+        });
 
         let tenantName = "All Vita";
         let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
