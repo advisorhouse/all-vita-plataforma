@@ -17,7 +17,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const STEPS = ["Dados Básicos", "Tipo & Vínculo", "Confirmar"];
+const STEPS = ["Empresa & Vínculo", "Dados Básicos", "Confirmar"];
 
 const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
   const [open, setOpen] = useState(false);
@@ -29,14 +29,14 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
     tenant_id: "", role: "manager",
   });
 
-  const set = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
+  const set = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
   const canNext = () => {
-    if (step === 0) return form.full_name && form.email;
-    if (step === 1) {
+    if (step === 0) {
       if (form.user_type === "staff") return true;
       return form.tenant_id && form.role;
     }
+    if (step === 1) return form.full_name && form.email;
     return true;
   };
 
