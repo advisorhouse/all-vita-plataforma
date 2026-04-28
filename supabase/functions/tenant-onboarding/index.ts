@@ -100,6 +100,7 @@ serve(async (req) => {
         trade_name: trade_name || null,
         slug: normalizedSlug,
         cnpj: cnpj ? cnpj.replace(/\D/g, "") : null,
+        segment: segment || null,
         primary_color: primary_color || "#6366f1",
         secondary_color: secondary_color || "#8b5cf6",
         logo_url: logo_url || null,
