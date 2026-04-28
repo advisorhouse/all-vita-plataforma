@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,12 @@ import {
   Trash2, 
   CheckCircle2, 
   AlertCircle,
-  RotateCcw
+  RotateCcw,
+  Shield,
+  Eye,
+  Info
 } from "lucide-react";
+import { usePlatformPermissions } from "@/hooks/usePlatformPermissions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -75,6 +79,7 @@ const AdminStaff: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const { rows: allPermissions, loading: loadingPerms } = usePlatformPermissions();
   
   // Form states
   const [inviteEmail, setInviteEmail] = useState("");
@@ -203,6 +208,34 @@ const AdminStaff: React.FC = () => {
   const fullName = (r: StaffRow) =>
     [r.profile?.first_name, r.profile?.last_name].filter(Boolean).join(" ") || r.profile?.email || "—";
 
+  const RESOURCE_LABELS: Record<string, string> = {
+    tenants: "Empresas",
+    users: "Usuários",
+    staff: "Staff All Vita",
+    financials: "Financeiro",
+    integrations: "Integrações",
+    audit: "Auditoria",
+    vitacoins: "Vitacoins",
+    permissions: "Permissões",
+  };
+
+  const ACTION_LABELS: Record<string, string> = {
+    read: "Ver",
+    create: "Criar",
+    update: "Edit",
+    delete: "Del",
+  };
+
+  const getPermissionsForRole = (role: string) => {
+    return allPermissions
+      .filter(p => p.role === role && p.allowed)
+      .reduce((acc, p) => {
+        if (!acc[p.resource]) acc[p.resource] = [];
+        acc[p.resource].push(p.action);
+        return acc;
+      }, {} as Record<string, string[]>);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -320,6 +353,9 @@ const AdminStaff: React.FC = () => {
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                           Desde
                         </th>
+                        <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide w-40">
+                          Permissões
+                        </th>
                         <th className="text-center py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide w-24">
                           Ativo
                         </th>
@@ -361,6 +397,63 @@ const AdminStaff: React.FC = () => {
                             </td>
                             <td className="py-3 px-4 text-muted-foreground text-[12px]">
                               {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                            </td>
+                            <td className="py-3 px-4">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-7 gap-1 text-[11px]">
+                                    <Eye className="h-3 w-3" />
+                                    Ver {isSuper ? "Todas" : ""}
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      <Shield className="h-4 w-4" />
+                                      Permissões: {ROLE_LABELS[r.role]}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                      Recursos e ações permitidas para este papel na plataforma.
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                                    {isSuper ? (
+                                      <div className="bg-amber-50 border border-amber-100 p-3 rounded-md flex gap-2">
+                                        <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                                        <p className="text-[12px] text-amber-800">
+                                          Super Admins possuem acesso total a todos os recursos do sistema por padrão.
+                                        </p>
+                                      </div>
+                                    ) : (
+                                      <div className="grid gap-3">
+                                        {Object.entries(getPermissionsForRole(r.role)).length > 0 ? (
+                                          Object.entries(getPermissionsForRole(r.role)).map(([res, actions]) => (
+                                            <div key={res} className="flex items-center justify-between border-b border-border/40 pb-2 last:border-0">
+                                              <span className="text-sm font-medium">{RESOURCE_LABELS[res] || res}</span>
+                                              <div className="flex gap-1">
+                                                {actions.map(act => (
+                                                  <Badge key={act} variant="secondary" className="text-[9px] h-4 px-1">
+                                                    {ACTION_LABELS[act] || act}
+                                                  </Badge>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <p className="text-sm text-muted-foreground text-center py-4">
+                                            Nenhuma permissão específica definida para este papel.
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <DialogFooter>
+                                    <Button asChild variant="outline" size="sm">
+                                      <a href="/admin/permissions">Editar Matriz</a>
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
                             </td>
                             <td className="py-3 px-4 text-center">
                               <Switch
