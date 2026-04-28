@@ -126,6 +126,7 @@ const App = () => (
                 <Route path="support" element={<ClubSupport />} />
                 <Route path="settings" element={<ClubSettings />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Partner (Afiliado) - Protected */}
