@@ -85,7 +85,7 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
             email: form.email,
             full_name: form.full_name,
             phone: formattedPhone,
-            role: "super_admin",
+            role: form.staff_role,
             is_staff: true,
           },
         });
@@ -107,9 +107,18 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
       toast.success("Usuário criado e convite enviado!");
       setOpen(false);
       setStep(0);
-      setForm({ full_name: "", email: "", phone: "", user_type: "tenant", tenant_id: "", role: "manager" });
+      setForm({ 
+        full_name: "", 
+        email: "", 
+        phone: "", 
+        user_type: "tenant", 
+        tenant_id: "", 
+        role: "manager",
+        staff_role: "admin"
+      });
       onSuccess();
     } catch (e: any) {
+// ... keep existing code
       toast.error("Erro ao criar usuário", { description: e.message });
     } finally {
       setLoading(false);
