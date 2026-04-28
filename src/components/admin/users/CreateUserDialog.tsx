@@ -31,12 +31,20 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
 
   const set = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
+  const isPhoneValid = (phone: string) => {
+    if (!phone) return true; // Phone is optional
+    return phone.length === 11; // 2 (DDD) + 9 (Number)
+  };
+
   const canNext = () => {
     if (step === 0) {
       if (form.user_type === "staff") return true;
       return form.tenant_id && form.role;
     }
-    if (step === 1) return form.full_name && form.email;
+    if (step === 1) {
+      const basicInfo = form.full_name && form.email && form.email.includes("@");
+      return basicInfo && isPhoneValid(form.phone);
+    }
     return true;
   };
 
