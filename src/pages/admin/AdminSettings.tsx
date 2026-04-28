@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Palette, Shield, Globe, Sliders, Save, Building2, Image, Type, Clock,
   Users, CreditCard, Bell, FileText, Lock, Coins, Percent, Plug, Mail,
-  Scale, Database, Server, Flag, Settings, Upload,
+  Scale, Database, Server, Flag, Settings, Upload, Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import AdminPermissions from "@/components/admin/AdminPermissions";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -31,12 +32,12 @@ const fadeUp = {
 const SwitchRow = ({ 
   title, 
   desc, 
-  defaultChecked = false, 
+  checked = false, 
   onCheckedChange 
 }: { 
   title: string; 
   desc: string; 
-  defaultChecked?: boolean;
+  checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
 }) => (
   <div className="flex items-center justify-between py-1">
@@ -45,27 +46,93 @@ const SwitchRow = ({
       <p className="text-xs text-muted-foreground">{desc}</p>
     </div>
     <Switch 
-      defaultChecked={defaultChecked} 
+      checked={checked} 
       onCheckedChange={onCheckedChange}
     />
   </div>
 );
 
 const AdminSettings: React.FC = () => {
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  const [platform, setPlatform] = useState<any>(null);
+  const [security, setSecurity] = useState<any>(null);
+  const [defaults, setDefaults] = useState<any>(null);
+  const [domains, setDomains] = useState<any>(null);
+  const [advanced, setAdvanced] = useState<any>(null);
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('system_settings').select('*');
+      
+      if (error) throw error;
+
+      if (data) {
+        const settingsMap: any = {};
+        data.forEach(item => {
+          settingsMap[item.key] = item.value;
+        });
+
+        if (settingsMap.platform_branding) setPlatform(settingsMap.platform_branding);
+        if (settingsMap.security_settings) setSecurity(settingsMap.security_settings);
+        if (settingsMap.tenant_defaults) setDefaults(settingsMap.tenant_defaults);
+        if (settingsMap.domain_settings) setDomains(settingsMap.domain_settings);
+        if (settingsMap.advanced_settings) setAdvanced(settingsMap.advanced_settings);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      toast.error("Erro ao carregar configurações");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
     setSaving(true);
-    setTimeout(() => { setSaving(false); toast.success("Configurações salvas com sucesso"); }, 800);
+    try {
+      const updates = [
+        { key: 'platform_branding', value: platform },
+        { key: 'security_settings', value: security },
+        { key: 'tenant_defaults', value: defaults },
+        { key: 'domain_settings', value: domains },
+        { key: 'advanced_settings', value: advanced },
+      ];
+
+      for (const update of updates) {
+        if (!update.value) continue;
+        const { error } = await supabase
+          .from('system_settings')
+          .upsert(update);
+        
+        if (error) throw error;
+      }
+
+      toast.success("Configurações salvas com sucesso");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Erro ao salvar configurações");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleTemplate = async (slug: string, active: boolean) => {
     try {
-      // In a real scenario, we would call supabase here
-      // const { error } = await supabase.from('communication_templates').update({ active }).eq('slug', slug);
-      // if (error) throw error;
+      const { error } = await supabase
+        .from('communication_templates')
+        .update({ active })
+        .eq('slug', slug);
+      
+      if (error) throw error;
       toast.success(`Template ${slug} ${active ? 'ativado' : 'desativado'}`);
     } catch (error) {
+      console.error("Error toggling template:", error);
       toast.error("Erro ao atualizar template");
     }
   };
@@ -78,6 +145,14 @@ const AdminSettings: React.FC = () => {
     { role: "client", label: "Cliente", perms: "Assinatura e benefícios" },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-2 md:p-6 max-w-[1400px] mx-auto">
       {/* Header */}
@@ -86,12 +161,12 @@ const AdminSettings: React.FC = () => {
           <div className="flex items-center gap-2">
             <Settings className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-bold">Configurações Globais</h1>
-            <Badge variant="outline" className="text-[10px]">All Vita</Badge>
+            <Badge variant="outline" className="text-[10px]">{platform?.name || 'All Vita'}</Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">Parâmetros, regras e controles da plataforma</p>
         </div>
         <Button onClick={handleSave} disabled={saving} className="gap-2">
-          <Save className="h-4 w-4" />
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? "Salvando..." : "Salvar Alterações"}
         </Button>
       </motion.div>
@@ -125,10 +200,34 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label>Nome da Plataforma</Label><Input defaultValue="All Vita" /></div>
-                  <div className="space-y-2"><Label>URL Principal</Label><Input defaultValue="https://allvita.com.br" /></div>
-                  <div className="space-y-2"><Label>Email Institucional</Label><Input defaultValue="contato@allvita.com.br" /></div>
-                  <div className="space-y-2"><Label>Telefone</Label><Input defaultValue="+55 11 99999-0000" /></div>
+                  <div className="space-y-2">
+                    <Label>Nome da Plataforma</Label>
+                    <Input 
+                      value={platform?.name || ""} 
+                      onChange={(e) => setPlatform({ ...platform, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>URL Principal</Label>
+                    <Input 
+                      value={platform?.url || ""} 
+                      onChange={(e) => setPlatform({ ...platform, url: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email Institucional</Label>
+                    <Input 
+                      value={platform?.email || ""} 
+                      onChange={(e) => setPlatform({ ...platform, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone</Label>
+                    <Input 
+                      value={platform?.phone || ""} 
+                      onChange={(e) => setPlatform({ ...platform, phone: e.target.value })}
+                    />
+                  </div>
                 </div>
                 
                 <Separator />
@@ -185,31 +284,67 @@ const AdminSettings: React.FC = () => {
                 <Separator />
                 
                 <div className="grid md:grid-cols-3 gap-6">
-                  {[
-                    { label: "Cor Primária", color: "#1A1A1A", desc: "Cor principal da marca, usada em botões e elementos de destaque." },
-                    { label: "Cor Secundária", color: "#6B8E23", desc: "Cor complementar usada para equilíbrio visual e diferenciação." },
-                    { label: "Cor de Destaque", color: "#3B82F6", desc: "Cor de ação para chamar atenção para elementos específicos." },
-                  ].map((c) => (
-                    <div key={c.label} className="space-y-2">
-                      <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> {c.label}</Label>
-                      <div className="flex gap-2 items-center">
-                        <div className="relative">
-                          <Input 
-                            type="color" 
-                            defaultValue={c.color} 
-                            className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
-                          />
-                        </div>
-                        <Input defaultValue={c.color} className="font-mono text-sm" />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-tight">{c.desc}</p>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> Cor Primária</Label>
+                    <div className="flex gap-2 items-center">
+                      <Input 
+                        type="color" 
+                        value={platform?.primary_color || "#1A1A1A"} 
+                        onChange={(e) => setPlatform({ ...platform, primary_color: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
+                      />
+                      <Input 
+                        value={platform?.primary_color || "#1A1A1A"} 
+                        onChange={(e) => setPlatform({ ...platform, primary_color: e.target.value })}
+                        className="font-mono text-sm" 
+                      />
                     </div>
-                  ))}
+                    <p className="text-[10px] text-muted-foreground leading-tight">Cor principal da marca, usada em botões e elementos de destaque.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> Cor Secundária</Label>
+                    <div className="flex gap-2 items-center">
+                      <Input 
+                        type="color" 
+                        value={platform?.secondary_color || "#6B8E23"} 
+                        onChange={(e) => setPlatform({ ...platform, secondary_color: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
+                      />
+                      <Input 
+                        value={platform?.secondary_color || "#6B8E23"} 
+                        onChange={(e) => setPlatform({ ...platform, secondary_color: e.target.value })}
+                        className="font-mono text-sm" 
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-tight">Cor complementar usada para equilíbrio visual e diferenciação.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> Cor de Destaque</Label>
+                    <div className="flex gap-2 items-center">
+                      <Input 
+                        type="color" 
+                        value={platform?.highlight_color || "#3B82F6"} 
+                        onChange={(e) => setPlatform({ ...platform, highlight_color: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
+                      />
+                      <Input 
+                        value={platform?.highlight_color || "#3B82F6"} 
+                        onChange={(e) => setPlatform({ ...platform, highlight_color: e.target.value })}
+                        className="font-mono text-sm" 
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-tight">Cor de ação para chamar atenção para elementos específicos.</p>
+                  </div>
                 </div>
                 <Separator />
                 <div className="space-y-2">
                   <Label>Tipografia</Label>
-                  <Select defaultValue="inter">
+                  <Select 
+                    value={platform?.typography || "inter"} 
+                    onValueChange={(v) => setPlatform({ ...platform, typography: v })}
+                  >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="inter">Inter</SelectItem>
@@ -220,7 +355,11 @@ const AdminSettings: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Rodapé Padrão</Label>
-                  <Textarea defaultValue="Easymore Labs, uma empresa Advisor Legacy Ltda. Todos os direitos reservados." rows={2} />
+                  <Textarea 
+                    value={platform?.footer_text || ""} 
+                    onChange={(e) => setPlatform({ ...platform, footer_text: e.target.value })}
+                    rows={2} 
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -236,26 +375,56 @@ const AdminSettings: React.FC = () => {
                 <CardDescription>Autenticação e controle de acesso</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
-                <SwitchRow title="Obrigar 2FA para Super Admins" desc="Todos os super admins precisam de autenticação de dois fatores" defaultChecked />
-                <SwitchRow title="Obrigar 2FA para Admins de Tenant" desc="Administradores de empresas devem ativar 2FA" />
-                <SwitchRow title="Permitir múltiplos logins simultâneos" desc="Mesma conta pode estar logada em vários dispositivos" defaultChecked />
+                <SwitchRow 
+                  title="Obrigar 2FA para Super Admins" 
+                  desc="Todos os super admins precisam de autenticação de dois fatores" 
+                  checked={security?.require_2fa_super_admin}
+                  onCheckedChange={(checked) => setSecurity({ ...security, require_2fa_super_admin: checked })}
+                />
+                <SwitchRow 
+                  title="Obrigar 2FA para Admins de Tenant" 
+                  desc="Administradores de empresas devem ativar 2FA" 
+                  checked={security?.require_2fa_tenant_admin}
+                  onCheckedChange={(checked) => setSecurity({ ...security, require_2fa_tenant_admin: checked })}
+                />
+                <SwitchRow 
+                  title="Permitir múltiplos logins simultâneos" 
+                  desc="Mesma conta pode estar logada em vários dispositivos" 
+                  checked={security?.allow_multiple_logins}
+                  onCheckedChange={(checked) => setSecurity({ ...security, allow_multiple_logins: checked })}
+                />
                 <Separator />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label>Expiração de Sessão (horas)</Label>
-                    <Input type="number" defaultValue="24" />
+                    <Input 
+                      type="number" 
+                      value={security?.session_expiration_hours || ""} 
+                      onChange={(e) => setSecurity({ ...security, session_expiration_hours: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Tentativas de Login (antes do bloqueio)</Label>
-                    <Input type="number" defaultValue="5" />
+                    <Input 
+                      type="number" 
+                      value={security?.login_attempts_before_lock || ""} 
+                      onChange={(e) => setSecurity({ ...security, login_attempts_before_lock: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Tempo de Bloqueio (minutos)</Label>
-                    <Input type="number" defaultValue="30" />
+                    <Input 
+                      type="number" 
+                      value={security?.lockout_duration_minutes || ""} 
+                      onChange={(e) => setSecurity({ ...security, lockout_duration_minutes: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Força Mínima da Senha</Label>
-                    <Select defaultValue="strong">
+                    <Select 
+                      value={security?.password_strength || "strong"}
+                      onValueChange={(v) => setSecurity({ ...security, password_strength: v })}
+                    >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="basic">Básica (6+ chars)</SelectItem>
@@ -289,17 +458,71 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label>Comissão Inicial Padrão (%)</Label><Input type="number" defaultValue="10" /></div>
-                  <div className="space-y-2"><Label>Comissão Recorrente Padrão (%)</Label><Input type="number" defaultValue="5" /></div>
-                  <div className="space-y-2"><Label>Níveis de Parceiro Padrão</Label><Input type="number" defaultValue="4" /></div>
-                  <div className="space-y-2"><Label>Multiplicador Vitacoins Padrão</Label><Input type="number" defaultValue="1.0" step="0.1" /></div>
+                  <div className="space-y-2">
+                    <Label>Comissão Inicial Padrão (%)</Label>
+                    <Input 
+                      type="number" 
+                      value={defaults?.initial_commission_percent || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, initial_commission_percent: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Comissão Recorrente Padrão (%)</Label>
+                    <Input 
+                      type="number" 
+                      value={defaults?.recurring_commission_percent || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, recurring_commission_percent: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Níveis de Parceiro Padrão</Label>
+                    <Input 
+                      type="number" 
+                      value={defaults?.default_partner_levels || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, default_partner_levels: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Multiplicador Vitacoins Padrão</Label>
+                    <Input 
+                      type="number" 
+                      step="0.1" 
+                      value={defaults?.vitacoin_multiplier || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, vitacoin_multiplier: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
                 </div>
                 <Separator />
-                <SwitchRow title="Ativar gamificação por padrão" desc="Novas empresas já iniciam com sistema de pontos" defaultChecked />
-                <SwitchRow title="Ativar Vitacoins por padrão" desc="Sistema de moedas virtuais habilitado" defaultChecked />
-                <SwitchRow title="Permitir branding customizado" desc="Tenants podem personalizar logo e cores" defaultChecked />
-                <SwitchRow title='Exibir "Powered by All Vita"' desc="Mostra marca d'água nos portais dos tenants" />
-                <SwitchRow title="Domínio personalizado" desc="Tenants podem usar domínio próprio" defaultChecked />
+                <SwitchRow 
+                  title="Ativar gamificação por padrão" 
+                  desc="Novas empresas já iniciam com sistema de pontos" 
+                  checked={defaults?.enable_gamification_by_default}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, enable_gamification_by_default: checked })}
+                />
+                <SwitchRow 
+                  title="Ativar Vitacoins por padrão" 
+                  desc="Sistema de moedas virtuais habilitado" 
+                  checked={defaults?.enable_vitacoins_by_default}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, enable_vitacoins_by_default: checked })}
+                />
+                <SwitchRow 
+                  title="Permitir branding customizado" 
+                  desc="Tenants podem personalizar logo e cores" 
+                  checked={defaults?.allow_custom_branding}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, allow_custom_branding: checked })}
+                />
+                <SwitchRow 
+                  title='Exibir "Powered by All Vita"' 
+                  desc="Mostra marca d'água nos portais dos tenants" 
+                  checked={defaults?.show_powered_by}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, show_powered_by: checked })}
+                />
+                <SwitchRow 
+                  title="Domínio personalizado" 
+                  desc="Tenants podem usar domínio próprio" 
+                  checked={defaults?.allow_custom_domain}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, allow_custom_domain: checked })}
+                />
               </CardContent>
             </Card>
           </motion.div>
@@ -335,9 +558,9 @@ const AdminSettings: React.FC = () => {
                   <div className="space-y-2"><Label>Carência para Resgate (dias)</Label><Input type="number" defaultValue="30" /></div>
                 </div>
                 <Separator />
-                <SwitchRow title="Sistema de Vitacoins ativo" desc="Habilita emissão e resgate globalmente" defaultChecked />
-                <SwitchRow title="Resgate em dinheiro" desc="Parceiros podem converter VC em dinheiro" defaultChecked />
-                <SwitchRow title="Resgate em produtos" desc="Parceiros podem trocar VC por produtos" defaultChecked />
+                <SwitchRow title="Sistema de Vitacoins ativo" desc="Habilita emissão e resgate globalmente" checked />
+                <SwitchRow title="Resgate em dinheiro" desc="Parceiros podem converter VC em dinheiro" checked />
+                <SwitchRow title="Resgate em produtos" desc="Parceiros podem trocar VC por produtos" checked />
                 <SwitchRow title="Expiração de Vitacoins" desc="Vitacoins expiram após período de inatividade" />
               </CardContent>
             </Card>
@@ -391,8 +614,8 @@ const AdminSettings: React.FC = () => {
                     </Select>
                   </div>
                 </div>
-                <SwitchRow title="Processamento automático" desc="Calcula comissões ao confirmar pagamento" defaultChecked />
-                <SwitchRow title="Conversão automática para Vitacoins" desc="Comissões geram Vitacoins automaticamente" defaultChecked />
+                <SwitchRow title="Processamento automático" desc="Calcula comissões ao confirmar pagamento" checked />
+                <SwitchRow title="Conversão automática para Vitacoins" desc="Comissões geram Vitacoins automaticamente" checked />
               </CardContent>
             </Card>
           </motion.div>
@@ -414,10 +637,10 @@ const AdminSettings: React.FC = () => {
                   { name: "OpenAI", desc: "IA para insights e conteúdo", on: false },
                   { name: "Analytics API", desc: "API de BI para ferramentas externas", on: true },
                 ].map((int) => (
-                  <SwitchRow key={int.name} title={int.name} desc={int.desc} defaultChecked={int.on} />
+                  <SwitchRow key={int.name} title={int.name} desc={int.desc} checked={int.on} />
                 ))}
                 <Separator />
-                <SwitchRow title="Webhook de pagamento global" desc="Recebe eventos de pagamento via webhook" defaultChecked />
+                <SwitchRow title="Webhook de pagamento global" desc="Recebe eventos de pagamento via webhook" checked />
                 <SwitchRow title="Motor de retenção" desc="Envia alertas automáticos de churn" />
               </CardContent>
             </Card>
@@ -452,7 +675,7 @@ const AdminSettings: React.FC = () => {
                     key={t.slug} 
                     title={t.name} 
                     desc={`Template: ${t.slug}`} 
-                    defaultChecked={t.on}
+                    checked={t.on}
                     onCheckedChange={(checked) => toggleTemplate(t.slug, checked)}
                   />
                 ))}
@@ -468,13 +691,13 @@ const AdminSettings: React.FC = () => {
                 <SwitchRow 
                   title="Notificações push ativas" 
                   desc="Notificações em tempo real no navegador" 
-                  defaultChecked 
+                  checked 
                   onCheckedChange={(checked) => toast.info(`Push notifications ${checked ? 'ativadas' : 'desativadas'}`)}
                 />
                 <SwitchRow 
                   title="Agrupar notificações" 
                   desc="Agrupa notificações similares" 
-                  defaultChecked 
+                  checked 
                   onCheckedChange={(checked) => toast.info(`Agrupamento ${checked ? 'ativado' : 'desativado'}`)}
                 />
                 <div className="space-y-2">
@@ -503,9 +726,9 @@ const AdminSettings: React.FC = () => {
                   <Input defaultValue="https://allvita.com.br/termos" />
                 </div>
                 <Separator />
-                <SwitchRow title="Consentimento obrigatório no cadastro" desc="Usuários devem aceitar termos ao se registrar" defaultChecked />
-                <SwitchRow title="Consentimento granular de comunicação" desc="Opções separadas para email, SMS, WhatsApp" defaultChecked />
-                <SwitchRow title="Anonimização automática" desc="Dados anonimizados após exclusão de conta" defaultChecked />
+                <SwitchRow title="Consentimento obrigatório no cadastro" desc="Usuários devem aceitar termos ao se registrar" checked />
+                <SwitchRow title="Consentimento granular de comunicação" desc="Opções separadas para email, SMS, WhatsApp" checked />
+                <SwitchRow title="Anonimização automática" desc="Dados anonimizados após exclusão de conta" checked />
                 <Separator />
                 <p className="text-xs font-medium text-muted-foreground">Funcionalidades LGPD</p>
                 <div className="flex gap-3 flex-wrap">
@@ -553,8 +776,8 @@ const AdminSettings: React.FC = () => {
                   </div>
                 </div>
                 <Separator />
-                <SwitchRow title="Log de alterações em configurações" desc="Registra toda mudança nesta tela" defaultChecked />
-                <SwitchRow title="Log de operações financeiras" desc="Registra comissões, pagamentos e resgates" defaultChecked />
+                <SwitchRow title="Log de alterações em configurações" desc="Registra toda mudança nesta tela" checked />
+                <SwitchRow title="Log de operações financeiras" desc="Registra comissões, pagamentos e resgates" checked />
               </CardContent>
             </Card>
           </motion.div>
@@ -569,17 +792,50 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label>Domínio Base</Label><Input defaultValue="allvita.com.br" /></div>
-                  <div className="space-y-2"><Label>Padrão de Subdomínio (Tenants)</Label><Input defaultValue="{slug}.allvita.com.br" className="font-mono text-sm" /></div>
+                  <div className="space-y-2">
+                    <Label>Domínio Base</Label>
+                    <Input 
+                      value={domains?.base_domain || ""} 
+                      onChange={(e) => setDomains({ ...domains, base_domain: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Padrão de Subdomínio (Tenants)</Label>
+                    <Input 
+                      value={domains?.tenant_subdomain_pattern || ""} 
+                      onChange={(e) => setDomains({ ...domains, tenant_subdomain_pattern: e.target.value })}
+                      className="font-mono text-sm" 
+                    />
+                  </div>
                 </div>
                 <Separator />
-                <SwitchRow title="Geração automática de subdomínio" desc="Cria subdomínio ao criar tenant" defaultChecked />
-                <SwitchRow title="Validação de slug único" desc="Garante que slugs não se repitam" defaultChecked />
-                <SwitchRow title="SSL automático" desc="Certificado SSL provisionado automaticamente" defaultChecked />
+                <SwitchRow 
+                  title="Geração automática de subdomínio" 
+                  desc="Cria subdomínio ao criar tenant" 
+                  checked={domains?.auto_generate_subdomain}
+                  onCheckedChange={(checked) => setDomains({ ...domains, auto_generate_subdomain: checked })}
+                />
+                <SwitchRow 
+                  title="Validação de slug único" 
+                  desc="Garante que slugs não se repitam" 
+                  checked={domains?.validate_unique_slug}
+                  onCheckedChange={(checked) => setDomains({ ...domains, validate_unique_slug: checked })}
+                />
+                <SwitchRow 
+                  title="SSL automático" 
+                  desc="Certificado SSL provisionado automaticamente" 
+                  checked={domains?.auto_ssl}
+                  onCheckedChange={(checked) => setDomains({ ...domains, auto_ssl: checked })}
+                />
                 <Separator />
                 <div className="space-y-2">
                   <Label>Slugs Reservados</Label>
-                  <Textarea defaultValue="admin, api, app, auth, www, mail, static, cdn, docs, help, support" rows={2} className="font-mono text-sm" />
+                  <Textarea 
+                    value={domains?.reserved_slugs?.join(", ") || ""} 
+                    onChange={(e) => setDomains({ ...domains, reserved_slugs: e.target.value.split(",").map((s: string) => s.trim()) })}
+                    rows={2} 
+                    className="font-mono text-sm" 
+                  />
                   <p className="text-xs text-muted-foreground">Slugs que não podem ser usados por tenants</p>
                 </div>
               </CardContent>
@@ -597,27 +853,78 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-5">
                 <p className="text-xs text-muted-foreground">⚠️ Alterações aqui podem impactar toda a plataforma</p>
-                <SwitchRow title="Modo Debug" desc="Ativa logs verbose no console" />
-                <SwitchRow title="Feature: Rede Multinível v2" desc="Motor de comissões multinível aprimorado" defaultChecked />
-                <SwitchRow title="Feature: BI & Analytics API" desc="Endpoint dedicado para ferramentas de BI" defaultChecked />
-                <SwitchRow title="Feature: Motor de Retenção" desc="Detecção automática de risco de churn" />
-                <SwitchRow title="Feature: Quiz Público" desc="Formulário público para triagem de clientes" defaultChecked />
-                <SwitchRow title="Feature: Catálogo de Recompensas" desc="Marketplace interno de produtos para resgate" defaultChecked />
+                <SwitchRow 
+                  title="Modo Debug" 
+                  desc="Ativa logs verbose no console" 
+                  checked={advanced?.debug_mode}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, debug_mode: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Rede Multinível v2" 
+                  desc="Motor de comissões multinível aprimorado" 
+                  checked={advanced?.feature_multilevel_v2}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_multilevel_v2: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: BI & Analytics API" 
+                  desc="Endpoint dedicado para ferramentas de BI" 
+                  checked={advanced?.feature_bi_analytics_api}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_bi_analytics_api: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Motor de Retenção" 
+                  desc="Detecção automática de risco de churn" 
+                  checked={advanced?.feature_retention_engine}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_retention_engine: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Quiz Público" 
+                  desc="Formulário público para triagem de clientes" 
+                  checked={advanced?.feature_public_quiz}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_public_quiz: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Catálogo de Recompensas" 
+                  desc="Marketplace interno de produtos para resgate" 
+                  checked={advanced?.feature_reward_catalog}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_reward_catalog: checked })}
+                />
                 <Separator />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label>Rate Limit API (req/min)</Label>
-                    <Input type="number" defaultValue="60" />
+                    <Input 
+                      type="number" 
+                      value={advanced?.api_rate_limit || ""} 
+                      onChange={(e) => setAdvanced({ ...advanced, api_rate_limit: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Timeout de Edge Functions (s)</Label>
-                    <Input type="number" defaultValue="30" />
+                    <Input 
+                      type="number" 
+                      value={advanced?.edge_function_timeout || ""} 
+                      onChange={(e) => setAdvanced({ ...advanced, edge_function_timeout: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                 </div>
                 <Separator />
                 <div className="space-y-2">
                   <Label>Variáveis de Ambiente Customizadas</Label>
-                  <Textarea placeholder='{"FEATURE_X": true, "MAX_RETRIES": 3}' rows={3} className="font-mono text-sm" />
+                  <Textarea 
+                    value={advanced?.custom_env_vars ? JSON.stringify(advanced.custom_env_vars, null, 2) : ""} 
+                    onChange={(e) => {
+                      try {
+                        const parsed = JSON.parse(e.target.value);
+                        setAdvanced({ ...advanced, custom_env_vars: parsed });
+                      } catch (err) {
+                        // Just keep as is if invalid JSON while typing
+                      }
+                    }}
+                    placeholder='{"FEATURE_X": true, "MAX_RETRIES": 3}' 
+                    rows={3} 
+                    className="font-mono text-sm" 
+                  />
                 </div>
               </CardContent>
             </Card>
