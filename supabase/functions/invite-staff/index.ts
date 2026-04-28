@@ -70,11 +70,10 @@ serve(async (req) => {
       );
     }
 
-    // 3. Enviar e-mail (usando a função de e-mail existente ou Resend diretamente)
-    const APP_URL = Deno.env.get("PUBLIC_APP_URL") || "https://app.allvita.com.br";
+    // 3. Enviar e-mail
+    const APP_URL = appUrl || Deno.env.get("PUBLIC_APP_URL") || "https://app.allvita.com.br";
     const inviteLink = `${APP_URL}/accept-invitation?token=${invitation.token}`;
 
-    // Chamar a função send-email interna
     const emailResponse = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email`, {
       method: "POST",
       headers: {
@@ -85,15 +84,15 @@ serve(async (req) => {
         to: email,
         subject: "Você foi convidado para o Staff da All Vita",
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Olá!</h2>
-            <p>Você foi convidado para fazer parte da equipe da <strong>All Vita</strong> com o papel de <strong>${role}</strong>.</p>
-            <p>Para aceitar o convite e acessar o painel administrativo, clique no botão abaixo:</p>
-            <div style="margin: 30px 0;">
-              <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Aceitar Convite</a>
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+            <h2 style="color: #000;">Olá!</h2>
+            <p>Você foi convidado para fazer parte da equipe da <strong>All Vita</strong> com o papel de <strong>${role}</strong> no painel administrativo global.</p>
+            <p>Para aceitar o convite e acessar o sistema, clique no botão abaixo:</p>
+            <div style="margin: 30px 0; text-align: center;">
+              <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Aceitar Convite</a>
             </div>
-            <p style="font-size: 12px; color: #666;">Se o botão não funcionar, copie e cole este link no seu navegador:<br>${inviteLink}</p>
-            <p style="font-size: 12px; color: #666;">Este convite expira em 7 dias.</p>
+            <p style="font-size: 12px; color: #666; margin-top: 40px;">Se o botão não funcionar, copie e cole este link no seu navegador:<br><span style="color: #0066cc;">${inviteLink}</span></p>
+            <p style="font-size: 12px; color: #999;">Este convite expira em 7 dias.</p>
           </div>
         `,
       }),
@@ -102,7 +101,6 @@ serve(async (req) => {
     if (!emailResponse.ok) {
       const emailError = await emailResponse.json();
       console.error("Erro ao enviar e-mail:", emailError);
-      // Opcional: deletar convite se falhar o e-mail? Melhor não, pode reenviar depois.
     }
 
     return new Response(
