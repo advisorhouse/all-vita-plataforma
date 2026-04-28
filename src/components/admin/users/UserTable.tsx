@@ -68,6 +68,7 @@ interface Props {
   onBlockUser: (userId: string) => void;
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
+  onResendInvite: (userId: string) => void;
   isLoading: boolean;
   deletingUserId?: string | null;
   blockingUserId?: string | null;
