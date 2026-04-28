@@ -58,6 +58,7 @@ const AuditFilters: React.FC<AuditFiltersProps> = ({
           <SelectTrigger className="w-[170px]"><SelectValue placeholder="Tipo de ação" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as ações</SelectItem>
+            <SelectItem value="onboarding_redirect">Redirecionamento Onboarding</SelectItem>
             <SelectItem value="login">Login</SelectItem>
             <SelectItem value="user_created">Criação de usuário</SelectItem>
             <SelectItem value="tenant_created">Criação de empresa</SelectItem>
