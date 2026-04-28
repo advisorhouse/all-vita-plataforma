@@ -7,16 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone, ShieldCheck, Copy, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone, Copy, CheckCircle2 } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
-  
-  // State for different steps
-  const [step, setStep] = useState<"signup" | "phone-verify">("signup");
   
   // Form states
   const [checkingToken, setCheckingToken] = useState(!!redirectTo);
@@ -27,10 +24,6 @@ const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Phone Verification states
-  const [mfaCode, setMfaCode] = useState("");
-  const [verifyingMfa, setVerifyingMfa] = useState(false);
-  const [resendingSms, setResendingSms] = useState(false);
 
   // Only allow signup if there is a redirect/invitation token
   React.useEffect(() => {
@@ -139,52 +132,6 @@ const SignupPage: React.FC = () => {
       toast.error(err.message || "Erro ao criar conta");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVerifyPhone = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (mfaCode.length !== 6) {
-      toast.error("Insira o código de 6 dígitos");
-      return;
-    }
-
-    setVerifyingMfa(true);
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: phone,
-        token: mfaCode,
-        type: 'sms'
-      });
-
-      if (error) throw error;
-
-      toast.success("Conta verificada com sucesso!");
-      
-      if (redirectTo) {
-        navigate(redirectTo);
-      } else {
-        navigate("/");
-      }
-    } catch (err: any) {
-      toast.error("Código inválido ou expirado. Tente novamente.");
-    } finally {
-      setVerifyingMfa(false);
-    }
-  };
-
-  const handleResendSms = async () => {
-    setResendingSms(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: phone,
-      });
-      if (error) throw error;
-      toast.success("Novo código enviado por SMS!");
-    } catch (err: any) {
-      toast.error("Erro ao reenviar código: " + err.message);
-    } finally {
-      setResendingSms(false);
     }
   };
 
