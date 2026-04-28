@@ -13,13 +13,62 @@ const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
+  const [checkingToken, setCheckingToken] = useState(!!redirectTo);
 
   // Only allow signup if there is a redirect/invitation token
   React.useEffect(() => {
-    if (!redirectTo) {
-      toast.error("O cadastro só é permitido através de um convite válido.");
-      navigate("/auth/login");
-    }
+    const validateInvitation = async () => {
+      if (!redirectTo) {
+        toast.error("O cadastro só é permitido através de um convite válido.");
+        navigate("/auth/login");
+        return;
+      }
+
+      // Extract token from redirect URL if present
+      // redirect looks like: /auth/accept-invitation?token=...
+      const url = new URL(redirectTo, window.location.origin);
+      const token = url.searchParams.get("token");
+
+      if (!token) {
+        toast.error("Link de convite incompleto. Por favor, utilize o link enviado ao seu e-mail.");
+        navigate("/auth/login");
+        return;
+      }
+
+      setCheckingToken(true);
+      try {
+        const { data, error } = await supabase
+          .from("staff_invitations")
+          .select("*")
+          .eq("token", token)
+          .single();
+
+        if (error || !data) {
+          toast.error("Convite não encontrado ou já utilizado.");
+          navigate("/auth/login");
+          return;
+        }
+
+        if (data.status !== "pending") {
+          toast.error("Este convite já foi aceito anteriormente.");
+          navigate("/auth/login");
+          return;
+        }
+
+        if (new Date(data.expires_at) < new Date()) {
+          toast.error("Este convite expirou. Por favor, solicite um novo envio.");
+          navigate("/auth/login");
+          return;
+        }
+      } catch (err) {
+        toast.error("Erro ao validar convite.");
+        navigate("/auth/login");
+      } finally {
+        setCheckingToken(false);
+      }
+    };
+
+    validateInvitation();
   }, [redirectTo, navigate]);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
