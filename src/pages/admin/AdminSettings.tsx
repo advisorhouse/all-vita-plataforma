@@ -106,16 +106,23 @@ const AdminSettings: React.FC = () => {
                 <Separator />
                 <div className="grid md:grid-cols-3 gap-6">
                   {[
-                    { label: "Cor Primária", color: "#1A1A1A" },
-                    { label: "Cor Secundária", color: "#6B8E23" },
-                    { label: "Cor de Destaque", color: "#3B82F6" },
+                    { label: "Cor Primária", color: "#1A1A1A", desc: "Cor principal da marca, usada em botões e elementos de destaque." },
+                    { label: "Cor Secundária", color: "#6B8E23", desc: "Cor complementar usada para equilíbrio visual e diferenciação." },
+                    { label: "Cor de Destaque", color: "#3B82F6", desc: "Cor de ação para chamar atenção para elementos específicos." },
                   ].map((c) => (
                     <div key={c.label} className="space-y-2">
                       <Label className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5" /> {c.label}</Label>
                       <div className="flex gap-2 items-center">
-                        <div className="w-10 h-10 rounded-lg border" style={{ backgroundColor: c.color }} />
+                        <div className="relative">
+                          <Input 
+                            type="color" 
+                            defaultValue={c.color} 
+                            className="w-10 h-10 p-1 rounded-lg border cursor-pointer"
+                          />
+                        </div>
                         <Input defaultValue={c.color} className="font-mono text-sm" />
                       </div>
+                      <p className="text-[10px] text-muted-foreground leading-tight">{c.desc}</p>
                     </div>
                   ))}
                 </div>
