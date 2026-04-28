@@ -147,7 +147,7 @@ const AdminUsers: React.FC = () => {
         tenant_id: m.tenant_id,
         tenant_name: m.tenant_id 
           ? (tenantMap[m.tenant_id] || m.tenant_id.slice(0, 8)) 
-          : (isStaff ? "All Vita" : "Global"),
+          : "All Vita",
       }));
 
       let userType = "unknown";
