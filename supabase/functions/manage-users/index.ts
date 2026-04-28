@@ -94,10 +94,10 @@ serve(async (req) => {
   try {
     if (action === "preview-email") {
       const body = await req.json();
-      const { email, full_name, role, is_staff, tenant_id: targetId } = body;
+      const { email, full_name, role, is_staff, tenant_id: targetId, type } = body;
       
       let tenantName = "All Vita";
-      let tenantLogo = null;
+      let tenantLogo = "https://allvita.com.br/logo.png"; // Placeholder/Default
       
       if (!is_staff && targetId) {
         const { data: tenant } = await adminClient
@@ -106,25 +106,49 @@ serve(async (req) => {
           .eq("id", targetId)
           .single();
         tenantName = tenant?.trade_name || tenant?.name || "All Vita";
-        tenantLogo = tenant?.logo_url;
+        tenantLogo = tenant?.logo_url || tenantLogo;
       }
 
       const tempPassword = "SUA_SENHA_AQUI";
-      const html = `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#ffffff;border:1px solid #eee;border-radius:12px">
-          ${tenantLogo ? `<img src="${tenantLogo}" style="max-height:48px;margin-bottom:24px" />` : ''}
-          <h1 style="color:#1a1a2e;font-size:24px;margin-bottom:16px">Bem-vindo!</h1>
-          <p style="color:#444;line-height:1.5">Olá <strong>${full_name || 'Usuário'}</strong>,</p>
-          <p style="color:#444;line-height:1.5">Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
+      let title = "Bem-vindo!";
+      let content = "";
+      let ctaText = "Acessar Plataforma";
+      const ctaUrl = "https://app.allvita.com.br/auth/login";
+
+      if (type === "reset-password") {
+        title = "Sua senha foi resetada";
+        content = `
+          <p>Um administrador resetou sua senha na plataforma <strong>${tenantName}</strong>.</p>
+          <p>Utilize os dados abaixo para o seu próximo acesso:</p>
           <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
-            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha provisória:</p>
+            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua nova senha provisória:</p>
             <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
           </div>
-          <p style="color:#e74c3c;font-size:14px;font-weight:bold;margin-top:24px">⚠️ Importante: Troque sua senha no primeiro acesso.</p>
-          <hr style="border:0;border-top:1px solid #eee;margin:32px 0" />
-          <p style="color:#999;font-size:12px;text-align:center">Enviado por ${tenantName} via All Vita</p>
-        </div>
-      `;
+          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
+        `;
+        ctaText = "Ir para o Login";
+      } else {
+        content = `
+          <p>Você foi convidado para fazer parte da plataforma <strong>${tenantName}</strong>.</p>
+          <p>Estamos muito felizes em ter você conosco! Sua conta já foi criada e você pode começar a explorar todas as funcionalidades agora mesmo.</p>
+          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha de acesso temporária:</p>
+            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+          </div>
+          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Troque sua senha no primeiro acesso para manter seus dados protegidos.</p>
+        `;
+      }
+
+      const html = renderEmail({
+        title,
+        userName: full_name || 'Usuário',
+        tenantName,
+        tenantLogo,
+        content,
+        ctaText,
+        ctaUrl
+      });
+      
       return jsonRes(200, { html, tenantName });
     }
 
