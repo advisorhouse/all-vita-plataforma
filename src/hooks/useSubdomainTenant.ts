@@ -46,7 +46,7 @@ function extractTenantSlug(): string | null {
  * Detects tenant slug from subdomain or custom domain and auto-selects tenant.
  */
 export function useSubdomainTenant() {
-  const { setCurrentTenant, currentTenant, availableTenants, setIsSubdomainAccess } = useTenant();
+  const { setCurrentTenant, currentTenant, availableTenants, setIsSubdomainAccess, setIsLoading } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantQueryParam = searchParams.get("tenant");
   const [subdomainSlug, setSubdomainSlug] = useState<string | null>(null);
@@ -63,6 +63,7 @@ export function useSubdomainTenant() {
       // Normalize: try exact slug first, then without hyphens (vision-lift → visionlift)
       const normalizedSlug = slug.replace(/-/g, "").toLowerCase();
       const fetchBranding = async () => {
+        setIsLoading(true);
         // Try exact match first
         let { data } = await (supabase.from as any)("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
@@ -84,6 +85,7 @@ export function useSubdomainTenant() {
           setCurrentTenant(data as Tenant);
         }
         setChecked(true);
+        setIsLoading(false);
       };
       fetchBranding();
       return;
@@ -96,6 +98,7 @@ export function useSubdomainTenant() {
       !BASE_DOMAINS.some((d) => hostname.endsWith(`.${d}`) || hostname === d)
     ) {
       const lookupCustomDomain = async () => {
+        setIsLoading(true);
         const { data } = await (supabase.from as any)("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
           .eq("domain", hostname)
@@ -108,12 +111,13 @@ export function useSubdomainTenant() {
           setCurrentTenant(data as Tenant);
         }
         setChecked(true);
+        setIsLoading(false);
       };
       lookupCustomDomain();
     } else {
       setChecked(true);
     }
-  }, [tenantQueryParam]);
+  }, [tenantQueryParam, setIsLoading, setCurrentTenant, setIsSubdomainAccess]);
 
   // Auto-select from memberships when they load
   useEffect(() => {
