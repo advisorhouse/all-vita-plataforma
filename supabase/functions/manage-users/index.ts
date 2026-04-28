@@ -59,26 +59,27 @@ serve(async (req) => {
       return jsonRes(403, { error: "Apenas Super Administradores podem excluir usuários permanentemente." });
     }
   } else {
-    // All other actions still require X-Tenant-Id
-    if (!tenantId) {
+    // All other actions usually require X-Tenant-Id, EXCEPT global staff creation by super_admin
+    if (!tenantId && !(action === "create" && isSuperAdmin)) {
       return jsonRes(400, { error: "X-Tenant-Id header required" });
     }
 
-    // Check caller is admin or super_admin for this tenant
-    const { data: callerMembership } = await adminClient
-      .from("memberships")
-      .select("role")
-      .eq("user_id", callerUserId)
-      .eq("active", true)
-      .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
-      .limit(10);
+    // Check caller is admin or super_admin for this tenant (or global super admin)
+    if (!isSuperAdmin) {
+      if (!tenantId) return jsonRes(400, { error: "X-Tenant-Id header required" });
 
-    const isAdmin = callerMembership?.some(
-      (m: any) => m.role === "super_admin" || m.role === "admin"
-    );
+      const { data: callerMembership } = await adminClient
+        .from("memberships")
+        .select("role")
+        .eq("user_id", callerUserId)
+        .eq("active", true)
+        .eq("tenant_id", tenantId)
+        .limit(1);
 
-    if (!isAdmin) {
-      return jsonRes(403, { error: "Only admins can manage users" });
+      const isAdmin = callerMembership?.some((m: any) => m.role === "admin");
+      if (!isAdmin) {
+        return jsonRes(403, { error: "Only admins can manage users" });
+      }
     }
   }
 
