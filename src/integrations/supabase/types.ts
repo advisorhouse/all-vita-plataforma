@@ -468,6 +468,45 @@ export type Database = {
           },
         ]
       }
+      communication_templates: {
+        Row: {
+          active: boolean | null
+          content: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          slug: string
+          subject: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          content: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          slug: string
+          subject?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          slug?: string
+          subject?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       content: {
         Row: {
           body: string | null
@@ -2658,6 +2697,17 @@ export type Database = {
           _entity_type: string
         }
         Returns: number
+      }
+      create_notification: {
+        Args: {
+          p_action_url?: string
+          p_message: string
+          p_tenant_id: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
       }
       get_partner_id: {
         Args: { _tenant_id: string; _user_id: string }

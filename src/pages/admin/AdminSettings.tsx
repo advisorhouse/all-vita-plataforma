@@ -28,10 +28,26 @@ const fadeUp = {
   }),
 };
 
-const SwitchRow = ({ title, desc, defaultChecked = false }: { title: string; desc: string; defaultChecked?: boolean }) => (
+const SwitchRow = ({ 
+  title, 
+  desc, 
+  defaultChecked = false, 
+  onCheckedChange 
+}: { 
+  title: string; 
+  desc: string; 
+  defaultChecked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+}) => (
   <div className="flex items-center justify-between py-1">
-    <div><p className="text-sm font-medium">{title}</p><p className="text-xs text-muted-foreground">{desc}</p></div>
-    <Switch defaultChecked={defaultChecked} />
+    <div>
+      <p className="text-sm font-medium">{title}</p>
+      <p className="text-xs text-muted-foreground">{desc}</p>
+    </div>
+    <Switch 
+      defaultChecked={defaultChecked} 
+      onCheckedChange={onCheckedChange}
+    />
   </div>
 );
 
@@ -41,6 +57,17 @@ const AdminSettings: React.FC = () => {
   const handleSave = () => {
     setSaving(true);
     setTimeout(() => { setSaving(false); toast.success("Configurações salvas com sucesso"); }, 800);
+  };
+
+  const toggleTemplate = async (slug: string, active: boolean) => {
+    try {
+      // In a real scenario, we would call supabase here
+      // const { error } = await supabase.from('communication_templates').update({ active }).eq('slug', slug);
+      // if (error) throw error;
+      toast.success(`Template ${slug} ${active ? 'ativado' : 'desativado'}`);
+    } catch (error) {
+      toast.error("Erro ao atualizar template");
+    }
   };
 
   const roles = [
@@ -413,15 +440,21 @@ const AdminSettings: React.FC = () => {
                 <Separator />
                 <p className="text-xs font-medium text-muted-foreground">Templates Ativos</p>
                 {[
-                  { name: "Boas-vindas (novo tenant)", on: true },
-                  { name: "Convite de usuário", on: true },
-                  { name: "Recuperação de senha", on: true },
-                  { name: "Alerta de segurança", on: true },
-                  { name: "Comissão processada", on: true },
-                  { name: "Resgate de Vitacoins aprovado", on: true },
-                  { name: "Relatório mensal (super admins)", on: false },
+                  { name: "Boas-vindas (novo tenant)", slug: "welcome-tenant", on: true },
+                  { name: "Convite de usuário", slug: "user-invite", on: true },
+                  { name: "Recuperação de senha", slug: "password-reset", on: true },
+                  { name: "Alerta de segurança", slug: "security-alert", on: true },
+                  { name: "Comissão processada", slug: "commission-alert", on: true },
+                  { name: "Resgate de Vitacoins aprovado", slug: "withdrawal-approved", on: true },
+                  { name: "Relatório mensal (super admins)", slug: "monthly-report", on: false },
                 ].map((t) => (
-                  <SwitchRow key={t.name} title={t.name} desc="" defaultChecked={t.on} />
+                  <SwitchRow 
+                    key={t.slug} 
+                    title={t.name} 
+                    desc={`Template: ${t.slug}`} 
+                    defaultChecked={t.on}
+                    onCheckedChange={(checked) => toggleTemplate(t.slug, checked)}
+                  />
                 ))}
               </CardContent>
             </Card>
@@ -432,8 +465,18 @@ const AdminSettings: React.FC = () => {
                 <CardTitle className="text-lg flex items-center gap-2"><Bell className="h-5 w-5 text-muted-foreground" /> Notificações In-App</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <SwitchRow title="Notificações push ativas" desc="Notificações em tempo real no navegador" defaultChecked />
-                <SwitchRow title="Agrupar notificações" desc="Agrupa notificações similares" defaultChecked />
+                <SwitchRow 
+                  title="Notificações push ativas" 
+                  desc="Notificações em tempo real no navegador" 
+                  defaultChecked 
+                  onCheckedChange={(checked) => toast.info(`Push notifications ${checked ? 'ativadas' : 'desativadas'}`)}
+                />
+                <SwitchRow 
+                  title="Agrupar notificações" 
+                  desc="Agrupa notificações similares" 
+                  defaultChecked 
+                  onCheckedChange={(checked) => toast.info(`Agrupamento ${checked ? 'ativado' : 'desativado'}`)}
+                />
                 <div className="space-y-2">
                   <Label>Retenção de Notificações (dias)</Label>
                   <Input type="number" defaultValue="90" />
