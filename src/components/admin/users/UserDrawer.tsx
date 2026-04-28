@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2, Loader2 } from "lucide-react";
+import { Shield, ShieldCheck, Building2, KeyRound, Lock, Mail, Phone, User, Calendar, History, Trash2, Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRow } from "./UserTable";
 import DeleteUserDialog from "./DeleteUserDialog";
@@ -23,12 +23,13 @@ interface Props {
   onBlockUser: (userId: string) => void;
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
+  onResendInvite: (userId: string) => void;
   auditLogs: any[];
   isDeleting?: boolean;
   isBlocking?: boolean;
 }
 
-const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs, isDeleting, isBlocking }) => {
+const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, onResendInvite, auditLogs, isDeleting, isBlocking }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   if (!user) return null;
 
@@ -185,6 +186,16 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             >
               <KeyRound className="h-4 w-4 mr-2" /> Resetar Senha
             </Button>
+            {!user.emailConfirmedAt && (
+              <Button
+                variant="outline"
+                onClick={() => onResendInvite(user.id)}
+                className="w-full justify-start text-primary"
+                disabled={isDeleting || isBlocking}
+              >
+                <Send className="h-4 w-4 mr-2" /> Reenviar Convite por E-mail
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => onBlockUser(user.id)}

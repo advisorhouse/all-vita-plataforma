@@ -415,6 +415,115 @@ serve(async (req) => {
         return jsonRes(200, { success: true, message: "Usuário excluído com sucesso." });
       }
 
+      case "reset-password": {
+        const body = await req.json();
+        const { userId } = body;
+
+        if (!userId) return jsonRes(400, { error: "ID do usuário é obrigatório" });
+
+        // Generate new temp password
+        const tempPassword = generateTempPassword();
+
+        // Update auth user
+        const { data: updatedUser, error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
+          password: tempPassword,
+        });
+
+        if (updateError) return jsonRes(400, { error: updateError.message });
+
+        // Update profile
+        await adminClient.from("profiles").update({ must_change_password: true }).eq("id", userId);
+
+        // Fetch user email and primary tenant for branding
+        const { data: profile } = await adminClient.from("profiles").select("email, first_name, last_name").eq("id", userId).single();
+        const { data: membership } = await adminClient.from("memberships").select("tenant_id").eq("user_id", userId).eq("active", true).limit(1).maybeSingle();
+
+        let tenantName = "All Vita";
+        if (membership?.tenant_id) {
+          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name").eq("id", membership.tenant_id).single();
+          tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+        }
+
+        // Send email
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            to: profile.email,
+            subject: `Sua senha foi resetada - ${tenantName}`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
+                <h1 style="color:#1a1a2e;font-size:24px">Sua senha foi resetada</h1>
+                <p>Olá <strong>${profile.first_name || 'Usuário'}</strong>,</p>
+                <p>Um administrador resetou sua senha na plataforma <strong>${tenantName}</strong>.</p>
+                <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
+                  <p style="margin:4px 0"><strong>Nova senha provisória:</strong> ${tempPassword}</p>
+                </div>
+                <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Você deverá trocar esta senha no seu próximo acesso.</p>
+                <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
+              </div>
+            `,
+          }),
+        });
+
+        return jsonRes(200, { success: true, message: "Nova senha enviada por e-mail." });
+      }
+
+      case "resend-invite": {
+        const body = await req.json();
+        const { userId } = body;
+
+        if (!userId) return jsonRes(400, { error: "ID do usuário é obrigatório" });
+
+        // Fetch profile and memberships
+        const { data: profile } = await adminClient.from("profiles").select("email, first_name, last_name").eq("id", userId).single();
+        const { data: membership } = await adminClient.from("memberships").select("tenant_id, role").eq("user_id", userId).eq("active", true).limit(1).maybeSingle();
+
+        if (!profile) return jsonRes(404, { error: "Usuário não encontrado." });
+
+        // Generate new temp password
+        const tempPassword = generateTempPassword();
+
+        // Update auth user
+        await adminClient.auth.admin.updateUserById(userId, { password: tempPassword });
+
+        let tenantName = "All Vita";
+        if (membership?.tenant_id) {
+          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name").eq("id", membership.tenant_id).single();
+          tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+        }
+
+        // Send welcome email
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            to: profile.email,
+            subject: `Convite para ${tenantName} (Reenvio)`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
+                <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo novamente!</h1>
+                <p>Olá <strong>${profile.first_name || 'Usuário'}</strong>,</p>
+                <p>Estamos reenviando seu convite para a plataforma <strong>${tenantName}</strong>.</p>
+                <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
+                  <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
+                </div>
+                <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Lembre-se de trocar sua senha no primeiro acesso.</p>
+                <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
+              </div>
+            `,
+          }),
+        });
+
+        return jsonRes(200, { success: true, message: "Convite reenviado com sucesso." });
+      }
+
       case "delete-tenant": {
         const body = await req.json();
         const { tenantId: targetTenantId } = body;

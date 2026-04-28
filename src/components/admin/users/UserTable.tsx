@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2, Loader2, MailCheck, MailWarning } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2, Loader2, MailCheck, MailWarning, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DeleteUserDialog from "./DeleteUserDialog";
 
@@ -68,6 +68,7 @@ interface Props {
   onBlockUser: (userId: string) => void;
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
+  onResendInvite: (userId: string) => void;
   isLoading: boolean;
   deletingUserId?: string | null;
   blockingUserId?: string | null;
@@ -75,7 +76,7 @@ interface Props {
 
 const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
-  onBlockUser, onDeleteUser, onResetPassword, isLoading,
+  onBlockUser, onDeleteUser, onResetPassword, onResendInvite, isLoading,
   deletingUserId, blockingUserId,
 }) => {
   const [confirmDelete, setConfirmDelete] = React.useState<UserRow | null>(null);
@@ -230,6 +231,11 @@ const UserTable: React.FC<Props> = ({
                       <DropdownMenuItem onClick={() => onResetPassword(u.id)} disabled={isBusy}>
                         <KeyRound className="h-4 w-4 mr-2" /> Resetar senha
                       </DropdownMenuItem>
+                      {!u.emailConfirmedAt && (
+                        <DropdownMenuItem onClick={() => onResendInvite(u.id)} disabled={isBusy}>
+                          <Send className="h-4 w-4 mr-2" /> Reenviar convite
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => onBlockUser(u.id)}
                         disabled={isBusy}
