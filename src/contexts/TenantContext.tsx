@@ -6,6 +6,7 @@ export interface Tenant {
   trade_name: string | null;
   slug: string;
   logo_url: string | null;
+  isotipo_url?: string | null;
   favicon_url: string | null;
   primary_color: string;
   secondary_color: string;

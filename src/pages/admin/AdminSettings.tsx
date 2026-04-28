@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Palette, Shield, Globe, Sliders, Save, Building2, Image, Type, Clock,
   Users, CreditCard, Bell, FileText, Lock, Coins, Percent, Plug, Mail,
-  Scale, Database, Server, Flag, Settings,
+  Scale, Database, Server, Flag, Settings, Upload,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
