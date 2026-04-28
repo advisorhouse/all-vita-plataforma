@@ -72,12 +72,10 @@ const AdminOnboarding: React.FC = () => {
       .single();
 
     if (profile?.onboarding_completed) {
-      // Extra validation: verify if the user is truly a super admin or has memberships
-      const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
       const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
 
       let destination = "/auth/login";
-      if (isActuallySuperAdmin) {
+      if (isSuperAdmin) {
         destination = "/admin";
       } else if (hasTenantMemberships) {
         destination = "/core";
@@ -163,11 +161,10 @@ const AdminOnboarding: React.FC = () => {
     setLoading(false);
     
     // Extra validation before navigating
-    const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
 
     let destination = "/onboarding";
-    if (isActuallySuperAdmin) {
+    if (isSuperAdmin) {
       destination = "/admin";
     } else if (hasTenantMemberships) {
       destination = "/core";
@@ -285,11 +282,10 @@ const AdminOnboarding: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Button onClick={async () => {
-            const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
             const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
             
             let destination = "/onboarding";
-            if (isActuallySuperAdmin) {
+            if (isSuperAdmin) {
               destination = "/admin";
             } else if (hasTenantMemberships) {
               destination = "/core";
