@@ -125,11 +125,36 @@ const UserTable: React.FC<Props> = ({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{u.email}</TableCell>
+                <TableCell className="text-xs">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground">{u.email}</span>
+                    {u.emailConfirmedAt ? (
+                      <Badge variant="outline" className="text-[9px] w-fit gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                        <MailCheck className="h-3 w-3" /> Confirmado
+                      </Badge>
+                    ) : u.confirmationSentAt ? (
+                      <Badge variant="outline" className="text-[9px] w-fit gap-1 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                        <MailWarning className="h-3 w-3" /> Convite pendente
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[9px] w-fit gap-1 bg-muted text-muted-foreground border-border">
+                        <MailWarning className="h-3 w-3" /> Não enviado
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="text-[10px]">
-                    {TYPE_LABELS[u.userType] || u.userType}
-                  </Badge>
+                  {(() => {
+                    const primary = getPrimaryRole(u.roles, u.userType);
+                    if (!primary) {
+                      return <span className="text-[10px] text-muted-foreground">—</span>;
+                    }
+                    return (
+                      <Badge variant="outline" className={cn("text-[10px]", ROLE_COLORS[primary])}>
+                        {ROLE_LABELS[primary] || primary}
+                      </Badge>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell>
                   <Badge 
