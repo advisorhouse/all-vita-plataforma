@@ -11,7 +11,11 @@ interface AuthGuardProps {
   requiredRole?: 'super_admin' | 'admin' | 'manager' | 'partner' | 'client';
 }
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true }) => {
+const AuthGuard: React.FC<AuthGuardProps> = ({ 
+  children, 
+  requireTenant = true,
+  requiredRole
+}) => {
   const { user, loading } = useAuth();
   const { currentTenant, availableTenants, isSuperAdmin, memberships, isSubdomainAccess } = useTenant();
   const location = useLocation();
