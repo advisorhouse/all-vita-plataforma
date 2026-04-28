@@ -94,20 +94,30 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     );
   }
 
-  // Check for specific role access if required
-  if (requiredRole === 'super_admin' && !isSuperAdmin) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // Prevent accessing tenant areas without proper role if specified
-  // We can expand this logic as needed, but for now we focus on protecting /admin
+  // 1. Super admin protection for /admin
   if (location.pathname.startsWith("/admin") && !isSuperAdmin) {
     return <Navigate to="/core" replace />;
   }
 
-  // Prevent staff from entering tenant core if they should be in admin
+  // 2. Prevent staff from entering /core if they have no tenant context
   if (location.pathname.startsWith("/core") && isSuperAdmin && !currentTenant) {
     return <Navigate to="/admin" replace />;
+  }
+
+  // 3. Granular Role validation if specified in Route
+  if (requiredRole) {
+    // If we have memberships, check if user has the required role for the current context
+    const hasRole = memberships.some(m => 
+      m.active && 
+      (m.role === requiredRole || m.role === 'super_admin' || (requiredRole === 'admin' && m.role === 'super_admin')) &&
+      (requireTenant ? m.tenant_id === currentTenant?.id : true)
+    );
+
+    if (!hasRole && !isSuperAdmin) {
+      // Redirect to the best available path or logout
+      if (isSuperAdmin) return <Navigate to="/admin" replace />;
+      return <Navigate to="/onboarding" replace />;
+    }
   }
 
   return <>{children}</>;
