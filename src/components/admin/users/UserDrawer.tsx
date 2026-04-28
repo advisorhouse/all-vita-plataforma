@@ -23,6 +23,7 @@ interface Props {
   onBlockUser: (userId: string) => void;
   onDeleteUser: (userId: string) => void;
   onResetPassword: (userId: string) => void;
+  onResendInvite: (userId: string) => void;
   auditLogs: any[];
   isDeleting?: boolean;
   isBlocking?: boolean;
