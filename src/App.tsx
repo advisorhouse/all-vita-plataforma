@@ -185,6 +185,7 @@ const App = () => (
                 <Route path="monetization" element={<AdminMonetization />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Onboarding */}
