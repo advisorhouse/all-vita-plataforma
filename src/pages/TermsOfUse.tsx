@@ -38,69 +38,109 @@ const TermsOfUse = () => {
           <p className="text-muted-foreground italic mb-8">Última atualização: 28 de abril de 2026</p>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">1. Aceitação dos Termos</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">1. OBJETO E VINCULAÇÃO</h2>
             <p>
-              Ao acessar e utilizar a plataforma All Vita, operada pela <strong>MAXIMA VITA HUMAN HEALTH LTDA</strong>, inscrita no CNPJ sob o nº 60.410.363/0001-27, você concorda em cumprir e estar vinculado aos seguintes Termos de Uso. Se você não concordar com qualquer parte destes termos, não deverá utilizar nossos serviços.
+              Estes Termos e Condições de Uso ("Termos") regem o acesso e a utilização da plataforma tecnológica <strong>All Vita</strong>, de propriedade e operada pela <strong>MAXIMA VITA HUMAN HEALTH LTDA</strong>, inscrita no CNPJ sob o nº 60.410.363/0001-27, com sede na cidade de São Paulo, Estado de São Paulo.
+            </p>
+            <p className="mt-4">
+              A plataforma All Vita é um ecossistema digital integrado que visa otimizar a gestão da saúde visual, longevidade e bem-estar, proporcionando ferramentas de acompanhamento clínico, programas de fidelidade, gamificação e intermediação de jornadas de saúde entre profissionais (Parceiros), pacientes (Assinantes do Club) e administradores (Core).
+            </p>
+            <p className="mt-4">
+              Ao clicar em "Aceito", realizar o cadastro ou simplesmente navegar pela plataforma, você declara ter lido, compreendido e aceitado integralmente estes Termos, bem como a nossa Política de Privacidade.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">2. Descrição do Serviço</h2>
-            <p>
-              A All Vita é uma plataforma de gestão e acompanhamento de saúde visual e longevidade, conectando profissionais de saúde (Parceiros), pacientes (Assinantes do Club) e gestores (Core). Nossos serviços incluem, mas não se limitam a:
-            </p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Sistemas de vínculo médico-paciente através de algoritmos inteligentes;</li>
-              <li>Acompanhamento de jornadas de tratamento e suplementação;</li>
-              <li>Sistemas de recompensas e gamificação (Vitacoins);</li>
-              <li>Painéis de inteligência de dados e relatórios.</li>
+            <h2 className="text-xl font-semibold mb-4 text-primary">2. FUNCIONALIDADES E ESCOPO DOS SERVIÇOS</h2>
+            <p>A All Vita disponibiliza as seguintes funcionalidades, de acordo com o perfil do usuário:</p>
+            <div className="mt-4 space-y-4">
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="font-bold mb-2 text-foreground">A. Gestão de Saúde e Jornada do Paciente</h3>
+                <p className="text-sm">Ferramentas para monitoramento de tratamentos, prescrição de suplementação personalizada, controle de consultas e exames, e visualização da evolução do quadro clínico do usuário.</p>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="font-bold mb-2 text-foreground">B. Sistema de Inteligência "Último Click"</h3>
+                <p className="text-sm">Algoritmo proprietário que gerencia o vínculo dinâmico entre o paciente e o profissional de saúde. O vínculo ativo para fins de comissionamento ou visualização de dados detalhados será sempre atribuído ao parceiro que realizou a última interação válida ou autorizada pelo paciente no sistema.</p>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="font-bold mb-2 text-foreground">C. Club All Vita e Benefícios</h3>
+                <p className="text-sm">Programa de assinatura e fidelidade que garante acesso a descontos exclusivos, conteúdos educativos premium e condições especiais em produtos de parceiros.</p>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="font-bold mb-2 text-foreground">D. Gamificação e Vitacoins</h3>
+                <p className="text-sm">Sistema de recompensas baseado no engajamento. O cumprimento de metas de saúde, leitura de conteúdos e permanência no Club geram "Vitacoins", pontos que podem ser trocados conforme as regras vigentes da campanha atual.</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-primary">3. CADASTRO, CONTAS E SEGURANÇA</h2>
+            <ul className="list-disc pl-5 space-y-3">
+              <li><strong>Capacidade Legal:</strong> A plataforma é destinada a maiores de 18 anos. Menores de idade devem ser assistidos ou representados por seus tutores legais conforme a legislação civil brasileira.</li>
+              <li><strong>Veracidade das Informações:</strong> O usuário se compromete a fornecer dados exatos, atuais e verdadeiros. O fornecimento de informações falsas pode acarretar na suspensão imediata da conta.</li>
+              <li><strong>Responsabilidade pela Senha:</strong> O acesso é pessoal e intransferível. O usuário é o único responsável pela guarda de sua senha e por todas as atividades realizadas em sua conta. Em caso de perda ou suspeita de uso indevido, a All Vita deve ser comunicada imediatamente.</li>
+              <li><strong>Perfis de Acesso:</strong> Cada usuário possui um nível de permissão (Admin, Core, Partner, Club). O uso de ferramentas fora do escopo de seu perfil é estritamente proibido.</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">3. Cadastro e Segurança</h2>
-            <p>
-              Para utilizar as funcionalidades plenas da plataforma, é necessário realizar um cadastro. Você é responsável por:
-            </p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Fornecer informações precisas, atualizadas e completas;</li>
-              <li>Manter a confidencialidade de sua senha e credenciais de acesso;</li>
-              <li>Notificar imediatamente a All Vita sobre qualquer uso não autorizado de sua conta.</li>
+            <h2 className="text-xl font-semibold mb-4 text-primary">4. REGRAS ESPECÍFICAS PARA PARCEIROS</h2>
+            <p>Profissionais de saúde que utilizam a plataforma como Parceiros declaram e garantem:</p>
+            <ul className="list-disc pl-5 mt-4 space-y-2">
+              <li>Possuir registro ativo e regular perante o Conselho Federal ou Regional de sua categoria (CRM, etc.);</li>
+              <li>Observar o sigilo profissional e os preceitos éticos da medicina/saúde em todas as interações e registros na plataforma;</li>
+              <li>Não utilizar a plataforma para fins de diagnóstico exclusivo sem o devido exame clínico presencial, quando este for exigido pelas normas regulamentares de sua profissão;</li>
+              <li>Reconhecer que a All Vita não garante fluxo de pacientes, sendo uma ferramenta de suporte à gestão e relacionamento.</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">4. Regras para Parceiros (Profissionais de Saúde)</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">5. USO DOS DADOS E PRIVACIDADE</h2>
             <p>
-              Profissionais cadastrados como parceiros declaram estar em pleno gozo de seus direitos profissionais perante seus respectivos conselhos de classe (CRM, etc.). O sistema de atribuição "Último Click" define que o vínculo ativo será sempre com o profissional que realizou o atendimento ou coleta de dados mais recente autorizado pelo paciente.
+              A proteção dos dados dos usuários é prioridade. O tratamento de dados sensíveis (informações de saúde) ocorre estritamente nos termos da <strong>Lei Geral de Proteção de Dados (LGPD)</strong> e conforme detalhado em nossa Política de Privacidade.
+            </p>
+            <p className="mt-4 italic text-sm border-l-4 border-primary/50 pl-4 py-2 bg-muted/30">
+              O usuário consente expressamente que seus dados de saúde sejam compartilhados com o profissional de saúde ao qual ele está vinculado ("Último Click"), para que este possa realizar o acompanhamento clínico necessário.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">5. Propriedade Intelectual</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">6. PROPRIEDADE INTELECTUAL</h2>
             <p>
-              Todo o conteúdo disponível na All Vita, incluindo textos, gráficos, logotipos, ícones, imagens, vídeos, softwares e código-fonte, é de propriedade exclusiva da MAXIMA VITA HUMAN HEALTH LTDA ou de seus licenciadores, protegidos pelas leis de direitos autorais e propriedade intelectual.
+              Todos os elementos da plataforma All Vita, incluindo código-fonte, algoritmos de cálculo, design de interface, logotipos, textos, vídeos explicativos, protocolos de jornada e o nome "All Vita", são propriedades exclusivas da <strong>MAXIMA VITA HUMAN HEALTH LTDA</strong>. 
+            </p>
+            <p className="mt-4">
+              É proibida a reprodução, engenharia reversa, descompilação ou qualquer forma de extração de dados (scraping) da plataforma sem autorização prévia e por escrito.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">6. Limitação de Responsabilidade</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">7. LIMITAÇÃO DE RESPONSABILIDADE E GARANTIAS</h2>
+            <ul className="list-disc pl-5 space-y-3">
+              <li><strong>Independência Médica:</strong> A All Vita é uma fornecedora de tecnologia. Não exercemos a medicina nem interferimos nas decisões clínicas. A responsabilidade por qualquer diagnóstico ou tratamento é exclusiva do médico ou profissional de saúde assistente.</li>
+              <li><strong>Disponibilidade:</strong> Embora busquemos a excelência técnica, não garantimos que a plataforma estará disponível 100% do tempo sem interrupções. Manutenções programadas ou problemas técnicos de terceiros podem ocorrer.</li>
+              <li><strong>Resultados:</strong> A All Vita não garante resultados de saúde específicos, uma vez que estes dependem de fatores biológicos individuais e da adesão rigorosa do usuário aos protocolos.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-primary">8. CANCELAMENTO E SUSPENSÃO</h2>
             <p>
-              A All Vita atua como uma facilitadora de gestão e dados. As decisões clínicas, diagnósticos e tratamentos são de responsabilidade exclusiva dos profissionais de saúde cadastrados. A MAXIMA VITA HUMAN HEALTH LTDA não se responsabiliza por resultados de tratamentos ou interações entre usuários fora do escopo tecnológico da plataforma.
+              A All Vita reserva-se o direito de suspender ou encerrar contas que violem estes Termos, pratiquem atos fraudulentos, disseminem informações falsas ou utilizem a plataforma para fins ilícitos. O usuário pode solicitar o cancelamento de sua conta a qualquer momento, observadas as condições contratuais específicas do Club All Vita, se aplicável.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">7. Modificações dos Termos</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">9. ALTERAÇÕES DOS TERMOS</h2>
             <p>
-              Reservamo-nos o direito de modificar estes termos a qualquer momento. Alterações significativas serão notificadas através da plataforma ou por e-mail. O uso continuado da plataforma após tais alterações constitui sua aceitação dos novos Termos de Uso.
+              Estes Termos podem ser atualizados periodicamente para refletir melhorias funcionais ou mudanças legislativas. Notificaremos os usuários sobre alterações substanciais. O uso continuado da plataforma após a atualização implica na aceitação automática da nova versão.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">8. Foro</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">10. LEI APLICÁVEL E FORO</h2>
             <p>
-              Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil. Fica eleito o Foro da Comarca de São Paulo/SP para dirimir quaisquer controvérsias oriundas deste documento.
+              Estes Termos são regidos pelas leis da República Federativa do Brasil. Para dirimir quaisquer dúvidas ou litígios decorrentes deste documento, as partes elegem o Foro Central da Comarca de São Paulo/SP, com renúncia expressa a qualquer outro.
             </p>
           </section>
         </article>
