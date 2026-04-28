@@ -14,7 +14,8 @@ import {
   Clock, 
   Trash2, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  RotateCcw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -178,6 +179,25 @@ const AdminStaff: React.FC = () => {
     
     toast.success("Convite removido.");
     setInvitations((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleResendInvitation = async (inv: InvitationRow) => {
+    try {
+      // First delete the old one to avoid unique constraint error
+      await (supabase.from as any)("staff_invitations").delete().eq("id", inv.id);
+      
+      const { error } = await supabase.functions.invoke("invite-staff", {
+        body: { email: inv.email, role: inv.role, appUrl: window.location.origin },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Convite reenviado para ${inv.email}`);
+      load();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Erro ao reenviar convite");
+    }
   };
 
   const fullName = (r: StaffRow) =>
@@ -437,14 +457,26 @@ const AdminStaff: React.FC = () => {
                             </td>
                             <td className="py-3 px-4 text-right">
                               {!isAccepted && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => deleteInvitation(inv.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div className="flex justify-end gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                    onClick={() => handleResendInvitation(inv)}
+                                    title="Reenviar convite"
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => deleteInvitation(inv.id)}
+                                    title="Cancelar convite"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               )}
                             </td>
                           </tr>
