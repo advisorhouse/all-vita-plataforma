@@ -116,6 +116,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
           .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, ""),
         owner_name: data.socios?.[0]?.nome || prev.owner_name,
+        // Sugestão automática do segmento baseada na atividade principal (CNAE)
+        segment: data.estabelecimento?.atividade_principal?.descricao || prev.segment,
       }));
 
       // Try to fetch logo from domain
