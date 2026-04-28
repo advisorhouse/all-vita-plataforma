@@ -200,18 +200,22 @@ const SignupPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Complete seu cadastro para acessar a All Vita
-          </p>
-        </div>
+      <AnimatePresence mode="wait">
+        {step === "signup" ? (
+          <motion.div
+            key="signup"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-sm"
+          >
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Complete seu cadastro para acessar a All Vita
+              </p>
+            </div>
 
         <Card>
           <CardContent className="pt-6">
