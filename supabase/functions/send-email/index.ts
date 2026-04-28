@@ -28,7 +28,7 @@ serve(async (req) => {
       );
     }
 
-    const fromEmail = from || "All Vita <noreply@allvita.com.br>";
+    const fromEmail = from || "All Vita <onboarding@resend.dev>";
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
