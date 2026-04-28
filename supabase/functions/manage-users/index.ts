@@ -94,10 +94,10 @@ serve(async (req) => {
   try {
     if (action === "preview-email") {
       const body = await req.json();
-      const { email, full_name, role, is_staff, tenant_id: targetId } = body;
+      const { email, full_name, role, is_staff, tenant_id: targetId, type } = body;
       
       let tenantName = "All Vita";
-      let tenantLogo = null;
+      let tenantLogo = "https://allvita.com.br/logo.png"; // Placeholder/Default
       
       if (!is_staff && targetId) {
         const { data: tenant } = await adminClient
@@ -106,25 +106,49 @@ serve(async (req) => {
           .eq("id", targetId)
           .single();
         tenantName = tenant?.trade_name || tenant?.name || "All Vita";
-        tenantLogo = tenant?.logo_url;
+        tenantLogo = tenant?.logo_url || tenantLogo;
       }
 
       const tempPassword = "SUA_SENHA_AQUI";
-      const html = `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#ffffff;border:1px solid #eee;border-radius:12px">
-          ${tenantLogo ? `<img src="${tenantLogo}" style="max-height:48px;margin-bottom:24px" />` : ''}
-          <h1 style="color:#1a1a2e;font-size:24px;margin-bottom:16px">Bem-vindo!</h1>
-          <p style="color:#444;line-height:1.5">Olá <strong>${full_name || 'Usuário'}</strong>,</p>
-          <p style="color:#444;line-height:1.5">Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
+      let title = "Bem-vindo!";
+      let content = "";
+      let ctaText = "Acessar Plataforma";
+      const ctaUrl = "https://app.allvita.com.br/auth/login";
+
+      if (type === "reset-password") {
+        title = "Sua senha foi resetada";
+        content = `
+          <p>Um administrador resetou sua senha na plataforma <strong>${tenantName}</strong>.</p>
+          <p>Utilize os dados abaixo para o seu próximo acesso:</p>
           <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
-            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha provisória:</p>
+            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua nova senha provisória:</p>
             <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
           </div>
-          <p style="color:#e74c3c;font-size:14px;font-weight:bold;margin-top:24px">⚠️ Importante: Troque sua senha no primeiro acesso.</p>
-          <hr style="border:0;border-top:1px solid #eee;margin:32px 0" />
-          <p style="color:#999;font-size:12px;text-align:center">Enviado por ${tenantName} via All Vita</p>
-        </div>
-      `;
+          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
+        `;
+        ctaText = "Ir para o Login";
+      } else {
+        content = `
+          <p>Você foi convidado para fazer parte da plataforma <strong>${tenantName}</strong>.</p>
+          <p>Estamos muito felizes em ter você conosco! Sua conta já foi criada e você pode começar a explorar todas as funcionalidades agora mesmo.</p>
+          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha de acesso temporária:</p>
+            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+          </div>
+          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Troque sua senha no primeiro acesso para manter seus dados protegidos.</p>
+        `;
+      }
+
+      const html = renderEmail({
+        title,
+        userName: full_name || 'Usuário',
+        tenantName,
+        tenantLogo,
+        content,
+        ctaText,
+        ctaUrl
+      });
+      
       return jsonRes(200, { html, tenantName });
     }
 
@@ -272,15 +296,35 @@ serve(async (req) => {
 
         // Send welcome email
         try {
-          let tenantName = "a plataforma";
+          let tenantName = "All Vita";
+          let tenantLogo = "https://allvita.com.br/logo.png";
           if (targetTenantId) {
             const { data: tenant } = await adminClient
               .from("tenants")
-              .select("name, trade_name")
+              .select("name, trade_name, logo_url")
               .eq("id", targetTenantId)
               .single();
-            tenantName = tenant?.trade_name || tenant?.name || "a plataforma";
+            tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+            tenantLogo = tenant?.logo_url || tenantLogo;
           }
+
+          const html = renderEmail({
+            title: "Bem-vindo!",
+            userName: full_name.split(" ")[0],
+            tenantName,
+            tenantLogo,
+            content: `
+              <p>Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
+              <p>Estamos muito felizes em ter você conosco! Sua conta já foi criada e você pode começar a explorar todas as funcionalidades agora mesmo.</p>
+              <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+                <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
+                <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+              </div>
+              <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
+            `,
+            ctaText: "Acessar Plataforma",
+            ctaUrl: "https://app.allvita.com.br/auth/login"
+          });
 
           await fetch(`${supabaseUrl}/functions/v1/send-email`, {
             method: "POST",
@@ -291,18 +335,7 @@ serve(async (req) => {
             body: JSON.stringify({
               to: email,
               subject: `Você foi convidado para ${tenantName}`,
-              html: `
-                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
-                  <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo!</h1>
-                  <p>Olá <strong>${full_name}</strong>,</p>
-                  <p>Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
-                  <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
-                    <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
-                  </div>
-                  <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Troque sua senha no primeiro acesso.</p>
-                  <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
-                </div>
-              `,
+              html,
             }),
           });
         } catch (e) {
@@ -440,10 +473,30 @@ serve(async (req) => {
         const { data: membership } = await adminClient.from("memberships").select("tenant_id").eq("user_id", userId).eq("active", true).limit(1).maybeSingle();
 
         let tenantName = "All Vita";
+        let tenantLogo = "https://allvita.com.br/logo.png";
         if (membership?.tenant_id) {
-          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name").eq("id", membership.tenant_id).single();
+          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name, logo_url").eq("id", membership.tenant_id).single();
           tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+          tenantLogo = tenant?.logo_url || tenantLogo;
         }
+
+        const html = renderEmail({
+          title: "Sua senha foi resetada",
+          userName: profile.first_name || 'Usuário',
+          tenantName,
+          tenantLogo,
+          content: `
+            <p>Um administrador resetou sua senha na plataforma <strong>${tenantName}</strong>.</p>
+            <p>Utilize os dados abaixo para o seu próximo acesso:</p>
+            <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+              <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua nova senha provisória:</p>
+              <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+            </div>
+            <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
+          `,
+          ctaText: "Ir para o Login",
+          ctaUrl: "https://app.allvita.com.br/auth/login"
+        });
 
         // Send email
         await fetch(`${supabaseUrl}/functions/v1/send-email`, {
@@ -455,18 +508,7 @@ serve(async (req) => {
           body: JSON.stringify({
             to: profile.email,
             subject: `Sua senha foi resetada - ${tenantName}`,
-            html: `
-              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
-                <h1 style="color:#1a1a2e;font-size:24px">Sua senha foi resetada</h1>
-                <p>Olá <strong>${profile.first_name || 'Usuário'}</strong>,</p>
-                <p>Um administrador resetou sua senha na plataforma <strong>${tenantName}</strong>.</p>
-                <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
-                  <p style="margin:4px 0"><strong>Nova senha provisória:</strong> ${tempPassword}</p>
-                </div>
-                <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Você deverá trocar esta senha no seu próximo acesso.</p>
-                <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
-              </div>
-            `,
+            html,
           }),
         });
 
@@ -492,10 +534,30 @@ serve(async (req) => {
         await adminClient.auth.admin.updateUserById(userId, { password: tempPassword });
 
         let tenantName = "All Vita";
+        let tenantLogo = "https://allvita.com.br/logo.png";
         if (membership?.tenant_id) {
-          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name").eq("id", membership.tenant_id).single();
+          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name, logo_url").eq("id", membership.tenant_id).single();
           tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+          tenantLogo = tenant?.logo_url || tenantLogo;
         }
+
+        const html = renderEmail({
+          title: "Seu convite chegou!",
+          userName: profile.first_name || 'Usuário',
+          tenantName,
+          tenantLogo,
+          content: `
+            <p>Estamos reenviando seu convite para a plataforma <strong>${tenantName}</strong>.</p>
+            <p>Estamos ansiosos para ter você conosco! Sua conta está pronta para ser acessada.</p>
+            <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+              <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
+              <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+            </div>
+            <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Lembre-se: Troque sua senha no primeiro acesso para garantir a segurança da sua conta.</p>
+          `,
+          ctaText: "Acessar Plataforma",
+          ctaUrl: "https://app.allvita.com.br/auth/login"
+        });
 
         // Send welcome email
         await fetch(`${supabaseUrl}/functions/v1/send-email`, {
@@ -507,18 +569,7 @@ serve(async (req) => {
           body: JSON.stringify({
             to: profile.email,
             subject: `Convite para ${tenantName} (Reenvio)`,
-            html: `
-              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
-                <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo novamente!</h1>
-                <p>Olá <strong>${profile.first_name || 'Usuário'}</strong>,</p>
-                <p>Estamos reenviando seu convite para a plataforma <strong>${tenantName}</strong>.</p>
-                <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
-                  <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
-                </div>
-                <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Lembre-se de trocar sua senha no primeiro acesso.</p>
-                <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
-              </div>
-            `,
+            html,
           }),
         });
 
@@ -591,6 +642,102 @@ function generateTempPassword(): string {
   crypto.getRandomValues(arr);
   for (const b of arr) pw += chars[b % chars.length];
   return pw;
+}
+
+function renderEmail(options: {
+  title: string,
+  userName: string,
+  tenantName: string,
+  tenantLogo?: string | null,
+  content: string,
+  ctaText?: string,
+  ctaUrl?: string,
+  footer?: string
+}) {
+  const primaryColor = "#1a1a2e";
+  const accentColor = "#6B8E23";
+  const logoUrl = options.tenantLogo || "https://allvita.com.br/logo.png";
+  const isAllVita = options.tenantName === "All Vita";
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${options.title}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f6f9fc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
+        <tr>
+          <td align="center" style="padding: 40px 10px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #eef2f6;">
+              <!-- Header -->
+              <tr>
+                <td align="center" style="padding: 50px 40px 40px 40px; border-bottom: 1px solid #f0f4f8;">
+                  <img src="${logoUrl}" alt="${options.tenantName}" style="max-height: 55px; width: auto; display: block; margin-bottom: 25px;">
+                  <h1 style="margin: 0; color: ${primaryColor}; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">${options.title}</h1>
+                </td>
+              </tr>
+              
+              <!-- Content -->
+              <tr>
+                <td style="padding: 45px 45px 35px 45px; color: #334155; font-size: 16px; line-height: 1.7;">
+                  <p style="margin: 0 0 24px 0;">Olá, <strong style="color: ${primaryColor};">${options.userName}</strong>!</p>
+                  
+                  <div style="margin-bottom: 30px;">
+                    ${options.content}
+                    
+                    ${isAllVita ? `
+                      <p style="margin-top: 24px;">A <strong>All Vita</strong> é dedicada a proporcionar a melhor experiência em gestão de performance e bem-estar, ajudando você e sua equipe a alcançarem novos patamares de excelência.</p>
+                    ` : `
+                      <p style="margin-top: 24px;">Estamos comprometidos em oferecer uma experiência excepcional através da plataforma <strong>${options.tenantName}</strong>, impulsionada pela tecnologia All Vita.</p>
+                    `}
+                  </div>
+
+                  ${options.ctaUrl ? `
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 45px 0 25px 0;">
+                      <tr>
+                        <td align="center">
+                          <a href="${options.ctaUrl}" style="background-color: ${accentColor}; color: #ffffff; padding: 16px 36px; border-radius: 10px; text-decoration: none; font-weight: 700; display: inline-block; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(107, 142, 35, 0.25);">
+                            ${options.ctaText || 'Acessar Plataforma'}
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  ` : ''}
+                  
+                  <p style="margin: 40px 0 0 0; font-size: 14px; color: #64748b; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 30px;">
+                    Dúvidas? Nossa equipe está pronta para ajudar. Basta responder a este e-mail ou escrever para <a href="mailto:contato@allvita.com.br" style="color: ${accentColor}; text-decoration: none;">contato@allvita.com.br</a>.
+                  </p>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td align="center" style="padding: 35px 45px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 13px;">
+                  <p style="margin: 0 0 12px 0; color: #64748b; font-weight: 700; font-size: 14px;">${options.tenantName}</p>
+                  ${options.footer || `<p style="margin: 0;">Tecnologia <strong style="color: #64748b;">All Vita</strong> — Plataforma de Performance e Bem-Estar</p>`}
+                  <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #cbd5e1;">
+                    Este é um comunicado oficial enviado automaticamente pelo sistema.
+                  </div>
+                </td>
+              </tr>
+            </table>
+            
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin-top: 25px;">
+              <tr>
+                <td align="center" style="color: #94a3b8; font-size: 12px;">
+                  <p style="margin: 0;">© ${new Date().getFullYear()} All Vita. Todos os direitos reservados.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
 }
 
 function jsonRes(status: number, body: any) {
