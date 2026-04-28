@@ -14,6 +14,11 @@ const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
+  
+  // State for different steps
+  const [step, setStep] = useState<"signup" | "mfa-setup">("signup");
+  
+  // Form states
   const [checkingToken, setCheckingToken] = useState(!!redirectTo);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,6 +26,14 @@ const SignupPage: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // MFA states
+  const [qrCode, setQrCode] = useState<string>("");
+  const [secret, setSecret] = useState<string>("");
+  const [factorId, setFactorId] = useState<string>("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [verifyingMfa, setVerifyingMfa] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Only allow signup if there is a redirect/invitation token
   React.useEffect(() => {
