@@ -534,10 +534,30 @@ serve(async (req) => {
         await adminClient.auth.admin.updateUserById(userId, { password: tempPassword });
 
         let tenantName = "All Vita";
+        let tenantLogo = "https://allvita.com.br/logo.png";
         if (membership?.tenant_id) {
-          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name").eq("id", membership.tenant_id).single();
+          const { data: tenant } = await adminClient.from("tenants").select("name, trade_name, logo_url").eq("id", membership.tenant_id).single();
           tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+          tenantLogo = tenant?.logo_url || tenantLogo;
         }
+
+        const html = renderEmail({
+          title: "Seu convite chegou!",
+          userName: profile.first_name || 'Usuário',
+          tenantName,
+          tenantLogo,
+          content: `
+            <p>Estamos reenviando seu convite para a plataforma <strong>${tenantName}</strong>.</p>
+            <p>Estamos ansiosos para ter você conosco! Sua conta está pronta para ser acessada.</p>
+            <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+              <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
+              <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+            </div>
+            <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Lembre-se: Troque sua senha no primeiro acesso para garantir a segurança da sua conta.</p>
+          `,
+          ctaText: "Acessar Plataforma",
+          ctaUrl: "https://app.allvita.com.br/auth/login"
+        });
 
         // Send welcome email
         await fetch(`${supabaseUrl}/functions/v1/send-email`, {
@@ -549,18 +569,7 @@ serve(async (req) => {
           body: JSON.stringify({
             to: profile.email,
             subject: `Convite para ${tenantName} (Reenvio)`,
-            html: `
-              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
-                <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo novamente!</h1>
-                <p>Olá <strong>${profile.first_name || 'Usuário'}</strong>,</p>
-                <p>Estamos reenviando seu convite para a plataforma <strong>${tenantName}</strong>.</p>
-                <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
-                  <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
-                </div>
-                <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Lembre-se de trocar sua senha no primeiro acesso.</p>
-                <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
-              </div>
-            `,
+            html,
           }),
         });
 
