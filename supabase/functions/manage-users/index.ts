@@ -167,20 +167,20 @@ serve(async (req) => {
           })
           .eq("id", userId);
 
+        const targetTenantId = is_staff ? null : tenantId;
+
         // Create membership
         const { error: memberError } = await adminClient.from("memberships").upsert({
           user_id: userId,
-          tenant_id: tenantId,
+          tenant_id: targetTenantId,
           role,
           active: true,
         }, { onConflict: "user_id,tenant_id" }).select();
 
-        // The upsert may fail if there's no unique constraint on (user_id, tenant_id)
-        // In that case, just insert
         if (memberError) {
           await adminClient.from("memberships").insert({
             user_id: userId,
-            tenant_id: tenantId,
+            tenant_id: targetTenantId,
             role,
             active: true,
           });
