@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ const fadeUp = {
 };
 
 const AdminDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [period, setPeriod] = useState("30d");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
@@ -176,6 +178,17 @@ const AdminDashboard: React.FC = () => {
     },
   });
 
+  // Profiles details for greeting
+  const { data: userProfile } = useQuery({
+    queryKey: ["admin-dash-user-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   // Compute KPIs
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.amount), 0) || 0;
   const activeTenants = tenants?.filter((t) => t.active).length || 0;
@@ -253,7 +266,8 @@ const AdminDashboard: React.FC = () => {
               {(() => {
                 const hour = new Date().getHours();
                 const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-                return `${greeting}, Admin`;
+                const name = userProfile?.first_name || "Admin";
+                return `${greeting}, ${name}`;
               })()}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">Visão executiva da plataforma All Vita</p>
