@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type StaffRole = "super_admin" | "admin" | "manager" | "staff" | "ops" | "finance" | "support" | "growth";
+type StaffRole = "super_admin" | "admin" | "manager" | "staff";
 
 interface StaffRow {
   id: string;
