@@ -61,6 +61,9 @@ const AdminSettings: React.FC = () => {
   const [defaults, setDefaults] = useState<any>(null);
   const [domains, setDomains] = useState<any>(null);
   const [advanced, setAdvanced] = useState<any>(null);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [isEditingTemplate, setIsEditingTemplate] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -85,6 +88,14 @@ const AdminSettings: React.FC = () => {
         if (settingsMap.domain_settings) setDomains(settingsMap.domain_settings);
         if (settingsMap.advanced_settings) setAdvanced(settingsMap.advanced_settings);
       }
+
+      const { data: templatesData, error: templatesError } = await supabase
+        .from('communication_templates')
+        .select('*')
+        .order('name');
+      
+      if (templatesError) throw templatesError;
+      setTemplates(templatesData || []);
     } catch (error) {
       console.error("Error fetching settings:", error);
       toast.error("Erro ao carregar configurações");
@@ -162,10 +173,34 @@ const AdminSettings: React.FC = () => {
         .eq('slug', slug);
       
       if (error) throw error;
-      toast.success(`Template ${slug} ${active ? 'ativado' : 'desativado'}`);
+      setTemplates(prev => prev.map(t => t.slug === slug ? { ...t, active } : t));
+      toast.success(`Template ${active ? 'ativado' : 'desativado'}`);
     } catch (error) {
       console.error("Error toggling template:", error);
       toast.error("Erro ao atualizar template");
+    }
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!selectedTemplate) return;
+    try {
+      const { error } = await supabase
+        .from('communication_templates')
+        .update({
+          name: selectedTemplate.name,
+          subject: selectedTemplate.subject,
+          content: selectedTemplate.content
+        })
+        .eq('slug', selectedTemplate.slug);
+
+      if (error) throw error;
+      
+      setTemplates(prev => prev.map(t => t.slug === selectedTemplate.slug ? selectedTemplate : t));
+      setIsEditingTemplate(false);
+      toast.success("Template salvo com sucesso");
+    } catch (error) {
+      console.error("Error saving template:", error);
+      toast.error("Erro ao salvar template");
     }
   };
 
@@ -723,24 +758,86 @@ const AdminSettings: React.FC = () => {
                   <div className="space-y-2"><Label>Nome do Remetente</Label><Input defaultValue="All Vita" /></div>
                 </div>
                 <Separator />
-                <p className="text-xs font-medium text-muted-foreground">Templates Ativos</p>
-                {[
-                  { name: "Boas-vindas (novo tenant)", slug: "welcome-tenant", on: true },
-                  { name: "Convite de usuário", slug: "user-invite", on: true },
-                  { name: "Recuperação de senha", slug: "password-reset", on: true },
-                  { name: "Alerta de segurança", slug: "security-alert", on: true },
-                  { name: "Comissão processada", slug: "commission-alert", on: true },
-                  { name: "Resgate de Vitacoins aprovado", slug: "withdrawal-approved", on: true },
-                  { name: "Relatório mensal (super admins)", slug: "monthly-report", on: false },
-                ].map((t) => (
-                  <SwitchRow 
-                    key={t.slug} 
-                    title={t.name} 
-                    desc={`Template: ${t.slug}`} 
-                    checked={t.on}
-                    onCheckedChange={(checked) => toggleTemplate(t.slug, checked)}
-                  />
-                ))}
+                
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-muted-foreground">Templates Disponíveis</p>
+                  <Badge variant="outline" className="text-[10px]">{templates.length} templates</Badge>
+                </div>
+
+                <div className="space-y-4">
+                  {templates.map((t) => (
+                    <div key={t.slug} className="p-4 rounded-lg border bg-card/50 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{t.name}</p>
+                          <p className="text-[10px] text-muted-foreground">Slug: {t.slug}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Switch 
+                            checked={t.active} 
+                            onCheckedChange={(checked) => toggleTemplate(t.slug, checked)}
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-[10px] gap-1"
+                            onClick={() => {
+                              setSelectedTemplate(t);
+                              setIsEditingTemplate(true);
+                            }}
+                          >
+                            <FileText className="h-3 w-3" /> Editar
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {isEditingTemplate && selectedTemplate?.slug === t.slug ? (
+                        <div className="space-y-3 mt-4 pt-4 border-t animate-in fade-in slide-in-from-top-2">
+                          <div className="space-y-2">
+                            <Label className="text-[10px]">Nome do Template</Label>
+                            <Input 
+                              value={selectedTemplate.name} 
+                              onChange={(e) => setSelectedTemplate({...selectedTemplate, name: e.target.value})}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px]">Assunto</Label>
+                            <Input 
+                              value={selectedTemplate.subject} 
+                              onChange={(e) => setSelectedTemplate({...selectedTemplate, subject: e.target.value})}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px]">Conteúdo</Label>
+                            <Textarea 
+                              value={selectedTemplate.content} 
+                              onChange={(e) => setSelectedTemplate({...selectedTemplate, content: e.target.value})}
+                              rows={6}
+                              className="text-xs font-mono"
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-end pt-2">
+                            <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => setIsEditingTemplate(false)}>Cancelar</Button>
+                            <Button size="sm" className="h-7 text-[10px]" onClick={handleSaveTemplate}>Salvar Alterações</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-muted/30 p-2 rounded text-[10px] text-muted-foreground truncate italic">
+                          Assunto: {t.subject}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {templates.length === 0 && (
+                    <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/20">
+                      <Mail className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                      <p className="text-xs text-muted-foreground">Nenhum template encontrado</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
