@@ -413,15 +413,15 @@ const AdminSettings: React.FC = () => {
                 <Separator />
                 <p className="text-xs font-medium text-muted-foreground">Templates Ativos</p>
                 {[
-                  { name: "Boas-vindas (novo tenant)", on: true },
-                  { name: "Convite de usuário", on: true },
-                  { name: "Recuperação de senha", on: true },
-                  { name: "Alerta de segurança", on: true },
-                  { name: "Comissão processada", on: true },
-                  { name: "Resgate de Vitacoins aprovado", on: true },
-                  { name: "Relatório mensal (super admins)", on: false },
+                  { name: "Boas-vindas (novo tenant)", slug: "welcome-tenant", on: true },
+                  { name: "Convite de usuário", slug: "user-invite", on: true },
+                  { name: "Recuperação de senha", slug: "password-reset", on: true },
+                  { name: "Alerta de segurança", slug: "security-alert", on: true },
+                  { name: "Comissão processada", slug: "commission-alert", on: true },
+                  { name: "Resgate de Vitacoins aprovado", slug: "withdrawal-approved", on: true },
+                  { name: "Relatório mensal (super admins)", slug: "monthly-report", on: false },
                 ].map((t) => (
-                  <SwitchRow key={t.name} title={t.name} desc="" defaultChecked={t.on} />
+                  <SwitchRow key={t.slug} title={t.name} desc={`Template: ${t.slug}`} defaultChecked={t.on} />
                 ))}
               </CardContent>
             </Card>
