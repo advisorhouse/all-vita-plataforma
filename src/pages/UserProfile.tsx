@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { 
   User, Mail, Phone, Shield, Lock, CreditCard, 
   Eye, EyeOff, Smartphone, Key, Upload, Camera, 
-  MapPin, CheckCircle2, Save, LogOut
+  MapPin, CheckCircle2, Save, LogOut, Loader2
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { ImageCropper } from "@/components/profile/ImageCropper";
 
 const fadeUp: any = {
   hidden: { opacity: 0, y: 12 },
@@ -30,8 +31,12 @@ const UserProfilePage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { userRole, memberships } = useTenant();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [showCPF, setShowCPF] = useState(false);
   const [twoFA, setTwoFA] = useState(false);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, refetch } = useQuery({
     queryKey: ["user-profile", user?.id],
@@ -55,6 +60,58 @@ const UserProfilePage: React.FC = () => {
       setSaving(false);
       toast.success("Perfil atualizado com sucesso!");
     }, 1000);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("A imagem deve ter no máximo 2MB");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(reader.result as string);
+        setCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadAvatar = async (croppedBlob: Blob) => {
+    if (!user) return;
+
+    try {
+      setUploading(true);
+      const fileExt = "jpg";
+      const filePath = `${user.id}/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, croppedBlob);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Foto de perfil atualizada com sucesso!");
+      refetch();
+    } catch (error: any) {
+      console.error("Erro ao subir imagem:", error);
+      toast.error("Erro ao subir imagem: " + (error.message || "Erro desconhecido"));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const getRoleBadge = (role: string | null) => {
@@ -95,14 +152,27 @@ const UserProfilePage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="relative group">
-                <div className="h-24 w-24 rounded-2xl bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold border-2 border-primary/5">
-                  {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover rounded-2xl" />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                />
+                <div className="h-24 w-24 rounded-2xl bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold border-2 border-primary/5 overflow-hidden">
+                  {uploading ? (
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  ) : profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
                   ) : (
                     profile.first_name?.[0] || user?.email?.[0]?.toUpperCase()
                   )}
                 </div>
-                <button className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-background border border-border shadow-sm flex items-center justify-center hover:bg-secondary transition-colors">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-background border border-border shadow-sm flex items-center justify-center hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Camera className="h-4 w-4 text-muted-foreground" />
                 </button>
               </div>
@@ -260,6 +330,15 @@ const UserProfilePage: React.FC = () => {
             </CardContent>
           </Card>
         </motion.div>
+      )}
+
+      {selectedImage && (
+        <ImageCropper
+          image={selectedImage}
+          open={cropperOpen}
+          onOpenChange={setCropperOpen}
+          onCropComplete={handleUploadAvatar}
+        />
       )}
     </div>
   );
