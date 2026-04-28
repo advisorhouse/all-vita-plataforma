@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import AdminPermissions from "./AdminPermissions";
+import AdminPermissions from "@/components/admin/AdminPermissions";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
