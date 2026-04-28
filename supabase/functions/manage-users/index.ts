@@ -58,6 +58,10 @@ serve(async (req) => {
     if (!isSuperAdmin) {
       return jsonRes(403, { error: "Apenas Super Administradores podem excluir usuários permanentemente." });
     }
+  } else if (action === "auth-status") {
+    if (!isSuperAdmin) {
+      return jsonRes(403, { error: "Apenas Super Administradores podem consultar status de autenticação." });
+    }
   } else {
     // All other actions usually require X-Tenant-Id, EXCEPT global staff creation by super_admin
     if (!tenantId && !(action === "create" && isSuperAdmin)) {
