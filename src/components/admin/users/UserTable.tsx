@@ -76,7 +76,7 @@ interface Props {
 
 const UserTable: React.FC<Props> = ({
   users, page, totalPages, onPageChange, onViewUser,
-  onBlockUser, onDeleteUser, onResetPassword, isLoading,
+  onBlockUser, onDeleteUser, onResetPassword, onResendInvite, isLoading,
   deletingUserId, blockingUserId,
 }) => {
   const [confirmDelete, setConfirmDelete] = React.useState<UserRow | null>(null);
