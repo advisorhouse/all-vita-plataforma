@@ -317,7 +317,10 @@ const AdminStaff: React.FC = () => {
                     <SelectContent>
                       {EDITABLE_ROLES.map((role) => (
                         <SelectItem key={role} value={role}>
-                          {ROLE_LABELS[role]}
+                          <div className="flex flex-col">
+                            <span className="font-medium">{ROLE_LABELS[role]}</span>
+                            <span className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
