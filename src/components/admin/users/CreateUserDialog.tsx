@@ -31,25 +31,35 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
 
   const set = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
+  const isPhoneValid = (phone: string) => {
+    if (!phone) return true; // Phone is optional
+    return phone.length === 11; // 2 (DDD) + 9 (Number)
+  };
+
   const canNext = () => {
     if (step === 0) {
       if (form.user_type === "staff") return true;
       return form.tenant_id && form.role;
     }
-    if (step === 1) return form.full_name && form.email;
+    if (step === 1) {
+      const basicInfo = form.full_name && form.email && form.email.includes("@");
+      return basicInfo && isPhoneValid(form.phone);
+    }
     return true;
   };
 
   const handleSubmit = async () => {
     setLoading(true);
+    // Ensure phone has DDI 55
+    const formattedPhone = form.phone ? `55${form.phone}` : "";
+    
     try {
       if (form.user_type === "staff") {
-        // Create via manage-users with a special staff flow
         const res = await supabase.functions.invoke("manage-users/create", {
           body: {
             email: form.email,
             full_name: form.full_name,
-            phone: form.phone,
+            phone: formattedPhone,
             role: "super_admin",
             is_staff: true,
           },
@@ -62,7 +72,7 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
           body: {
             email: form.email,
             full_name: form.full_name,
-            phone: form.phone,
+            phone: formattedPhone,
             role: form.role,
           },
         });
@@ -177,8 +187,11 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
                 unmask={true}
                 onAccept={(value) => set("phone", value)}
                 placeholder="(00) 00000-0000"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ${form.phone && !isPhoneValid(form.phone) ? "border-destructive" : ""}`}
               />
+              {form.phone && !isPhoneValid(form.phone) && (
+                <p className="text-[10px] text-destructive">Telefone deve conter DDD + 9 dígitos</p>
+              )}
             </div>
           </div>
         )}
