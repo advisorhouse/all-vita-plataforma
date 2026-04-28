@@ -122,6 +122,38 @@ const AdminSettings: React.FC = () => {
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'icon' | 'favicon') => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${type}-${Math.random()}.${fileExt}`;
+      const filePath = `branding/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('platform_assets')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('platform_assets')
+        .getPublicUrl(filePath);
+
+      const updatedPlatform = { ...platform };
+      if (type === 'logo') updatedPlatform.logo_url = publicUrl;
+      if (type === 'icon') updatedPlatform.icon_url = publicUrl;
+      if (type === 'favicon') updatedPlatform.favicon_url = publicUrl;
+      
+      setPlatform(updatedPlatform);
+      toast.success("Arquivo enviado com sucesso!");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Erro ao fazer upload do arquivo");
+    }
+  };
+
   const toggleTemplate = async (slug: string, active: boolean) => {
     try {
       const { error } = await supabase
@@ -240,11 +272,21 @@ const AdminSettings: React.FC = () => {
                         Logo Principal
                         <span className="text-[10px] font-normal text-muted-foreground">Fundo transparente · PNG ou SVG</span>
                       </Label>
-                      <div className="group relative h-24 w-full rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden">
-                        <img src="/logo-allvita.png" alt="Logo" className="h-12 w-auto object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                      <div 
+                        className="group relative h-24 w-full rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                      >
+                        <img src={platform?.logo_url || "/logo-allvita.png"} alt="Logo" className="h-12 w-auto object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                          <Button size="sm" variant="secondary" className="h-8 gap-2"><Upload className="h-3.5 w-3.5" /> Alterar</Button>
+                          <Button size="sm" variant="secondary" className="h-8 gap-2 pointer-events-none"><Upload className="h-3.5 w-3.5" /> Alterar</Button>
                         </div>
+                        <input 
+                          id="logo-upload" 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*" 
+                          onChange={(e) => handleFileUpload(e, 'logo')} 
+                        />
                       </div>
                       <p className="text-[10px] text-muted-foreground">Tamanho ideal: <span className="font-medium text-foreground">400x120px</span></p>
                     </div>
@@ -254,11 +296,21 @@ const AdminSettings: React.FC = () => {
                         Isotipo (Logotipo compacto)
                         <span className="text-[10px] font-normal text-muted-foreground">Ícone da marca · PNG ou SVG</span>
                       </Label>
-                      <div className="group relative h-24 w-24 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden">
-                        <img src="/icon-allvita.png" alt="Icon" className="h-12 w-12 object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                      <div 
+                        className="group relative h-24 w-24 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden"
+                        onClick={() => document.getElementById('icon-upload')?.click()}
+                      >
+                        <img src={platform?.icon_url || "/icon-allvita.png"} alt="Icon" className="h-12 w-12 object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                          <Button size="sm" variant="secondary" className="h-7 px-2"><Upload className="h-3 w-3" /></Button>
+                          <Button size="sm" variant="secondary" className="h-7 px-2 pointer-events-none"><Upload className="h-3 w-3" /></Button>
                         </div>
+                        <input 
+                          id="icon-upload" 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*" 
+                          onChange={(e) => handleFileUpload(e, 'icon')} 
+                        />
                       </div>
                       <p className="text-[10px] text-muted-foreground">Tamanho ideal: <span className="font-medium text-foreground">128x128px</span></p>
                     </div>
@@ -268,13 +320,23 @@ const AdminSettings: React.FC = () => {
                         Favicon
                         <span className="text-[10px] font-normal text-muted-foreground">Ícone da aba · ICO ou PNG</span>
                       </Label>
-                      <div className="group relative h-24 w-24 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden">
+                      <div 
+                        className="group relative h-24 w-24 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden"
+                        onClick={() => document.getElementById('favicon-upload')?.click()}
+                      >
                         <div className="h-8 w-8 rounded bg-white shadow-sm flex items-center justify-center">
-                           <img src="/favicon.ico" alt="Favicon" className="h-5 w-5" />
+                           <img src={platform?.favicon_url || "/favicon.ico"} alt="Favicon" className="h-5 w-5" />
                         </div>
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                          <Button size="sm" variant="secondary" className="h-7 px-2"><Upload className="h-3 w-3" /></Button>
+                          <Button size="sm" variant="secondary" className="h-7 px-2 pointer-events-none"><Upload className="h-3 w-3" /></Button>
                         </div>
+                        <input 
+                          id="favicon-upload" 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*" 
+                          onChange={(e) => handleFileUpload(e, 'favicon')} 
+                        />
                       </div>
                       <p className="text-[10px] text-muted-foreground">Tamanho ideal: <span className="font-medium text-foreground">32x32px</span></p>
                     </div>
