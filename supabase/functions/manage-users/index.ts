@@ -296,15 +296,35 @@ serve(async (req) => {
 
         // Send welcome email
         try {
-          let tenantName = "a plataforma";
+          let tenantName = "All Vita";
+          let tenantLogo = "https://allvita.com.br/logo.png";
           if (targetTenantId) {
             const { data: tenant } = await adminClient
               .from("tenants")
-              .select("name, trade_name")
+              .select("name, trade_name, logo_url")
               .eq("id", targetTenantId)
               .single();
-            tenantName = tenant?.trade_name || tenant?.name || "a plataforma";
+            tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+            tenantLogo = tenant?.logo_url || tenantLogo;
           }
+
+          const html = renderEmail({
+            title: "Bem-vindo!",
+            userName: full_name.split(" ")[0],
+            tenantName,
+            tenantLogo,
+            content: `
+              <p>Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
+              <p>Estamos muito felizes em ter você conosco! Sua conta já foi criada e você pode começar a explorar todas as funcionalidades agora mesmo.</p>
+              <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+                <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
+                <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+              </div>
+              <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
+            `,
+            ctaText: "Acessar Plataforma",
+            ctaUrl: "https://app.allvita.com.br/auth/login"
+          });
 
           await fetch(`${supabaseUrl}/functions/v1/send-email`, {
             method: "POST",
@@ -315,18 +335,7 @@ serve(async (req) => {
             body: JSON.stringify({
               to: email,
               subject: `Você foi convidado para ${tenantName}`,
-              html: `
-                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
-                  <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo!</h1>
-                  <p>Olá <strong>${full_name}</strong>,</p>
-                  <p>Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
-                  <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
-                    <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
-                  </div>
-                  <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Troque sua senha no primeiro acesso.</p>
-                  <p style="color:#999;font-size:12px;margin-top:32px">All Vita</p>
-                </div>
-              `,
+              html,
             }),
           });
         } catch (e) {
