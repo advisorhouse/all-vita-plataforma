@@ -231,6 +231,11 @@ const UserTable: React.FC<Props> = ({
                       <DropdownMenuItem onClick={() => onResetPassword(u.id)} disabled={isBusy}>
                         <KeyRound className="h-4 w-4 mr-2" /> Resetar senha
                       </DropdownMenuItem>
+                      {!u.emailConfirmedAt && (
+                        <DropdownMenuItem onClick={() => onResendInvite(u.id)} disabled={isBusy}>
+                          <Send className="h-4 w-4 mr-2" /> Reenviar convite
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => onBlockUser(u.id)}
                         disabled={isBusy}
