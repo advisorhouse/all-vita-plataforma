@@ -173,7 +173,7 @@ serve(async (req) => {
         const { data: authUser, error: signupError } = await adminClient.auth.admin.createUser({
           email,
           password: tempPassword,
-          email_confirm: true,
+          email_confirm: false, // Do NOT auto-confirm email, so user shows as 'pending' until they login
           user_metadata: {
             first_name: full_name.split(" ")[0],
             last_name: full_name.split(" ").slice(1).join(" "),
