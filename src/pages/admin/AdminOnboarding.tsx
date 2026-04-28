@@ -285,7 +285,16 @@ const AdminOnboarding: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Button onClick={async () => {
-            const destination = isSuperAdmin ? "/admin" : "/core";
+            const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
+            const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+            
+            let destination = "/onboarding";
+            if (isActuallySuperAdmin) {
+              destination = "/admin";
+            } else if (hasTenantMemberships) {
+              destination = "/core";
+            }
+            
             await logOnboardingRedirect("complete", destination);
             navigate(destination);
           }} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
