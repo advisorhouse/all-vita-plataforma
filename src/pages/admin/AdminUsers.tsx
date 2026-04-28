@@ -79,6 +79,33 @@ const AdminUsers: React.FC = () => {
     [tenantsRaw]
   );
 
+  // Fetch auth status (email_confirmed_at, last_sign_in_at) for current page profiles
+  const profileIds = useMemo(
+    () => (profilesData?.profiles || []).map((p: any) => p.id),
+    [profilesData]
+  );
+
+  const { data: authStatusList } = useQuery({
+    queryKey: ["admin-users-auth-status", profileIds],
+    enabled: profileIds.length > 0,
+    queryFn: async () => {
+      const res = await supabase.functions.invoke("manage-users/auth-status", {
+        body: { userIds: profileIds },
+      });
+      if (res.error) {
+        console.warn("[AdminUsers] auth-status error:", res.error.message);
+        return [];
+      }
+      return res.data?.data || [];
+    },
+  });
+
+  const authStatusMap = useMemo(() => {
+    const map: Record<string, { email_confirmed_at: string | null; last_sign_in_at: string | null; confirmation_sent_at: string | null; invited_at: string | null }> = {};
+    (authStatusList || []).forEach((a: any) => { map[a.id] = a; });
+    return map;
+  }, [authStatusList]);
+
   // Fetch audit logs for selected user
   const { data: auditLogs } = useQuery({
     queryKey: ["admin-user-audit", selectedUser?.id],
@@ -129,6 +156,8 @@ const AdminUsers: React.FC = () => {
       else if (roles.some((r) => r.role === "partner")) userType = "partner";
       else if (roles.some((r) => r.role === "client")) userType = "client";
 
+      const auth = authStatusMap[p.id];
+
       return {
         id: p.id,
         email: p.email,
@@ -141,9 +170,12 @@ const AdminUsers: React.FC = () => {
         roles,
         userType,
         has2FA: false, // TODO: check MFA factors
+        emailConfirmedAt: auth?.email_confirmed_at ?? null,
+        lastSignInAt: auth?.last_sign_in_at ?? null,
+        confirmationSentAt: auth?.confirmation_sent_at ?? null,
       };
     });
-  }, [profilesData, memberships, staffList, tenantMap]);
+  }, [profilesData, memberships, staffList, tenantMap, authStatusMap]);
 
   // Apply client-side filters
   const filteredUsers = useMemo(() => {

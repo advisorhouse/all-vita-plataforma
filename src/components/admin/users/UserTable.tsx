@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil, Lock, KeyRound, Shield, ShieldCheck, Trash2, Loader2, MailCheck, MailWarning } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DeleteUserDialog from "./DeleteUserDialog";
 
@@ -21,6 +21,9 @@ export interface UserRow {
   roles: { role: string; tenant_id: string | null; tenant_name: string }[];
   userType: string;
   has2FA: boolean;
+  emailConfirmedAt?: string | null;
+  lastSignInAt?: string | null;
+  confirmationSentAt?: string | null;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -41,6 +44,20 @@ const TYPE_LABELS: Record<string, string> = {
   client: "Paciente",
   unknown: "—",
 };
+
+// Hierarchy ranking — used to pick the "primary" role to display in the Nível column
+const ROLE_RANK: Record<string, number> = {
+  super_admin: 5, admin: 4, manager: 3, partner: 2, client: 1,
+};
+
+function getPrimaryRole(roles: { role: string }[], userType: string): string | null {
+  if (userType === "staff" && !roles.some((r) => r.role === "super_admin")) {
+    // Staff All Vita without explicit super_admin membership — show Admin
+    return "admin";
+  }
+  if (!roles.length) return null;
+  return [...roles].sort((a, b) => (ROLE_RANK[b.role] || 0) - (ROLE_RANK[a.role] || 0))[0].role;
+}
 
 interface Props {
   users: UserRow[];
@@ -70,7 +87,7 @@ const UserTable: React.FC<Props> = ({
           <TableHeader>
             <TableRow>
               <TableHead>Usuário</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>E-mail / Convite</TableHead>
               <TableHead>Nível</TableHead>
               <TableHead>Classificação</TableHead>
               <TableHead>Vínculo / Empresa</TableHead>
@@ -108,11 +125,36 @@ const UserTable: React.FC<Props> = ({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{u.email}</TableCell>
+                <TableCell className="text-xs">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground">{u.email}</span>
+                    {u.emailConfirmedAt ? (
+                      <Badge variant="outline" className="text-[9px] w-fit gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                        <MailCheck className="h-3 w-3" /> Confirmado
+                      </Badge>
+                    ) : u.confirmationSentAt ? (
+                      <Badge variant="outline" className="text-[9px] w-fit gap-1 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                        <MailWarning className="h-3 w-3" /> Convite pendente
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[9px] w-fit gap-1 bg-muted text-muted-foreground border-border">
+                        <MailWarning className="h-3 w-3" /> Não enviado
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="text-[10px]">
-                    {TYPE_LABELS[u.userType] || u.userType}
-                  </Badge>
+                  {(() => {
+                    const primary = getPrimaryRole(u.roles, u.userType);
+                    if (!primary) {
+                      return <span className="text-[10px] text-muted-foreground">—</span>;
+                    }
+                    return (
+                      <Badge variant="outline" className={cn("text-[10px]", ROLE_COLORS[primary])}>
+                        {ROLE_LABELS[primary] || primary}
+                      </Badge>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell>
                   <Badge 
@@ -220,7 +262,7 @@ const UserTable: React.FC<Props> = ({
             })}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
                   {isLoading ? "Carregando..." : "Nenhum usuário encontrado"}
                 </TableCell>
               </TableRow>
