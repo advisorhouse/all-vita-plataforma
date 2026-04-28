@@ -161,7 +161,15 @@ const ActivatePage: React.FC = () => {
         </div>
       )}
 
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md mx-auto px-6 pt-12">
+        <OnboardingHeader 
+          logoUrl={currentTenant?.logo_url} 
+          tradeName={currentTenant?.trade_name} 
+          loading={isLoading}
+        />
+      </div>
+
+      <div className="flex-1 flex items-start justify-center px-6 py-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}
