@@ -263,7 +263,11 @@ const AdminOnboarding: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => navigate(isSuperAdmin ? "/admin" : "/core")} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
+          <Button onClick={async () => {
+            const destination = isSuperAdmin ? "/admin" : "/core";
+            await logOnboardingRedirect("complete", destination);
+            navigate(destination);
+          }} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
             Começar Agora
           </Button>
         </CardContent>
