@@ -310,7 +310,19 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Endereço</h3>
             <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2"><Label>CEP</Label><Input value={form.address_cep} onChange={set("address_cep")} /></div>
+               <div className="space-y-2">
+                <Label>CEP</Label>
+                <div className="flex gap-2">
+                  <IMaskInput
+                    mask="00000-000"
+                    value={form.address_cep}
+                    unmask={true}
+                    onAccept={(value) => setForm(f => ({ ...f, address_cep: value }))}
+                    placeholder="00000-000"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+              </div>
               <div className="col-span-2 space-y-2"><Label>Rua</Label><Input value={form.address_street} onChange={set("address_street")} /></div>
               <div className="space-y-2"><Label>Número</Label><Input value={form.address_number} onChange={set("address_number")} /></div>
               <div className="space-y-2"><Label>Complemento</Label><Input value={form.address_complement} onChange={set("address_complement")} /></div>
