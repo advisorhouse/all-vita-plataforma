@@ -122,6 +122,14 @@ const SignupPage: React.FC = () => {
     }
   };
 
+  if (checkingToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <motion.div
