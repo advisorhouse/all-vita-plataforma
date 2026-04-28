@@ -448,7 +448,13 @@ const AdminSettings: React.FC = () => {
                   { name: "Resgate de Vitacoins aprovado", slug: "withdrawal-approved", on: true },
                   { name: "Relatório mensal (super admins)", slug: "monthly-report", on: false },
                 ].map((t) => (
-                  <SwitchRow key={t.slug} title={t.name} desc={`Template: ${t.slug}`} defaultChecked={t.on} />
+                  <SwitchRow 
+                    key={t.slug} 
+                    title={t.name} 
+                    desc={`Template: ${t.slug}`} 
+                    defaultChecked={t.on}
+                    onCheckedChange={(checked) => toggleTemplate(t.slug, checked)}
+                  />
                 ))}
               </CardContent>
             </Card>
