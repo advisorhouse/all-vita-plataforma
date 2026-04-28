@@ -109,13 +109,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     // If we have memberships, check if user has the required role for the current context
     const hasRole = memberships.some(m => 
       m.active && 
-      (m.role === requiredRole || m.role === 'super_admin' || (requiredRole === 'admin' && m.role === 'super_admin')) &&
+      (m.role === (requiredRole as any) || m.role === 'super_admin') &&
       (requireTenant ? m.tenant_id === currentTenant?.id : true)
     );
 
     if (!hasRole && !isSuperAdmin) {
-      // Redirect to the best available path or logout
-      if (isSuperAdmin) return <Navigate to="/admin" replace />;
       return <Navigate to="/onboarding" replace />;
     }
   }
