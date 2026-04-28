@@ -34,6 +34,35 @@ const AdminOnboarding: React.FC = () => {
     checkOnboardingStatus();
   }, [user]);
 
+  const logOnboardingRedirect = async (
+    stage: "resume" | "complete",
+    destination: string,
+  ) => {
+    if (!user) return;
+    try {
+      await supabase.from("audit_logs").insert({
+        user_id: user.id,
+        tenant_id: currentTenant?.id ?? null,
+        actor_type: "user",
+        action: "onboarding_redirect",
+        entity_type: "profile",
+        entity_id: user.id,
+        details: {
+          stage,
+          destination,
+          is_super_admin: isSuperAdmin,
+          tenant_id: currentTenant?.id ?? null,
+          tenant_trade_name: currentTenant?.trade_name ?? null,
+          email: user.email ?? null,
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+          path: typeof window !== "undefined" ? window.location.pathname : null,
+        },
+      });
+    } catch (err) {
+      console.error("[onboarding] failed to write audit log", err);
+    }
+  };
+
   const checkOnboardingStatus = async () => {
     if (!user) return;
     const { data: profile } = await supabase
@@ -43,7 +72,9 @@ const AdminOnboarding: React.FC = () => {
       .single();
 
     if (profile?.onboarding_completed) {
-      navigate(isSuperAdmin ? "/admin" : "/core");
+      const destination = isSuperAdmin ? "/admin" : "/core";
+      await logOnboardingRedirect("resume", destination);
+      navigate(destination);
       return;
     }
     if (!profile?.must_change_password) {
@@ -120,7 +151,9 @@ const AdminOnboarding: React.FC = () => {
     toast.success("Onboarding concluído!");
     setStep("complete");
     setLoading(false);
-    navigate(isSuperAdmin ? "/admin" : "/core");
+    const destination = isSuperAdmin ? "/admin" : "/core";
+    await logOnboardingRedirect("complete", destination);
+    navigate(destination);
   };
 
 // Render logo and footer are now handled by reusable components
@@ -230,7 +263,11 @@ const AdminOnboarding: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => navigate(isSuperAdmin ? "/admin" : "/core")} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
+          <Button onClick={async () => {
+            const destination = isSuperAdmin ? "/admin" : "/core";
+            await logOnboardingRedirect("complete", destination);
+            navigate(destination);
+          }} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
             Começar Agora
           </Button>
         </CardContent>
