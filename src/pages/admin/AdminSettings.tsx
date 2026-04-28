@@ -59,6 +59,17 @@ const AdminSettings: React.FC = () => {
     setTimeout(() => { setSaving(false); toast.success("Configurações salvas com sucesso"); }, 800);
   };
 
+  const toggleTemplate = async (slug: string, active: boolean) => {
+    try {
+      // In a real scenario, we would call supabase here
+      // const { error } = await supabase.from('communication_templates').update({ active }).eq('slug', slug);
+      // if (error) throw error;
+      toast.success(`Template ${slug} ${active ? 'ativado' : 'desativado'}`);
+    } catch (error) {
+      toast.error("Erro ao atualizar template");
+    }
+  };
+
   const roles = [
     { role: "super_admin", label: "Super Admin", perms: "Acesso total à plataforma" },
     { role: "admin", label: "Admin (Tenant)", perms: "Gestão completa da empresa" },
