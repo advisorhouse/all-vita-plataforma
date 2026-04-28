@@ -9,7 +9,7 @@ import { useTenant, type Membership, type Tenant } from "@/contexts/TenantContex
  */
 export function useMemberships() {
   const { user } = useAuth();
-  const { setMemberships, setIsLoading } = useTenant();
+  const { setMemberships, setIsLoading, setIsSuperAdmin, setPlatformRole } = useTenant();
 
   useEffect(() => {
     if (!user) {
