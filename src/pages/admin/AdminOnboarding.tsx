@@ -161,7 +161,18 @@ const AdminOnboarding: React.FC = () => {
     toast.success("Onboarding concluído!");
     setStep("complete");
     setLoading(false);
-    const destination = isSuperAdmin ? "/admin" : "/core";
+    
+    // Extra validation before navigating
+    const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
+    const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+
+    let destination = "/onboarding";
+    if (isActuallySuperAdmin) {
+      destination = "/admin";
+    } else if (hasTenantMemberships) {
+      destination = "/core";
+    }
+
     await logOnboardingRedirect("complete", destination);
     navigate(destination);
   };
