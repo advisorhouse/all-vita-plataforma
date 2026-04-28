@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Loader2, Upload, X, Image } from "lucide-react";
+import { Plus, Loader2, Upload, X, Image, Search } from "lucide-react";
+import { IMaskInput } from "react-imask";
 
 interface TenantFormData {
   name: string;
