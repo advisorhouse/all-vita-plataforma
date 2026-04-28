@@ -50,7 +50,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isSubdomainAccess, setIsSubdomainAccess] = useState(false);
 
   const isSuperAdmin = memberships.some(
-    (m) => m.role === "super_admin" && m.tenant_id === null && m.active
+    (m) => (m.role === "super_admin" || m.role === "admin") && m.tenant_id === null && m.active
   );
 
   const activeMembership = currentTenant
