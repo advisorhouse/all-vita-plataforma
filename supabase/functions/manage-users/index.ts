@@ -329,9 +329,9 @@ serve(async (req) => {
       default:
         return jsonRes(404, { error: `Ação desconhecida: ${action}` });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("User management error:", error);
-    return jsonRes(500, { error: error.message });
+    return jsonRes(500, { error: error.message || "Erro interno do servidor" });
   }
 });
 
