@@ -294,9 +294,38 @@ const AdminUsers: React.FC = () => {
     },
   });
 
-  // Reset password (placeholder — needs edge function)
-  const handleResetPassword = (userId: string) => {
-    toast.info("Funcionalidade de reset de senha via e-mail será implementada em breve.");
+  // Reset password
+  const handleResetPassword = async (userId: string) => {
+    const promise = supabase.functions.invoke("manage-users/reset-password", {
+      body: { userId }
+    });
+
+    toast.promise(promise, {
+      loading: "Gerando nova senha e enviando e-mail...",
+      success: (res) => {
+        if (res.error) throw new Error(res.error.message);
+        if (res.data?.error) throw new Error(res.data.error);
+        return "Senha resetada e e-mail enviado!";
+      },
+      error: (e: any) => `Erro: ${e.message}`,
+    });
+  };
+
+  // Resend invitation
+  const handleResendInvite = async (userId: string) => {
+    const promise = supabase.functions.invoke("manage-users/resend-invite", {
+      body: { userId }
+    });
+
+    toast.promise(promise, {
+      loading: "Reenviando convite...",
+      success: (res) => {
+        if (res.error) throw new Error(res.error.message);
+        if (res.data?.error) throw new Error(res.data.error);
+        return "Convite reenviado com sucesso!";
+      },
+      error: (e: any) => `Erro: ${e.message}`,
+    });
   };
 
   const handleViewUser = (user: UserRow) => {
