@@ -332,13 +332,41 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
               
               <div className="space-y-2">
                 <Label>Segmento / Nicho *</Label>
-                <Input 
-                  value={form.segment} 
-                  onChange={set("segment")} 
-                  required 
-                  placeholder="Ex: Farmácia, Academia, Varejo..." 
-                  className="h-10"
-                />
+                <Select 
+                  value={isCustomSegment ? "Outros" : form.segment} 
+                  onValueChange={(val) => {
+                    if (val === "Outros") {
+                      setIsCustomSegment(true);
+                      setForm(f => ({ ...f, segment: customSegment }));
+                    } else {
+                      setIsCustomSegment(false);
+                      setForm(f => ({ ...f, segment: val }));
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Selecione o nicho/segmento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {segments?.map((s: any) => (
+                      <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                    ))}
+                    <SelectItem value="Outros">Outros (especificar)</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {isCustomSegment && (
+                  <Input 
+                    value={customSegment} 
+                    onChange={(e) => {
+                      setCustomSegment(e.target.value);
+                      setForm(f => ({ ...f, segment: e.target.value }));
+                    }}
+                    placeholder="Especifique o segmento..."
+                    className="h-10 mt-2"
+                    required
+                  />
+                )}
               </div>
 
               <div className="space-y-2">
