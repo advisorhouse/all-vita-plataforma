@@ -250,7 +250,7 @@ serve(async (req) => {
         const { data: authUser, error: signupError } = await adminClient.auth.admin.createUser({
           email,
           password: tempPassword,
-          email_confirm: false, // Do NOT auto-confirm email, so user shows as 'pending' until they login
+          email_confirm: true, // Auto-confirm email so user can login immediately with temp password
           user_metadata: {
             first_name: full_name.split(" ")[0],
             last_name: full_name.split(" ").slice(1).join(" "),
@@ -264,6 +264,11 @@ serve(async (req) => {
             const existing = existingUsers?.users?.find((u: any) => u.email === email);
             if (!existing) return jsonRes(400, { error: "User exists but could not be found" });
             userId = existing.id;
+            
+            // Ensure existing user is confirmed if being re-created/invited
+            await adminClient.auth.admin.updateUserById(userId, { 
+              email_confirm: true 
+            });
           } else {
             return jsonRes(400, { error: signupError.message });
           }
@@ -500,6 +505,7 @@ serve(async (req) => {
         // Update auth user
         const { data: updatedUser, error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
           password: tempPassword,
+          email_confirm: true,
         });
 
         if (updateError) return jsonRes(400, { error: updateError.message });
@@ -570,7 +576,10 @@ serve(async (req) => {
         const tempPassword = generateTempPassword();
 
         // Update auth user
-        await adminClient.auth.admin.updateUserById(userId, { password: tempPassword });
+        await adminClient.auth.admin.updateUserById(userId, { 
+          password: tempPassword,
+          email_confirm: true 
+        });
 
         let tenantName = "All Vita";
         let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
