@@ -458,17 +458,71 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label>Comissão Inicial Padrão (%)</Label><Input type="number" defaultValue="10" /></div>
-                  <div className="space-y-2"><Label>Comissão Recorrente Padrão (%)</Label><Input type="number" defaultValue="5" /></div>
-                  <div className="space-y-2"><Label>Níveis de Parceiro Padrão</Label><Input type="number" defaultValue="4" /></div>
-                  <div className="space-y-2"><Label>Multiplicador Vitacoins Padrão</Label><Input type="number" defaultValue="1.0" step="0.1" /></div>
+                  <div className="space-y-2">
+                    <Label>Comissão Inicial Padrão (%)</Label>
+                    <Input 
+                      type="number" 
+                      value={defaults?.initial_commission_percent || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, initial_commission_percent: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Comissão Recorrente Padrão (%)</Label>
+                    <Input 
+                      type="number" 
+                      value={defaults?.recurring_commission_percent || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, recurring_commission_percent: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Níveis de Parceiro Padrão</Label>
+                    <Input 
+                      type="number" 
+                      value={defaults?.default_partner_levels || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, default_partner_levels: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Multiplicador Vitacoins Padrão</Label>
+                    <Input 
+                      type="number" 
+                      step="0.1" 
+                      value={defaults?.vitacoin_multiplier || ""} 
+                      onChange={(e) => setDefaults({ ...defaults, vitacoin_multiplier: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
                 </div>
                 <Separator />
-                <SwitchRow title="Ativar gamificação por padrão" desc="Novas empresas já iniciam com sistema de pontos" checked />
-                <SwitchRow title="Ativar Vitacoins por padrão" desc="Sistema de moedas virtuais habilitado" checked />
-                <SwitchRow title="Permitir branding customizado" desc="Tenants podem personalizar logo e cores" checked />
-                <SwitchRow title='Exibir "Powered by All Vita"' desc="Mostra marca d'água nos portais dos tenants" />
-                <SwitchRow title="Domínio personalizado" desc="Tenants podem usar domínio próprio" checked />
+                <SwitchRow 
+                  title="Ativar gamificação por padrão" 
+                  desc="Novas empresas já iniciam com sistema de pontos" 
+                  checked={defaults?.enable_gamification_by_default}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, enable_gamification_by_default: checked })}
+                />
+                <SwitchRow 
+                  title="Ativar Vitacoins por padrão" 
+                  desc="Sistema de moedas virtuais habilitado" 
+                  checked={defaults?.enable_vitacoins_by_default}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, enable_vitacoins_by_default: checked })}
+                />
+                <SwitchRow 
+                  title="Permitir branding customizado" 
+                  desc="Tenants podem personalizar logo e cores" 
+                  checked={defaults?.allow_custom_branding}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, allow_custom_branding: checked })}
+                />
+                <SwitchRow 
+                  title='Exibir "Powered by All Vita"' 
+                  desc="Mostra marca d'água nos portais dos tenants" 
+                  checked={defaults?.show_powered_by}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, show_powered_by: checked })}
+                />
+                <SwitchRow 
+                  title="Domínio personalizado" 
+                  desc="Tenants podem usar domínio próprio" 
+                  checked={defaults?.allow_custom_domain}
+                  onCheckedChange={(checked) => setDefaults({ ...defaults, allow_custom_domain: checked })}
+                />
               </CardContent>
             </Card>
           </motion.div>
