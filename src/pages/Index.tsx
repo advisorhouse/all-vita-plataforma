@@ -19,6 +19,7 @@ const Index = () => {
   const [searchParams] = useSearchParams();
   const tenantParam = searchParams.get("tenant");
 
+  // Wait for both auth and tenant/memberships/staff status to load
   if (authLoading || tenantLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
