@@ -45,7 +45,7 @@ const SignupPage: React.FC = () => {
         return;
       }
       toast.success("Conta criada! Verifique seu email para confirmar.");
-      navigate("/auth/login");
+      navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
     } catch {
       toast.error("Erro ao criar conta");
     } finally {
