@@ -17,7 +17,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   requiredRole
 }) => {
   const { user, loading } = useAuth();
-  const { currentTenant, availableTenants, isSuperAdmin, memberships, isSubdomainAccess } = useTenant();
+  const { currentTenant, availableTenants, isSuperAdmin, platformRole, memberships, isSubdomainAccess } = useTenant();
   const location = useLocation();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
@@ -95,7 +95,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   }
 
   // 1. Super admin protection for /admin
-  if (location.pathname.startsWith("/admin") && !isSuperAdmin) {
+  if (location.pathname.startsWith("/admin") && !isSuperAdmin && !platformRole) {
     return <Navigate to="/core" replace />;
   }
 

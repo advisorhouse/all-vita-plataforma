@@ -1857,6 +1857,39 @@ export type Database = {
           },
         ]
       }
+      staff_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          role: string
+          status: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          status?: string
+          token?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancelled_at: string | null
@@ -2562,6 +2595,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_staff_invitation: {
+        Args: { invitation_token: string }
+        Returns: Json
+      }
       anonymize_user_data: { Args: { _user_id: string }; Returns: undefined }
       belongs_to_tenant: {
         Args: { _tenant_id: string; _user_id: string }
