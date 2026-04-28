@@ -83,7 +83,7 @@ const AdminPermissions: React.FC = () => {
         <CardContent className="p-4 flex items-start gap-3">
           <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
           <p className="text-[13px] text-muted-foreground leading-relaxed">
-            Estas permissões controlam o acesso ao painel <strong>/admin</strong> da All Vita. Para definir o que cada papel pode fazer
+            Estas permissões controlam o acesso ao painel <strong>/admin</strong> da All Vita. Os papéis listados aqui são exatamente os mesmos disponíveis ao convidar staff em <a href="/admin/staff" className="underline font-medium">/admin/staff</a>. Para definir o que cada papel pode fazer
             <em> dentro de um tenant</em>, use a tela de Permissões do Core de cada tenant.
           </p>
         </CardContent>

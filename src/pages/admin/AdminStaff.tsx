@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type StaffRole = "super_admin" | "admin" | "manager" | "staff" | "ops" | "finance" | "support" | "growth";
+type StaffRole = "super_admin" | "admin" | "manager" | "staff";
 
 interface StaffRow {
   id: string;
@@ -72,13 +72,16 @@ const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
   manager: "Manager",
   staff: "Staff",
-  ops: "Operações",
-  finance: "Financeiro",
-  support: "Suporte",
-  growth: "Growth",
 };
 
-const EDITABLE_ROLES: StaffRole[] = ["admin", "manager", "staff", "ops", "finance", "support", "growth"];
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  super_admin: "Acesso total à plataforma. Não editável.",
+  admin: "Gestão completa, exceto exclusões críticas e permissões.",
+  manager: "Leitura ampla e edição moderada.",
+  staff: "Acesso somente leitura.",
+};
+
+const EDITABLE_ROLES: StaffRole[] = ["admin", "manager", "staff"];
 
 const AdminStaff: React.FC = () => {
   const [rows, setRows] = useState<StaffRow[]>([]);
@@ -314,7 +317,10 @@ const AdminStaff: React.FC = () => {
                     <SelectContent>
                       {EDITABLE_ROLES.map((role) => (
                         <SelectItem key={role} value={role}>
-                          {ROLE_LABELS[role]}
+                          <div className="flex flex-col">
+                            <span className="font-medium">{ROLE_LABELS[role]}</span>
+                            <span className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
