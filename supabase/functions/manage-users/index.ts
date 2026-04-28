@@ -198,11 +198,15 @@ serve(async (req) => {
 
         // Send welcome email
         try {
-          const { data: tenant } = await adminClient
-            .from("tenants")
-            .select("name, trade_name, slug")
-            .eq("id", tenantId)
-            .single();
+          let tenantName = "a plataforma";
+          if (targetTenantId) {
+            const { data: tenant } = await adminClient
+              .from("tenants")
+              .select("name, trade_name")
+              .eq("id", targetTenantId)
+              .single();
+            tenantName = tenant?.trade_name || tenant?.name || "a plataforma";
+          }
 
           await fetch(`${supabaseUrl}/functions/v1/send-email`, {
             method: "POST",
