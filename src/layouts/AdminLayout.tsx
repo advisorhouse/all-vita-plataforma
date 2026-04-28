@@ -1,12 +1,14 @@
 import React from "react";
 import AppShell from "@/components/layout/AppShell";
-import { Home, Building2, Users, FileText, ShieldCheck, Settings, DollarSign, Coins, Plug, BarChart3 } from "lucide-react";
+import { Home, Building2, Users, FileText, ShieldCheck, Settings, DollarSign, Coins, Plug, BarChart3, UserCog, KeyRound } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 const adminLinks = [
   { label: "Visão Geral", href: "/admin", icon: Home },
   { label: "Empresas", href: "/admin/tenants", icon: Building2 },
   { label: "Usuários", href: "/admin/users", icon: Users },
+  { label: "Staff All Vita", href: "/admin/staff", icon: UserCog },
+  { label: "Permissões", href: "/admin/permissions", icon: KeyRound },
   { label: "Financeiro", href: "/admin/finance", icon: DollarSign },
   { label: "Monetização", href: "/admin/monetization", icon: Coins },
   { label: "Vitacoins", href: "/admin/vitacoins", icon: Coins },
