@@ -25,10 +25,12 @@ export interface Membership {
 
 interface TenantContextValue {
   currentTenant: Tenant | null;
+  isLoading: boolean;
   memberships: Membership[];
   activeMembership: Membership | null;
   setCurrentTenant: (tenant: Tenant | null) => void;
   setMemberships: (memberships: Membership[]) => void;
+  setIsLoading: (loading: boolean) => void;
   switchTenant: (tenantId: string) => void;
   isSuperAdmin: boolean;
   userRole: Membership["role"] | null;
