@@ -94,7 +94,7 @@ const AdminSettings: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Image className="h-5 w-5 text-muted-foreground" /> Identidade Visual</CardTitle>
-                <CardDescription>Dados e branding da All Vita</CardDescription>
+                <CardDescription>Dados e branding global da All Vita</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -103,7 +103,60 @@ const AdminSettings: React.FC = () => {
                   <div className="space-y-2"><Label>Email Institucional</Label><Input defaultValue="contato@allvita.com.br" /></div>
                   <div className="space-y-2"><Label>Telefone</Label><Input defaultValue="+55 11 99999-0000" /></div>
                 </div>
+                
                 <Separator />
+                
+                <div className="space-y-6">
+                  <h3 className="text-sm font-semibold">Logos e Iconografia</h3>
+                  <div className="grid md:grid-cols-3 gap-8">
+                    <div className="space-y-3">
+                      <Label className="flex flex-col gap-1">
+                        Logo Principal
+                        <span className="text-[10px] font-normal text-muted-foreground">Fundo transparente · PNG ou SVG</span>
+                      </Label>
+                      <div className="group relative h-24 w-full rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden">
+                        <img src="/logo-allvita.png" alt="Logo" className="h-12 w-auto object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Button size="sm" variant="secondary" className="h-8 gap-2"><Upload className="h-3.5 w-3.5" /> Alterar</Button>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Tamanho ideal: <span className="font-medium text-foreground">400x120px</span></p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="flex flex-col gap-1">
+                        Isotipo (Logotipo compacto)
+                        <span className="text-[10px] font-normal text-muted-foreground">Ícone da marca · PNG ou SVG</span>
+                      </Label>
+                      <div className="group relative h-24 w-24 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden">
+                        <img src="/icon-allvita.png" alt="Icon" className="h-12 w-12 object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Button size="sm" variant="secondary" className="h-7 px-2"><Upload className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Tamanho ideal: <span className="font-medium text-foreground">128x128px</span></p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="flex flex-col gap-1">
+                        Favicon
+                        <span className="text-[10px] font-normal text-muted-foreground">Ícone da aba · ICO ou PNG</span>
+                      </Label>
+                      <div className="group relative h-24 w-24 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all overflow-hidden">
+                        <div className="h-8 w-8 rounded bg-white shadow-sm flex items-center justify-center">
+                           <img src="/favicon.ico" alt="Favicon" className="h-5 w-5" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Button size="sm" variant="secondary" className="h-7 px-2"><Upload className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Tamanho ideal: <span className="font-medium text-foreground">32x32px</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+                
                 <div className="grid md:grid-cols-3 gap-6">
                   {[
                     { label: "Cor Primária", color: "#1A1A1A", desc: "Cor principal da marca, usada em botões e elementos de destaque." },
