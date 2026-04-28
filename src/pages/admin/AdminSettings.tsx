@@ -122,18 +122,40 @@ const AdminSettings: React.FC = () => {
     }
   };
 
-  const toggleTemplate = async (slug: string, active: boolean) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'icon' | 'favicon') => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     try {
-      const { error } = await supabase
-        .from('communication_templates')
-        .update({ active })
-        .eq('slug', slug);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${type}-${Math.random()}.${fileExt}`;
+      const filePath = `branding/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('platform_assets')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('platform_assets')
+        .getPublicUrl(filePath);
+
+      const updatedPlatform = { ...platform };
+      if (type === 'logo') updatedPlatform.logo_url = publicUrl;
+      if (type === 'icon') updatedPlatform.icon_url = publicUrl;
+      if (type === 'favicon') updatedPlatform.favicon_url = publicUrl;
       
-      if (error) throw error;
-      toast.success(`Template ${slug} ${active ? 'ativado' : 'desativado'}`);
+      setPlatform(updatedPlatform);
+      toast.success("Arquivo enviado com sucesso!");
     } catch (error) {
-      console.error("Error toggling template:", error);
-      toast.error("Erro ao atualizar template");
+      console.error("Error uploading file:", error);
+      toast.error("Erro ao fazer upload do arquivo");
+    }
+  };
+
+  const toggleTemplate = async (slug: string, active: boolean) => {
+...
     }
   };
 
