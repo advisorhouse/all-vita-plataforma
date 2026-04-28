@@ -387,6 +387,7 @@ const AdminUsers: React.FC = () => {
         onBlockUser={(id) => blockMutation.mutate(id)}
         onDeleteUser={(id) => deleteMutation.mutate(id)}
         onResetPassword={handleResetPassword}
+        onResendInvite={handleResendInvite}
         auditLogs={auditLogs || []}
         isDeleting={deleteMutation.isPending}
         isBlocking={blockMutation.isPending}
