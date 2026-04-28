@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, FileText, Loader2 } from "lucide-react";
+import logoAllVita from "@/assets/logo-allvita.png";
 
 type Step = "change_password" | "accept_terms" | "complete";
 
 const AdminOnboarding: React.FC = () => {
   const { user } = useAuth();
+  const { currentTenant } = useTenant();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("change_password");
   const [loading, setLoading] = useState(false);
@@ -120,100 +123,143 @@ const AdminOnboarding: React.FC = () => {
     navigate("/core");
   };
 
-  if (step === "change_password") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
+  const renderLogo = () => (
+    <div className="flex justify-center mb-8">
+      <img
+        src={currentTenant?.logo_url || logoAllVita}
+        alt={currentTenant?.trade_name || "All Vita"}
+        className="h-16 w-auto object-contain"
+      />
+    </div>
+  );
+
+  const renderFooter = () => (
+    <footer className="mt-12 pt-8 border-t border-muted text-center text-sm text-muted-foreground w-full max-w-md">
+      <p>© 2026 MAXIMA VITA HUMAN HEALTH LTDA | CNPJ: 60.410.363/0001-27</p>
+      <p className="mt-1 italic">All Vita - A Plataforma de Longevidade e Bem-estar</p>
+    </footer>
+  );
+
+  const renderStepContent = () => {
+    if (step === "change_password") {
+      return (
+        <Card className="w-full max-w-md shadow-xl border-primary/10">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Lock className="h-6 w-6 text-primary" />
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <Lock className="h-6 w-6" />
             </div>
-            <CardTitle>Troca de senha obrigatória</CardTitle>
-            <CardDescription>
-              Para sua segurança, defina uma nova senha para continuar.
+            <CardTitle className="text-2xl font-bold">Primeiro Acesso</CardTitle>
+            <CardDescription className="text-base">
+              Para sua segurança, defina uma nova senha para continuar sua jornada na All Vita.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Nova senha</Label>
-              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 8 caracteres" />
+              <Label className="text-sm font-medium">Nova senha</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 8 caracteres"
+                className="h-11"
+              />
             </div>
             <div className="space-y-2">
-              <Label>Confirmar senha</Label>
-              <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+              <Label className="text-sm font-medium">Confirmar senha</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repita a nova senha"
+                className="h-11"
+              />
             </div>
-            <Button onClick={handleChangePassword} className="w-full" disabled={loading}>
+            <Button onClick={handleChangePassword} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02]" disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Alterar Senha
+              Ativar minha conta
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (step === "accept_terms") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
+    if (step === "accept_terms") {
+      return (
+        <Card className="w-full max-w-md shadow-xl border-primary/10">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <FileText className="h-6 w-6 text-primary" />
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <FileText className="h-6 w-6" />
             </div>
-            <CardTitle>Termos e Condições</CardTitle>
-            <CardDescription>
-              Para continuar, você precisa aceitar os termos de uso e a política de privacidade.
+            <CardTitle className="text-2xl font-bold">Termos e Condições</CardTitle>
+            <CardDescription className="text-base">
+              Precisamos que você leia e aceite nossas diretrizes para garantir a melhor experiência e segurança.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 bg-muted/30 p-4 rounded-lg border border-transparent transition-colors hover:border-primary/20">
                 <Checkbox
                   id="terms"
                   checked={termsAccepted}
                   onCheckedChange={(v) => setTermsAccepted(v === true)}
+                  className="mt-1"
                 />
-                <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-                  Li e aceito os <a href="/terms" target="_blank" className="text-primary underline">Termos de Uso</a> da plataforma All Vita.
+                <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer font-medium">
+                  Li e concordo com os <a href="/terms" target="_blank" className="text-primary underline hover:text-primary/80 transition-colors">Termos de Uso</a> da plataforma All Vita.
                 </label>
               </div>
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 bg-muted/30 p-4 rounded-lg border border-transparent transition-colors hover:border-primary/20">
                 <Checkbox
                   id="privacy"
                   checked={privacyAccepted}
                   onCheckedChange={(v) => setPrivacyAccepted(v === true)}
+                  className="mt-1"
                 />
-                <label htmlFor="privacy" className="text-sm leading-relaxed cursor-pointer">
-                  Li e aceito a <a href="/privacy" target="_blank" className="text-primary underline">Política de Privacidade</a> da plataforma All Vita.
+                <label htmlFor="privacy" className="text-sm leading-relaxed cursor-pointer font-medium">
+                  Estou ciente da <a href="/privacy" target="_blank" className="text-primary underline hover:text-primary/80 transition-colors">Política de Privacidade</a> e autorizo o tratamento de dados.
                 </label>
               </div>
             </div>
-            <Button onClick={handleAcceptTerms} className="w-full" disabled={loading || !termsAccepted || !privacyAccepted}>
+            <Button
+              onClick={handleAcceptTerms}
+              className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02]"
+              disabled={loading || !termsAccepted || !privacyAccepted}
+            >
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Aceitar e Continuar
+              Concluir Onboarding
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+      );
+    }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Shield className="h-6 w-6 text-primary" />
-            </div>
-          <CardTitle>Tudo pronto!</CardTitle>
-          <CardDescription>Seu acesso foi configurado com segurança.</CardDescription>
+    return (
+      <Card className="w-full max-w-md text-center shadow-xl border-primary/10">
+        <CardHeader>
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center text-green-600">
+            <Shield className="h-10 w-10" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Acesso Configurado!</CardTitle>
+          <CardDescription className="text-base">
+            Parabéns! Sua conta foi ativada com sucesso e você já pode acessar todo o ecossistema.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => navigate("/core")} className="w-full">
-            Acessar o Painel
+          <Button onClick={() => navigate("/core")} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
+            Começar Agora
           </Button>
         </CardContent>
       </Card>
+    );
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4 sm:p-8">
+      <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {renderLogo()}
+        {renderStepContent()}
+        {renderFooter()}
+      </div>
     </div>
   );
 };
