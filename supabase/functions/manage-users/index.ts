@@ -159,7 +159,11 @@ serve(async (req) => {
         // Update profile flags
         await adminClient
           .from("profiles")
-          .update({ must_change_password: true, onboarding_completed: false })
+          .update({ 
+            must_change_password: true, 
+            onboarding_completed: false,
+            phone: phone || null 
+          })
           .eq("id", userId);
 
         // Create membership
