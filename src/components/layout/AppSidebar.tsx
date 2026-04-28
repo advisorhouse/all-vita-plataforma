@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LucideIcon, ChevronsLeft, ChevronsRight, Star } from "lucide-react";
 import logoAllVita from "@/assets/logo-allvita.png";
 import iconAllVita from "@/assets/icon-allvita.png";
+import { useTenant } from "@/contexts/TenantContext";
+import { getTenantBrand } from "@/lib/tenant-brand";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -29,6 +31,10 @@ interface AppSidebarProps {
 const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentLabel, header, footer, collapsed, onToggle }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentTenant } = useTenant();
+  const brand = getTenantBrand(currentTenant);
+  const logoUrl = brand.logoUrl;
+  const isotipoUrl = currentTenant?.isotipo_url || iconAllVita;
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -62,9 +68,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
             <AnimatePresence initial={false}>
               {collapsed ? (
                 <motion.img
-                  key="icon"
-                  src={iconAllVita}
-                  alt="All Vita"
+                   key="icon"
+                   src={isotipoUrl}
+                   alt={brand.displayName}
                   className="h-8 w-8 object-contain shrink-0"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -81,7 +87,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
                   transition={{ duration: 0.2 }}
                 >
                   <div className="h-7 w-[118px] shrink-0">
-                    <img src={logoAllVita} alt="All Vita" className="h-7 w-full object-contain object-left" />
+                    <img src={logoUrl} alt={brand.displayName} className="h-7 w-full object-contain object-left" />
                   </div>
                   {subtitle && (
                     <span className="text-caption text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
