@@ -35,7 +35,8 @@ serve(async (req) => {
 
   const url = new URL(req.url);
   const pathParts = url.pathname.split("/").filter(Boolean);
-  const action = pathParts[2] || "";
+  const action = pathParts[pathParts.length - 1] || "";
+
 
   // Check if caller is super admin (global)
   const { data: superAdminCheck } = await adminClient
