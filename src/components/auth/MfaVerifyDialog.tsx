@@ -38,23 +38,31 @@ const MfaVerifyDialog: React.FC<MfaVerifyDialogProps> = ({
 
     setLoading(true);
     try {
-      const { data: challenge, error: challengeErr } =
-        await supabase.auth.mfa.challenge({ factorId });
-      if (challengeErr) throw challengeErr;
-
-      const { error: verifyErr } = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challenge.id,
-        code,
+      // In this app, "factorId" is being passed as the phone number for SMS verification
+      const { error } = await supabase.auth.verifyOtp({
+        phone: factorId,
+        token: code,
+        type: 'sms'
       });
-      if (verifyErr) throw verifyErr;
+      
+      if (error) throw error;
 
       onVerified();
     } catch {
-      toast.error("Código inválido. Tente novamente.");
+      toast.error("Código inválido ou expirado. Tente novamente.");
       setCode("");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ phone: factorId });
+      if (error) throw error;
+      toast.success("Novo código enviado por SMS!");
+    } catch (err: any) {
+      toast.error("Erro ao reenviar: " + err.message);
     }
   };
 
@@ -67,12 +75,12 @@ const MfaVerifyDialog: React.FC<MfaVerifyDialogProps> = ({
           </div>
           <DialogTitle>Verificação em duas etapas</DialogTitle>
           <DialogDescription>
-            Insira o código do seu aplicativo autenticador
+            Insira o código enviado por SMS para seu celular
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleVerify} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="mfa-code">Código</Label>
+            <Label htmlFor="mfa-code">Código SMS</Label>
             <Input
               id="mfa-code"
               type="text"
@@ -90,6 +98,15 @@ const MfaVerifyDialog: React.FC<MfaVerifyDialogProps> = ({
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Verificando..." : "Verificar"}
+          </Button>
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="w-full text-xs"
+            onClick={handleResend}
+          >
+            Não recebeu o código? Reenviar SMS
           </Button>
           <Button
             type="button"

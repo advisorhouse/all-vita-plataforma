@@ -23,8 +23,8 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [showMfa, setShowMfa] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,14 +45,18 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      // Check if MFA is required (only if user has a verified TOTP factor)
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      const verifiedFactor = factors?.totp?.find((f: any) => f.status === "verified");
+      // After login, always request SMS verification for 2FA as requested
+      // We need the user's phone number to send the OTP
+      const { data: userData } = await supabase.auth.getUser();
+      const phone = userData.user?.user_metadata?.phone || userData.user?.phone;
 
-      if (verifiedFactor) {
-        setMfaFactorId(verifiedFactor.id);
-        setShowMfa(true);
-        return;
+      if (phone) {
+        setPhoneNumber(phone);
+        const { error: otpError } = await supabase.auth.signInWithOtp({ phone });
+        if (!otpError) {
+          setShowMfa(true);
+          return;
+        }
       }
 
       await logAccessEvent("login", { method: "password" });
@@ -91,7 +95,7 @@ const LoginPage: React.FC = () => {
     <>
       <MfaVerifyDialog
         open={showMfa}
-        factorId={mfaFactorId || ""}
+        factorId={phoneNumber || ""}
         onVerified={async () => {
           await logAccessEvent("login", { method: "password", mfa: true });
           navigate(redirectTo || "/");
