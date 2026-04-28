@@ -14,6 +14,7 @@ interface TenantFormData {
   trade_name: string;
   slug: string;
   cnpj: string;
+  segment: string;
   primary_color: string;
   secondary_color: string;
   owner_name: string;
@@ -30,7 +31,7 @@ interface TenantFormData {
 }
 
 const emptyForm: TenantFormData = {
-  name: "", trade_name: "", slug: "", cnpj: "",
+  name: "", trade_name: "", slug: "", cnpj: "", segment: "",
   primary_color: "#6366f1", secondary_color: "#8b5cf6",
   owner_name: "", owner_email: "", owner_phone: "", owner_cpf: "",
   address_cep: "", address_street: "", address_number: "",

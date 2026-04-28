@@ -2129,6 +2129,7 @@ export type Database = {
           name: string
           primary_color: string | null
           secondary_color: string | null
+          segment: string | null
           settings: Json | null
           slug: string
           status: string
@@ -2147,6 +2148,7 @@ export type Database = {
           name: string
           primary_color?: string | null
           secondary_color?: string | null
+          segment?: string | null
           settings?: Json | null
           slug: string
           status?: string
@@ -2165,6 +2167,7 @@ export type Database = {
           name?: string
           primary_color?: string | null
           secondary_color?: string | null
+          segment?: string | null
           settings?: Json | null
           slug?: string
           status?: string
