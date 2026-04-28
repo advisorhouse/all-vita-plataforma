@@ -875,7 +875,7 @@ export type Database = {
           created_at: string
           id: string
           role: Database["public"]["Enums"]["app_role"]
-          tenant_id: string | null
+          tenant_id: string
           updated_at: string
           user_id: string
         }
@@ -884,7 +884,7 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
-          tenant_id?: string | null
+          tenant_id: string
           updated_at?: string
           user_id: string
         }
@@ -893,7 +893,7 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string
           user_id?: string
         }
@@ -1740,36 +1740,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      role_permissions: {
-        Row: {
-          action: string
-          allowed: boolean
-          conditions: Json | null
-          created_at: string
-          id: string
-          resource: string
-          role: Database["public"]["Enums"]["app_role"]
-        }
-        Insert: {
-          action: string
-          allowed?: boolean
-          conditions?: Json | null
-          created_at?: string
-          id?: string
-          resource: string
-          role: Database["public"]["Enums"]["app_role"]
-        }
-        Update: {
-          action?: string
-          allowed?: boolean
-          conditions?: Json | null
-          created_at?: string
-          id?: string
-          resource?: string
-          role?: Database["public"]["Enums"]["app_role"]
-        }
-        Relationships: []
       }
       saas_plans: {
         Row: {
