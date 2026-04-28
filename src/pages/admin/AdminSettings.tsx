@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Palette, Shield, Globe, Sliders, Save, Building2, Image, Type, Clock,
   Users, CreditCard, Bell, FileText, Lock, Coins, Percent, Plug, Mail,
-  Scale, Database, Server, Flag, Settings, Upload,
+  Scale, Database, Server, Flag, Settings, Upload, Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import AdminPermissions from "@/components/admin/AdminPermissions";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
