@@ -281,8 +281,28 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Nome Completo *</Label><Input value={form.owner_name} onChange={set("owner_name")} required /></div>
               <div className="space-y-2"><Label>E-mail *</Label><Input type="email" value={form.owner_email} onChange={set("owner_email")} required /></div>
-              <div className="space-y-2"><Label>Telefone</Label><Input value={form.owner_phone} onChange={set("owner_phone")} placeholder="+55 11 99999-9999" /></div>
-              <div className="space-y-2"><Label>CPF</Label><Input value={form.owner_cpf} onChange={set("owner_cpf")} /></div>
+              <div className="space-y-2">
+                <Label>Telefone</Label>
+                <IMaskInput
+                  mask="(00) 00000-0000"
+                  value={form.owner_phone}
+                  unmask={true}
+                  onAccept={(value) => setForm(f => ({ ...f, owner_phone: value }))}
+                  placeholder="(00) 00000-0000"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>CPF</Label>
+                <IMaskInput
+                  mask="000.000.000-00"
+                  value={form.owner_cpf}
+                  unmask={true}
+                  onAccept={(value) => setForm(f => ({ ...f, owner_cpf: value }))}
+                  placeholder="000.000.000-00"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
             </div>
           </div>
 
