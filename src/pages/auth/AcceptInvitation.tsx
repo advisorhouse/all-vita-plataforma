@@ -63,7 +63,7 @@ const AcceptInvitation: React.FC = () => {
     if (!user) {
       // Redirecionar para login, mas salvar o retorno
       const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-      navigate(`/auth?redirect=${returnUrl}`);
+      navigate(`/auth/login?redirect=${returnUrl}`);
       return;
     }
 
