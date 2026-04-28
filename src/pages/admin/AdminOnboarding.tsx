@@ -16,7 +16,7 @@ type Step = "change_password" | "accept_terms" | "complete";
 
 const AdminOnboarding: React.FC = () => {
   const { user } = useAuth();
-  const { currentTenant } = useTenant();
+  const { currentTenant, isLoading } = useTenant();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("change_password");
   const [loading, setLoading] = useState(false);
@@ -244,6 +244,7 @@ const AdminOnboarding: React.FC = () => {
         <OnboardingHeader 
           logoUrl={currentTenant?.logo_url} 
           tradeName={currentTenant?.trade_name} 
+          loading={isLoading}
         />
         {renderStepContent()}
         <OnboardingFooter tenantName={currentTenant?.trade_name} />

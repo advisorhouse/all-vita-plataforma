@@ -65,7 +65,7 @@ const PartnerOnboarding: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tenantParam = searchParams.get("tenant");
-  const { currentTenant } = useTenant();
+  const { currentTenant, isLoading } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<DoctorFormData>(defaultData);
@@ -195,6 +195,14 @@ const PartnerOnboarding: React.FC = () => {
   // ═══════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <div className="w-full max-w-lg mx-auto px-6 pt-12">
+        <OnboardingHeader 
+          logoUrl={currentTenant?.logo_url} 
+          tradeName={currentTenant?.trade_name} 
+          loading={isLoading}
+        />
+      </div>
+
       {/* Progress bar */}
       {showProgress && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm">
@@ -235,7 +243,7 @@ const PartnerOnboarding: React.FC = () => {
       )}
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <div className="flex-1 flex items-start justify-center px-6 py-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={screen}
@@ -254,69 +262,63 @@ const PartnerOnboarding: React.FC = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
+                  className="space-y-12"
                 >
-                  <OnboardingHeader 
-                    logoUrl={currentTenant?.logo_url} 
-                    tradeName={currentTenant?.trade_name} 
-                  />
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
-                  className="space-y-3"
-                >
-                  <h1 className="text-[2rem] leading-[1.15] font-semibold tracking-tight text-foreground">
-                    Cadastro de
-                    <br />
-                    Profissional Parceiro.
-                  </h1>
-                  <p className="text-muted-foreground text-base font-light">
-                    Vincule seus pacientes e acumule Vitacoins a cada jornada acompanhada.
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  className="flex justify-center gap-8 sm:gap-10"
-                >
-                  {[
-                    { icon: Link2, label: "Vínculo automático via quiz pré-consulta." },
-                    { icon: Coins, label: "Pontos por vendas, quizzes e indicações." },
-                    { icon: Gift, label: "Resgate: Pix, produtos, cursos e mais." },
-                  ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex flex-col items-center gap-3 max-w-[100px]">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
-                        <Icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
-                      </div>
-                      <span className="text-[11px] text-muted-foreground font-medium leading-snug text-center">
-                        {label}
-                      </span>
-                    </div>
-                  ))}
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                  className="space-y-2 pt-2"
-                >
-                  <ContinueButton onClick={() => goTo("brand")} label="Iniciar cadastro" />
-                  <p className="text-[11px] text-muted-foreground/40 pt-1">Leva menos de 5 minutos.</p>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate("/partner")}
-                    className="w-full h-10 text-muted-foreground text-sm font-normal rounded-xl"
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.6 }}
+                    className="space-y-3"
                   >
-                    Já tenho cadastro
-                  </Button>
-                </motion.div>
+                    <h1 className="text-[2rem] leading-[1.15] font-semibold tracking-tight text-foreground">
+                      Cadastro de
+                      <br />
+                      Profissional Parceiro.
+                    </h1>
+                    <p className="text-muted-foreground text-base font-light">
+                      Vincule seus pacientes e acumule Vitacoins a cada jornada acompanhada.
+                    </p>
+                  </motion.div>
 
-                <OnboardingFooter tenantName={currentTenant?.trade_name} />
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.6 }}
+                    className="flex justify-center gap-8 sm:gap-10"
+                  >
+                    {[
+                      { icon: Link2, label: "Vínculo automático via quiz pré-consulta." },
+                      { icon: Coins, label: "Pontos por vendas, quizzes e indicações." },
+                      { icon: Gift, label: "Resgate: Pix, produtos, cursos e mais." },
+                    ].map(({ icon: Icon, label }) => (
+                      <div key={label} className="flex flex-col items-center gap-3 max-w-[100px]">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
+                          <Icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+                        </div>
+                        <span className="text-[11px] text-muted-foreground font-medium leading-snug text-center">
+                          {label}
+                        </span>
+                      </div>
+                    ))}
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.6 }}
+                    className="space-y-2 pt-2"
+                  >
+                    <ContinueButton onClick={() => goTo("brand")} label="Iniciar cadastro" />
+                    <p className="text-[11px] text-muted-foreground/40 pt-1">Leva menos de 5 minutos.</p>
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate("/partner")}
+                      className="w-full h-10 text-muted-foreground text-sm font-normal rounded-xl"
+                    >
+                      Já tenho cadastro
+                    </Button>
+                  </motion.div>
+                </motion.div>
               </div>
             )}
 
@@ -375,7 +377,6 @@ const PartnerOnboarding: React.FC = () => {
                 </div>
 
                 <ContinueButton onClick={() => goTo("points")} />
-                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
@@ -825,6 +826,9 @@ const PartnerOnboarding: React.FC = () => {
             )}
           </motion.div>
         </AnimatePresence>
+      </div>
+      <div className="w-full max-w-lg mx-auto px-6 pb-12 flex justify-center">
+        <OnboardingFooter tenantName={currentTenant?.trade_name} />
       </div>
     </div>
   );

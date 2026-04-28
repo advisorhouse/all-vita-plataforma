@@ -9,15 +9,17 @@ import { useTenant, type Membership, type Tenant } from "@/contexts/TenantContex
  */
 export function useMemberships() {
   const { user } = useAuth();
-  const { setMemberships } = useTenant();
+  const { setMemberships, setIsLoading } = useTenant();
 
   useEffect(() => {
     if (!user) {
       setMemberships([]);
+      setIsLoading(false);
       return;
     }
 
     const fetchMemberships = async () => {
+      setIsLoading(true);
       // Fetch memberships with tenant data
       const { data, error } = await (supabase.from as any)("memberships")
         .select("id, user_id, tenant_id, role, active, tenants:tenant_id (id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings)")
@@ -26,6 +28,7 @@ export function useMemberships() {
 
       if (error) {
         console.error("Error fetching memberships:", error);
+        setIsLoading(false);
         return;
       }
 
@@ -39,8 +42,9 @@ export function useMemberships() {
       }));
 
       setMemberships(memberships);
+      setIsLoading(false);
     };
 
     fetchMemberships();
-  }, [user, setMemberships]);
+  }, [user, setMemberships, setIsLoading]);
 }

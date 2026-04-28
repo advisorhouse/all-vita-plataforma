@@ -42,7 +42,7 @@ const slideVariants = {
 const ActivatePage: React.FC = () => {
   const baseNavigate = useNavigate();
   const { navigate: tenantNavigate, tenantParam } = useTenantNavigation();
-  const { currentTenant } = useTenant();
+  const { currentTenant, isLoading } = useTenant();
   const [step, setStep] = useState<Step>("welcome");
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -161,7 +161,15 @@ const ActivatePage: React.FC = () => {
         </div>
       )}
 
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md mx-auto px-6 pt-12">
+        <OnboardingHeader 
+          logoUrl={currentTenant?.logo_url} 
+          tradeName={currentTenant?.trade_name} 
+          loading={isLoading}
+        />
+      </div>
+
+      <div className="flex-1 flex items-start justify-center px-6 py-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}
@@ -181,10 +189,6 @@ const ActivatePage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <OnboardingHeader 
-                    logoUrl={currentTenant?.logo_url} 
-                    tradeName={currentTenant?.trade_name} 
-                  />
                 </motion.div>
 
                 <motion.div
@@ -259,7 +263,6 @@ const ActivatePage: React.FC = () => {
                   </Button>
                 </motion.div>
 
-                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
@@ -343,7 +346,6 @@ const ActivatePage: React.FC = () => {
                   {!loading && <ArrowRight className="h-5 w-5 ml-2" />}
                 </Button>
 
-                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
@@ -406,11 +408,13 @@ const ActivatePage: React.FC = () => {
                   </Button>
                 </motion.div>
 
-                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
           </motion.div>
         </AnimatePresence>
+      </div>
+      <div className="w-full max-w-md mx-auto px-6 pb-12 flex justify-center">
+        <OnboardingFooter tenantName={currentTenant?.trade_name} />
       </div>
     </div>
   );

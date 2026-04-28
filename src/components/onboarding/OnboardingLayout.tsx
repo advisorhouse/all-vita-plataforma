@@ -13,17 +13,21 @@ export const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
   tradeName, 
   loading 
 }) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center mb-8 relative min-h-[64px] items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-center mb-8 relative min-h-[64px] items-center">
-      {loading ? (
-        <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
-      ) : (
-        <img
-          src={logoUrl || logoAllVita}
-          alt={tradeName || "All Vita"}
-          className="h-16 w-auto object-contain transition-opacity duration-300"
-        />
-      )}
+      <img
+        src={logoUrl || logoAllVita}
+        alt={tradeName || "All Vita"}
+        className="h-16 w-auto object-contain transition-opacity duration-300"
+      />
     </div>
   );
 };

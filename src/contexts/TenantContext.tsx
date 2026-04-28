@@ -25,10 +25,12 @@ export interface Membership {
 
 interface TenantContextValue {
   currentTenant: Tenant | null;
+  isLoading: boolean;
   memberships: Membership[];
   activeMembership: Membership | null;
   setCurrentTenant: (tenant: Tenant | null) => void;
   setMemberships: (memberships: Membership[]) => void;
+  setIsLoading: (loading: boolean) => void;
   switchTenant: (tenantId: string) => void;
   isSuperAdmin: boolean;
   userRole: Membership["role"] | null;
@@ -43,6 +45,7 @@ const TENANT_STORAGE_KEY = "allvita_active_tenant";
 
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTenant, setCurrentTenantState] = useState<Tenant | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [isSubdomainAccess, setIsSubdomainAccess] = useState(false);
 
@@ -109,10 +112,12 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <TenantContext.Provider
       value={{
         currentTenant,
+        isLoading,
         memberships,
         activeMembership,
         setCurrentTenant,
         setMemberships,
+        setIsLoading,
         switchTenant,
         isSuperAdmin,
         userRole,
