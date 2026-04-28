@@ -114,7 +114,7 @@ const App = () => (
 
               {/* Club (Cliente) - Protected */}
               <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />
-              <Route path="/club" element={<AuthGuard><ClubLayout /></AuthGuard>}>
+              <Route path="/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
                 <Route index element={<ClubDashboard />} />
                 <Route path="subscription" element={<ClubSubscription />} />
                 <Route path="orders" element={<ClubOrders />} />
@@ -130,7 +130,7 @@ const App = () => (
               {/* Partner (Afiliado) - Protected */}
               <Route path="/partner/start" element={<AuthGuard><PartnerStart /></AuthGuard>} />
               <Route path="/partner/onboarding" element={<PartnerOnboarding />} />
-              <Route path="/partner" element={<AuthGuard><PartnerLayout /></AuthGuard>}>
+              <Route path="/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
                 <Route index element={<PartnerDashboard />} />
                 <Route path="network" element={<PartnerNetwork />} />
                 <Route path="referrals" element={<PartnerReferrals />} />
@@ -149,7 +149,7 @@ const App = () => (
 
               {/* Core (Admin da empresa) - Protected */}
               <Route path="/core/select-role" element={<AuthGuard><CoreSelectRole /></AuthGuard>} />
-              <Route path="/core" element={<AuthGuard><CoreLayout /></AuthGuard>}>
+              <Route path="/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
                 <Route index element={<CoreDashboard />} />
                 <Route path="customers" element={<CoreCustomers />} />
                 <Route path="partners" element={<CorePartners />} />
@@ -167,7 +167,7 @@ const App = () => (
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
-              <Route path="/admin" element={<AuthGuard requireTenant={false}><AdminLayout /></AuthGuard>}>
+              <Route path="/admin" element={<AuthGuard requireTenant={false} requiredRole="super_admin"><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="tenants" element={<AdminTenants />} />
                 <Route path="tenants/:id" element={<AdminTenantDetail />} />
