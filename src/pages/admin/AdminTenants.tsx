@@ -1,14 +1,16 @@
 import React, { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import TenantKpiCards from "@/components/admin/tenants/TenantKpiCards";
 import TenantFilters from "@/components/admin/tenants/TenantFilters";
 import TenantTable from "@/components/admin/tenants/TenantTable";
 import TenantDrawer from "@/components/admin/tenants/TenantDrawer";
 import CreateTenantDialog from "@/components/admin/tenants/CreateTenantDialog";
+
 
 const AdminTenants: React.FC = () => {
   const navigate = useNavigate();
@@ -20,27 +22,13 @@ const AdminTenants: React.FC = () => {
 
   const deleteTenantMutation = useMutation({
     mutationFn: async (tenantId: string) => {
-      const { data, error } = await supabase.functions.invoke("manage-users", {
-        body: { tenantId },
-        method: "POST",
-        headers: {
-          "X-Tenant-Id": "global", // Just to satisfy any basic header check if needed, but the function handles superadmin
-        },
-      });
-
-      // The action in the body is missing, I should have updated the Switch but I didn't add it to the URL path
-      // Wait, the action is extracted from URL: const action = pathParts[2] || "";
-      // I should call manage-users/delete-tenant
-      
-      const response = await supabase.functions.invoke("manage-users", {
-        body: { tenantId },
-        method: "POST",
-      });
-      // Correct way to call with path in invoke:
-      return supabase.functions.invoke("manage-users/delete-tenant", {
+      const { data, error } = await supabase.functions.invoke("manage-users/delete-tenant", {
         body: { tenantId },
       });
+      if (error) throw error;
+      return data;
     },
+
     onSuccess: () => {
       toast.success("Empresa excluída com sucesso");
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
