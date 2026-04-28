@@ -42,7 +42,7 @@ const slideVariants = {
 const ActivatePage: React.FC = () => {
   const baseNavigate = useNavigate();
   const { navigate: tenantNavigate, tenantParam } = useTenantNavigation();
-  const { currentTenant } = useTenant();
+  const { currentTenant, isLoading } = useTenant();
   const [step, setStep] = useState<Step>("welcome");
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
