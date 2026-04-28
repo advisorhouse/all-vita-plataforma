@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, XCircle, Mail, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logoAllVita from "@/assets/logo-allvita.png";
 
 const AcceptInvitation: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -116,9 +117,13 @@ const AcceptInvitation: React.FC = () => {
           </>
         ) : (
           <>
-            <CardHeader className="text-center space-y-2">
-              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <ShieldCheck className="h-6 w-6 text-primary" />
+            <CardHeader className="text-center space-y-4">
+              <div className="flex justify-center mb-2">
+                <img
+                  src={logoAllVita}
+                  alt="All Vita"
+                  className="h-10 w-auto"
+                />
               </div>
               <CardTitle className="text-xl">Convite de Staff</CardTitle>
               <CardDescription>
