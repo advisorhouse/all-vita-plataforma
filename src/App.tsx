@@ -23,6 +23,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
 
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
@@ -113,6 +114,7 @@ const App = () => (
 
               {/* Auth routes */}
               <Route path="/auth/login" element={<LoginPage />} />
+              <Route path="/auth/signup" element={<SignupPage />} />
               
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
