@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Bell, Settings, Check, CheckCheck, ExternalLink } from "lucide-react";
+import { Bell, User, Check, CheckCheck, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -33,13 +33,13 @@ const TopBarActions: React.FC = () => {
   const isAdmin = location.pathname.startsWith("/admin");
   const isCore = location.pathname.startsWith("/core");
   const isClub = location.pathname.startsWith("/club");
-  const settingsPath = isAdmin
-    ? "/admin/settings"
+  const profilePath = isAdmin
+    ? "/admin/profile"
     : isCore
-    ? "/core/settings"
+    ? "/core/profile"
     : isClub
-    ? "/club/settings"
-    : "/partner/settings";
+    ? "/club/profile"
+    : "/partner/profile";
 
   const handleNotificationClick = (n: { id: string; read: boolean; action_url: string | null }) => {
     if (!n.read) markAsRead(n.id);
@@ -140,17 +140,17 @@ const TopBarActions: React.FC = () => {
         </PopoverContent>
       </Popover>
 
-      {/* Settings */}
+      {/* Profile */}
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            onClick={() => navigate(settingsPath)}
+            onClick={() => navigate(profilePath)}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-sm"
           >
-            <Settings className="h-4 w-4 text-foreground" />
+            <User className="h-4 w-4 text-foreground" />
           </button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-[11px]">Configurações</TooltipContent>
+        <TooltipContent side="bottom" className="text-[11px]">Meu Perfil</TooltipContent>
       </Tooltip>
     </div>
   );

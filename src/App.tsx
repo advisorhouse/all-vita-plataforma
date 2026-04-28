@@ -80,6 +80,7 @@ import AdminVitacoins from "./pages/admin/AdminVitacoins";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminMonetization from "./pages/admin/AdminMonetization";
+import UserProfile from "./pages/UserProfile";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
@@ -125,6 +126,7 @@ const App = () => (
                 <Route path="support" element={<ClubSupport />} />
                 <Route path="settings" element={<ClubSettings />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Partner (Afiliado) - Protected */}
@@ -145,6 +147,7 @@ const App = () => (
                 <Route path="support" element={<PartnerSupport />} />
                 <Route path="settings" element={<PartnerSettings />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Core (Admin da empresa) - Protected */}
@@ -163,7 +166,8 @@ const App = () => (
                 <Route path="settings" element={<CoreSettings />} />
                 <Route path="users" element={<CoreUsers />} />
                 <Route path="integrations" element={<CoreIntegrations />} />
-                <Route path="notifications" element={<NotificationsPage />} />
+                 <Route path="notifications" element={<NotificationsPage />} />
+                 <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
@@ -181,6 +185,7 @@ const App = () => (
                 <Route path="monetization" element={<AdminMonetization />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Onboarding */}
