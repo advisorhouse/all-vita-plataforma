@@ -24,6 +24,7 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [form, setForm] = useState({
     full_name: "", email: "", phone: "",
     user_type: "tenant" as "staff" | "tenant",
