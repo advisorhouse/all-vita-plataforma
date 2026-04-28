@@ -16,7 +16,7 @@ type Step = "change_password" | "accept_terms" | "complete";
 
 const AdminOnboarding: React.FC = () => {
   const { user } = useAuth();
-  const { currentTenant, isLoading } = useTenant();
+  const { currentTenant, isLoading, isSuperAdmin } = useTenant();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("change_password");
   const [loading, setLoading] = useState(false);
@@ -43,7 +43,7 @@ const AdminOnboarding: React.FC = () => {
       .single();
 
     if (profile?.onboarding_completed) {
-      navigate("/core");
+      navigate(isSuperAdmin ? "/admin" : "/core");
       return;
     }
     if (!profile?.must_change_password) {
@@ -120,7 +120,7 @@ const AdminOnboarding: React.FC = () => {
     toast.success("Onboarding concluído!");
     setStep("complete");
     setLoading(false);
-    navigate("/core");
+    navigate(isSuperAdmin ? "/admin" : "/core");
   };
 
 // Render logo and footer are now handled by reusable components
@@ -230,7 +230,7 @@ const AdminOnboarding: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => navigate("/core")} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
+          <Button onClick={() => navigate(isSuperAdmin ? "/admin" : "/core")} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
             Começar Agora
           </Button>
         </CardContent>
