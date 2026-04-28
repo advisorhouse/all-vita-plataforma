@@ -132,7 +132,10 @@ const SignupPage: React.FC = () => {
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Já tem conta?{" "}
-              <Link to="/auth/login" className="text-foreground font-medium hover:underline">
+              <Link 
+                to={`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} 
+                className="text-foreground font-medium hover:underline"
+              >
                 Entrar
               </Link>
             </p>
