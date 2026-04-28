@@ -1,15 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Building2, Eye, Pencil, Ban, BarChart3, MoreVertical, Globe, Settings } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Building2, Eye, Pencil, Ban, BarChart3, MoreVertical, Globe, Settings, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import DeleteTenantDialog from "./DeleteTenantDialog";
 
 interface TenantTableProps {
   tenants: any[];
   tenantMetrics: Record<string, { clients: number; partners: number; revenue: number }>;
   onViewTenant: (tenant: any) => void;
+  onDeleteTenant?: (tenantId: string) => Promise<void>;
+  isDeleting?: string | null;
 }
 
 function formatCnpj(cnpj: string): string {
@@ -18,8 +21,10 @@ function formatCnpj(cnpj: string): string {
   return clean.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 }
 
-const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant }) => {
+const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant, onDeleteTenant, isDeleting }) => {
   const navigate = useNavigate();
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+
   const isActive = (t: any) => t.status === "active" || t.active !== false;
 
   if (tenants.length === 0) {
@@ -98,7 +103,7 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled={!!isDeleting}>
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -118,6 +123,17 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                       <DropdownMenuItem className="text-destructive" onClick={() => navigate(`/admin/tenants/${t.id}?suspend=true`)}>
                         <Ban className="h-4 w-4 mr-2" /> {active ? "Suspender" : "Reativar"}
                       </DropdownMenuItem>
+                      {onDeleteTenant && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-destructive font-medium" 
+                            onClick={() => setConfirmDelete(t)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir permanentemente
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -126,7 +142,23 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
           })}
         </TableBody>
       </Table>
+
+      {confirmDelete && (
+        <DeleteTenantDialog
+          open={!!confirmDelete}
+          onOpenChange={(open) => !open && setConfirmDelete(null)}
+          tenantName={confirmDelete.trade_name || confirmDelete.name}
+          isDeleting={isDeleting === confirmDelete.id}
+          onConfirm={async () => {
+            if (onDeleteTenant) {
+              await onDeleteTenant(confirmDelete.id);
+              setConfirmDelete(null);
+            }
+          }}
+        />
+      )}
     </div>
+
   );
 };
 
