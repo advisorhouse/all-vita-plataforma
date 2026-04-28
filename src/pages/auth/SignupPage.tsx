@@ -16,7 +16,7 @@ const SignupPage: React.FC = () => {
   const redirectTo = searchParams.get("redirect");
   
   // State for different steps
-  const [step, setStep] = useState<"signup" | "mfa-setup">("signup");
+  const [step, setStep] = useState<"signup" | "phone-verify">("signup");
   
   // Form states
   const [checkingToken, setCheckingToken] = useState(!!redirectTo);
@@ -27,13 +27,10 @@ const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // MFA states
-  const [qrCode, setQrCode] = useState<string>("");
-  const [secret, setSecret] = useState<string>("");
-  const [factorId, setFactorId] = useState<string>("");
+  // Phone Verification states
   const [mfaCode, setMfaCode] = useState("");
   const [verifyingMfa, setVerifyingMfa] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [resendingSms, setResendingSms] = useState(false);
 
   // Only allow signup if there is a redirect/invitation token
   React.useEffect(() => {
@@ -124,23 +121,20 @@ const SignupPage: React.FC = () => {
         return;
       }
 
-      // If user is already logged in (no email confirmation needed) or session was created
-      if (data.session) {
-        // Start MFA enrollment immediately
-        const { data: enrollData, error: enrollError } = await supabase.auth.mfa.enroll({
-          factorType: "totp",
-          friendlyName: "All Vita Staff Authenticator",
+      // If user was created, we trigger phone verification (SMS)
+      if (data.user) {
+        // Enviar OTP via SMS usando o número fornecido
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          phone: phone,
         });
 
-        if (enrollError) throw enrollError;
+        if (otpError) throw otpError;
 
-        setQrCode(enrollData.totp.qr_code);
-        setSecret(enrollData.totp.secret);
-        setFactorId(enrollData.id);
-        setStep("mfa-setup");
+        toast.success("Código de verificação enviado por SMS!");
+        setStep("phone-verify");
       } else {
         // This case should be avoided by disabling "Confirm Email" in Supabase
-        toast.info("Verifique seu email para confirmar a conta e configurar o 2FA.");
+        toast.info("Verifique seu email para confirmar a conta.");
         navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
       }
     } catch (err: any) {
@@ -150,7 +144,7 @@ const SignupPage: React.FC = () => {
     }
   };
 
-  const handleVerifyMfa = async (e: React.FormEvent) => {
+  const handleVerifyPhone = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mfaCode.length !== 6) {
       toast.error("Insira o código de 6 dígitos");
@@ -159,18 +153,15 @@ const SignupPage: React.FC = () => {
 
     setVerifyingMfa(true);
     try {
-      const { data: challenge, error: challengeErr } =
-        await supabase.auth.mfa.challenge({ factorId });
-      if (challengeErr) throw challengeErr;
-
-      const { error: verifyErr } = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challenge.id,
-        code: mfaCode,
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: phone,
+        token: mfaCode,
+        type: 'sms'
       });
-      if (verifyErr) throw verifyErr;
 
-      toast.success("Conta criada e 2FA ativado!");
+      if (error) throw error;
+
+      toast.success("Conta verificada com sucesso!");
       
       if (redirectTo) {
         navigate(redirectTo);
@@ -178,17 +169,27 @@ const SignupPage: React.FC = () => {
         navigate("/");
       }
     } catch (err: any) {
-      toast.error("Código inválido. Tente novamente.");
+      toast.error("Código inválido ou expirado. Tente novamente.");
     } finally {
       setVerifyingMfa(false);
     }
   };
 
-  const copySecret = () => {
-    navigator.clipboard.writeText(secret);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleResendSms = async () => {
+    setResendingSms(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phone,
+      });
+      if (error) throw error;
+      toast.success("Novo código enviado por SMS!");
+    } catch (err: any) {
+      toast.error("Erro ao reenviar código: " + err.message);
+    } finally {
+      setResendingSms(false);
+    }
   };
+
 
   if (checkingToken) {
     return (
@@ -311,7 +312,7 @@ const SignupPage: React.FC = () => {
       </motion.div>
     ) : (
       <motion.div
-        key="mfa"
+        key="phone-verify"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -16 }}
@@ -321,54 +322,24 @@ const SignupPage: React.FC = () => {
         <div className="text-center mb-6">
           <ShieldCheck className="h-10 w-10 mx-auto text-primary mb-2" />
           <h1 className="text-2xl font-semibold tracking-tight">
-            Segurança da Conta
+            Verificação por SMS
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Configure seu autenticador 2FA para ativar sua conta
+            Enviamos um código de 6 dígitos para {phone}
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg text-center">Configurar 2FA</CardTitle>
+            <CardTitle className="text-lg text-center">Digite o código</CardTitle>
             <CardDescription className="text-center">
-              Escaneie com seu app (Google Authenticator, Authy, etc.)
+              Confirme sua identidade para ativar sua conta
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {qrCode && (
-              <div className="flex justify-center">
-                <img
-                  src={qrCode}
-                  alt="QR Code"
-                  className="w-48 h-48 rounded-lg border border-border bg-white p-2"
-                />
-              </div>
-            )}
-
-            {secret && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">
-                  Ou chave manual:
-                </Label>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-[10px] bg-muted p-2 rounded font-mono break-all">
-                    {secret}
-                  </code>
-                  <Button size="icon" variant="ghost" onClick={copySecret}>
-                    {copied ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={handleVerifyMfa} className="space-y-4">
+            <form onSubmit={handleVerifyPhone} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="mfa-code">Código de 6 dígitos</Label>
+                <Label htmlFor="mfa-code">Código SMS</Label>
                 <Input
                   id="mfa-code"
                   type="text"
@@ -386,8 +357,21 @@ const SignupPage: React.FC = () => {
               </div>
               <Button type="submit" className="w-full" disabled={verifyingMfa}>
                 {verifyingMfa ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {verifyingMfa ? "Ativando..." : "Ativar e Finalizar"}
+                {verifyingMfa ? "Verificando..." : "Confirmar e Finalizar"}
               </Button>
+              
+              <div className="text-center">
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  size="sm" 
+                  onClick={handleResendSms}
+                  disabled={resendingSms || verifyingMfa}
+                  className="text-xs"
+                >
+                  {resendingSms ? "Enviando..." : "Não recebeu o código? Reenviar SMS"}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
