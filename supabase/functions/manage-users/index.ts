@@ -644,6 +644,95 @@ function generateTempPassword(): string {
   return pw;
 }
 
+function renderEmail(options: {
+  title: string,
+  userName: string,
+  tenantName: string,
+  tenantLogo?: string | null,
+  content: string,
+  ctaText?: string,
+  ctaUrl?: string,
+  footer?: string
+}) {
+  const primaryColor = "#1a1a2e";
+  const accentColor = "#6B8E23";
+  const logoUrl = options.tenantLogo || "https://allvita.com.br/logo.png";
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${options.title}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f6f9fc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
+        <tr>
+          <td align="center" style="padding: 40px 10px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #eef2f6;">
+              <!-- Header -->
+              <tr>
+                <td align="center" style="padding: 50px 40px 40px 40px; border-bottom: 1px solid #f0f4f8;">
+                  <img src="${logoUrl}" alt="${options.tenantName}" style="max-height: 55px; width: auto; display: block; margin-bottom: 25px;">
+                  <h1 style="margin: 0; color: ${primaryColor}; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">${options.title}</h1>
+                </td>
+              </tr>
+              
+              <!-- Content -->
+              <tr>
+                <td style="padding: 45px 45px 35px 45px; color: #334155; font-size: 16px; line-height: 1.7;">
+                  <p style="margin: 0 0 24px 0;">Olá, <strong style="color: ${primaryColor};">${options.userName}</strong>!</p>
+                  
+                  <div style="margin-bottom: 30px;">
+                    ${options.content}
+                  </div>
+
+                  ${options.ctaUrl ? `
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 45px 0 25px 0;">
+                      <tr>
+                        <td align="center">
+                          <a href="${options.ctaUrl}" style="background-color: ${accentColor}; color: #ffffff; padding: 16px 36px; border-radius: 10px; text-decoration: none; font-weight: 700; display: inline-block; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(107, 142, 35, 0.25);">
+                            ${options.ctaText || 'Acessar Plataforma'}
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  ` : ''}
+                  
+                  <p style="margin: 40px 0 0 0; font-size: 14px; color: #64748b; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 30px;">
+                    Dúvidas? Nossa equipe está pronta para ajudar. Basta responder a este e-mail.
+                  </p>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td align="center" style="padding: 35px 45px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 13px;">
+                  <p style="margin: 0 0 12px 0; color: #64748b; font-weight: 700; font-size: 14px;">${options.tenantName}</p>
+                  ${options.footer || `<p style="margin: 0;">Tecnologia <strong style="color: #64748b;">All Vita</strong> — Plataforma de Performance e Bem-Estar</p>`}
+                  <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #cbd5e1;">
+                    Este é um comunicado oficial enviado automaticamente pelo sistema.
+                  </div>
+                </td>
+              </tr>
+            </table>
+            
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin-top: 25px;">
+              <tr>
+                <td align="center" style="color: #94a3b8; font-size: 12px;">
+                  <p style="margin: 0;">© ${new Date().getFullYear()} All Vita. Todos os direitos reservados.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
 function jsonRes(status: number, body: any) {
   return new Response(JSON.stringify(body), {
     status,
