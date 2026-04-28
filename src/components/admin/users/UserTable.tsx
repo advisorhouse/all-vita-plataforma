@@ -129,7 +129,9 @@ const UserTable: React.FC<Props> = ({
                 <TableCell className="text-xs">
                   <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground">{u.email}</span>
-                    {u.emailConfirmedAt ? (
+                    {u.emailConfirmedAt === undefined ? (
+                      <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+                    ) : u.emailConfirmedAt ? (
                       <Badge variant="outline" className="text-[9px] w-fit gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
                         <MailCheck className="h-3 w-3" /> Confirmado
                       </Badge>
