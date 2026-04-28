@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 
 const adminLinks = [
   { label: "Visão Geral", href: "/admin", icon: Home },
-  { label: "Permissões", href: "/admin/permissions", icon: KeyRound },
+  
   { label: "Colaboradores", href: "/admin/staff", icon: UserCog },
   { label: "Empresas", href: "/admin/tenants", icon: Building2 },
   { label: "Usuários", href: "/admin/users", icon: Users },
