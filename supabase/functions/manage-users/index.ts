@@ -264,6 +264,11 @@ serve(async (req) => {
             const existing = existingUsers?.users?.find((u: any) => u.email === email);
             if (!existing) return jsonRes(400, { error: "User exists but could not be found" });
             userId = existing.id;
+            
+            // Ensure existing user is confirmed if being re-created/invited
+            await adminClient.auth.admin.updateUserById(userId, { 
+              email_confirm: true 
+            });
           } else {
             return jsonRes(400, { error: signupError.message });
           }
