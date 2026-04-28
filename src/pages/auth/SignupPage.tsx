@@ -13,6 +13,14 @@ const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
+
+  // Only allow signup if there is a redirect/invitation token
+  React.useEffect(() => {
+    if (!redirectTo) {
+      toast.error("O cadastro só é permitido através de um convite válido.");
+      navigate("/auth/login");
+    }
+  }, [redirectTo, navigate]);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
