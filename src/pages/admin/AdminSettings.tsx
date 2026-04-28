@@ -155,7 +155,17 @@ const AdminSettings: React.FC = () => {
   };
 
   const toggleTemplate = async (slug: string, active: boolean) => {
-...
+    try {
+      const { error } = await supabase
+        .from('communication_templates')
+        .update({ active })
+        .eq('slug', slug);
+      
+      if (error) throw error;
+      toast.success(`Template ${slug} ${active ? 'ativado' : 'desativado'}`);
+    } catch (error) {
+      console.error("Error toggling template:", error);
+      toast.error("Erro ao atualizar template");
     }
   };
 
