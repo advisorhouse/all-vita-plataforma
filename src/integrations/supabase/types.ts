@@ -1859,32 +1859,41 @@ export type Database = {
       }
       staff_invitations: {
         Row: {
+          confirmed_at: string | null
           created_at: string
           email: string
           expires_at: string
           id: string
           invited_by: string | null
+          opened_at: string | null
           role: string
+          sent_at: string | null
           status: string
           token: string
         }
         Insert: {
+          confirmed_at?: string | null
           created_at?: string
           email: string
           expires_at?: string
           id?: string
           invited_by?: string | null
+          opened_at?: string | null
           role?: string
+          sent_at?: string | null
           status?: string
           token?: string
         }
         Update: {
+          confirmed_at?: string | null
           created_at?: string
           email?: string
           expires_at?: string
           id?: string
           invited_by?: string | null
+          opened_at?: string | null
           role?: string
+          sent_at?: string | null
           status?: string
           token?: string
         }
