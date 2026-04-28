@@ -178,6 +178,17 @@ const AdminDashboard: React.FC = () => {
     },
   });
 
+  // Profiles details for greeting
+  const { data: userProfile } = useQuery({
+    queryKey: ["admin-dash-user-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   // Compute KPIs
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.amount), 0) || 0;
   const activeTenants = tenants?.filter((t) => t.active).length || 0;
