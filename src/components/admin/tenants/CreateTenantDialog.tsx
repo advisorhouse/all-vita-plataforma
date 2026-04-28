@@ -50,10 +50,47 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
 
+  const validateCNPJ = (cnpj: string) => {
+    const cleanCnpj = cnpj.replace(/\D/g, "");
+    if (cleanCnpj.length !== 14) return false;
+
+    // Reject known invalid ones
+    if (/^(\d)\1{13}$/.test(cleanCnpj)) return false;
+
+    // Validation logic
+    let size = cleanCnpj.length - 2;
+    let numbers = cleanCnpj.substring(0, size);
+    const digits = cleanCnpj.substring(size);
+    let sum = 0;
+    let pos = size - 7;
+    for (let i = size; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(size - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(0))) return false;
+
+    size = size + 1;
+    numbers = cleanCnpj.substring(0, size);
+    sum = 0;
+    pos = size - 7;
+    for (let i = size; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(size - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(1))) return false;
+
+    return true;
+  };
+
   const fetchCnpjData = async () => {
     const cleanCnpj = form.cnpj.replace(/\D/g, "");
-    if (cleanCnpj.length !== 14) {
-      toast.error("CNPJ inválido", { description: "Digite 14 dígitos para buscar." });
+    
+    if (!validateCNPJ(cleanCnpj)) {
+      toast.error("CNPJ Inválido", { 
+        description: "O número informado não é um CNPJ válido. Verifique os dígitos." 
+      });
       return;
     }
 
