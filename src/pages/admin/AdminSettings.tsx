@@ -200,10 +200,34 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label>Nome da Plataforma</Label><Input defaultValue="All Vita" /></div>
-                  <div className="space-y-2"><Label>URL Principal</Label><Input defaultValue="https://allvita.com.br" /></div>
-                  <div className="space-y-2"><Label>Email Institucional</Label><Input defaultValue="contato@allvita.com.br" /></div>
-                  <div className="space-y-2"><Label>Telefone</Label><Input defaultValue="+55 11 99999-0000" /></div>
+                  <div className="space-y-2">
+                    <Label>Nome da Plataforma</Label>
+                    <Input 
+                      value={platform?.name || ""} 
+                      onChange={(e) => setPlatform({ ...platform, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>URL Principal</Label>
+                    <Input 
+                      value={platform?.url || ""} 
+                      onChange={(e) => setPlatform({ ...platform, url: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email Institucional</Label>
+                    <Input 
+                      value={platform?.email || ""} 
+                      onChange={(e) => setPlatform({ ...platform, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone</Label>
+                    <Input 
+                      value={platform?.phone || ""} 
+                      onChange={(e) => setPlatform({ ...platform, phone: e.target.value })}
+                    />
+                  </div>
                 </div>
                 
                 <Separator />
