@@ -416,6 +416,9 @@ const ActivatePage: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+      <div className="w-full max-w-md mx-auto px-6 pb-12 flex justify-center">
+        <OnboardingFooter tenantName={currentTenant?.trade_name} />
+      </div>
     </div>
   );
 };
