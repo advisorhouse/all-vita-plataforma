@@ -149,7 +149,7 @@ const App = () => (
 
               {/* Core (Admin da empresa) - Protected */}
               <Route path="/core/select-role" element={<AuthGuard><CoreSelectRole /></AuthGuard>} />
-              <Route path="/core" element={<AuthGuard><CoreLayout /></AuthGuard>}>
+              <Route path="/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
                 <Route index element={<CoreDashboard />} />
                 <Route path="customers" element={<CoreCustomers />} />
                 <Route path="partners" element={<CorePartners />} />
