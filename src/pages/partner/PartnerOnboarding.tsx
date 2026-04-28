@@ -195,6 +195,14 @@ const PartnerOnboarding: React.FC = () => {
   // ═══════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <div className="w-full max-w-lg mx-auto px-6 pt-12">
+        <OnboardingHeader 
+          logoUrl={currentTenant?.logo_url} 
+          tradeName={currentTenant?.trade_name} 
+          loading={isLoading}
+        />
+      </div>
+
       {/* Progress bar */}
       {showProgress && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm">
@@ -235,7 +243,7 @@ const PartnerOnboarding: React.FC = () => {
       )}
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <div className="flex-1 flex items-start justify-center px-6 py-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={screen}
