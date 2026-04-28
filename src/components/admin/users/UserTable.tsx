@@ -45,6 +45,20 @@ const TYPE_LABELS: Record<string, string> = {
   unknown: "—",
 };
 
+// Hierarchy ranking — used to pick the "primary" role to display in the Nível column
+const ROLE_RANK: Record<string, number> = {
+  super_admin: 5, admin: 4, manager: 3, partner: 2, client: 1,
+};
+
+function getPrimaryRole(roles: { role: string }[], userType: string): string | null {
+  if (userType === "staff" && !roles.some((r) => r.role === "super_admin")) {
+    // Staff All Vita without explicit super_admin membership — show Admin
+    return "admin";
+  }
+  if (!roles.length) return null;
+  return [...roles].sort((a, b) => (ROLE_RANK[b.role] || 0) - (ROLE_RANK[a.role] || 0))[0].role;
+}
+
 interface Props {
   users: UserRow[];
   page: number;
