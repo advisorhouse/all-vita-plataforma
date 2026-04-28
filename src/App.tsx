@@ -21,7 +21,7 @@ import PublicQuizPage from "./pages/quiz/PublicQuizPage";
 import TermsOfUse from "./pages/TermsOfUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
-import AcceptInvitation from "./pages/AcceptInvitation";
+import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import LoginPage from "./pages/auth/LoginPage";
 
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -109,7 +109,7 @@ const App = () => (
               <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/accept-invitation" element={<AcceptInvitation />} />
+              <Route path="/auth/accept-invitation" element={<AcceptInvitation />} />
 
               {/* Auth routes */}
               <Route path="/auth/login" element={<LoginPage />} />

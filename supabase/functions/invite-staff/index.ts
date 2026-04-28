@@ -72,7 +72,7 @@ serve(async (req) => {
 
     // 3. Enviar e-mail
     const APP_URL = appUrl || Deno.env.get("PUBLIC_APP_URL") || "https://app.allvita.com.br";
-    const inviteLink = `${APP_URL}/accept-invitation?token=${invitation.token}`;
+    const inviteLink = `${APP_URL}/auth/accept-invitation?token=${invitation.token}`;
 
     const emailResponse = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email`, {
       method: "POST",
