@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import AppBootstrap from "@/components/tenant/AppBootstrap";
 import AuthGuard from "@/components/auth/AuthGuard";
 
