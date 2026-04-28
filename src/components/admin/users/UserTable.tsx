@@ -87,7 +87,7 @@ const UserTable: React.FC<Props> = ({
           <TableHeader>
             <TableRow>
               <TableHead>Usuário</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>E-mail / Convite</TableHead>
               <TableHead>Nível</TableHead>
               <TableHead>Classificação</TableHead>
               <TableHead>Vínculo / Empresa</TableHead>
