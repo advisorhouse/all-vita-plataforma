@@ -32,7 +32,7 @@ const SignupPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -40,12 +40,24 @@ const SignupPage: React.FC = () => {
           data: { full_name: fullName },
         },
       });
+      
       if (error) {
         toast.error(error.message);
         return;
       }
-      toast.success("Conta criada! Verifique seu email para confirmar.");
-      navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
+
+      // If user is already logged in (no email confirmation needed) or session was created
+      if (data.session) {
+        toast.success("Conta criada com sucesso!");
+        if (redirectTo) {
+          navigate(redirectTo);
+        } else {
+          navigate("/");
+        }
+      } else {
+        toast.success("Conta criada! Verifique seu email para confirmar.");
+        navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
+      }
     } catch {
       toast.error("Erro ao criar conta");
     } finally {
