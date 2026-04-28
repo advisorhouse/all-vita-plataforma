@@ -14,12 +14,12 @@ const slugToName = (slug: string) =>
     .join(" ");
 
 const Index = () => {
-  const { user, loading } = useAuth();
-  const { isSuperAdmin, memberships, currentTenant, userRole, availableTenants } = useTenant();
+  const { user, loading: authLoading } = useAuth();
+  const { isSuperAdmin, memberships, currentTenant, userRole, availableTenants, isLoading: tenantLoading } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantParam = searchParams.get("tenant");
 
-  if (loading) {
+  if (authLoading || tenantLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground" />
