@@ -1,77 +1,20 @@
 import { useMemo, useCallback } from "react";
 import { useTenant } from "@/contexts/TenantContext";
+import { usePermissionsContext } from "@/contexts/PermissionsContext";
 
-type Resource = "tenants" | "memberships" | "clients" | "partners" | "content" | "commissions" | "gamification" | "referrals";
+type Resource = "tenants" | "memberships" | "clients" | "partners" | "content" | "commissions" | "gamification" | "referrals" | "permissions" | "financials" | "staff" | "audit" | "vitacoins";
 type Action = "read" | "create" | "update" | "delete";
-
-/**
- * Permission matrix defining what each role can do.
- * Mirrors the role_permissions table in the database.
- * Frontend uses this for UI gating; actual enforcement is via RLS.
- */
-const PERMISSION_MATRIX: Record<string, Record<Resource, Record<Action, boolean>>> = {
-  super_admin: {
-    tenants:      { read: true, create: true, update: true, delete: true },
-    memberships:  { read: true, create: true, update: true, delete: true },
-    clients:      { read: true, create: true, update: true, delete: true },
-    partners:     { read: true, create: true, update: true, delete: true },
-    content:      { read: true, create: true, update: true, delete: true },
-    commissions:  { read: true, create: true, update: true, delete: true },
-    gamification: { read: true, create: true, update: true, delete: true },
-    referrals:    { read: true, create: true, update: true, delete: true },
-  },
-  admin: {
-    tenants:      { read: false, create: false, update: false, delete: false },
-    memberships:  { read: true, create: true, update: true, delete: true },
-    clients:      { read: true, create: true, update: true, delete: true },
-    partners:     { read: true, create: true, update: true, delete: true },
-    content:      { read: true, create: true, update: true, delete: true },
-    commissions:  { read: true, create: true, update: true, delete: true },
-    gamification: { read: true, create: true, update: true, delete: true },
-    referrals:    { read: true, create: true, update: true, delete: true },
-  },
-  manager: {
-    tenants:      { read: false, create: false, update: false, delete: false },
-    memberships:  { read: true, create: false, update: false, delete: false },
-    clients:      { read: true, create: true, update: true, delete: false },
-    partners:     { read: true, create: false, update: false, delete: false },
-    content:      { read: true, create: true, update: true, delete: false },
-    commissions:  { read: true, create: false, update: false, delete: false },
-    gamification: { read: true, create: false, update: false, delete: false },
-    referrals:    { read: true, create: false, update: false, delete: false },
-  },
-  partner: {
-    tenants:      { read: false, create: false, update: false, delete: false },
-    memberships:  { read: false, create: false, update: false, delete: false },
-    clients:      { read: true, create: false, update: false, delete: false },
-    partners:     { read: true, create: false, update: false, delete: false },
-    content:      { read: true, create: false, update: false, delete: false },
-    commissions:  { read: true, create: false, update: false, delete: false },
-    gamification: { read: true, create: false, update: false, delete: false },
-    referrals:    { read: true, create: true, update: false, delete: false },
-  },
-  client: {
-    tenants:      { read: false, create: false, update: false, delete: false },
-    memberships:  { read: false, create: false, update: false, delete: false },
-    clients:      { read: true, create: false, update: true, delete: false },
-    partners:     { read: false, create: false, update: false, delete: false },
-    content:      { read: true, create: false, update: false, delete: false },
-    commissions:  { read: false, create: false, update: false, delete: false },
-    gamification: { read: true, create: false, update: false, delete: false },
-    referrals:    { read: false, create: false, update: false, delete: false },
-  },
-};
 
 export function usePermissions() {
   const { userRole, isSuperAdmin, currentTenant } = useTenant();
+  const { can: contextCan, isLoading } = usePermissionsContext();
 
   const can = useCallback(
     (action: Action, resource: Resource): boolean => {
-      if (isSuperAdmin) return true;
-      if (!userRole) return false;
-      return PERMISSION_MATRIX[userRole]?.[resource]?.[action] ?? false;
+      // Use the context-provided RBAC logic (data-driven)
+      return contextCan(action, resource);
     },
-    [userRole, isSuperAdmin]
+    [contextCan]
   );
 
   const canRead = useCallback((resource: Resource) => can("read", resource), [can]);
@@ -88,9 +31,10 @@ export function usePermissions() {
       canDelete,
       role: userRole,
       isSuperAdmin,
+      isLoading,
       hasTenant: !!currentTenant,
     }),
-    [can, canRead, canCreate, canUpdate, canDelete, userRole, isSuperAdmin, currentTenant]
+    [can, canRead, canCreate, canUpdate, canDelete, userRole, isSuperAdmin, currentTenant, isLoading]
   );
 
   return permissions;
