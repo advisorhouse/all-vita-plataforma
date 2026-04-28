@@ -326,6 +326,50 @@ serve(async (req) => {
         return jsonRes(200, { success: true, message: "Usuário excluído com sucesso." });
       }
 
+      case "delete-tenant": {
+        const body = await req.json();
+        const { tenantId: targetTenantId } = body;
+
+        if (!isSuperAdmin) {
+          return jsonRes(403, { error: "Apenas Super Administradores podem excluir empresas." });
+        }
+
+        if (!targetTenantId) return jsonRes(400, { error: "tenantId é obrigatório" });
+
+        // 1. Clean up related data for this tenant
+        // This is a cascade simulation if not defined in DB
+        await adminClient.from("memberships").delete().eq("tenant_id", targetTenantId);
+        await adminClient.from("tenant_staff").delete().eq("tenant_id", targetTenantId);
+        await adminClient.from("clients").delete().eq("tenant_id", targetTenantId);
+        await adminClient.from("partners").delete().eq("tenant_id", targetTenantId);
+        await adminClient.from("orders").delete().eq("tenant_id", targetTenantId);
+        await adminClient.from("subscriptions").delete().eq("tenant_id", targetTenantId);
+        
+        // Audit log
+        await adminClient.from("audit_logs").insert({
+          user_id: callerUserId,
+          actor_type: "super_admin",
+          action: "tenant_deleted",
+          entity_type: "tenant",
+          entity_id: targetTenantId,
+          details: {
+            deleted_at: new Date().toISOString(),
+          },
+        });
+
+        // 2. Delete the tenant itself
+        const { error: tenantDeleteError } = await adminClient
+          .from("tenants")
+          .delete()
+          .eq("id", targetTenantId);
+
+        if (tenantDeleteError) {
+          return jsonRes(500, { error: `Falha ao excluir empresa: ${tenantDeleteError.message}` });
+        }
+
+        return jsonRes(200, { success: true, message: "Empresa excluída com sucesso." });
+      }
+
       default:
         return jsonRes(404, { error: `Ação desconhecida: ${action}` });
     }
