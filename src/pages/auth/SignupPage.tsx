@@ -4,16 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone, ShieldCheck, Copy, CheckCircle2 } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
+  
+  // State for different steps
+  const [step, setStep] = useState<"signup" | "mfa-setup">("signup");
+  
+  // Form states
   const [checkingToken, setCheckingToken] = useState(!!redirectTo);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,6 +26,14 @@ const SignupPage: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // MFA states
+  const [qrCode, setQrCode] = useState<string>("");
+  const [secret, setSecret] = useState<string>("");
+  const [factorId, setFactorId] = useState<string>("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [verifyingMfa, setVerifyingMfa] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Only allow signup if there is a redirect/invitation token
   React.useEffect(() => {
@@ -113,21 +126,68 @@ const SignupPage: React.FC = () => {
 
       // If user is already logged in (no email confirmation needed) or session was created
       if (data.session) {
-        toast.success("Conta criada com sucesso!");
-        if (redirectTo) {
-          navigate(redirectTo);
-        } else {
-          navigate("/");
-        }
+        // Start MFA enrollment immediately
+        const { data: enrollData, error: enrollError } = await supabase.auth.mfa.enroll({
+          factorType: "totp",
+          friendlyName: "All Vita Staff Authenticator",
+        });
+
+        if (enrollError) throw enrollError;
+
+        setQrCode(enrollData.totp.qr_code);
+        setSecret(enrollData.totp.secret);
+        setFactorId(enrollData.id);
+        setStep("mfa-setup");
       } else {
-        toast.success("Conta criada! Verifique seu email para confirmar.");
+        // This case should be avoided by disabling "Confirm Email" in Supabase
+        toast.info("Verifique seu email para confirmar a conta e configurar o 2FA.");
         navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
       }
-    } catch {
-      toast.error("Erro ao criar conta");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar conta");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mfaCode.length !== 6) {
+      toast.error("Insira o código de 6 dígitos");
+      return;
+    }
+
+    setVerifyingMfa(true);
+    try {
+      const { data: challenge, error: challengeErr } =
+        await supabase.auth.mfa.challenge({ factorId });
+      if (challengeErr) throw challengeErr;
+
+      const { error: verifyErr } = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challenge.id,
+        code: mfaCode,
+      });
+      if (verifyErr) throw verifyErr;
+
+      toast.success("Conta criada e 2FA ativado!");
+      
+      if (redirectTo) {
+        navigate(redirectTo);
+      } else {
+        navigate("/");
+      }
+    } catch (err: any) {
+      toast.error("Código inválido. Tente novamente.");
+    } finally {
+      setVerifyingMfa(false);
+    }
+  };
+
+  const copySecret = () => {
+    navigator.clipboard.writeText(secret);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (checkingToken) {
@@ -140,18 +200,22 @@ const SignupPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Complete seu cadastro para acessar a All Vita
-          </p>
-        </div>
+      <AnimatePresence mode="wait">
+        {step === "signup" ? (
+          <motion.div
+            key="signup"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-sm"
+          >
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Complete seu cadastro para acessar a All Vita
+              </p>
+            </div>
 
         <Card>
           <CardContent className="pt-6">
@@ -245,8 +309,93 @@ const SignupPage: React.FC = () => {
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
-    </div>
-  );
+    ) : (
+      <motion.div
+        key="mfa"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -16 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-6">
+          <ShieldCheck className="h-10 w-10 mx-auto text-primary mb-2" />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Segurança da Conta
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Configure seu autenticador 2FA para ativar sua conta
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg text-center">Configurar 2FA</CardTitle>
+            <CardDescription className="text-center">
+              Escaneie com seu app (Google Authenticator, Authy, etc.)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {qrCode && (
+              <div className="flex justify-center">
+                <img
+                  src={qrCode}
+                  alt="QR Code"
+                  className="w-48 h-48 rounded-lg border border-border bg-white p-2"
+                />
+              </div>
+            )}
+
+            {secret && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">
+                  Ou chave manual:
+                </Label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-[10px] bg-muted p-2 rounded font-mono break-all">
+                    {secret}
+                  </code>
+                  <Button size="icon" variant="ghost" onClick={copySecret}>
+                    {copied ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleVerifyMfa} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mfa-code">Código de 6 dígitos</Label>
+                <Input
+                  id="mfa-code"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="000000"
+                  className="text-center text-lg tracking-widest"
+                  value={mfaCode}
+                  onChange={(e) =>
+                    setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  autoFocus
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={verifyingMfa}>
+                {verifyingMfa ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {verifyingMfa ? "Ativando..." : "Ativar e Finalizar"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
+);
 };
 
 export default SignupPage;
