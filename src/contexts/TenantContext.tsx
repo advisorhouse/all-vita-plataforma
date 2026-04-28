@@ -34,6 +34,9 @@ interface TenantContextValue {
   switchTenant: (tenantId: string) => void;
   isSuperAdmin: boolean;
   userRole: Membership["role"] | null;
+  platformRole: string | null;
+  setPlatformRole: (role: string | null) => void;
+  setIsSuperAdmin: (is: boolean) => void;
   availableTenants: Tenant[];
   isSubdomainAccess: boolean;
   setIsSubdomainAccess: (v: boolean) => void;
