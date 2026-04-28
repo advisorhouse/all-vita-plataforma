@@ -18,7 +18,11 @@ import {
   RotateCcw,
   Shield,
   Eye,
-  Info
+  Info,
+  Pencil,
+  Ban,
+  XCircle,
+  ExternalLink
 } from "lucide-react";
 import { usePlatformPermissions } from "@/hooks/usePlatformPermissions";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +62,9 @@ interface InvitationRow {
   status: "pending" | "accepted" | "expired";
   created_at: string;
   expires_at: string;
+  sent_at?: string;
+  opened_at?: string;
+  confirmed_at?: string;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -79,6 +86,8 @@ const AdminStaff: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ id: string; name: string; type: 'staff' | 'invite' } | null>(null);
+  const [confirmName, setConfirmName] = useState("");
   const { rows: allPermissions, loading: loadingPerms } = usePlatformPermissions();
   
   // Form states
@@ -110,7 +119,7 @@ const AdminStaff: React.FC = () => {
 
     // Load invitations
     const { data: inviteData } = await (supabase.from as any)("staff_invitations")
-      .select("*")
+      .select("*, sent_at, opened_at, confirmed_at")
       .order("created_at", { ascending: false });
     
     if (inviteData) {
@@ -184,6 +193,24 @@ const AdminStaff: React.FC = () => {
     
     toast.success("Convite removido.");
     setInvitations((prev) => prev.filter((i) => i.id !== id));
+    setDeleteConfirmation(null);
+    setConfirmName("");
+  };
+
+  const deleteStaff = async (id: string) => {
+    const { error } = await (supabase.from as any)("all_vita_staff")
+      .delete()
+      .eq("id", id);
+    
+    if (error) {
+      toast.error("Não foi possível remover o colaborador.");
+      return;
+    }
+    
+    toast.success("Colaborador removido.");
+    setRows((prev) => prev.filter((r) => r.id !== id));
+    setDeleteConfirmation(null);
+    setConfirmName("");
   };
 
   const handleResendInvitation = async (inv: InvitationRow) => {
@@ -244,7 +271,7 @@ const AdminStaff: React.FC = () => {
             <Users className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Staff All Vita</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Colaboradores</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Gerencie quem tem acesso ao painel global da plataforma e seus papéis.
             </p>
@@ -348,7 +375,10 @@ const AdminStaff: React.FC = () => {
                           Membro
                         </th>
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                          Papel
+                          Papel / Nível
+                        </th>
+                        <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                          Status
                         </th>
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                           Desde
@@ -356,8 +386,8 @@ const AdminStaff: React.FC = () => {
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide w-40">
                           Permissões
                         </th>
-                        <th className="text-center py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide w-24">
-                          Ativo
+                        <th className="text-center py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide w-32">
+                          Ações
                         </th>
                       </tr>
                     </thead>
@@ -394,6 +424,11 @@ const AdminStaff: React.FC = () => {
                                   </SelectContent>
                                 </Select>
                               )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge variant={r.is_active ? "outline" : "secondary"} className={r.is_active ? "text-emerald-600 border-emerald-500/20 bg-emerald-500/5" : ""}>
+                                {r.is_active ? "Ativo" : "Suspenso"}
+                              </Badge>
                             </td>
                             <td className="py-3 px-4 text-muted-foreground text-[12px]">
                               {new Date(r.created_at).toLocaleDateString("pt-BR")}
@@ -455,12 +490,34 @@ const AdminStaff: React.FC = () => {
                                 </DialogContent>
                               </Dialog>
                             </td>
-                            <td className="py-3 px-4 text-center">
-                              <Switch
-                                checked={r.is_active}
-                                disabled={isSuper}
-                                onCheckedChange={(v) => toggleActive(r.id, v)}
-                              />
+                            <td className="py-3 px-4">
+                              <div className="flex items-center justify-center gap-1">
+                                {!isSuper && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground"
+                                      onClick={() => toggleActive(r.id, !r.is_active)}
+                                      title={r.is_active ? "Suspender" : "Ativar"}
+                                    >
+                                      {r.is_active ? <Ban className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => {
+                                        setDeleteConfirmation({ id: r.id, name: fullName(r), type: 'staff' });
+                                        setConfirmName("");
+                                      }}
+                                      title="Excluir"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -496,10 +553,10 @@ const AdminStaff: React.FC = () => {
                           E-mail
                         </th>
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                          Papel Convidado
+                          Papel / Nível
                         </th>
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                          Status
+                          Status E-mail
                         </th>
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                           Expira em
@@ -528,22 +585,32 @@ const AdminStaff: React.FC = () => {
                               </Badge>
                             </td>
                             <td className="py-3 px-4">
-                              {isAccepted ? (
-                                <div className="flex items-center gap-1.5 text-emerald-600 text-[11px] font-medium">
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                  Aceito
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 text-[11px]">
+                                  <Badge variant="outline" className={`h-4 px-1 text-[9px] ${inv.sent_at ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-muted text-muted-foreground"}`}>
+                                    {inv.sent_at ? "Enviado" : "Pendente"}
+                                  </Badge>
+                                  <Badge variant="outline" className={`h-4 px-1 text-[9px] ${inv.opened_at ? "bg-amber-50 text-amber-600 border-amber-200" : "bg-muted text-muted-foreground"}`}>
+                                    {inv.opened_at ? "Abriu" : "Não Abriu"}
+                                  </Badge>
+                                  <Badge variant="outline" className={`h-4 px-1 text-[9px] ${inv.confirmed_at ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-muted text-muted-foreground"}`}>
+                                    {inv.confirmed_at ? "Confirmou" : "Não Confirmou"}
+                                  </Badge>
                                 </div>
-                              ) : isExpired ? (
-                                <div className="flex items-center gap-1.5 text-destructive text-[11px] font-medium">
-                                  <AlertCircle className="h-3.5 w-3.5" />
-                                  Expirado
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1.5 text-amber-600 text-[11px] font-medium">
-                                  <Clock className="h-3.5 w-3.5" />
-                                  Pendente
-                                </div>
-                              )}
+                                {isAccepted ? (
+                                  <div className="flex items-center gap-1 text-emerald-600 text-[10px] font-medium">
+                                    <CheckCircle2 className="h-3 w-3" /> Aceito
+                                  </div>
+                                ) : isExpired ? (
+                                  <div className="flex items-center gap-1 text-destructive text-[10px] font-medium">
+                                    <AlertCircle className="h-3 w-3" /> Expirado
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 text-amber-600 text-[10px] font-medium">
+                                    <Clock className="h-3 w-3" /> Pendente
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3 px-4 text-muted-foreground text-[12px]">
                               {new Date(inv.expires_at).toLocaleDateString("pt-BR")}
@@ -564,7 +631,10 @@ const AdminStaff: React.FC = () => {
                                     variant="ghost" 
                                     size="icon" 
                                     className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => deleteInvitation(inv.id)}
+                                    onClick={() => {
+                                      setDeleteConfirmation({ id: inv.id, name: inv.email, type: 'invite' });
+                                      setConfirmName("");
+                                    }}
                                     title="Cancelar convite"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -583,6 +653,52 @@ const AdminStaff: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      <Dialog open={!!deleteConfirmation} onOpenChange={(open) => !open && setDeleteConfirmation(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação não pode ser desfeita. Para confirmar a exclusão de <strong>{deleteConfirmation?.name}</strong>, digite o nome exatamente como aparece abaixo:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="bg-muted p-3 rounded-md text-center font-mono text-sm">
+              {deleteConfirmation?.name}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmName">Digite o nome para confirmar</Label>
+              <Input
+                id="confirmName"
+                value={confirmName}
+                onChange={(e) => setConfirmName(e.target.value)}
+                placeholder="Digite o nome aqui"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmation(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={confirmName !== deleteConfirmation?.name}
+              onClick={() => {
+                if (deleteConfirmation?.type === 'staff') {
+                  deleteStaff(deleteConfirmation.id);
+                } else {
+                  deleteInvitation(deleteConfirmation.id);
+                }
+              }}
+            >
+              Confirmar Exclusão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-border/60 bg-secondary/40">
         <CardContent className="p-4 flex items-start gap-3">
