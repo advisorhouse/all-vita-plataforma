@@ -159,9 +159,10 @@ const AdminSettings: React.FC = () => {
       
       setPlatform(updatedPlatform);
       toast.success("Arquivo enviado com sucesso!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading file:", error);
-      toast.error("Erro ao fazer upload do arquivo");
+      const errorMessage = error.message || error.error_description || "Erro desconhecido";
+      toast.error(`Erro ao fazer upload: ${errorMessage}`);
     }
   };
 
