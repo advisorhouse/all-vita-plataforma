@@ -7,13 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone } from "lucide-react";
+import { IMaskInput } from "react-imask";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
   const [checkingToken, setCheckingToken] = useState(!!redirectTo);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Only allow signup if there is a redirect/invitation token
   React.useEffect(() => {
@@ -60,6 +67,9 @@ const SignupPage: React.FC = () => {
           navigate("/auth/login");
           return;
         }
+
+        // Auto-fill and lock email from invitation
+        setEmail(data.email);
       } catch (err) {
         toast.error("Erro ao validar convite.");
         navigate("/auth/login");
@@ -70,15 +80,10 @@ const SignupPage: React.FC = () => {
 
     validateInvitation();
   }, [redirectTo, navigate]);
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !password) {
+    if (!fullName || !email || !password || !phone) {
       toast.error("Preencha todos os campos");
       return;
     }
@@ -94,7 +99,10 @@ const SignupPage: React.FC = () => {
         password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: fullName },
+          data: { 
+            full_name: fullName,
+            phone: phone
+          },
         },
       });
       
@@ -141,7 +149,7 @@ const SignupPage: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Cadastre-se na plataforma All Vita
+            Complete seu cadastro para acessar a All Vita
           </p>
         </div>
 
@@ -170,11 +178,25 @@ const SignupPage: React.FC = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="seu@email.com"
-                    className="pl-10"
+                    className="pl-10 bg-muted cursor-not-allowed"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
+                    disabled
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">O e-mail não pode ser alterado pois está vinculado ao seu convite.</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone Celular</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <IMaskInput
+                    mask="+{55} (00) 00000-0000"
+                    value={phone}
+                    unmask={false}
+                    onAccept={(value) => setPhone(value)}
+                    placeholder="+55 (00) 00000-0000"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
               </div>
