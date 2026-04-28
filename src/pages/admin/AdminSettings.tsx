@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import AdminPermissions from "@/components/admin/AdminPermissions";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -187,65 +188,8 @@ const AdminSettings: React.FC = () => {
           </motion.div>
         </TabsContent>
 
-        {/* ═══════ 3. PERMISSÕES ═══════ */}
         <TabsContent value="roles" className="space-y-4">
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={1}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><Lock className="h-5 w-5 text-muted-foreground" /> Roles e Permissões</CardTitle>
-                <CardDescription>Base do sistema RBAC</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Escopo</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {roles.map((r) => (
-                      <TableRow key={r.role}>
-                        <TableCell className="font-mono text-xs">{r.role}</TableCell>
-                        <TableCell className="font-medium">{r.label}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{r.perms}</TableCell>
-                        <TableCell><Badge variant="secondary" className="text-[10px]">Ativo</Badge></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={2}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Permissões Padrão por Role</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {[
-                  { resource: "Usuários", admin: true, manager: true, partner: false, client: false },
-                  { resource: "Financeiro", admin: true, manager: true, partner: false, client: false },
-                  { resource: "Comissões", admin: true, manager: true, partner: true, client: false },
-                  { resource: "Produtos", admin: true, manager: true, partner: false, client: false },
-                  { resource: "Conteúdo", admin: true, manager: true, partner: true, client: true },
-                  { resource: "Configurações", admin: true, manager: false, partner: false, client: false },
-                ].map((p) => (
-                  <div key={p.resource} className="flex items-center gap-4 py-1">
-                    <span className="text-sm font-medium w-28">{p.resource}</span>
-                    {(["admin", "manager", "partner", "client"] as const).map((role) => (
-                      <div key={role} className="flex items-center gap-1">
-                        <Switch defaultChecked={p[role]} />
-                        <span className="text-[10px] text-muted-foreground capitalize">{role}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </motion.div>
+          <AdminPermissions />
         </TabsContent>
 
         {/* ═══════ 4. DEFAULTS PARA EMPRESAS ═══════ */}

@@ -81,7 +81,7 @@ import AdminVitacoins from "./pages/admin/AdminVitacoins";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminMonetization from "./pages/admin/AdminMonetization";
-import AdminPermissions from "./pages/admin/AdminPermissions";
+
 import AdminStaff from "./pages/admin/AdminStaff";
 import UserProfile from "./pages/UserProfile";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
@@ -190,7 +190,7 @@ const App = () => (
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="monetization" element={<AdminMonetization />} />
                 <Route path="staff" element={<AuthGuard requireTenant={false} requiredRole="super_admin"><AdminStaff /></AuthGuard>} />
-                <Route path="permissions" element={<AuthGuard requireTenant={false} requiredRole="super_admin"><AdminPermissions /></AuthGuard>} />
+                
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="profile" element={<UserProfile />} />
