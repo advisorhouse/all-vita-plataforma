@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 
-const fadeUp = {
+const fadeUp: any = {
   hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({ 
     opacity: 1, y: 0, 
