@@ -33,13 +33,13 @@ const TopBarActions: React.FC = () => {
   const isAdmin = location.pathname.startsWith("/admin");
   const isCore = location.pathname.startsWith("/core");
   const isClub = location.pathname.startsWith("/club");
-  const settingsPath = isAdmin
-    ? "/admin/settings"
+  const profilePath = isAdmin
+    ? "/admin/profile"
     : isCore
-    ? "/core/settings"
+    ? "/core/profile"
     : isClub
-    ? "/club/settings"
-    : "/partner/settings";
+    ? "/club/profile"
+    : "/partner/profile";
 
   const handleNotificationClick = (n: { id: string; read: boolean; action_url: string | null }) => {
     if (!n.read) markAsRead(n.id);
