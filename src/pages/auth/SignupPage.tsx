@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone, ShieldCheck, Copy, CheckCircle2 } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 const SignupPage: React.FC = () => {
