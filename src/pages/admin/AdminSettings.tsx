@@ -375,26 +375,56 @@ const AdminSettings: React.FC = () => {
                 <CardDescription>Autenticação e controle de acesso</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
-                <SwitchRow title="Obrigar 2FA para Super Admins" desc="Todos os super admins precisam de autenticação de dois fatores" checked />
-                <SwitchRow title="Obrigar 2FA para Admins de Tenant" desc="Administradores de empresas devem ativar 2FA" />
-                <SwitchRow title="Permitir múltiplos logins simultâneos" desc="Mesma conta pode estar logada em vários dispositivos" checked />
+                <SwitchRow 
+                  title="Obrigar 2FA para Super Admins" 
+                  desc="Todos os super admins precisam de autenticação de dois fatores" 
+                  checked={security?.require_2fa_super_admin}
+                  onCheckedChange={(checked) => setSecurity({ ...security, require_2fa_super_admin: checked })}
+                />
+                <SwitchRow 
+                  title="Obrigar 2FA para Admins de Tenant" 
+                  desc="Administradores de empresas devem ativar 2FA" 
+                  checked={security?.require_2fa_tenant_admin}
+                  onCheckedChange={(checked) => setSecurity({ ...security, require_2fa_tenant_admin: checked })}
+                />
+                <SwitchRow 
+                  title="Permitir múltiplos logins simultâneos" 
+                  desc="Mesma conta pode estar logada em vários dispositivos" 
+                  checked={security?.allow_multiple_logins}
+                  onCheckedChange={(checked) => setSecurity({ ...security, allow_multiple_logins: checked })}
+                />
                 <Separator />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label>Expiração de Sessão (horas)</Label>
-                    <Input type="number" defaultValue="24" />
+                    <Input 
+                      type="number" 
+                      value={security?.session_expiration_hours || ""} 
+                      onChange={(e) => setSecurity({ ...security, session_expiration_hours: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Tentativas de Login (antes do bloqueio)</Label>
-                    <Input type="number" defaultValue="5" />
+                    <Input 
+                      type="number" 
+                      value={security?.login_attempts_before_lock || ""} 
+                      onChange={(e) => setSecurity({ ...security, login_attempts_before_lock: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Tempo de Bloqueio (minutos)</Label>
-                    <Input type="number" defaultValue="30" />
+                    <Input 
+                      type="number" 
+                      value={security?.lockout_duration_minutes || ""} 
+                      onChange={(e) => setSecurity({ ...security, lockout_duration_minutes: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Força Mínima da Senha</Label>
-                    <Select defaultValue="strong">
+                    <Select 
+                      value={security?.password_strength || "strong"}
+                      onValueChange={(v) => setSecurity({ ...security, password_strength: v })}
+                    >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="basic">Básica (6+ chars)</SelectItem>
