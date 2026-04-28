@@ -14,3 +14,4 @@ export { default as CoreGamification } from "./CoreGamification";
 export { default as CoreProducts } from "./CoreProducts";
 export { default as CoreUsers } from "./CoreUsers";
 export { default as CoreIntegrations } from "./CoreIntegrations";
+export { default as TenantPermissionMatrix } from "./TenantPermissionMatrix";
