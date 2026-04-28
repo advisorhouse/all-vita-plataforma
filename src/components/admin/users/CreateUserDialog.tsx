@@ -50,6 +50,28 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
     return true;
   };
 
+  const fetchPreview = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users/preview-email", {
+        body: {
+          full_name: form.full_name,
+          is_staff: form.user_type === "staff",
+          tenant_id: form.tenant_id,
+        },
+      });
+      if (error) throw error;
+      setPreviewHtml(data.html);
+    } catch (e) {
+      console.error("Erro ao carregar preview:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 2) {
+      fetchPreview();
+    }
+  }, [step, form.tenant_id, form.user_type]);
+
   const handleSubmit = async () => {
     setLoading(true);
     // Ensure phone has DDI 55
