@@ -187,7 +187,7 @@ serve(async (req) => {
         }
 
         // If role is admin/manager, create tenant_staff record
-        if (["admin", "manager"].includes(role)) {
+        if (!is_staff && ["admin", "manager"].includes(role)) {
           await adminClient.from("tenant_staff").upsert({
             tenant_id: tenantId,
             user_id: userId,
