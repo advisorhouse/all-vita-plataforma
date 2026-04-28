@@ -114,6 +114,7 @@ const App = () => (
 
               {/* Auth routes */}
               <Route path="/auth/login" element={<LoginPage />} />
+              <Route path="/auth/signup" element={<SignupPage />} />
               
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
