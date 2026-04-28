@@ -95,7 +95,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   }
 
   // 1. Super admin protection for /admin
-  if (location.pathname.startsWith("/admin") && !isSuperAdmin) {
+  if (location.pathname.startsWith("/admin") && !isSuperAdmin && !platformRole) {
     return <Navigate to="/core" replace />;
   }
 
