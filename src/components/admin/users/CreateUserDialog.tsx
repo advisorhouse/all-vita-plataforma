@@ -29,6 +29,7 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
     full_name: "", email: "", phone: "",
     user_type: "tenant" as "staff" | "tenant",
     tenant_id: "", role: "manager",
+    staff_role: "admin",
   });
 
   const set = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
