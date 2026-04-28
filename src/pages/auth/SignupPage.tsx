@@ -121,17 +121,15 @@ const SignupPage: React.FC = () => {
         return;
       }
 
-      // If user was created, we trigger phone verification (SMS)
+      // If user was created, we directly complete the process
       if (data.user) {
-        // Enviar OTP via SMS usando o número fornecido
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          phone: phone,
-        });
-
-        if (otpError) throw otpError;
-
-        toast.success("Código de verificação enviado por SMS!");
-        setStep("phone-verify");
+        toast.success("Conta criada com sucesso!");
+        
+        if (redirectTo) {
+          navigate(redirectTo);
+        } else {
+          navigate("/");
+        }
       } else {
         // This case should be avoided by disabling "Confirm Email" in Supabase
         toast.info("Verifique seu email para confirmar a conta.");

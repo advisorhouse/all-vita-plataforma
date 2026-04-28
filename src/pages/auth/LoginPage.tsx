@@ -45,20 +45,6 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      // After login, always request SMS verification for 2FA as requested
-      // We need the user's phone number to send the OTP
-      const { data: userData } = await supabase.auth.getUser();
-      const phone = userData.user?.user_metadata?.phone || userData.user?.phone;
-
-      if (phone) {
-        setPhoneNumber(phone);
-        const { error: otpError } = await supabase.auth.signInWithOtp({ phone });
-        if (!otpError) {
-          setShowMfa(true);
-          return;
-        }
-      }
-
       await logAccessEvent("login", { method: "password" });
       navigate(redirectTo || "/");
     } catch {
