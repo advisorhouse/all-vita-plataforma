@@ -116,6 +116,7 @@ export function useSubdomainTenant() {
       lookupCustomDomain();
     } else {
       setChecked(true);
+      setIsLoading(false);
     }
   }, [tenantQueryParam, setIsLoading, setCurrentTenant, setIsSubdomainAccess]);
 
