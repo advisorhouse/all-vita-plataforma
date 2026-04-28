@@ -97,7 +97,8 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <TenantProvider>
-            <AppBootstrap />
+              <PermissionsProvider>
+                <AppBootstrap />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<AuthGuard requireTenant={false}><Index /></AuthGuard>} />
