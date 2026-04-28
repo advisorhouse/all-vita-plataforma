@@ -84,15 +84,43 @@ serve(async (req) => {
         to: email,
         subject: "Você foi convidado para o Staff da All Vita",
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-            <h2 style="color: #000;">Olá!</h2>
-            <p>Você foi convidado para fazer parte da equipe da <strong>All Vita</strong> com o papel de <strong>${role}</strong> no painel administrativo global.</p>
-            <p>Para aceitar o convite e acessar o sistema, clique no botão abaixo:</p>
-            <div style="margin: 30px 0; text-align: center;">
-              <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Aceitar Convite</a>
+          <div style="font-family: 'Inter', -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff; color: #1a1a1a;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1a1a1a;">All Vita</h1>
+              <p style="font-size: 14px; color: #666; margin: 4px 0 0;">Plataforma de Gestão Integrada</p>
             </div>
-            <p style="font-size: 12px; color: #666; margin-top: 40px;">Se o botão não funcionar, copie e cole este link no seu navegador:<br><span style="color: #0066cc;">${inviteLink}</span></p>
-            <p style="font-size: 12px; color: #999;">Este convite expira em 7 dias.</p>
+            
+            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a;">Olá, bem-vindo à equipe!</h2>
+            
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+              Você foi convidado para fazer parte da equipe de <strong>Staff Global</strong> da All Vita. 
+              Sua conta foi configurada com o papel de <strong>${role}</strong>, permitindo que você contribua diretamente para o crescimento e operação da nossa plataforma.
+            </p>
+
+            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
+              <p style="margin: 0; font-size: 14px; color: #475569; line-height: 1.5;">
+                Como membro do Staff, você terá acesso ao painel administrativo global para gerenciar operações críticas, 
+                acompanhar métricas de parceiros e garantir a excelência da experiência All Vita para todos os nossos clientes.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 32px;">
+              <a href="${inviteLink}" style="background-color: #000; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block; transition: background-color 0.2s;">
+                Configurar Acesso e Aceitar Convite
+              </a>
+            </div>
+
+            <p style="font-size: 13px; line-height: 1.5; color: #64748b; text-align: center; margin-bottom: 0;">
+              Este convite é de uso pessoal e expira em 7 dias.<br>
+              Se o botão acima não funcionar, acesse o link:<br>
+              <a href="${inviteLink}" style="color: #2563eb; text-decoration: none;">${inviteLink}</a>
+            </p>
+            
+            <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #f0f0f0; text-align: center;">
+              <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                © 2026 All Vita Tecnologia. Todos os direitos reservados.
+              </p>
+            </div>
           </div>
         `,
       }),
