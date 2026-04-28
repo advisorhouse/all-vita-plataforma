@@ -167,7 +167,7 @@ const App = () => (
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
-              <Route path="/admin" element={<AuthGuard requireTenant={false}><AdminLayout /></AuthGuard>}>
+              <Route path="/admin" element={<AuthGuard requireTenant={false} requiredRole="super_admin"><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="tenants" element={<AdminTenants />} />
                 <Route path="tenants/:id" element={<AdminTenantDetail />} />
