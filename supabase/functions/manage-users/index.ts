@@ -64,7 +64,8 @@ serve(async (req) => {
     }
   } else {
     // All other actions usually require X-Tenant-Id, EXCEPT global staff creation by super_admin
-    if (!tenantId && !(action === "create" && isSuperAdmin)) {
+    // OR global operations like reset-password/resend-invite/delete which are handled by super_admin
+    if (!tenantId && !(isSuperAdmin && ["create", "reset-password", "resend-invite", "delete"].includes(action))) {
       return jsonRes(400, { error: "X-Tenant-Id header required" });
     }
 
