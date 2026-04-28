@@ -170,9 +170,9 @@ const AdminUsers: React.FC = () => {
         roles,
         userType,
         has2FA: false, // TODO: check MFA factors
-        emailConfirmedAt: auth?.email_confirmed_at ?? null,
-        lastSignInAt: auth?.last_sign_in_at ?? null,
-        confirmationSentAt: auth?.confirmation_sent_at ?? null,
+        emailConfirmedAt: auth?.email_confirmed_at,
+        lastSignInAt: auth?.last_sign_in_at,
+        confirmationSentAt: auth?.confirmation_sent_at,
       };
     });
   }, [profilesData, memberships, staffList, tenantMap, authStatusMap]);
