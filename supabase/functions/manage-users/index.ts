@@ -216,12 +216,12 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               to: email,
-              subject: `Você foi convidado para ${tenant?.trade_name || tenant?.name || "a plataforma"}`,
+              subject: `Você foi convidado para ${tenantName}`,
               html: `
                 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
                   <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo!</h1>
                   <p>Olá <strong>${full_name}</strong>,</p>
-                  <p>Você foi convidado para a plataforma <strong>${tenant?.trade_name || tenant?.name}</strong>.</p>
+                  <p>Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
                   <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
                     <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
                   </div>
