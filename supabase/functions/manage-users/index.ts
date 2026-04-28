@@ -564,20 +564,39 @@ serve(async (req) => {
           tenantLogo = tenant?.logo_url || tenantLogo;
         }
 
+        const isStaff = !membership?.tenant_id;
+        let title = "Seu convite chegou!";
+        let subject = `Convite para ${tenantName} (Reenvio)`;
+        let welcomeContent = `
+          <p>Estamos reenviando seu convite para a plataforma <strong>${tenantName}</strong>.</p>
+          <p>Estamos ansiosos para ter você conosco! Sua conta está pronta para ser acessada.</p>
+          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+            <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
+            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+          </div>
+          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Lembre-se: Troque sua senha no primeiro acesso para garantir a segurança da sua conta.</p>
+        `;
+
+        if (isStaff) {
+          title = "Bem-vindo à Equipe All Vita!";
+          subject = "Acesso à Plataforma All Vita (Reenvio)";
+          welcomeContent = `
+            <p>Estamos reenviando seus dados de acesso à plataforma oficial da <strong>All Vita</strong>.</p>
+            <p>Como membro da equipe, você possui acesso às ferramentas de gestão, inteligência de dados e segurança avançada da nossa operação.</p>
+            <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+              <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha de acesso temporária:</p>
+              <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+            </div>
+            <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Segurança: Por política interna, altere sua senha imediatamente após o primeiro acesso.</p>
+          `;
+        }
+
         const html = renderEmail({
-          title: "Seu convite chegou!",
+          title,
           userName: profile.first_name || 'Usuário',
           tenantName,
           tenantLogo,
-          content: `
-            <p>Estamos reenviando seu convite para a plataforma <strong>${tenantName}</strong>.</p>
-            <p>Estamos ansiosos para ter você conosco! Sua conta está pronta para ser acessada.</p>
-            <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
-              <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
-              <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
-            </div>
-            <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Lembre-se: Troque sua senha no primeiro acesso para garantir a segurança da sua conta.</p>
-          `,
+          content: welcomeContent,
           ctaText: "Acessar Plataforma",
           ctaUrl: "https://app.allvita.com.br/auth/login"
         });
@@ -591,7 +610,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             to: profile.email,
-            subject: `Convite para ${tenantName} (Reenvio)`,
+            subject,
             html,
           }),
         });
