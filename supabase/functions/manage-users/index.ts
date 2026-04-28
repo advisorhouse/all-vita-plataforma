@@ -657,6 +657,7 @@ function renderEmail(options: {
   const primaryColor = "#1a1a2e";
   const accentColor = "#6B8E23";
   const logoUrl = options.tenantLogo || "https://allvita.com.br/logo.png";
+  const isAllVita = options.tenantName === "All Vita";
 
   return `
     <!DOCTYPE html>
@@ -686,6 +687,12 @@ function renderEmail(options: {
                   
                   <div style="margin-bottom: 30px;">
                     ${options.content}
+                    
+                    ${isAllVita ? `
+                      <p style="margin-top: 24px;">A <strong>All Vita</strong> é dedicada a proporcionar a melhor experiência em gestão de performance e bem-estar, ajudando você e sua equipe a alcançarem novos patamares de excelência.</p>
+                    ` : `
+                      <p style="margin-top: 24px;">Estamos comprometidos em oferecer uma experiência excepcional através da plataforma <strong>${options.tenantName}</strong>, impulsionada pela tecnologia All Vita.</p>
+                    `}
                   </div>
 
                   ${options.ctaUrl ? `
@@ -701,7 +708,7 @@ function renderEmail(options: {
                   ` : ''}
                   
                   <p style="margin: 40px 0 0 0; font-size: 14px; color: #64748b; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 30px;">
-                    Dúvidas? Nossa equipe está pronta para ajudar. Basta responder a este e-mail.
+                    Dúvidas? Nossa equipe está pronta para ajudar. Basta responder a este e-mail ou escrever para <a href="mailto:contato@allvita.com.br" style="color: ${accentColor}; text-decoration: none;">contato@allvita.com.br</a>.
                   </p>
                 </td>
               </tr>
