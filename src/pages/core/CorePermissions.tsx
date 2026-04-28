@@ -312,7 +312,7 @@ const CorePermissions: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={member.active ? "success" : "secondary"}>
+                        <Badge variant={member.active ? "default" : "secondary"}>
                           {member.active ? "Ativo" : "Inativo"}
                         </Badge>
                       </TableCell>
