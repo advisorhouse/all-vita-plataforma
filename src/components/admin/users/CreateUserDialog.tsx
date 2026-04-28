@@ -221,22 +221,50 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
         )}
 
         {step === 2 && (
-          <div className="space-y-3 text-sm">
-            <p className="text-muted-foreground">Confirme os dados antes de criar:</p>
-            <div className="bg-secondary/50 rounded-lg p-4 space-y-2">
-              <p><span className="text-muted-foreground">Nome:</span> <strong>{form.full_name}</strong></p>
-              <p><span className="text-muted-foreground">Email:</span> <strong>{form.email}</strong></p>
-              {form.phone && <p><span className="text-muted-foreground">Tel:</span> <strong>{form.phone}</strong></p>}
-              <p><span className="text-muted-foreground">Tipo:</span> <strong>{form.user_type === "staff" ? "Staff All Vita" : "Empresa"}</strong></p>
-              {form.user_type === "tenant" && (
-                <>
-                  <p><span className="text-muted-foreground">Empresa:</span> <strong>{tenants.find(t => t.id === form.tenant_id)?.name}</strong></p>
-                  <p><span className="text-muted-foreground">Papel:</span> <strong>{form.role}</strong></p>
-                </>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Um e-mail de convite com senha provisória será enviado automaticamente.
+          <div className="space-y-4">
+            <Tabs defaultValue="data" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="data">Dados</TabsTrigger>
+                <TabsTrigger value="preview" className="flex items-center gap-2">
+                  <Eye className="h-3.5 w-3.5" /> E-mail
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="data" className="space-y-3 mt-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Resumo do Cadastro</p>
+                <div className="bg-secondary/30 border rounded-lg p-4 space-y-2 text-sm">
+                  <p><span className="text-muted-foreground">Nome:</span> <strong>{form.full_name || "Não informado"}</strong></p>
+                  <p><span className="text-muted-foreground">Email:</span> <strong>{form.email || "Não informado"}</strong></p>
+                  {form.phone && <p><span className="text-muted-foreground">Tel:</span> <strong>{form.phone}</strong></p>}
+                  <p><span className="text-muted-foreground">Vínculo:</span> <strong>{form.user_type === "staff" ? "Staff All Vita" : "Empresa Parceira"}</strong></p>
+                  {form.user_type === "tenant" && (
+                    <>
+                      <p><span className="text-muted-foreground">Empresa:</span> <strong>{tenants.find(t => t.id === form.tenant_id)?.name}</strong></p>
+                      <p><span className="text-muted-foreground">Papel:</span> <strong>{form.role}</strong></p>
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="preview" className="mt-4">
+                <div className="border rounded-lg overflow-hidden bg-[#f4f4f4] p-4 min-h-[300px] flex items-center justify-center">
+                  {previewHtml ? (
+                    <div 
+                      className="bg-white shadow-sm w-full transform scale-[0.85] origin-top"
+                      dangerouslySetInnerHTML={{ __html: previewHtml }} 
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <p className="text-xs">Gerando pré-visualização...</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <p className="text-[10px] text-muted-foreground bg-primary/5 p-2 rounded border border-primary/10">
+              ℹ️ O e-mail acima será enviado para <strong>{form.email}</strong> contendo a senha provisória gerada automaticamente.
             </p>
           </div>
         )}
