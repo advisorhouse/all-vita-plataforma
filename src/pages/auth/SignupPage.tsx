@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +45,7 @@ const SignupPage: React.FC = () => {
         return;
       }
       toast.success("Conta criada! Verifique seu email para confirmar.");
-      navigate("/auth/login");
+      navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
     } catch {
       toast.error("Erro ao criar conta");
     } finally {
@@ -130,7 +132,10 @@ const SignupPage: React.FC = () => {
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Já tem conta?{" "}
-              <Link to="/auth/login" className="text-foreground font-medium hover:underline">
+              <Link 
+                to={`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} 
+                className="text-foreground font-medium hover:underline"
+              >
                 Entrar
               </Link>
             </p>
