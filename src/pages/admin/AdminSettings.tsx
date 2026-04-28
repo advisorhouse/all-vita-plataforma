@@ -145,6 +145,14 @@ const AdminSettings: React.FC = () => {
     { role: "client", label: "Cliente", perms: "Assinatura e benefícios" },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-2 md:p-6 max-w-[1400px] mx-auto">
       {/* Header */}
@@ -153,12 +161,12 @@ const AdminSettings: React.FC = () => {
           <div className="flex items-center gap-2">
             <Settings className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-bold">Configurações Globais</h1>
-            <Badge variant="outline" className="text-[10px]">All Vita</Badge>
+            <Badge variant="outline" className="text-[10px]">{platform?.name || 'All Vita'}</Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">Parâmetros, regras e controles da plataforma</p>
         </div>
         <Button onClick={handleSave} disabled={saving} className="gap-2">
-          <Save className="h-4 w-4" />
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? "Salvando..." : "Salvar Alterações"}
         </Button>
       </motion.div>
