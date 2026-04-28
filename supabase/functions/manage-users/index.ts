@@ -505,6 +505,7 @@ serve(async (req) => {
         // Update auth user
         const { data: updatedUser, error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
           password: tempPassword,
+          email_confirm: true,
         });
 
         if (updateError) return jsonRes(400, { error: updateError.message });
