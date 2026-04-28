@@ -244,6 +244,7 @@ const AdminOnboarding: React.FC = () => {
         <OnboardingHeader 
           logoUrl={currentTenant?.logo_url} 
           tradeName={currentTenant?.trade_name} 
+          loading={isLoading}
         />
         {renderStepContent()}
         <OnboardingFooter tenantName={currentTenant?.trade_name} />
