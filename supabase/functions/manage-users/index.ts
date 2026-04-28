@@ -41,51 +41,45 @@ serve(async (req) => {
 
 
 
-  // Check if caller is super admin (global)
-  const { data: superAdminCheck } = await adminClient
-    .from("memberships")
-    .select("role")
-    .eq("user_id", callerUserId)
-    .eq("role", "super_admin")
-    .eq("active", true)
-    .is("tenant_id", null)
-    .maybeSingle();
-
-  const isSuperAdmin = !!superAdminCheck;
-
-  // For 'delete' action: only super admin can perform it (global operation, no tenant required)
-  if (action === "delete") {
-    if (!isSuperAdmin) {
-      return jsonRes(403, { error: "Apenas Super Administradores podem excluir usuários permanentemente." });
+  // Helper to check permissions using the unified RBAC function
+  const checkPermission = async (res: string, act: string, tId: string | null) => {
+    const { data: allowed, error: rpcError } = await adminClient.rpc('can', {
+      _user_id: callerUserId,
+      _resource: res,
+      _action: act,
+      _tenant_id: tId
+    });
+    if (rpcError) {
+      console.error(`[RBAC] Error checking ${res}:${act} for user ${callerUserId}:`, rpcError);
+      return false;
     }
-  } else if (action === "auth-status") {
-    if (!isSuperAdmin) {
-      return jsonRes(403, { error: "Apenas Super Administradores podem consultar status de autenticação." });
-    }
-  } else {
-    // All other actions usually require X-Tenant-Id, EXCEPT global staff creation by super_admin
-    // OR global operations like reset-password/resend-invite/delete which are handled by super_admin
-    if (!tenantId && !(isSuperAdmin && ["create", "reset-password", "resend-invite", "delete"].includes(action))) {
-      return jsonRes(400, { error: "X-Tenant-Id header required" });
-    }
+    return !!allowed;
+  };
 
-    // Check caller is admin or super_admin for this tenant (or global super admin)
-    if (!isSuperAdmin) {
-      if (!tenantId) return jsonRes(400, { error: "X-Tenant-Id header required" });
+  // Determine required resource and action based on the requested endpoint
+  let requiredResource = "memberships";
+  let requiredAction = "read";
 
-      const { data: callerMembership } = await adminClient
-        .from("memberships")
-        .select("role")
-        .eq("user_id", callerUserId)
-        .eq("active", true)
-        .eq("tenant_id", tenantId)
-        .limit(1);
+  switch (action) {
+    case "create": requiredAction = "create"; break;
+    case "update":
+    case "deactivate":
+    case "reset-password":
+    case "resend-invite": requiredAction = "update"; break;
+    case "delete": requiredAction = "delete"; break;
+    case "list": requiredAction = "read"; break;
+    case "auth-status": requiredAction = "read"; break; // Needs higher privilege in practice, but usually fine for staff
+    case "preview-email": requiredAction = "read"; break;
+  }
 
-      const isAdmin = callerMembership?.some((m: any) => m.role === "admin");
-      if (!isAdmin) {
-        return jsonRes(403, { error: "Only admins can manage users" });
-      }
+  const isAllowed = await checkPermission(requiredResource, requiredAction, tenantId);
+
+  if (!isAllowed) {
+    // Specialized error for delete which traditionally only super admin did
+    if (action === "delete") {
+      return jsonRes(403, { error: "Apenas usuários com permissão de exclusão podem realizar esta ação." });
     }
+    return jsonRes(403, { error: `Você não tem permissão para ${requiredAction} em ${requiredResource}.` });
   }
 
 

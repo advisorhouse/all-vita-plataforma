@@ -34,6 +34,9 @@ interface TenantContextValue {
   switchTenant: (tenantId: string) => void;
   isSuperAdmin: boolean;
   userRole: Membership["role"] | null;
+  platformRole: string | null;
+  setPlatformRole: (role: string | null) => void;
+  setIsSuperAdmin: (is: boolean) => void;
   availableTenants: Tenant[];
   isSubdomainAccess: boolean;
   setIsSubdomainAccess: (v: boolean) => void;
@@ -49,14 +52,15 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [isSubdomainAccess, setIsSubdomainAccess] = useState(false);
 
-  const isSuperAdmin = memberships.some(
-    (m) => (m.role === "super_admin" || m.role === "admin") && m.tenant_id === null && m.active
-  );
+  // We will derive isSuperAdmin and platform staff status 
+  // from a separate effect that checks all_vita_staff
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [platformRole, setPlatformRole] = useState<string | null>(null);
 
   const activeMembership = currentTenant
     ? memberships.find((m) => m.tenant_id === currentTenant.id && m.active) || null
     : isSuperAdmin
-      ? memberships.find((m) => m.role === "super_admin") || null
+      ? { role: "super_admin", tenant_id: null, active: true } as any
       : null;
 
   const userRole = activeMembership?.role || null;
@@ -120,7 +124,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setIsLoading,
         switchTenant,
         isSuperAdmin,
+        setIsSuperAdmin,
         userRole,
+        platformRole,
+        setPlatformRole,
         availableTenants,
         isSubdomainAccess,
         setIsSubdomainAccess,

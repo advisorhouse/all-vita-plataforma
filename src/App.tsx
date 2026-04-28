@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import AppBootstrap from "@/components/tenant/AppBootstrap";
 import AuthGuard from "@/components/auth/AuthGuard";
 
@@ -96,7 +97,8 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <TenantProvider>
-            <AppBootstrap />
+              <PermissionsProvider>
+                <AppBootstrap />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<AuthGuard requireTenant={false}><Index /></AuthGuard>} />
@@ -197,7 +199,8 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </TenantProvider>
+              </PermissionsProvider>
+            </TenantProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
