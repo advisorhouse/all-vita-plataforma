@@ -166,7 +166,8 @@ const App = () => (
                 <Route path="settings" element={<CoreSettings />} />
                 <Route path="users" element={<CoreUsers />} />
                 <Route path="integrations" element={<CoreIntegrations />} />
-                <Route path="notifications" element={<NotificationsPage />} />
+                 <Route path="notifications" element={<NotificationsPage />} />
+                 <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
