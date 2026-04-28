@@ -16,7 +16,7 @@ type Step = "change_password" | "accept_terms" | "complete";
 
 const AdminOnboarding: React.FC = () => {
   const { user } = useAuth();
-  const { currentTenant, isLoading, isSuperAdmin } = useTenant();
+  const { currentTenant, isLoading, isSuperAdmin, memberships } = useTenant();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("change_password");
   const [loading, setLoading] = useState(false);
@@ -72,7 +72,17 @@ const AdminOnboarding: React.FC = () => {
       .single();
 
     if (profile?.onboarding_completed) {
-      const destination = isSuperAdmin ? "/admin" : "/core";
+      // Extra validation: verify if the user is truly a super admin or has memberships
+      const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
+      const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+
+      let destination = "/auth/login";
+      if (isActuallySuperAdmin) {
+        destination = "/admin";
+      } else if (hasTenantMemberships) {
+        destination = "/core";
+      }
+
       await logOnboardingRedirect("resume", destination);
       navigate(destination);
       return;
@@ -151,7 +161,18 @@ const AdminOnboarding: React.FC = () => {
     toast.success("Onboarding concluído!");
     setStep("complete");
     setLoading(false);
-    const destination = isSuperAdmin ? "/admin" : "/core";
+    
+    // Extra validation before navigating
+    const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
+    const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+
+    let destination = "/onboarding";
+    if (isActuallySuperAdmin) {
+      destination = "/admin";
+    } else if (hasTenantMemberships) {
+      destination = "/core";
+    }
+
     await logOnboardingRedirect("complete", destination);
     navigate(destination);
   };
@@ -264,7 +285,16 @@ const AdminOnboarding: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Button onClick={async () => {
-            const destination = isSuperAdmin ? "/admin" : "/core";
+            const isActuallySuperAdmin = memberships.some(m => m.role === 'super_admin' && !m.tenant_id && m.active);
+            const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+            
+            let destination = "/onboarding";
+            if (isActuallySuperAdmin) {
+              destination = "/admin";
+            } else if (hasTenantMemberships) {
+              destination = "/core";
+            }
+            
             await logOnboardingRedirect("complete", destination);
             navigate(destination);
           }} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
