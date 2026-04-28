@@ -8,10 +8,12 @@ import { useTenant, type Membership, type Tenant } from "@/contexts/TenantContex
  * Should be rendered once near the app root.
  */
 export function useMemberships() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { setMemberships, setIsLoading, setIsSuperAdmin, setPlatformRole } = useTenant();
 
   useEffect(() => {
+    if (authLoading) return;
+    
     if (!user) {
       setMemberships([]);
       setIsLoading(false);
