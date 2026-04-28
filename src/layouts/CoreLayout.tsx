@@ -18,6 +18,7 @@ const coreLinks = [
   { label: "Integrações", href: "/core/integrations", icon: Plug },
   { label: "Permissões", href: "/core/permissions", icon: Shield },
   { label: "Configurações", href: "/core/settings", icon: Settings },
+  { label: "Matriz Tenant", href: "/core/settings/permissions", icon: Shield },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -33,6 +34,7 @@ const pageTitles: Record<string, string> = {
   "/core/integrations": "Integrações",
   "/core/permissions": "Permissões",
   "/core/settings": "Configurações",
+  "/core/settings/permissions": "Matriz de Permissões por Tenant",
 };
 
 const PoweredByFooter: React.FC = () => (
