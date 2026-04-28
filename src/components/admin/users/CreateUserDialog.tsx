@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UserPlus, Loader2, Mail, ChevronRight, ChevronLeft } from "lucide-react";
+import { UserPlus, Loader2, Mail, ChevronRight, ChevronLeft, Building2, User as UserIcon } from "lucide-react";
+import { IMaskInput } from "react-imask";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
