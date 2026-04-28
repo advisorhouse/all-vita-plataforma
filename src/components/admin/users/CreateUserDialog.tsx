@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { UserPlus, Loader2, Mail, ChevronRight, ChevronLeft, Building2, User as UserIcon, Phone, Eye } from "lucide-react";
 import { IMaskInput } from "react-imask";
 import { toast } from "sonner";
@@ -29,18 +28,19 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
     full_name: "", email: "", phone: "",
     user_type: "tenant" as "staff" | "tenant",
     tenant_id: "", role: "manager",
+    staff_role: "admin",
   });
 
   const set = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
   const isPhoneValid = (phone: string) => {
-    if (!phone) return true; // Phone is optional
-    return phone.length === 11; // 2 (DDD) + 9 (Number)
+    if (!phone) return true;
+    return phone.length === 11;
   };
 
   const canNext = () => {
     if (step === 0) {
-      if (form.user_type === "staff") return true;
+      if (form.user_type === "staff") return !!form.staff_role;
       return form.tenant_id && form.role;
     }
     if (step === 1) {
@@ -74,7 +74,6 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
 
   const handleSubmit = async () => {
     setLoading(true);
-    // Ensure phone has DDI 55
     const formattedPhone = form.phone ? `55${form.phone}` : "";
     
     try {
@@ -84,7 +83,7 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
             email: form.email,
             full_name: form.full_name,
             phone: formattedPhone,
-            role: "super_admin",
+            role: form.staff_role,
             is_staff: true,
           },
         });
@@ -106,7 +105,15 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
       toast.success("Usuário criado e convite enviado!");
       setOpen(false);
       setStep(0);
-      setForm({ full_name: "", email: "", phone: "", user_type: "tenant", tenant_id: "", role: "manager" });
+      setForm({ 
+        full_name: "", 
+        email: "", 
+        phone: "", 
+        user_type: "tenant", 
+        tenant_id: "", 
+        role: "manager",
+        staff_role: "admin"
+      });
       onSuccess();
     } catch (e: any) {
       toast.error("Erro ao criar usuário", { description: e.message });
@@ -120,38 +127,60 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
       <DialogTrigger asChild>
         <Button><UserPlus className="h-4 w-4 mr-2" /> Criar Usuário</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Usuário — {STEPS[step]}</DialogTitle>
+          <DialogTitle className="text-xl">Novo Usuário — {STEPS[step]}</DialogTitle>
         </DialogHeader>
 
-        {/* Step indicators */}
-        <div className="flex gap-1 mb-4">
+        <div className="flex gap-2 mb-6">
           {STEPS.map((s, i) => (
-            <div key={s} className={`h-1 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-secondary"}`} />
+            <div key={s} className="flex-1 flex flex-col gap-2">
+              <div className={`h-1.5 rounded-full transition-colors ${i <= step ? "bg-primary" : "bg-secondary"}`} />
+              <span className={`text-[10px] font-medium uppercase tracking-wider text-center ${i === step ? "text-primary" : "text-muted-foreground opacity-50"}`}>
+                {s}
+              </span>
+            </div>
           ))}
         </div>
 
         {step === 0 && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" /> Tipo de Vínculo *
-              </Label>
-              <Select value={form.user_type} onValueChange={(v) => set("user_type", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="staff">Staff All Vita (Global)</SelectItem>
-                  <SelectItem value="tenant">Empresa Parceira (Tenant)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {form.user_type === "tenant" && (
-              <>
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-                  <Label>Selecione a Empresa *</Label>
+          <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm font-semibold">
+                  <Building2 className="h-4 w-4 text-primary" /> Tipo de Vínculo *
+                </Label>
+                <Select value={form.user_type} onValueChange={(v) => set("user_type", v)}>
+                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="staff">Staff All Vita (Global)</SelectItem>
+                    <SelectItem value="tenant">Empresa Parceira (Tenant)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground px-1">
+                  {form.user_type === "staff" 
+                    ? "Usuários com acesso a todas as empresas do sistema." 
+                    : "Usuários vinculados a uma empresa específica."}
+                </p>
+              </div>
+
+              {form.user_type === "staff" ? (
+                <div className="space-y-2 animate-in fade-in zoom-in-95">
+                  <Label className="text-sm font-semibold">Papel Global *</Label>
+                  <Select value={form.staff_role} onValueChange={(v) => set("staff_role", v)}>
+                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="super_admin">Super Admin (Acesso Total)</SelectItem>
+                      <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="staff">Equipe Interna</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-2 animate-in fade-in zoom-in-95">
+                  <Label className="text-sm font-semibold">Selecione a Empresa *</Label>
                   <Select value={form.tenant_id} onValueChange={(v) => set("tenant_id", v)}>
-                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
                       {tenants.map((t) => (
                         <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
@@ -159,51 +188,58 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-                  <Label>Papel na Empresa *</Label>
-                  <Select value={form.role} onValueChange={(v) => set("role", v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                      <SelectItem value="manager">Gerente</SelectItem>
-                      <SelectItem value="partner">Parceiro</SelectItem>
-                      <SelectItem value="client">Cliente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
+              )}
+            </div>
+
+            {form.user_type === "tenant" && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                <Label className="text-sm font-semibold">Papel na Empresa *</Label>
+                <Select value={form.role} onValueChange={(v) => set("role", v)}>
+                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="manager">Gerente</SelectItem>
+                    <SelectItem value="partner">Parceiro</SelectItem>
+                    <SelectItem value="client">Cliente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
         )}
 
         {step === 1 && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <UserIcon className="h-4 w-4" /> Nome Completo *
-              </Label>
-              <Input 
-                placeholder="Ex: João Silva"
-                value={form.full_name} 
-                onChange={(e) => set("full_name", e.target.value)} 
-                required 
-              />
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm font-semibold">
+                  <UserIcon className="h-4 w-4 text-primary" /> Nome Completo *
+                </Label>
+                <Input 
+                  className="h-11"
+                  placeholder="Ex: João Silva"
+                  value={form.full_name} 
+                  onChange={(e) => set("full_name", e.target.value)} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm font-semibold">
+                  <Mail className="h-4 w-4 text-primary" /> E-mail *
+                </Label>
+                <Input 
+                  className="h-11"
+                  type="email" 
+                  placeholder="joao@exemplo.com"
+                  value={form.email} 
+                  onChange={(e) => set("email", e.target.value)} 
+                  required 
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Mail className="h-4 w-4" /> E-mail *
-              </Label>
-              <Input 
-                type="email" 
-                placeholder="joao@exemplo.com"
-                value={form.email} 
-                onChange={(e) => set("email", e.target.value)} 
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Phone className="h-4 w-4" /> Telefone
+              <Label className="flex items-center gap-2 text-sm font-semibold">
+                <Phone className="h-4 w-4 text-primary" /> Telefone
               </Label>
               <IMaskInput
                 mask="(00) 00000-0000"
@@ -211,17 +247,17 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
                 unmask={true}
                 onAccept={(value) => set("phone", value)}
                 placeholder="(00) 00000-0000"
-                className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ${form.phone && !isPhoneValid(form.phone) ? "border-destructive" : ""}`}
+                className={`flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ${form.phone && !isPhoneValid(form.phone) ? "border-destructive" : ""}`}
               />
               {form.phone && !isPhoneValid(form.phone) && (
-                <p className="text-[10px] text-destructive">Telefone deve conter DDD + 9 dígitos</p>
+                <p className="text-[11px] text-destructive">Telefone deve conter DDD + 9 dígitos</p>
               )}
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-4">
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             <Tabs defaultValue="data" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="data">Dados</TabsTrigger>
@@ -232,17 +268,23 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
               
               <TabsContent value="data" className="space-y-3 mt-4">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Resumo do Cadastro</p>
-                <div className="bg-secondary/30 border rounded-lg p-4 space-y-2 text-sm">
-                  <p><span className="text-muted-foreground">Nome:</span> <strong>{form.full_name || "Não informado"}</strong></p>
-                  <p><span className="text-muted-foreground">Email:</span> <strong>{form.email || "Não informado"}</strong></p>
-                  {form.phone && <p><span className="text-muted-foreground">Tel:</span> <strong>{form.phone}</strong></p>}
-                  <p><span className="text-muted-foreground">Vínculo:</span> <strong>{form.user_type === "staff" ? "Staff All Vita" : "Empresa Parceira"}</strong></p>
-                  {form.user_type === "tenant" && (
-                    <>
-                      <p><span className="text-muted-foreground">Empresa:</span> <strong>{tenants.find(t => t.id === form.tenant_id)?.name}</strong></p>
-                      <p><span className="text-muted-foreground">Papel:</span> <strong>{form.role}</strong></p>
-                    </>
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-secondary/30 border rounded-lg p-4 space-y-2 text-sm">
+                    <p><span className="text-muted-foreground">Nome:</span> <strong>{form.full_name || "Não informado"}</strong></p>
+                    <p><span className="text-muted-foreground">Email:</span> <strong>{form.email || "Não informado"}</strong></p>
+                    {form.phone && <p><span className="text-muted-foreground">Tel:</span> <strong>{form.phone}</strong></p>}
+                  </div>
+                  <div className="bg-secondary/30 border rounded-lg p-4 space-y-2 text-sm">
+                    <p><span className="text-muted-foreground">Vínculo:</span> <strong>{form.user_type === "staff" ? "Staff All Vita" : "Empresa Parceira"}</strong></p>
+                    {form.user_type === "tenant" ? (
+                      <>
+                        <p><span className="text-muted-foreground">Empresa:</span> <strong>{tenants.find(t => t.id === form.tenant_id)?.name}</strong></p>
+                        <p><span className="text-muted-foreground">Papel:</span> <strong>{form.role}</strong></p>
+                      </>
+                    ) : (
+                      <p><span className="text-muted-foreground">Papel Global:</span> <strong>{form.staff_role}</strong></p>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
 
@@ -263,22 +305,23 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
               </TabsContent>
             </Tabs>
             
-            <p className="text-[10px] text-muted-foreground bg-primary/5 p-2 rounded border border-primary/10">
-              ℹ️ O e-mail acima será enviado para <strong>{form.email}</strong> contendo a senha provisória gerada automaticamente.
+            <p className="text-[11px] text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/10 flex gap-2">
+              <span className="text-primary font-bold">ℹ️</span> 
+              <span>O e-mail acima será enviado para <strong>{form.email}</strong> contendo as instruções de acesso e senha provisória.</span>
             </p>
           </div>
         )}
 
-        <div className="flex justify-between mt-4">
-          <Button variant="outline" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}>
-            <ChevronLeft className="h-4 w-4 mr-1" /> Voltar
+        <div className="flex justify-between mt-8 pt-4 border-t">
+          <Button variant="ghost" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} className="h-11 px-6">
+            <ChevronLeft className="h-4 w-4 mr-2" /> Voltar
           </Button>
           {step < 2 ? (
-            <Button onClick={() => setStep(step + 1)} disabled={!canNext()}>
-              Próximo <ChevronRight className="h-4 w-4 ml-1" />
+            <Button onClick={() => setStep(step + 1)} disabled={!canNext()} className="h-11 px-8">
+              Próximo <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={loading}>
+            <Button onClick={handleSubmit} disabled={loading} className="h-11 px-8 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all">
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               <Mail className="h-4 w-4 mr-2" /> Criar e Enviar Convite
             </Button>
