@@ -94,6 +94,22 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     );
   }
 
+  // Check for specific role access if required
+  if (requiredRole === 'super_admin' && !isSuperAdmin) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // Prevent accessing tenant areas without proper role if specified
+  // We can expand this logic as needed, but for now we focus on protecting /admin
+  if (location.pathname.startsWith("/admin") && !isSuperAdmin) {
+    return <Navigate to="/core" replace />;
+  }
+
+  // Prevent staff from entering tenant core if they should be in admin
+  if (location.pathname.startsWith("/core") && isSuperAdmin && !currentTenant) {
+    return <Navigate to="/admin" replace />;
+  }
+
   return <>{children}</>;
 };
 
