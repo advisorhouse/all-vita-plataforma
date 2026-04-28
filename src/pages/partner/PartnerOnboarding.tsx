@@ -65,7 +65,7 @@ const PartnerOnboarding: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tenantParam = searchParams.get("tenant");
-  const { currentTenant } = useTenant();
+  const { currentTenant, isLoading } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<DoctorFormData>(defaultData);
