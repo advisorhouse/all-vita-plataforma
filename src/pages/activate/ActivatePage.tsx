@@ -263,7 +263,6 @@ const ActivatePage: React.FC = () => {
                   </Button>
                 </motion.div>
 
-                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
