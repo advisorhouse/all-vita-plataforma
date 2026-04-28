@@ -189,8 +189,8 @@ const App = () => (
                 <Route path="integrations" element={<AdminIntegrations />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="monetization" element={<AdminMonetization />} />
-                <Route path="staff" element={<AdminStaff />} />
-                <Route path="permissions" element={<AdminPermissions />} />
+                <Route path="staff" element={<AuthGuard requireTenant={false} requiredRole="super_admin"><AdminStaff /></AuthGuard>} />
+                <Route path="permissions" element={<AuthGuard requireTenant={false} requiredRole="super_admin"><AdminPermissions /></AuthGuard>} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="profile" element={<UserProfile />} />
