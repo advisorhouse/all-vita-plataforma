@@ -14,6 +14,7 @@ interface TenantFormData {
   trade_name: string;
   slug: string;
   cnpj: string;
+  segment: string;
   primary_color: string;
   secondary_color: string;
   owner_name: string;
@@ -30,7 +31,7 @@ interface TenantFormData {
 }
 
 const emptyForm: TenantFormData = {
-  name: "", trade_name: "", slug: "", cnpj: "",
+  name: "", trade_name: "", slug: "", cnpj: "", segment: "",
   primary_color: "#6366f1", secondary_color: "#8b5cf6",
   owner_name: "", owner_email: "", owner_phone: "", owner_cpf: "",
   address_cep: "", address_street: "", address_number: "",
@@ -263,45 +264,17 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
       <DialogTrigger asChild>
         {trigger || <Button><Plus className="h-4 w-4 mr-2" /> Nova Empresa</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Cadastrar nova empresa</DialogTitle>
+      <DialogContent className="max-w-none w-screen h-screen m-0 rounded-none overflow-y-auto">
+        <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
+          <DialogTitle className="text-2xl">Cadastrar nova empresa</DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); createTenant.mutate(form); }} className="space-y-6">
-          {/* Logo */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Logo da Empresa</h3>
-            <div className="flex items-center gap-4">
-              {logoPreview ? (
-                <div className="relative">
-                  <img src={logoPreview} alt="Logo preview" className="h-20 w-20 rounded-lg object-contain border border-border bg-secondary/30" />
-                  <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ) : (
-                <div onClick={() => fileInputRef.current?.click()} className="h-20 w-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-accent/50 hover:bg-secondary/30 transition-colors">
-                  <Image className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-[9px] text-muted-foreground">Upload</span>
-                </div>
-              )}
-              <div className="space-y-1">
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="h-3.5 w-3.5 mr-1.5" />
-                  {logoFile ? "Trocar logo" : "Selecionar logo"}
-                </Button>
-                <p className="text-[10px] text-muted-foreground">PNG, JPG ou WebP · Máx 2MB</p>
-              </div>
-              <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleLogoSelect} />
-            </div>
-          </div>
-
+        <form onSubmit={(e) => { e.preventDefault(); createTenant.mutate(form); }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
           {/* Company Info */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Dados da Empresa</h3>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-6">
+            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identificação e CNPJ</h3>
+            <div className="grid grid-cols-2 gap-6">
               <div className="col-span-2 space-y-2">
-                <Label>CNPJ</Label>
+                <Label className="text-base">CNPJ *</Label>
                 <div className="flex gap-2">
                   <IMaskInput
                     mask="00.000.000/0000-00"
@@ -309,51 +282,103 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
                     unmask={true}
                     onAccept={(value) => setForm(f => ({ ...f, cnpj: value }))}
                     placeholder="00.000.000/0000-00"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-12 w-full rounded-md border border-input bg-background px-4 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   <Button 
                     type="button" 
-                    variant="secondary" 
+                    variant="default" 
+                    size="lg"
                     onClick={fetchCnpjData}
                     disabled={fetchingCnpj || form.cnpj.length < 14}
+                    className="h-12 px-6"
                   >
-                    {fetchingCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                    <span className="ml-2">Buscar</span>
+                    {fetchingCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
+                    Buscar Dados
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">Comece pelo CNPJ para preencher os dados automaticamente.</p>
               </div>
-              <div className="space-y-2"><Label>Razão Social *</Label><Input value={form.name} onChange={set("name")} required /></div>
-              <div className="space-y-2"><Label>Nome Fantasia</Label><Input value={form.trade_name} onChange={set("trade_name")} onBlur={handleSlugGenerate} /></div>
+
+              <div className="space-y-2"><Label>Razão Social *</Label><Input value={form.name} onChange={set("name")} required className="h-10" /></div>
+              <div className="space-y-2"><Label>Nome Fantasia</Label><Input value={form.trade_name} onChange={set("trade_name")} onBlur={handleSlugGenerate} className="h-10" /></div>
+              
+              <div className="space-y-2">
+                <Label>Segmento / Nicho *</Label>
+                <Input 
+                  value={form.segment} 
+                  onChange={set("segment")} 
+                  required 
+                  placeholder="Ex: Farmácia, Academia, Varejo..." 
+                  className="h-10"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>Slug (subdomínio) *</Label>
                 <div className="flex items-center gap-2">
-                  <Input value={form.slug} onChange={set("slug")} required placeholder="minha-empresa" />
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">.allvita.com.br</span>
+                  <Input value={form.slug} onChange={set("slug")} required placeholder="minha-empresa" className="h-10" />
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">.allvita.com.br</span>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Cor Primária</Label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-9 w-12 rounded border cursor-pointer" />
-                  <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-sm" />
+            </div>
+          </div>
+
+          {/* Logo & Colors */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identidade Visual</h3>
+              <div className="flex items-center gap-6">
+                {logoPreview ? (
+                  <div className="relative">
+                    <img src={logoPreview} alt="Logo preview" className="h-24 w-24 rounded-lg object-contain border border-border bg-secondary/30 p-2" />
+                    <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div onClick={() => fileInputRef.current?.click()} className="h-24 w-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 hover:bg-secondary/30 transition-all">
+                    <Image className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground">Upload Logo</span>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
+                    {logoFile ? "Trocar logo" : "Selecionar logo"}
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground">PNG, JPG ou WebP · Máx 2MB</p>
                 </div>
+                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleLogoSelect} />
               </div>
-              <div className="space-y-2">
-                <Label>Cor Secundária</Label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-9 w-12 rounded border cursor-pointer" />
-                  <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-sm" />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Cor Primária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Cor Secundária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Owner */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Sócio Responsável (Usuário Master)</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Nome Completo *</Label><Input value={form.owner_name} onChange={set("owner_name")} required /></div>
-              <div className="space-y-2"><Label>E-mail *</Label><Input type="email" value={form.owner_email} onChange={set("owner_email")} required /></div>
+          <div className="space-y-6">
+            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Sócio Responsável (Usuário Master)</h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2"><Label>Nome Completo *</Label><Input value={form.owner_name} onChange={set("owner_name")} required className="h-10" /></div>
+              <div className="space-y-2"><Label>E-mail *</Label><Input type="email" value={form.owner_email} onChange={set("owner_email")} required className="h-10" /></div>
               <div className="space-y-2">
                 <Label>Telefone</Label>
                 <IMaskInput
@@ -380,35 +405,38 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
           </div>
 
           {/* Address */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Endereço</h3>
-            <div className="grid grid-cols-3 gap-4">
-               <div className="space-y-2">
+          <div className="space-y-6">
+            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Endereço da Sede</h3>
+            <div className="grid grid-cols-6 gap-6">
+               <div className="col-span-2 space-y-2">
                 <Label>CEP</Label>
-                <div className="flex gap-2">
-                  <IMaskInput
-                    mask="00000-000"
-                    value={form.address_cep}
-                    unmask={true}
-                    onAccept={(value) => setForm(f => ({ ...f, address_cep: value }))}
-                    placeholder="00000-000"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
+                <IMaskInput
+                  mask="00000-000"
+                  value={form.address_cep}
+                  unmask={true}
+                  onAccept={(value) => setForm(f => ({ ...f, address_cep: value }))}
+                  placeholder="00000-000"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
               </div>
-              <div className="col-span-2 space-y-2"><Label>Rua</Label><Input value={form.address_street} onChange={set("address_street")} /></div>
-              <div className="space-y-2"><Label>Número</Label><Input value={form.address_number} onChange={set("address_number")} /></div>
-              <div className="space-y-2"><Label>Complemento</Label><Input value={form.address_complement} onChange={set("address_complement")} /></div>
-              <div className="space-y-2"><Label>Bairro</Label><Input value={form.address_district} onChange={set("address_district")} /></div>
-              <div className="space-y-2"><Label>Cidade</Label><Input value={form.address_city} onChange={set("address_city")} /></div>
-              <div className="space-y-2"><Label>Estado</Label><Input value={form.address_state} onChange={set("address_state")} placeholder="SP" /></div>
+              <div className="col-span-4 space-y-2"><Label>Rua</Label><Input value={form.address_street} onChange={set("address_street")} className="h-10" /></div>
+              <div className="col-span-1 space-y-2"><Label>Número</Label><Input value={form.address_number} onChange={set("address_number")} className="h-10" /></div>
+              <div className="col-span-2 space-y-2"><Label>Bairro</Label><Input value={form.address_district} onChange={set("address_district")} className="h-10" /></div>
+              <div className="col-span-2 space-y-2"><Label>Cidade</Label><Input value={form.address_city} onChange={set("address_city")} className="h-10" /></div>
+              <div className="col-span-1 space-y-2"><Label>UF</Label><Input value={form.address_state} onChange={set("address_state")} placeholder="SP" className="h-10" /></div>
+              <div className="col-span-6 space-y-2"><Label>Complemento</Label><Input value={form.address_complement} onChange={set("address_complement")} className="h-10" /></div>
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={createTenant.isPending}>
-            {createTenant.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Cadastrar Empresa
-          </Button>
+          <div className="pt-6 border-t">
+            <Button type="submit" size="lg" className="w-full text-lg h-14" disabled={createTenant.isPending}>
+              {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
+              Finalizar Cadastro da Empresa
+            </Button>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              Ao cadastrar, um usuário administrador será criado automaticamente para a empresa.
+            </p>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
