@@ -117,7 +117,7 @@ serve(async (req) => {
 
       case "create": {
         const body = await req.json();
-        const { email, full_name, phone, role } = body;
+        const { email, full_name, phone, role, is_staff } = body;
 
         if (!email || !full_name || !role) {
           return jsonRes(400, { error: "email, full_name and role are required" });
