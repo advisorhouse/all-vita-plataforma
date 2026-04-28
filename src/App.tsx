@@ -114,7 +114,7 @@ const App = () => (
 
               {/* Club (Cliente) - Protected */}
               <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />
-              <Route path="/club" element={<AuthGuard><ClubLayout /></AuthGuard>}>
+              <Route path="/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
                 <Route index element={<ClubDashboard />} />
                 <Route path="subscription" element={<ClubSubscription />} />
                 <Route path="orders" element={<ClubOrders />} />
