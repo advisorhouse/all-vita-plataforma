@@ -127,6 +127,22 @@ serve(async (req) => {
           <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
         `;
         ctaText = "Ir para o Login";
+      } else if (is_staff) {
+        title = "Bem-vindo à Equipe All Vita!";
+        content = `
+          <p>Você acaba de ser integrado à plataforma oficial da <strong>All Vita</strong> como membro da equipe.</p>
+          <p>Como parte do nosso time, você terá acesso às ferramentas essenciais para nossa operação:</p>
+          <ul style="padding-left: 20px; color: #475569;">
+            <li><strong>Gestão Estratégica:</strong> Controle de parceiros, clientes e fluxos operacionais.</li>
+            <li><strong>Inteligência de Dados:</strong> Acesso a dashboards e relatórios de performance em tempo real.</li>
+            <li><strong>Segurança e Auditoria:</strong> Ambiente protegido com monitoramento de ações e segurança avançada.</li>
+          </ul>
+          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha de acesso temporária:</p>
+            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+          </div>
+          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Segurança: Por política interna, altere sua senha imediatamente após o primeiro acesso.</p>
+        `;
       } else {
         content = `
           <p>Você foi convidado para fazer parte da plataforma <strong>${tenantName}</strong>.</p>
