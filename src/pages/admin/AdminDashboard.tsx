@@ -26,6 +26,7 @@ const fadeUp = {
 };
 
 const AdminDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [period, setPeriod] = useState("30d");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
