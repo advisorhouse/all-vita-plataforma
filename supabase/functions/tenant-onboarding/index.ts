@@ -256,33 +256,52 @@ function generateTempPassword(): string {
 
 function buildWelcomeEmail(name: string, company: string, slug: string, tempPassword: string): string {
   return `
-    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
-      <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo à All Vita!</h1>
-      <p style="color:#555;font-size:16px;line-height:1.6">
-        Olá <strong>${name}</strong>,
+    <div style="font-family: 'Inter', -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff; color: #1a1a1a;">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1a1a1a;">All Vita</h1>
+        <p style="font-size: 14px; color: #666; margin: 4px 0 0;">Parceiro Tecnológico</p>
+      </div>
+      
+      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a;">Olá, ${name.split(' ')[0]}!</h2>
+      
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+        É com grande entusiasmo que damos as boas-vindas à <strong>${company}</strong> na plataforma All Vita. 
+        Agora, sua empresa faz parte de um ecossistema focado em alta performance e excelência operacional.
       </p>
-      <p style="color:#555;font-size:16px;line-height:1.6">
-        A empresa <strong>${company}</strong> foi cadastrada com sucesso na plataforma All Vita.
+
+      <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
+        <h3 style="font-size: 14px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 16px;">Dados de Acesso da Sua Unidade</h3>
+        
+        <div style="margin-bottom: 12px;">
+          <span style="font-size: 13px; color: #64748b; display: block;">Portal Exclusivo:</span>
+          <a href="https://${slug}.allvita.com.br" style="font-size: 15px; color: #2563eb; text-decoration: none; font-weight: 600;">${slug}.allvita.com.br</a>
+        </div>
+        
+        <div style="margin-bottom: 0;">
+          <span style="font-size: 13px; color: #64748b; display: block;">Sua Senha Provisória:</span>
+          <code style="font-size: 18px; color: #1e293b; font-weight: 700; font-family: monospace; letter-spacing: 0.05em;">${tempPassword}</code>
+        </div>
+      </div>
+
+      <p style="font-size: 14px; color: #ef4444; font-weight: 600; margin-bottom: 32px; text-align: center;">
+        ⚠️ No primeiro acesso, o sistema solicitará obrigatoriamente a troca da senha por uma de sua preferência.
       </p>
-      <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
-        <p style="margin:0 0 8px;color:#333;font-weight:bold">Seus dados de acesso:</p>
-        <p style="margin:4px 0;color:#555">
-          <strong>Subdomínio:</strong> ${slug}.allvita.com.br
-        </p>
-        <p style="margin:4px 0;color:#555">
-          <strong>Senha provisória:</strong> ${tempPassword}
+
+      <div style="text-align: center; margin-bottom: 32px;">
+        <a href="https://${slug}.allvita.com.br/auth/login" style="background-color: #6366f1; color: #ffffff; padding: 18px 36px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block; transition: background-color 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          Acessar Minha Unidade All Vita
+        </a>
+      </div>
+
+      <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 0;">
+        Caso tenha qualquer dúvida durante o seu processo de configuração, nossa equipe de suporte está à sua inteira disposição.
+      </p>
+      
+      <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #f0f0f0; text-align: center;">
+        <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+          All Vita — A tecnologia por trás da sua performance.
         </p>
       </div>
-      <p style="color:#e74c3c;font-size:14px;font-weight:bold">
-        ⚠️ Este link expira em 15 minutos. Você deverá trocar a senha no primeiro acesso.
-      </p>
-      <a href="https://${slug}.allvita.com.br/auth/login"
-         style="display:inline-block;background:#6366f1;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px">
-        Acessar a plataforma
-      </a>
-      <p style="color:#999;font-size:12px;margin-top:32px">
-        All Vita — Plataforma de gestão multi-tenant
-      </p>
     </div>
   `;
 }
