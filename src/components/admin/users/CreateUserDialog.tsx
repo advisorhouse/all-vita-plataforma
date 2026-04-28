@@ -50,14 +50,16 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    // Ensure phone has DDI 55
+    const formattedPhone = form.phone ? `55${form.phone}` : "";
+    
     try {
       if (form.user_type === "staff") {
-        // Create via manage-users with a special staff flow
         const res = await supabase.functions.invoke("manage-users/create", {
           body: {
             email: form.email,
             full_name: form.full_name,
-            phone: form.phone,
+            phone: formattedPhone,
             role: "super_admin",
             is_staff: true,
           },
@@ -70,7 +72,7 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
           body: {
             email: form.email,
             full_name: form.full_name,
-            phone: form.phone,
+            phone: formattedPhone,
             role: form.role,
           },
         });
