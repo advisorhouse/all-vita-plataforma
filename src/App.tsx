@@ -109,6 +109,7 @@ const App = () => (
               <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
               {/* Auth routes */}
               <Route path="/auth/login" element={<LoginPage />} />
