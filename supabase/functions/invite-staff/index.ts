@@ -101,7 +101,17 @@ serve(async (req) => {
     if (!emailResponse.ok) {
       const emailError = await emailResponse.json();
       console.error("Erro ao enviar e-mail:", emailError);
+      return new Response(
+        JSON.stringify({ error: "Erro ao enviar e-mail de convite", details: emailError }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    // 4. Marcar como enviado
+    await supabaseAdmin
+      .from("staff_invitations")
+      .update({ sent_at: new Date().toISOString() })
+      .eq("id", invitation.id);
 
     return new Response(
       JSON.stringify({ success: true, invitation }),

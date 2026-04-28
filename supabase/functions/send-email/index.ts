@@ -30,6 +30,8 @@ serve(async (req) => {
 
     const fromEmail = from || "All Vita <noreply@app.allvita.com.br>";
 
+    console.log(`Sending email to ${to} from ${fromEmail} with subject: ${subject}`);
+    
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
