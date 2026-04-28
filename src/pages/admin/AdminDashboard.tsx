@@ -266,7 +266,8 @@ const AdminDashboard: React.FC = () => {
               {(() => {
                 const hour = new Date().getHours();
                 const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-                return `${greeting}, Admin`;
+                const name = userProfile?.first_name || "Admin";
+                return `${greeting}, ${name}`;
               })()}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">Visão executiva da plataforma All Vita</p>
