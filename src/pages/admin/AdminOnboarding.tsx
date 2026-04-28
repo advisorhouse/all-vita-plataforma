@@ -174,7 +174,7 @@ const AdminOnboarding: React.FC = () => {
                   onCheckedChange={(v) => setTermsAccepted(v === true)}
                 />
                 <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-                  Li e aceito os <a href="#" className="text-primary underline">Termos de Uso</a> da plataforma All Vita.
+                  Li e aceito os <a href="/terms" target="_blank" className="text-primary underline">Termos de Uso</a> da plataforma All Vita.
                 </label>
               </div>
               <div className="flex items-start gap-3">
@@ -184,7 +184,7 @@ const AdminOnboarding: React.FC = () => {
                   onCheckedChange={(v) => setPrivacyAccepted(v === true)}
                 />
                 <label htmlFor="privacy" className="text-sm leading-relaxed cursor-pointer">
-                  Li e aceito a <a href="#" className="text-primary underline">Política de Privacidade</a> da plataforma All Vita.
+                  Li e aceito a <a href="/privacy" target="_blank" className="text-primary underline">Política de Privacidade</a> da plataforma All Vita.
                 </label>
               </div>
             </div>

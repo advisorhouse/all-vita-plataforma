@@ -16,6 +16,8 @@ import InviteLanding from "./pages/invite/InviteLanding";
 import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
+import TermsOfUse from "./pages/TermsOfUse";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 // Auth pages
 import LoginPage from "./pages/auth/LoginPage";
@@ -98,6 +100,8 @@ const App = () => (
               <Route path="/proposta" element={<ProposalPresentation />} />
               <Route path="/proposta-site" element={<WebsiteProposal />} />
               <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
+              <Route path="/terms" element={<TermsOfUse />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
 
               {/* Auth routes */}
               <Route path="/auth/login" element={<LoginPage />} />
