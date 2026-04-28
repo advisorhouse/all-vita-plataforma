@@ -119,6 +119,39 @@ serve(async (req) => {
         return jsonRes(200, { data: enriched });
       }
 
+      case "auth-status": {
+        // Returns email_confirmed_at, last_sign_in_at, invited_at for given user IDs
+        const body = await req.json().catch(() => ({}));
+        const userIds: string[] = Array.isArray(body?.userIds) ? body.userIds : [];
+        if (!userIds.length) return jsonRes(200, { data: [] });
+
+        // Paginate listUsers (max 1000 per page is the SDK default)
+        const result: any[] = [];
+        let pageNum = 1;
+        const perPage = 1000;
+        // Fetch up to 5 pages defensively
+        for (let i = 0; i < 5; i++) {
+          const { data: usersPage, error: pageErr } = await adminClient.auth.admin.listUsers({ page: pageNum, perPage });
+          if (pageErr) break;
+          const users = usersPage?.users || [];
+          for (const u of users) {
+            if (userIds.includes(u.id)) {
+              result.push({
+                id: u.id,
+                email_confirmed_at: u.email_confirmed_at || null,
+                last_sign_in_at: u.last_sign_in_at || null,
+                invited_at: u.invited_at || null,
+                confirmation_sent_at: u.confirmation_sent_at || null,
+              });
+            }
+          }
+          if (users.length < perPage) break;
+          pageNum++;
+        }
+
+        return jsonRes(200, { data: result });
+      }
+
       case "create": {
         const body = await req.json();
         const { email, full_name, phone, role, is_staff } = body;
