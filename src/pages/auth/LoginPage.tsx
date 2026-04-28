@@ -4,7 +4,7 @@ import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { logAccessEvent } from "@/lib/security-logger";
 import { useTenant } from "@/contexts/TenantContext";
-import MfaVerifyDialog from "@/components/auth/MfaVerifyDialog";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +23,6 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showMfa, setShowMfa] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,20 +41,6 @@ const LoginPage: React.FC = () => {
           toast.error(error.message);
         }
         return;
-      }
-
-      // After login, always request SMS verification for 2FA as requested
-      // We need the user's phone number to send the OTP
-      const { data: userData } = await supabase.auth.getUser();
-      const phone = userData.user?.user_metadata?.phone || userData.user?.phone;
-
-      if (phone) {
-        setPhoneNumber(phone);
-        const { error: otpError } = await supabase.auth.signInWithOtp({ phone });
-        if (!otpError) {
-          setShowMfa(true);
-          return;
-        }
       }
 
       await logAccessEvent("login", { method: "password" });
@@ -92,19 +76,6 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <>
-      <MfaVerifyDialog
-        open={showMfa}
-        factorId={phoneNumber || ""}
-        onVerified={async () => {
-          await logAccessEvent("login", { method: "password", mfa: true });
-          navigate(redirectTo || "/");
-        }}
-        onCancel={() => {
-          setShowMfa(false);
-          supabase.auth.signOut();
-        }}
-      />
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -218,7 +189,7 @@ const LoginPage: React.FC = () => {
         </p>
       </motion.div>
     </div>
-    </>
+    
   );
 };
 
