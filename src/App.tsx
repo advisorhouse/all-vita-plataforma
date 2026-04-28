@@ -21,7 +21,7 @@ import PublicQuizPage from "./pages/quiz/PublicQuizPage";
 import TermsOfUse from "./pages/TermsOfUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
-// Auth pages
+import AcceptInvitation from "./pages/AcceptInvitation";
 import LoginPage from "./pages/auth/LoginPage";
 
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
