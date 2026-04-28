@@ -263,6 +263,5 @@ const AdminOnboarding: React.FC = () => {
     </div>
   );
 };
-};
 
 export default AdminOnboarding;
