@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone, Copy, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 const SignupPage: React.FC = () => {
@@ -24,7 +24,6 @@ const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-
   // Only allow signup if there is a redirect/invitation token
   React.useEffect(() => {
     const validateInvitation = async () => {
@@ -34,8 +33,6 @@ const SignupPage: React.FC = () => {
         return;
       }
 
-      // Extract token from redirect URL if present
-      // redirect looks like: /auth/accept-invitation?token=...
       const url = new URL(redirectTo, window.location.origin);
       const token = url.searchParams.get("token");
 
@@ -71,7 +68,6 @@ const SignupPage: React.FC = () => {
           return;
         }
 
-        // Auto-fill and lock email from invitation
         setEmail(data.email);
       } catch (err) {
         toast.error("Erro ao validar convite.");
@@ -114,17 +110,14 @@ const SignupPage: React.FC = () => {
         return;
       }
 
-      // If user was created, we directly complete the process
       if (data.user) {
         toast.success("Conta criada com sucesso!");
-        
         if (redirectTo) {
           navigate(redirectTo);
         } else {
           navigate("/");
         }
       } else {
-        // This case should be avoided by disabling "Confirm Email" in Supabase
         toast.info("Verifique seu email para confirmar a conta.");
         navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
       }
@@ -134,7 +127,6 @@ const SignupPage: React.FC = () => {
       setLoading(false);
     }
   };
-
 
   if (checkingToken) {
     return (
@@ -146,22 +138,18 @@ const SignupPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <AnimatePresence mode="wait">
-        {step === "signup" ? (
-          <motion.div
-            key="signup"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.4 }}
-            className="w-full max-w-sm"
-          >
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Complete seu cadastro para acessar a All Vita
-              </p>
-            </div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-sm"
+      >
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Complete seu cadastro para acessar a All Vita
+          </p>
+        </div>
 
         <Card>
           <CardContent className="pt-6">
@@ -255,76 +243,8 @@ const SignupPage: React.FC = () => {
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
-    ) : (
-      <motion.div
-        key="phone-verify"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -16 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-6">
-          <ShieldCheck className="h-10 w-10 mx-auto text-primary mb-2" />
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Verificação por SMS
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Enviamos um código de 6 dígitos para {phone}
-          </p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg text-center">Digite o código</CardTitle>
-            <CardDescription className="text-center">
-              Confirme sua identidade para ativar sua conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <form onSubmit={handleVerifyPhone} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="mfa-code">Código SMS</Label>
-                <Input
-                  id="mfa-code"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  placeholder="000000"
-                  className="text-center text-lg tracking-widest"
-                  value={mfaCode}
-                  onChange={(e) =>
-                    setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
-                  autoFocus
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={verifyingMfa}>
-                {verifyingMfa ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {verifyingMfa ? "Verificando..." : "Confirmar e Finalizar"}
-              </Button>
-              
-              <div className="text-center">
-                <Button 
-                  type="button" 
-                  variant="link" 
-                  size="sm" 
-                  onClick={handleResendSms}
-                  disabled={resendingSms || verifyingMfa}
-                  className="text-xs"
-                >
-                  {resendingSms ? "Enviando..." : "Não recebeu o código? Reenviar SMS"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </motion.div>
-    )}
-  </AnimatePresence>
-</div>
-);
+    </div>
+  );
 };
 
 export default SignupPage;
