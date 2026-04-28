@@ -121,9 +121,8 @@ const Index = () => {
     );
   }
 
-  // Se temos um tenant detectado via subdomínio ou custom domain, não precisamos esperar por memberships
-  // O AuthGuard cuidará da seleção automática assim que os dados de membership chegarem.
-  if (memberships.length === 0 && !currentTenant) {
+  // If no memberships yet and no tenant context, show loader
+  if (memberships.length === 0 && !currentTenant && !isSuperAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground" />
