@@ -80,7 +80,9 @@ const AdminAudit: React.FC = () => {
       if (actionFilter !== "all") query = query.ilike("action", `%${actionFilter}%`);
       if (entityFilter !== "all") query = query.or(`entity_type.eq.${entityFilter},resource.eq.${entityFilter}`);
       if (tenantFilter !== "all") query = query.eq("tenant_id", tenantFilter);
-      if (search) query = query.or(`action.ilike.%${search}%,entity_type.ilike.%${search}%,resource.ilike.%${search}%`);
+      if (search) {
+        query = query.or(`action.ilike.%${search}%,entity_type.ilike.%${search}%,resource.ilike.%${search}%,details->>email.ilike.%${search}%,details->>stage.ilike.%${search}%`);
+      }
 
       const { data, count } = await query;
       return { logs: data || [], total: count || 0 };
