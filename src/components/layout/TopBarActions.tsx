@@ -140,17 +140,17 @@ const TopBarActions: React.FC = () => {
         </PopoverContent>
       </Popover>
 
-      {/* Settings */}
+      {/* Profile */}
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            onClick={() => navigate(settingsPath)}
+            onClick={() => navigate(profilePath)}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-sm"
           >
-            <Settings className="h-4 w-4 text-foreground" />
+            <User className="h-4 w-4 text-foreground" />
           </button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-[11px]">Configurações</TooltipContent>
+        <TooltipContent side="bottom" className="text-[11px]">Meu Perfil</TooltipContent>
       </Tooltip>
     </div>
   );
