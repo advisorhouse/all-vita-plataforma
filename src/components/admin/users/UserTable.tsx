@@ -21,6 +21,9 @@ export interface UserRow {
   roles: { role: string; tenant_id: string | null; tenant_name: string }[];
   userType: string;
   has2FA: boolean;
+  emailConfirmedAt?: string | null;
+  lastSignInAt?: string | null;
+  confirmationSentAt?: string | null;
 }
 
 const ROLE_LABELS: Record<string, string> = {
