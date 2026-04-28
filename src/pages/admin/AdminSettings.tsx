@@ -53,20 +53,86 @@ const SwitchRow = ({
 );
 
 const AdminSettings: React.FC = () => {
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  const [platform, setPlatform] = useState<any>(null);
+  const [security, setSecurity] = useState<any>(null);
+  const [defaults, setDefaults] = useState<any>(null);
+  const [domains, setDomains] = useState<any>(null);
+  const [advanced, setAdvanced] = useState<any>(null);
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('system_settings').select('*');
+      
+      if (error) throw error;
+
+      if (data) {
+        const settingsMap: any = {};
+        data.forEach(item => {
+          settingsMap[item.key] = item.value;
+        });
+
+        if (settingsMap.platform_branding) setPlatform(settingsMap.platform_branding);
+        if (settingsMap.security_settings) setSecurity(settingsMap.security_settings);
+        if (settingsMap.tenant_defaults) setDefaults(settingsMap.tenant_defaults);
+        if (settingsMap.domain_settings) setDomains(settingsMap.domain_settings);
+        if (settingsMap.advanced_settings) setAdvanced(settingsMap.advanced_settings);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      toast.error("Erro ao carregar configurações");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
     setSaving(true);
-    setTimeout(() => { setSaving(false); toast.success("Configurações salvas com sucesso"); }, 800);
+    try {
+      const updates = [
+        { key: 'platform_branding', value: platform },
+        { key: 'security_settings', value: security },
+        { key: 'tenant_defaults', value: defaults },
+        { key: 'domain_settings', value: domains },
+        { key: 'advanced_settings', value: advanced },
+      ];
+
+      for (const update of updates) {
+        if (!update.value) continue;
+        const { error } = await supabase
+          .from('system_settings')
+          .upsert(update);
+        
+        if (error) throw error;
+      }
+
+      toast.success("Configurações salvas com sucesso");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Erro ao salvar configurações");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleTemplate = async (slug: string, active: boolean) => {
     try {
-      // In a real scenario, we would call supabase here
-      // const { error } = await supabase.from('communication_templates').update({ active }).eq('slug', slug);
-      // if (error) throw error;
+      const { error } = await supabase
+        .from('communication_templates')
+        .update({ active })
+        .eq('slug', slug);
+      
+      if (error) throw error;
       toast.success(`Template ${slug} ${active ? 'ativado' : 'desativado'}`);
     } catch (error) {
+      console.error("Error toggling template:", error);
       toast.error("Erro ao atualizar template");
     }
   };
