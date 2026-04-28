@@ -47,7 +47,48 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
+
+  const fetchCnpjData = async () => {
+    const cleanCnpj = form.cnpj.replace(/\D/g, "");
+    if (cleanCnpj.length !== 14) {
+      toast.error("CNPJ inválido", { description: "Digite 14 dígitos para buscar." });
+      return;
+    }
+
+    setFetchingCnpj(true);
+    try {
+      const response = await fetch(`https://publica.cnpj.ws/cnpj/${cleanCnpj}`);
+      if (!response.ok) throw new Error("CNPJ não encontrado");
+      const data = await response.json();
+
+      setForm((prev) => ({
+        ...prev,
+        name: data.razao_social || prev.name,
+        trade_name: data.estabelecimento?.nome_fantasia || prev.trade_name,
+        address_cep: data.estabelecimento?.cep || prev.address_cep,
+        address_street: data.estabelecimento?.logradouro || prev.address_street,
+        address_number: data.estabelecimento?.numero || prev.address_number,
+        address_complement: data.estabelecimento?.complemento || prev.address_complement,
+        address_district: data.estabelecimento?.bairro || prev.address_district,
+        address_city: data.estabelecimento?.cidade?.nome || prev.address_city,
+        address_state: data.estabelecimento?.estado?.sigla || prev.address_state,
+        // Auto generate slug if empty
+        slug: prev.slug || (data.estabelecimento?.nome_fantasia || data.razao_social || "")
+          .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, ""),
+        // Take the first QSA member as owner if available
+        owner_name: data.socios?.[0]?.nome || prev.owner_name,
+      }));
+
+      toast.success("Dados carregados com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao buscar CNPJ", { description: "Não foi possível carregar os dados automaticamente." });
+    } finally {
+      setFetchingCnpj(false);
+    }
+  };
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
