@@ -853,27 +853,78 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-5">
                 <p className="text-xs text-muted-foreground">⚠️ Alterações aqui podem impactar toda a plataforma</p>
-                <SwitchRow title="Modo Debug" desc="Ativa logs verbose no console" />
-                <SwitchRow title="Feature: Rede Multinível v2" desc="Motor de comissões multinível aprimorado" checked />
-                <SwitchRow title="Feature: BI & Analytics API" desc="Endpoint dedicado para ferramentas de BI" checked />
-                <SwitchRow title="Feature: Motor de Retenção" desc="Detecção automática de risco de churn" />
-                <SwitchRow title="Feature: Quiz Público" desc="Formulário público para triagem de clientes" checked />
-                <SwitchRow title="Feature: Catálogo de Recompensas" desc="Marketplace interno de produtos para resgate" checked />
+                <SwitchRow 
+                  title="Modo Debug" 
+                  desc="Ativa logs verbose no console" 
+                  checked={advanced?.debug_mode}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, debug_mode: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Rede Multinível v2" 
+                  desc="Motor de comissões multinível aprimorado" 
+                  checked={advanced?.feature_multilevel_v2}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_multilevel_v2: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: BI & Analytics API" 
+                  desc="Endpoint dedicado para ferramentas de BI" 
+                  checked={advanced?.feature_bi_analytics_api}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_bi_analytics_api: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Motor de Retenção" 
+                  desc="Detecção automática de risco de churn" 
+                  checked={advanced?.feature_retention_engine}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_retention_engine: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Quiz Público" 
+                  desc="Formulário público para triagem de clientes" 
+                  checked={advanced?.feature_public_quiz}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_public_quiz: checked })}
+                />
+                <SwitchRow 
+                  title="Feature: Catálogo de Recompensas" 
+                  desc="Marketplace interno de produtos para resgate" 
+                  checked={advanced?.feature_reward_catalog}
+                  onCheckedChange={(checked) => setAdvanced({ ...advanced, feature_reward_catalog: checked })}
+                />
                 <Separator />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label>Rate Limit API (req/min)</Label>
-                    <Input type="number" defaultValue="60" />
+                    <Input 
+                      type="number" 
+                      value={advanced?.api_rate_limit || ""} 
+                      onChange={(e) => setAdvanced({ ...advanced, api_rate_limit: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Timeout de Edge Functions (s)</Label>
-                    <Input type="number" defaultValue="30" />
+                    <Input 
+                      type="number" 
+                      value={advanced?.edge_function_timeout || ""} 
+                      onChange={(e) => setAdvanced({ ...advanced, edge_function_timeout: parseInt(e.target.value) || 0 })}
+                    />
                   </div>
                 </div>
                 <Separator />
                 <div className="space-y-2">
                   <Label>Variáveis de Ambiente Customizadas</Label>
-                  <Textarea placeholder='{"FEATURE_X": true, "MAX_RETRIES": 3}' rows={3} className="font-mono text-sm" />
+                  <Textarea 
+                    value={advanced?.custom_env_vars ? JSON.stringify(advanced.custom_env_vars, null, 2) : ""} 
+                    onChange={(e) => {
+                      try {
+                        const parsed = JSON.parse(e.target.value);
+                        setAdvanced({ ...advanced, custom_env_vars: parsed });
+                      } catch (err) {
+                        // Just keep as is if invalid JSON while typing
+                      }
+                    }}
+                    placeholder='{"FEATURE_X": true, "MAX_RETRIES": 3}' 
+                    rows={3} 
+                    className="font-mono text-sm" 
+                  />
                 </div>
               </CardContent>
             </Card>
