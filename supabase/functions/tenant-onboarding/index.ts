@@ -49,7 +49,7 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const {
-      name, trade_name, slug, cnpj,
+      name, trade_name, slug, cnpj, segment,
       primary_color, secondary_color, logo_url,
       address, owner,
     } = body;
