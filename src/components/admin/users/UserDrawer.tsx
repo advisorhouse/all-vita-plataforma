@@ -186,6 +186,16 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             >
               <KeyRound className="h-4 w-4 mr-2" /> Resetar Senha
             </Button>
+            {!user.emailConfirmedAt && (
+              <Button
+                variant="outline"
+                onClick={() => onResendInvite(user.id)}
+                className="w-full justify-start text-primary"
+                disabled={isDeleting || isBlocking}
+              >
+                <Send className="h-4 w-4 mr-2" /> Reenviar Convite por E-mail
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => onBlockUser(user.id)}
