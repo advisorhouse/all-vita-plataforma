@@ -194,15 +194,17 @@ const LoginPage: React.FC = () => {
                 Esqueci minha senha
               </Link>
 
-              <div className="text-sm text-muted-foreground pt-2">
-                Não tem conta?{" "}
-                <Link
-                  to={tenantPath("/auth/signup") + (redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : "")}
-                  className="text-foreground font-medium hover:underline transition-colors"
-                >
-                  Criar conta
-                </Link>
-              </div>
+              {redirectTo && (
+                <div className="text-sm text-muted-foreground pt-2">
+                  Não tem conta?{" "}
+                  <Link
+                    to={tenantPath("/auth/signup") + `?redirect=${encodeURIComponent(redirectTo)}`}
+                    className="text-foreground font-medium hover:underline transition-colors"
+                  >
+                    Criar conta
+                  </Link>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
