@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Loader2, Upload, X, Image, Search } from "lucide-react";
 import { IMaskInput } from "react-imask";
@@ -45,11 +46,25 @@ interface CreateTenantDialogProps {
 const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
+  const [customSegment, setCustomSegment] = useState("");
+  const [isCustomSegment, setIsCustomSegment] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: segments } = useQuery({
+    queryKey: ["tenant-segments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tenant_segments")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const validateCNPJ = (cnpj: string) => {
     const cleanCnpj = cnpj.replace(/\D/g, "");
@@ -116,8 +131,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
           .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, ""),
         owner_name: data.socios?.[0]?.nome || prev.owner_name,
-        // Sugestão automática do segmento baseada na atividade principal (CNAE)
-        segment: data.estabelecimento?.atividade_principal?.descricao || prev.segment,
+        // Mantemos o segmento vazio para forçar a escolha manual baseada no nicho do produto
+        segment: prev.segment,
       }));
 
       // Try to fetch logo from domain
@@ -317,13 +332,41 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
               
               <div className="space-y-2">
                 <Label>Segmento / Nicho *</Label>
-                <Input 
-                  value={form.segment} 
-                  onChange={set("segment")} 
-                  required 
-                  placeholder="Ex: Farmácia, Academia, Varejo..." 
-                  className="h-10"
-                />
+                <Select 
+                  value={isCustomSegment ? "Outros" : form.segment} 
+                  onValueChange={(val) => {
+                    if (val === "Outros") {
+                      setIsCustomSegment(true);
+                      setForm(f => ({ ...f, segment: customSegment }));
+                    } else {
+                      setIsCustomSegment(false);
+                      setForm(f => ({ ...f, segment: val }));
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Selecione o nicho/segmento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {segments?.map((s: any) => (
+                      <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                    ))}
+                    <SelectItem value="Outros">Outros (especificar)</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {isCustomSegment && (
+                  <Input 
+                    value={customSegment} 
+                    onChange={(e) => {
+                      setCustomSegment(e.target.value);
+                      setForm(f => ({ ...f, segment: e.target.value }));
+                    }}
+                    placeholder="Especifique o segmento..."
+                    className="h-10 mt-2"
+                    required
+                  />
+                )}
               </div>
 
               <div className="space-y-2">

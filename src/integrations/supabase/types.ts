@@ -2015,6 +2015,24 @@ export type Database = {
           },
         ]
       }
+      tenant_segments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       tenant_staff: {
         Row: {
           created_at: string
