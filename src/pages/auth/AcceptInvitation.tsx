@@ -62,8 +62,10 @@ const AcceptInvitation: React.FC = () => {
 
   const handleAccept = async () => {
     if (!user) {
-      // Redirecionar para login, mas salvar o retorno
+      // Redirecionar para login ou signup, mas salvar o retorno
       const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      // Se o usuário clicar para aceitar mas não estiver logado, oferecemos a opção de login
+      // que agora já tem o link para signup preservando o redirect
       navigate(`/auth/login?redirect=${returnUrl}`);
       return;
     }
