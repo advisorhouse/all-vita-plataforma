@@ -79,6 +79,33 @@ const AdminUsers: React.FC = () => {
     [tenantsRaw]
   );
 
+  // Fetch auth status (email_confirmed_at, last_sign_in_at) for current page profiles
+  const profileIds = useMemo(
+    () => (profilesData?.profiles || []).map((p: any) => p.id),
+    [profilesData]
+  );
+
+  const { data: authStatusList } = useQuery({
+    queryKey: ["admin-users-auth-status", profileIds],
+    enabled: profileIds.length > 0,
+    queryFn: async () => {
+      const res = await supabase.functions.invoke("manage-users/auth-status", {
+        body: { userIds: profileIds },
+      });
+      if (res.error) {
+        console.warn("[AdminUsers] auth-status error:", res.error.message);
+        return [];
+      }
+      return res.data?.data || [];
+    },
+  });
+
+  const authStatusMap = useMemo(() => {
+    const map: Record<string, { email_confirmed_at: string | null; last_sign_in_at: string | null; confirmation_sent_at: string | null; invited_at: string | null }> = {};
+    (authStatusList || []).forEach((a: any) => { map[a.id] = a; });
+    return map;
+  }, [authStatusList]);
+
   // Fetch audit logs for selected user
   const { data: auditLogs } = useQuery({
     queryKey: ["admin-user-audit", selectedUser?.id],
