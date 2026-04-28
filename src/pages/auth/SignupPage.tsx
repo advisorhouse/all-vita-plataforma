@@ -309,8 +309,93 @@ const SignupPage: React.FC = () => {
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
-    </div>
-  );
+    ) : (
+      <motion.div
+        key="mfa"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -16 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-6">
+          <ShieldCheck className="h-10 w-10 mx-auto text-primary mb-2" />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Segurança da Conta
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Configure seu autenticador 2FA para ativar sua conta
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg text-center">Configurar 2FA</CardTitle>
+            <CardDescription className="text-center">
+              Escaneie com seu app (Google Authenticator, Authy, etc.)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {qrCode && (
+              <div className="flex justify-center">
+                <img
+                  src={qrCode}
+                  alt="QR Code"
+                  className="w-48 h-48 rounded-lg border border-border bg-white p-2"
+                />
+              </div>
+            )}
+
+            {secret && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">
+                  Ou chave manual:
+                </Label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-[10px] bg-muted p-2 rounded font-mono break-all">
+                    {secret}
+                  </code>
+                  <Button size="icon" variant="ghost" onClick={copySecret}>
+                    {copied ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleVerifyMfa} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mfa-code">Código de 6 dígitos</Label>
+                <Input
+                  id="mfa-code"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="000000"
+                  className="text-center text-lg tracking-widest"
+                  value={mfaCode}
+                  onChange={(e) =>
+                    setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  autoFocus
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={verifyingMfa}>
+                {verifyingMfa ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {verifyingMfa ? "Ativando..." : "Ativar e Finalizar"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
+);
 };
 
 export default SignupPage;
