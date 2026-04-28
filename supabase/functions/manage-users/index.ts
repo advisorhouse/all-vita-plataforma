@@ -37,6 +37,9 @@ serve(async (req) => {
   const pathParts = url.pathname.split("/").filter(Boolean);
   const action = pathParts[pathParts.length - 1] || "";
 
+  console.log(`[ManageUsers] Action: ${action}, Caller: ${callerUserId}, Tenant: ${tenantId}`);
+
+
 
   // Check if caller is super admin (global)
   const { data: superAdminCheck } = await adminClient
@@ -282,7 +285,10 @@ serve(async (req) => {
         const body = await req.json();
         const { userId } = body;
 
-        if (!userId) return jsonRes(400, { error: "userId é obrigatório" });
+        console.log(`[ManageUsers] Attempting to delete user: ${userId}`);
+
+        if (!userId) return jsonRes(400, { error: "ID do usuário não fornecido para exclusão." });
+
 
         // Prevent self-deletion
         if (userId === callerUserId) {
@@ -331,6 +337,9 @@ serve(async (req) => {
         const body = await req.json();
         const { tenantId: targetTenantId } = body;
 
+        console.log(`[ManageUsers] Attempting to delete tenant: ${targetTenantId}`);
+
+
         if (!isSuperAdmin) {
           return jsonRes(403, { error: "Apenas Super Administradores podem excluir empresas." });
         }
@@ -375,9 +384,12 @@ serve(async (req) => {
         return jsonRes(404, { error: `Ação desconhecida: ${action}` });
     }
   } catch (error: any) {
-    console.error("User management error:", error);
-    return jsonRes(500, { error: error.message || "Erro interno do servidor" });
+    console.error(`[ManageUsers] Error in action "${action}":`, error);
+    return jsonRes(500, { 
+      error: `Erro ao processar a operação "${action}": ${error.message || "Erro desconhecido"}` 
+    });
   }
+
 });
 
 function generateTempPassword(): string {
