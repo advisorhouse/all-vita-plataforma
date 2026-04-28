@@ -227,9 +227,30 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Dados da Empresa</h3>
             <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 space-y-2">
+                <Label>CNPJ</Label>
+                <div className="flex gap-2">
+                  <IMaskInput
+                    mask="00.000.000/0000-00"
+                    value={form.cnpj}
+                    unmask={true}
+                    onAccept={(value) => setForm(f => ({ ...f, cnpj: value }))}
+                    placeholder="00.000.000/0000-00"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    onClick={fetchCnpjData}
+                    disabled={fetchingCnpj || form.cnpj.length < 14}
+                  >
+                    {fetchingCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    <span className="ml-2">Buscar</span>
+                  </Button>
+                </div>
+              </div>
               <div className="space-y-2"><Label>Razão Social *</Label><Input value={form.name} onChange={set("name")} required /></div>
               <div className="space-y-2"><Label>Nome Fantasia</Label><Input value={form.trade_name} onChange={set("trade_name")} onBlur={handleSlugGenerate} /></div>
-              <div className="space-y-2"><Label>CNPJ</Label><Input value={form.cnpj} onChange={set("cnpj")} placeholder="00.000.000/0000-00" /></div>
               <div className="space-y-2">
                 <Label>Slug (subdomínio) *</Label>
                 <div className="flex items-center gap-2">
