@@ -46,11 +46,25 @@ interface CreateTenantDialogProps {
 const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
+  const [customSegment, setCustomSegment] = useState("");
+  const [isCustomSegment, setIsCustomSegment] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: segments } = useQuery({
+    queryKey: ["tenant-segments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tenant_segments")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const validateCNPJ = (cnpj: string) => {
     const cleanCnpj = cnpj.replace(/\D/g, "");
