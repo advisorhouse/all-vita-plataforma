@@ -97,7 +97,7 @@ serve(async (req) => {
       const { email, full_name, role, is_staff, tenant_id: targetId, type } = body;
       
       let tenantName = "All Vita";
-      let tenantLogo = "https://allvita.com.br/logo.png"; // Placeholder/Default
+      let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png"; // Official URL from project storage
       
       if (!is_staff && targetId) {
         const { data: tenant } = await adminClient
@@ -297,7 +297,7 @@ serve(async (req) => {
         // Send welcome email
         try {
           let tenantName = "All Vita";
-          let tenantLogo = "https://allvita.com.br/logo.png";
+          let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
           if (targetTenantId) {
             const { data: tenant } = await adminClient
               .from("tenants")
@@ -473,7 +473,7 @@ serve(async (req) => {
         const { data: membership } = await adminClient.from("memberships").select("tenant_id").eq("user_id", userId).eq("active", true).limit(1).maybeSingle();
 
         let tenantName = "All Vita";
-        let tenantLogo = "https://allvita.com.br/logo.png";
+        let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
         if (membership?.tenant_id) {
           const { data: tenant } = await adminClient.from("tenants").select("name, trade_name, logo_url").eq("id", membership.tenant_id).single();
           tenantName = tenant?.trade_name || tenant?.name || "All Vita";
@@ -534,7 +534,7 @@ serve(async (req) => {
         await adminClient.auth.admin.updateUserById(userId, { password: tempPassword });
 
         let tenantName = "All Vita";
-        let tenantLogo = "https://allvita.com.br/logo.png";
+        let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
         if (membership?.tenant_id) {
           const { data: tenant } = await adminClient.from("tenants").select("name, trade_name, logo_url").eq("id", membership.tenant_id).single();
           tenantName = tenant?.trade_name || tenant?.name || "All Vita";
@@ -656,7 +656,7 @@ function renderEmail(options: {
 }) {
   const primaryColor = "#1a1a2e";
   const accentColor = "#6B8E23";
-  const logoUrl = options.tenantLogo || "https://allvita.com.br/logo.png";
+  const logoUrl = options.tenantLogo || "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
   const isAllVita = options.tenantName === "All Vita";
 
   return `
