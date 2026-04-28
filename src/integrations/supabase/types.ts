@@ -1179,6 +1179,36 @@ export type Database = {
           },
         ]
       }
+      platform_role_permissions: {
+        Row: {
+          action: string
+          allowed: boolean
+          created_at: string
+          id: string
+          resource: string
+          role: Database["public"]["Enums"]["staff_role"]
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          resource: string
+          role: Database["public"]["Enums"]["staff_role"]
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          resource?: string
+          role?: Database["public"]["Enums"]["staff_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
@@ -2015,6 +2045,39 @@ export type Database = {
           },
         ]
       }
+      tenant_role_permissions: {
+        Row: {
+          action: string
+          allowed: boolean
+          created_at: string
+          id: string
+          resource: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          resource: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          resource?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tenant_segments: {
         Row: {
           created_at: string
@@ -2534,6 +2597,15 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      can: {
+        Args: {
+          _action: string
+          _resource: string
+          _tenant_id?: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       check_permission: {
         Args: {
           _action: string
@@ -2585,6 +2657,13 @@ export type Database = {
       }
       is_in_partner_downline: {
         Args: { _child_partner_id: string; _parent_partner_id: string }
+        Returns: boolean
+      }
+      is_platform_staff: {
+        Args: {
+          _role?: Database["public"]["Enums"]["staff_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
