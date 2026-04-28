@@ -130,7 +130,7 @@ const App = () => (
               {/* Partner (Afiliado) - Protected */}
               <Route path="/partner/start" element={<AuthGuard><PartnerStart /></AuthGuard>} />
               <Route path="/partner/onboarding" element={<PartnerOnboarding />} />
-              <Route path="/partner" element={<AuthGuard><PartnerLayout /></AuthGuard>}>
+              <Route path="/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
                 <Route index element={<PartnerDashboard />} />
                 <Route path="network" element={<PartnerNetwork />} />
                 <Route path="referrals" element={<PartnerReferrals />} />
