@@ -77,7 +77,7 @@ const PrivacyPolicy = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-primary">3. FINALIDADES DO TRATAMENTO DE DADOS</h2>
             <p>Utilizamos seus dados para finalidades legítimas e específicas:</p>
-            <ul className="list-disc pl-5 mt-4 space-y-2">
+            <ul className="list-disc pl-5 mt-4 space-y-2 text-sm text-muted-foreground">
               <li><strong>Execução de Contrato:</strong> Para gerenciar sua conta, processar assinaturas do Club e permitir o uso das funcionalidades da plataforma.</li>
               <li><strong>Acompanhamento de Saúde:</strong> Para permitir que profissionais de saúde visualizem sua jornada e prescrevam tratamentos/suplementos adequados.</li>
               <li><strong>Gestão de Recompensas (Vitacoins):</strong> Para calcular pontos baseados no seu engajamento e permitir a troca por benefícios.</li>
@@ -90,58 +90,112 @@ const PrivacyPolicy = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-primary">4. COMPARTILHAMENTO DE DADOS</h2>
             <p>O compartilhamento de dados ocorre apenas em cenários estritamente necessários:</p>
-            <ul className="list-disc pl-5 mt-4 space-y-3">
+            <ul className="list-disc pl-5 mt-4 space-y-3 text-sm text-muted-foreground">
               <li><strong>Entre Usuários:</strong> Dados de saúde do paciente são compartilhados com o profissional vinculado (Partner) para fins de cuidado clínico.</li>
               <li><strong>Fornecedores de Tecnologia:</strong> Serviços de hospedagem em nuvem (Supabase/AWS), envio de e-mails e infraestrutura de TI, todos com rigorosos contratos de confidencialidade.</li>
               <li><strong>Processadores de Pagamento:</strong> Para viabilizar transações financeiras.</li>
               <li><strong>Logística:</strong> Endereço e nome para entrega de produtos/kits All Vita.</li>
               <li><strong>Obrigação Legal:</strong> Quando exigido por autoridades governamentais, ordem judicial ou para o cumprimento de deveres regulatórios.</li>
             </ul>
-            <p className="mt-4 font-semibold text-destructive">A All Vita NUNCA comercializa ou aluga seus dados pessoais para terceiros.</p>
+            <p className="mt-4 font-semibold text-destructive text-sm text-center">A All Vita NUNCA comercializa ou aluga seus dados pessoais para terceiros.</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">5. SEGURANÇA E ARMAZENAMENTO</h2>
-            <p>Adotamos padrões de segurança de nível bancário e hospitalar:</p>
-            <ul className="list-disc pl-5 mt-4 space-y-2">
-              <li><strong>Criptografia:</strong> Dados sensíveis são criptografados tanto em repouso quanto em trânsito (SSL/TLS).</li>
-              <li><strong>Controle de Acesso:</strong> Autenticação rigorosa e políticas de "mínimo privilégio" (cada colaborador acessa apenas o que é essencial).</li>
-              <li><strong>Localização:</strong> Os dados são armazenados em servidores de alta segurança localizados globalmente (AWS/Supabase), em conformidade com as normas internacionais de proteção de dados.</li>
-              <li><strong>Retenção:</strong> Mantemos seus dados enquanto seu cadastro estiver ativo ou conforme exigido por leis de guarda de prontuários médicos (que podem chegar a 20 anos em certos casos).</li>
+            <h2 className="text-xl font-semibold mb-4 text-primary">5. GESTÃO DO CONSENTIMENTO</h2>
+            <p>
+              O tratamento de seus dados pessoais, especialmente os sensíveis (saúde), é baseado em seu consentimento livre, informado e inequívoco.
+            </p>
+            <ul className="list-disc pl-5 mt-4 space-y-3 text-sm text-muted-foreground">
+              <li><strong>Coleta:</strong> O consentimento é coletado de forma digital no momento do onboarding, onde apresentamos os Termos de Uso e esta Política.</li>
+              <li><strong>Registro:</strong> Armazenamos um log técnico de cada aceite (data, hora, IP e versão do documento) para fins de prova de conformidade perante a ANPD.</li>
+              <li><strong>Revogação:</strong> Você pode revogar seu consentimento a qualquer momento. Note que a revogação para o tratamento de dados essenciais à plataforma (como dados de saúde para acompanhamento clínico) resultará na impossibilidade de continuar utilizando os serviços da All Vita.</li>
+              <li><strong>Comunicações:</strong> O consentimento para comunicações de marketing pode ser gerido de forma independente, através dos links de "descadastramento" em nossos e-mails.</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">6. SEUS DIREITOS COMO TITULAR</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">6. RETENÇÃO E ELIMINAÇÃO DE DADOS</h2>
+            <p>Mantemos seus dados apenas pelo tempo necessário para cumprir as finalidades descritas, seguindo os critérios abaixo:</p>
+            
+            <div className="mt-4 overflow-x-auto">
+              <table className="min-w-full divide-y divide-border text-xs border rounded-lg">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-bold">Categoria de Dado</th>
+                    <th className="px-4 py-2 text-left font-bold">Prazo de Retenção</th>
+                    <th className="px-4 py-2 text-left font-bold">Fundamento Legal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  <tr>
+                    <td className="px-4 py-2">Identificação / Cadastro</td>
+                    <td className="px-4 py-2">Duração da conta + 5 anos</td>
+                    <td className="px-4 py-2">Prescrição Civil / Defesa Judicial</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">Saúde (Prontuário/Quiz)</td>
+                    <td className="px-4 py-2">Mínimo de 20 anos</td>
+                    <td className="px-4 py-2">Art. 6º da Lei 13.787/2018</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">Navegação (Logs)</td>
+                    <td className="px-4 py-2">6 meses a 1 ano</td>
+                    <td className="px-4 py-2">Marco Civil da Internet</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2">Pagamentos / Fiscal</td>
+                    <td className="px-4 py-2">5 a 10 anos</td>
+                    <td className="px-4 py-2">Obrigação Tributária / Código Civil</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Após o término do prazo de manutenção, os dados serão eliminados de forma segura ou anonimizados, impossibilitando a identificação do titular.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-primary">7. SEGURANÇA E ARMAZENAMENTO</h2>
+            <p>Adotamos padrões de segurança de nível bancário e hospitalar:</p>
+            <ul className="list-disc pl-5 mt-4 space-y-2 text-sm text-muted-foreground">
+              <li><strong>Criptografia:</strong> Dados sensíveis são criptografados tanto em repouso quanto em trânsito (SSL/TLS).</li>
+              <li><strong>Controle de Acesso:</strong> Autenticação rigorosa e políticas de "mínimo privilégio" (cada colaborador acessa apenas o que é essencial).</li>
+              <li><strong>Localização:</strong> Os dados são armazenados em servidores de alta segurança localizados globalmente (AWS/Supabase), em conformidade com as normas internacionais de proteção de dados.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-primary">8. SEUS DIREITOS COMO TITULAR</h2>
             <p>Você tem total controle sobre seus dados e pode exercer os seguintes direitos conforme a LGPD:</p>
-            <ul className="list-disc pl-5 mt-4 space-y-2">
+            <ul className="list-disc pl-5 mt-4 space-y-2 text-sm text-muted-foreground">
               <li><strong>Confirmação e Acesso:</strong> Saber se tratamos seus dados e obter uma cópia deles.</li>
               <li><strong>Correção:</strong> Solicitar a atualização de dados incompletos ou errados.</li>
               <li><strong>Anonimização ou Eliminação:</strong> Quando os dados forem desnecessários ou excessivos.</li>
               <li><strong>Portabilidade:</strong> Transferir seus dados para outro fornecedor de serviço.</li>
-              <li><strong>Revogação do Consentimento:</strong> Retirar sua autorização para o tratamento de dados (isso pode limitar o uso de certas funções).</li>
+              <li><strong>Revogação do Consentimento:</strong> Retirar sua autorização para o tratamento de dados.</li>
               <li><strong>Informação sobre Compartilhamento:</strong> Saber com quais entidades compartilhamos seus dados.</li>
             </ul>
-            <p className="mt-4">Para exercer estes direitos, entre em contato através do e-mail: <strong>privacidade@allvita.com.br</strong>.</p>
+            <p className="mt-4 text-sm">Para exercer estes direitos, entre em contato através do e-mail: <strong>privacidade@allvita.com.br</strong>.</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">7. COOKIES E TECNOLOGIAS DE RASTREAMENTO</h2>
-            <p>
+            <h2 className="text-xl font-semibold mb-4 text-primary">9. COOKIES E TECNOLOGIAS DE RASTREAMENTO</h2>
+            <p className="text-sm text-muted-foreground">
               Utilizamos cookies para reconhecer seu navegador, lembrar suas preferências e entender como você utiliza nossa plataforma. Você pode gerenciar as preferências de cookies nas configurações do seu navegador, mas desativá-los pode afetar a experiência de uso da All Vita.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">8. ALTERAÇÕES NESTA POLÍTICA</h2>
-            <p>
+            <h2 className="text-xl font-semibold mb-4 text-primary">10. ALTERAÇÕES NESTA POLÍTICA</h2>
+            <p className="text-sm text-muted-foreground">
               Podemos atualizar esta Política de Privacidade a qualquer momento. Versões atualizadas serão publicadas nesta página com uma nova data de revisão. Recomendamos a leitura periódica deste documento.
             </p>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">9. CONTATO E ENCARREGADO (DPO)</h2>
-            <p>
+          <section className="mb-8 border-t pt-8">
+            <h2 className="text-xl font-semibold mb-4 text-primary">11. CONTATO E ENCARREGADO (DPO)</h2>
+            <p className="text-sm text-muted-foreground">
               Dúvidas, reclamações ou solicitações sobre privacidade devem ser enviadas ao nosso Encarregado de Proteção de Dados:
             </p>
             <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
@@ -152,7 +206,7 @@ const PrivacyPolicy = () => {
             </div>
           </section>
 
-          <p className="mt-8 text-sm text-center text-muted-foreground">
+          <p className="mt-8 text-xs text-center text-muted-foreground">
             <strong>MAXIMA VITA HUMAN HEALTH LTDA</strong>
           </p>
         </article>

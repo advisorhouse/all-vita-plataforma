@@ -68,7 +68,7 @@ const TermsOfUse = () => {
               </div>
               <div className="bg-muted/50 p-4 rounded-lg">
                 <h3 className="font-bold mb-2 text-foreground">D. Gamificação e Vitacoins</h3>
-                <p className="text-sm">Sistema de recompensas baseado no engajamento. O cumprimento de metas de saúde, leitura de conteúdos e permanência no Club geram "Vitacoins", pontos que podem ser trocados conforme as regras vigentes da campanha atual.</p>
+                <p className="text-sm">Sistema de recompensas baseado no engajamento. O cumprimento de metas de saúde, leitura de conteúdos e permanência no Club geram "Vitacoins", pontos que podem ser trocados conforme as regras vigentes da plataforma.</p>
               </div>
             </div>
           </section>
@@ -84,18 +84,55 @@ const TermsOfUse = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">4. REGRAS ESPECÍFICAS PARA PARCEIROS</h2>
-            <p>Profissionais de saúde que utilizam a plataforma como Parceiros declaram e garantem:</p>
-            <ul className="list-disc pl-5 mt-4 space-y-2">
-              <li>Possuir registro ativo e regular perante o Conselho Federal ou Regional de sua categoria (CRM, etc.);</li>
-              <li>Observar o sigilo profissional e os preceitos éticos da medicina/saúde em todas as interações e registros na plataforma;</li>
-              <li>Não utilizar a plataforma para fins de diagnóstico exclusivo sem o devido exame clínico presencial, quando este for exigido pelas normas regulamentares de sua profissão;</li>
-              <li>Reconhecer que a All Vita não garante fluxo de pacientes, sendo uma ferramenta de suporte à gestão e relacionamento.</li>
+            <h2 className="text-xl font-semibold mb-4 text-primary">4. OBRIGAÇÕES POR PERFIL DE USUÁRIO</h2>
+            <div className="space-y-6 mt-4">
+              <div className="border-l-4 border-blue-500 pl-4">
+                <h3 className="font-bold text-foreground">A. Perfil CORE (Administradores e Operações)</h3>
+                <p className="text-sm mt-1 text-muted-foreground">Responsáveis pela gestão da infraestrutura, suporte e curadoria de conteúdos. Devem garantir a disponibilidade técnica e a integridade das integrações com parceiros.</p>
+              </div>
+              <div className="border-l-4 border-green-500 pl-4">
+                <h3 className="font-bold text-foreground">B. Perfil PARTNER (Profissionais e Clínicas)</h3>
+                <ul className="list-disc pl-5 mt-2 text-sm text-muted-foreground space-y-1">
+                  <li>Manter registro profissional ativo e regular (CRM/conselho de classe);</li>
+                  <li>Responsabilidade exclusiva pelas condutas clínicas e prescrições;</li>
+                  <li>Uso ético dos dados de pacientes, limitado à finalidade de cuidado;</li>
+                  <li>Proibição de compartilhamento de credenciais de acesso entre membros da equipe da clínica.</li>
+                </ul>
+              </div>
+              <div className="border-l-4 border-purple-500 pl-4">
+                <h3 className="font-bold text-foreground">C. Perfil CLUB (Assinantes e Pacientes)</h3>
+                <ul className="list-disc pl-5 mt-2 text-sm text-muted-foreground space-y-1">
+                  <li>Manutenção de dados cadastrais atualizados para fins de logística e saúde;</li>
+                  <li>Pagamento pontual das mensalidades para manutenção de benefícios;</li>
+                  <li>Uso pessoal e intransferível dos descontos e acessos do ecossistema.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-primary">5. VITACOINS: REGRAS DO PROGRAMA DE RECOMPENSAS</h2>
+            <p>O sistema de gamificação e fidelidade rege-se pelas seguintes condições:</p>
+            <ul className="list-disc pl-5 mt-4 space-y-3 text-sm text-muted-foreground">
+              <li><strong>Acúmulo:</strong> Vitacoins são gerados por ações específicas (leitura de conteúdos, preenchimento de quizzes, check-ins de saúde, renovações de assinatura). A taxa de conversão pode variar conforme campanhas sazonais.</li>
+              <li><strong>Validade e Expiração:</strong> Vitacoins têm validade de 12 (doze) meses a partir da data de crédito. Caso não haja movimentação na conta (ganho ou resgate) por mais de 180 dias, o saldo pode ser expirado antecipadamente.</li>
+              <li><strong>Resgate:</strong> Sujeito à disponibilidade de estoque no marketplace da plataforma e aos termos específicos de cada parceiro fornecedor.</li>
+              <li><strong>Cancelamentos e Ajustes:</strong> A All Vita reserva-se o direito de estornar Vitacoins originados de falhas técnicas ou comportamentos fraudulentos identificados por nossos algoritmos de auditoria.</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">5. USO DOS DADOS E PRIVACIDADE</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">6. VIGÊNCIA, RENOVAÇÃO E ENCERRAMENTO</h2>
+            <div className="bg-muted/30 p-4 rounded-lg border border-border">
+              <p className="text-sm mb-3"><strong>Vigência:</strong> Estes Termos entram em vigor na data do primeiro acesso ou aceite e possuem prazo indeterminado.</p>
+              <p className="text-sm mb-3"><strong>Renovação do Club:</strong> As assinaturas do Club All Vita são renovadas automaticamente conforme o ciclo contratado (mensal ou anual), salvo solicitação de cancelamento com 7 dias de antecedência ao vencimento.</p>
+              <p className="text-sm mb-3"><strong>Suspensão por Conduta:</strong> A All Vita pode suspender temporariamente o acesso em caso de suspeita de fraude, uso de bots, ou inadimplência superior a 15 dias.</p>
+              <p className="text-sm text-muted-foreground"><strong>Encerramento Definitivo:</strong> O encerramento pode ocorrer por iniciativa do usuário ou pela All Vita em casos de violação grave destes Termos, sem prejuízo de medidas judiciais cabíveis.</p>
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 text-primary">7. USO DOS DADOS E PRIVACIDADE</h2>
             <p>
               A proteção dos dados dos usuários é prioridade. O tratamento de dados sensíveis (informações de saúde) ocorre estritamente nos termos da <strong>Lei Geral de Proteção de Dados (LGPD)</strong> e conforme detalhado em nossa Política de Privacidade.
             </p>
@@ -105,18 +142,18 @@ const TermsOfUse = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">6. PROPRIEDADE INTELECTUAL</h2>
+            <h2 className="text-xl font-semibold mb-4 text-primary">8. PROPRIEDADE INTELECTUAL</h2>
             <p>
               Todos os elementos da plataforma All Vita, incluindo código-fonte, algoritmos de cálculo, design de interface, logotipos, textos, vídeos explicativos, protocolos de jornada e o nome "All Vita", são propriedades exclusivas da <strong>MAXIMA VITA HUMAN HEALTH LTDA</strong>. 
             </p>
-            <p className="mt-4">
+            <p className="mt-4 text-muted-foreground">
               É proibida a reprodução, engenharia reversa, descompilação ou qualquer forma de extração de dados (scraping) da plataforma sem autorização prévia e por escrito.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">7. LIMITAÇÃO DE RESPONSABILIDADE E GARANTIAS</h2>
-            <ul className="list-disc pl-5 space-y-3">
+            <h2 className="text-xl font-semibold mb-4 text-primary">9. LIMITAÇÃO DE RESPONSABILIDADE E GARANTIAS</h2>
+            <ul className="list-disc pl-5 space-y-3 text-sm text-muted-foreground">
               <li><strong>Independência Médica:</strong> A All Vita é uma fornecedora de tecnologia. Não exercemos a medicina nem interferimos nas decisões clínicas. A responsabilidade por qualquer diagnóstico ou tratamento é exclusiva do médico ou profissional de saúde assistente.</li>
               <li><strong>Disponibilidade:</strong> Embora busquemos a excelência técnica, não garantimos que a plataforma estará disponível 100% do tempo sem interrupções. Manutenções programadas ou problemas técnicos de terceiros podem ocorrer.</li>
               <li><strong>Resultados:</strong> A All Vita não garante resultados de saúde específicos, uma vez que estes dependem de fatores biológicos individuais e da adesão rigorosa do usuário aos protocolos.</li>
@@ -124,22 +161,15 @@ const TermsOfUse = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">8. CANCELAMENTO E SUSPENSÃO</h2>
-            <p>
-              A All Vita reserva-se o direito de suspender ou encerrar contas que violem estes Termos, pratiquem atos fraudulentos, disseminem informações falsas ou utilizem a plataforma para fins ilícitos. O usuário pode solicitar o cancelamento de sua conta a qualquer momento, observadas as condições contratuais específicas do Club All Vita, se aplicável.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">9. ALTERAÇÕES DOS TERMOS</h2>
-            <p>
+            <h2 className="text-xl font-semibold mb-4 text-primary">10. ALTERAÇÕES DOS TERMOS</h2>
+            <p className="text-sm text-muted-foreground">
               Estes Termos podem ser atualizados periodicamente para refletir melhorias funcionais ou mudanças legislativas. Notificaremos os usuários sobre alterações substanciais. O uso continuado da plataforma após a atualização implica na aceitação automática da nova versão.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-primary">10. LEI APLICÁVEL E FORO</h2>
-            <p>
+            <h2 className="text-xl font-semibold mb-4 text-primary">11. LEI APLICÁVEL E FORO</h2>
+            <p className="text-sm text-muted-foreground">
               Estes Termos são regidos pelas leis da República Federativa do Brasil. Para dirimir quaisquer dúvidas ou litígios decorrentes deste documento, as partes elegem o Foro Central da Comarca de São Paulo/SP, com renúncia expressa a qualquer outro.
             </p>
           </section>
