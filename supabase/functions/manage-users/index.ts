@@ -123,7 +123,7 @@ serve(async (req) => {
           return jsonRes(400, { error: "email, full_name and role are required" });
         }
 
-        const validRoles = ["admin", "manager", "partner", "client"];
+        const validRoles = ["super_admin", "admin", "manager", "partner", "client"];
         if (!validRoles.includes(role)) {
           return jsonRes(400, { error: `Invalid role. Must be one of: ${validRoles.join(", ")}` });
         }
