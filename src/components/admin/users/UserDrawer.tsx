@@ -186,7 +186,7 @@ const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDelet
             >
               <KeyRound className="h-4 w-4 mr-2" /> Resetar Senha
             </Button>
-            {!user.emailConfirmedAt && (
+            {user.emailConfirmedAt === null && (
               <Button
                 variant="outline"
                 onClick={() => onResendInvite(user.id)}
