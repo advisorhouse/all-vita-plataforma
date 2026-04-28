@@ -91,6 +91,42 @@ serve(async (req) => {
 
 
   try {
+    if (action === "preview-email") {
+      const body = await req.json();
+      const { email, full_name, role, is_staff, tenant_id: targetId } = body;
+      
+      let tenantName = "All Vita";
+      let tenantLogo = null;
+      
+      if (!is_staff && targetId) {
+        const { data: tenant } = await adminClient
+          .from("tenants")
+          .select("name, trade_name, logo_url")
+          .eq("id", targetId)
+          .single();
+        tenantName = tenant?.trade_name || tenant?.name || "All Vita";
+        tenantLogo = tenant?.logo_url;
+      }
+
+      const tempPassword = "SUA_SENHA_AQUI";
+      const html = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#ffffff;border:1px solid #eee;border-radius:12px">
+          ${tenantLogo ? `<img src="${tenantLogo}" style="max-height:48px;margin-bottom:24px" />` : ''}
+          <h1 style="color:#1a1a2e;font-size:24px;margin-bottom:16px">Bem-vindo!</h1>
+          <p style="color:#444;line-height:1.5">Olá <strong>${full_name || 'Usuário'}</strong>,</p>
+          <p style="color:#444;line-height:1.5">Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
+          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
+            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha provisória:</p>
+            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+          </div>
+          <p style="color:#e74c3c;font-size:14px;font-weight:bold;margin-top:24px">⚠️ Importante: Troque sua senha no primeiro acesso.</p>
+          <hr style="border:0;border-top:1px solid #eee;margin:32px 0" />
+          <p style="color:#999;font-size:12px;text-align:center">Enviado por ${tenantName} via All Vita</p>
+        </div>
+      `;
+      return jsonRes(200, { html, tenantName });
+    }
+
     switch (action) {
       case "list": {
         // List all memberships + profiles for this tenant

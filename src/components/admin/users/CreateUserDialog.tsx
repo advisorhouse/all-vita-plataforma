@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UserPlus, Loader2, Mail, ChevronRight, ChevronLeft, Building2, User as UserIcon, Phone } from "lucide-react";
+import { UserPlus, Loader2, Mail, ChevronRight, ChevronLeft, Building2, User as UserIcon, Phone, Eye } from "lucide-react";
 import { IMaskInput } from "react-imask";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Tenant { id: string; name: string }
 
@@ -23,6 +24,7 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [form, setForm] = useState({
     full_name: "", email: "", phone: "",
     user_type: "tenant" as "staff" | "tenant",
@@ -47,6 +49,28 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
     }
     return true;
   };
+
+  const fetchPreview = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users/preview-email", {
+        body: {
+          full_name: form.full_name,
+          is_staff: form.user_type === "staff",
+          tenant_id: form.tenant_id,
+        },
+      });
+      if (error) throw error;
+      setPreviewHtml(data.html);
+    } catch (e) {
+      console.error("Erro ao carregar preview:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 2) {
+      fetchPreview();
+    }
+  }, [step, form.tenant_id, form.user_type]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -197,22 +221,50 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
         )}
 
         {step === 2 && (
-          <div className="space-y-3 text-sm">
-            <p className="text-muted-foreground">Confirme os dados antes de criar:</p>
-            <div className="bg-secondary/50 rounded-lg p-4 space-y-2">
-              <p><span className="text-muted-foreground">Nome:</span> <strong>{form.full_name}</strong></p>
-              <p><span className="text-muted-foreground">Email:</span> <strong>{form.email}</strong></p>
-              {form.phone && <p><span className="text-muted-foreground">Tel:</span> <strong>{form.phone}</strong></p>}
-              <p><span className="text-muted-foreground">Tipo:</span> <strong>{form.user_type === "staff" ? "Staff All Vita" : "Empresa"}</strong></p>
-              {form.user_type === "tenant" && (
-                <>
-                  <p><span className="text-muted-foreground">Empresa:</span> <strong>{tenants.find(t => t.id === form.tenant_id)?.name}</strong></p>
-                  <p><span className="text-muted-foreground">Papel:</span> <strong>{form.role}</strong></p>
-                </>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Um e-mail de convite com senha provisória será enviado automaticamente.
+          <div className="space-y-4">
+            <Tabs defaultValue="data" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="data">Dados</TabsTrigger>
+                <TabsTrigger value="preview" className="flex items-center gap-2">
+                  <Eye className="h-3.5 w-3.5" /> E-mail
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="data" className="space-y-3 mt-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Resumo do Cadastro</p>
+                <div className="bg-secondary/30 border rounded-lg p-4 space-y-2 text-sm">
+                  <p><span className="text-muted-foreground">Nome:</span> <strong>{form.full_name || "Não informado"}</strong></p>
+                  <p><span className="text-muted-foreground">Email:</span> <strong>{form.email || "Não informado"}</strong></p>
+                  {form.phone && <p><span className="text-muted-foreground">Tel:</span> <strong>{form.phone}</strong></p>}
+                  <p><span className="text-muted-foreground">Vínculo:</span> <strong>{form.user_type === "staff" ? "Staff All Vita" : "Empresa Parceira"}</strong></p>
+                  {form.user_type === "tenant" && (
+                    <>
+                      <p><span className="text-muted-foreground">Empresa:</span> <strong>{tenants.find(t => t.id === form.tenant_id)?.name}</strong></p>
+                      <p><span className="text-muted-foreground">Papel:</span> <strong>{form.role}</strong></p>
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="preview" className="mt-4">
+                <div className="border rounded-lg overflow-hidden bg-[#f4f4f4] p-4 min-h-[300px] flex items-center justify-center">
+                  {previewHtml ? (
+                    <div 
+                      className="bg-white shadow-sm w-full transform scale-[0.85] origin-top"
+                      dangerouslySetInnerHTML={{ __html: previewHtml }} 
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <p className="text-xs">Gerando pré-visualização...</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <p className="text-[10px] text-muted-foreground bg-primary/5 p-2 rounded border border-primary/10">
+              ℹ️ O e-mail acima será enviado para <strong>{form.email}</strong> contendo a senha provisória gerada automaticamente.
             </p>
           </div>
         )}
