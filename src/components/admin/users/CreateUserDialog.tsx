@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UserPlus, Loader2, Mail, ChevronRight, ChevronLeft } from "lucide-react";
+import { UserPlus, Loader2, Mail, ChevronRight, ChevronLeft, Building2, User as UserIcon, Phone } from "lucide-react";
+import { IMaskInput } from "react-imask";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,7 +17,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const STEPS = ["Dados Básicos", "Tipo & Vínculo", "Confirmar"];
+const STEPS = ["Empresa & Vínculo", "Dados Básicos", "Confirmar"];
 
 const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
   const [open, setOpen] = useState(false);
@@ -28,14 +29,14 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
     tenant_id: "", role: "manager",
   });
 
-  const set = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
+  const set = (key: string, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
   const canNext = () => {
-    if (step === 0) return form.full_name && form.email;
-    if (step === 1) {
+    if (step === 0) {
       if (form.user_type === "staff") return true;
       return form.tenant_id && form.role;
     }
+    if (step === 1) return form.full_name && form.email;
     return true;
   };
 
@@ -100,36 +101,21 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
         {step === 0 && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Nome Completo *</Label>
-              <Input value={form.full_name} onChange={(e) => set("full_name", e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label>E-mail *</Label>
-              <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Telefone</Label>
-              <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
-            </div>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tipo de Usuário *</Label>
+              <Label className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" /> Tipo de Vínculo *
+              </Label>
               <Select value={form.user_type} onValueChange={(v) => set("user_type", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="staff">Staff All Vita</SelectItem>
-                  <SelectItem value="tenant">Empresa (Tenant)</SelectItem>
+                  <SelectItem value="staff">Staff All Vita (Global)</SelectItem>
+                  <SelectItem value="tenant">Empresa Parceira (Tenant)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {form.user_type === "tenant" && (
               <>
-                <div className="space-y-2">
-                  <Label>Empresa *</Label>
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                  <Label>Selecione a Empresa *</Label>
                   <Select value={form.tenant_id} onValueChange={(v) => set("tenant_id", v)}>
                     <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
@@ -139,8 +125,8 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Papel *</Label>
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                  <Label>Papel na Empresa *</Label>
                   <Select value={form.role} onValueChange={(v) => set("role", v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -153,6 +139,47 @@ const CreateUserDialog: React.FC<Props> = ({ tenants, onSuccess }) => {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <UserIcon className="h-4 w-4" /> Nome Completo *
+              </Label>
+              <Input 
+                placeholder="Ex: João Silva"
+                value={form.full_name} 
+                onChange={(e) => set("full_name", e.target.value)} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Mail className="h-4 w-4" /> E-mail *
+              </Label>
+              <Input 
+                type="email" 
+                placeholder="joao@exemplo.com"
+                value={form.email} 
+                onChange={(e) => set("email", e.target.value)} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Phone className="h-4 w-4" /> Telefone
+              </Label>
+              <IMaskInput
+                mask="(00) 00000-0000"
+                value={form.phone}
+                unmask={true}
+                onAccept={(value) => set("phone", value)}
+                placeholder="(00) 00000-0000"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              />
+            </div>
           </div>
         )}
 

@@ -59,26 +59,27 @@ serve(async (req) => {
       return jsonRes(403, { error: "Apenas Super Administradores podem excluir usuários permanentemente." });
     }
   } else {
-    // All other actions still require X-Tenant-Id
-    if (!tenantId) {
+    // All other actions usually require X-Tenant-Id, EXCEPT global staff creation by super_admin
+    if (!tenantId && !(action === "create" && isSuperAdmin)) {
       return jsonRes(400, { error: "X-Tenant-Id header required" });
     }
 
-    // Check caller is admin or super_admin for this tenant
-    const { data: callerMembership } = await adminClient
-      .from("memberships")
-      .select("role")
-      .eq("user_id", callerUserId)
-      .eq("active", true)
-      .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
-      .limit(10);
+    // Check caller is admin or super_admin for this tenant (or global super admin)
+    if (!isSuperAdmin) {
+      if (!tenantId) return jsonRes(400, { error: "X-Tenant-Id header required" });
 
-    const isAdmin = callerMembership?.some(
-      (m: any) => m.role === "super_admin" || m.role === "admin"
-    );
+      const { data: callerMembership } = await adminClient
+        .from("memberships")
+        .select("role")
+        .eq("user_id", callerUserId)
+        .eq("active", true)
+        .eq("tenant_id", tenantId)
+        .limit(1);
 
-    if (!isAdmin) {
-      return jsonRes(403, { error: "Only admins can manage users" });
+      const isAdmin = callerMembership?.some((m: any) => m.role === "admin");
+      if (!isAdmin) {
+        return jsonRes(403, { error: "Only admins can manage users" });
+      }
     }
   }
 
@@ -116,13 +117,13 @@ serve(async (req) => {
 
       case "create": {
         const body = await req.json();
-        const { email, full_name, phone, role } = body;
+        const { email, full_name, phone, role, is_staff } = body;
 
         if (!email || !full_name || !role) {
           return jsonRes(400, { error: "email, full_name and role are required" });
         }
 
-        const validRoles = ["admin", "manager", "partner", "client"];
+        const validRoles = ["super_admin", "admin", "manager", "partner", "client"];
         if (!validRoles.includes(role)) {
           return jsonRes(400, { error: `Invalid role. Must be one of: ${validRoles.join(", ")}` });
         }
@@ -159,30 +160,34 @@ serve(async (req) => {
         // Update profile flags
         await adminClient
           .from("profiles")
-          .update({ must_change_password: true, onboarding_completed: false })
+          .update({ 
+            must_change_password: true, 
+            onboarding_completed: false,
+            phone: phone || null 
+          })
           .eq("id", userId);
+
+        const targetTenantId = is_staff ? null : tenantId;
 
         // Create membership
         const { error: memberError } = await adminClient.from("memberships").upsert({
           user_id: userId,
-          tenant_id: tenantId,
+          tenant_id: targetTenantId,
           role,
           active: true,
         }, { onConflict: "user_id,tenant_id" }).select();
 
-        // The upsert may fail if there's no unique constraint on (user_id, tenant_id)
-        // In that case, just insert
         if (memberError) {
           await adminClient.from("memberships").insert({
             user_id: userId,
-            tenant_id: tenantId,
+            tenant_id: targetTenantId,
             role,
             active: true,
           });
         }
 
         // If role is admin/manager, create tenant_staff record
-        if (["admin", "manager"].includes(role)) {
+        if (!is_staff && ["admin", "manager"].includes(role)) {
           await adminClient.from("tenant_staff").upsert({
             tenant_id: tenantId,
             user_id: userId,
@@ -193,11 +198,15 @@ serve(async (req) => {
 
         // Send welcome email
         try {
-          const { data: tenant } = await adminClient
-            .from("tenants")
-            .select("name, trade_name, slug")
-            .eq("id", tenantId)
-            .single();
+          let tenantName = "a plataforma";
+          if (targetTenantId) {
+            const { data: tenant } = await adminClient
+              .from("tenants")
+              .select("name, trade_name")
+              .eq("id", targetTenantId)
+              .single();
+            tenantName = tenant?.trade_name || tenant?.name || "a plataforma";
+          }
 
           await fetch(`${supabaseUrl}/functions/v1/send-email`, {
             method: "POST",
@@ -207,12 +216,12 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               to: email,
-              subject: `Você foi convidado para ${tenant?.trade_name || tenant?.name || "a plataforma"}`,
+              subject: `Você foi convidado para ${tenantName}`,
               html: `
                 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
                   <h1 style="color:#1a1a2e;font-size:24px">Bem-vindo!</h1>
                   <p>Olá <strong>${full_name}</strong>,</p>
-                  <p>Você foi convidado para a plataforma <strong>${tenant?.trade_name || tenant?.name}</strong>.</p>
+                  <p>Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
                   <div style="background:#f5f5f5;border-radius:8px;padding:20px;margin:24px 0">
                     <p style="margin:4px 0"><strong>Senha provisória:</strong> ${tempPassword}</p>
                   </div>
