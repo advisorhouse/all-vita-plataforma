@@ -8,6 +8,7 @@ import TenantSelectScreen from "@/components/tenant/TenantSelectScreen";
 interface AuthGuardProps {
   children: React.ReactNode;
   requireTenant?: boolean;
+  requiredRole?: 'super_admin' | 'admin' | 'manager' | 'partner' | 'client';
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireTenant = true }) => {
