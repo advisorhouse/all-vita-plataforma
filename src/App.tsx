@@ -147,6 +147,7 @@ const App = () => (
                 <Route path="support" element={<PartnerSupport />} />
                 <Route path="settings" element={<PartnerSettings />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="profile" element={<UserProfile />} />
               </Route>
 
               {/* Core (Admin da empresa) - Protected */}
