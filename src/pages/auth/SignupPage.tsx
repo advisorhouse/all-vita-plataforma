@@ -11,6 +11,8 @@ import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
