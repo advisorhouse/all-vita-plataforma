@@ -32,12 +32,12 @@ const fadeUp = {
 const SwitchRow = ({ 
   title, 
   desc, 
-  defaultChecked = false, 
+  checked = false, 
   onCheckedChange 
 }: { 
   title: string; 
   desc: string; 
-  defaultChecked?: boolean;
+  checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
 }) => (
   <div className="flex items-center justify-between py-1">
@@ -46,7 +46,7 @@ const SwitchRow = ({
       <p className="text-xs text-muted-foreground">{desc}</p>
     </div>
     <Switch 
-      defaultChecked={defaultChecked} 
+      checked={checked} 
       onCheckedChange={onCheckedChange}
     />
   </div>
