@@ -29,7 +29,7 @@ interface Props {
   isBlocking?: boolean;
 }
 
-const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, auditLogs, isDeleting, isBlocking }) => {
+const UserDrawer: React.FC<Props> = ({ user, open, onClose, onBlockUser, onDeleteUser, onResetPassword, onResendInvite, auditLogs, isDeleting, isBlocking }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   if (!user) return null;
 
