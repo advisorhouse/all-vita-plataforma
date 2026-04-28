@@ -237,9 +237,9 @@ const AdminSettings: React.FC = () => {
                 <CardDescription>Autenticação e controle de acesso</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
-                <SwitchRow title="Obrigar 2FA para Super Admins" desc="Todos os super admins precisam de autenticação de dois fatores" defaultChecked />
+                <SwitchRow title="Obrigar 2FA para Super Admins" desc="Todos os super admins precisam de autenticação de dois fatores" checked />
                 <SwitchRow title="Obrigar 2FA para Admins de Tenant" desc="Administradores de empresas devem ativar 2FA" />
-                <SwitchRow title="Permitir múltiplos logins simultâneos" desc="Mesma conta pode estar logada em vários dispositivos" defaultChecked />
+                <SwitchRow title="Permitir múltiplos logins simultâneos" desc="Mesma conta pode estar logada em vários dispositivos" checked />
                 <Separator />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -296,11 +296,11 @@ const AdminSettings: React.FC = () => {
                   <div className="space-y-2"><Label>Multiplicador Vitacoins Padrão</Label><Input type="number" defaultValue="1.0" step="0.1" /></div>
                 </div>
                 <Separator />
-                <SwitchRow title="Ativar gamificação por padrão" desc="Novas empresas já iniciam com sistema de pontos" defaultChecked />
-                <SwitchRow title="Ativar Vitacoins por padrão" desc="Sistema de moedas virtuais habilitado" defaultChecked />
-                <SwitchRow title="Permitir branding customizado" desc="Tenants podem personalizar logo e cores" defaultChecked />
+                <SwitchRow title="Ativar gamificação por padrão" desc="Novas empresas já iniciam com sistema de pontos" checked />
+                <SwitchRow title="Ativar Vitacoins por padrão" desc="Sistema de moedas virtuais habilitado" checked />
+                <SwitchRow title="Permitir branding customizado" desc="Tenants podem personalizar logo e cores" checked />
                 <SwitchRow title='Exibir "Powered by All Vita"' desc="Mostra marca d'água nos portais dos tenants" />
-                <SwitchRow title="Domínio personalizado" desc="Tenants podem usar domínio próprio" defaultChecked />
+                <SwitchRow title="Domínio personalizado" desc="Tenants podem usar domínio próprio" checked />
               </CardContent>
             </Card>
           </motion.div>
@@ -336,9 +336,9 @@ const AdminSettings: React.FC = () => {
                   <div className="space-y-2"><Label>Carência para Resgate (dias)</Label><Input type="number" defaultValue="30" /></div>
                 </div>
                 <Separator />
-                <SwitchRow title="Sistema de Vitacoins ativo" desc="Habilita emissão e resgate globalmente" defaultChecked />
-                <SwitchRow title="Resgate em dinheiro" desc="Parceiros podem converter VC em dinheiro" defaultChecked />
-                <SwitchRow title="Resgate em produtos" desc="Parceiros podem trocar VC por produtos" defaultChecked />
+                <SwitchRow title="Sistema de Vitacoins ativo" desc="Habilita emissão e resgate globalmente" checked />
+                <SwitchRow title="Resgate em dinheiro" desc="Parceiros podem converter VC em dinheiro" checked />
+                <SwitchRow title="Resgate em produtos" desc="Parceiros podem trocar VC por produtos" checked />
                 <SwitchRow title="Expiração de Vitacoins" desc="Vitacoins expiram após período de inatividade" />
               </CardContent>
             </Card>
@@ -392,8 +392,8 @@ const AdminSettings: React.FC = () => {
                     </Select>
                   </div>
                 </div>
-                <SwitchRow title="Processamento automático" desc="Calcula comissões ao confirmar pagamento" defaultChecked />
-                <SwitchRow title="Conversão automática para Vitacoins" desc="Comissões geram Vitacoins automaticamente" defaultChecked />
+                <SwitchRow title="Processamento automático" desc="Calcula comissões ao confirmar pagamento" checked />
+                <SwitchRow title="Conversão automática para Vitacoins" desc="Comissões geram Vitacoins automaticamente" checked />
               </CardContent>
             </Card>
           </motion.div>
@@ -415,10 +415,10 @@ const AdminSettings: React.FC = () => {
                   { name: "OpenAI", desc: "IA para insights e conteúdo", on: false },
                   { name: "Analytics API", desc: "API de BI para ferramentas externas", on: true },
                 ].map((int) => (
-                  <SwitchRow key={int.name} title={int.name} desc={int.desc} defaultChecked={int.on} />
+                  <SwitchRow key={int.name} title={int.name} desc={int.desc} checked={int.on} />
                 ))}
                 <Separator />
-                <SwitchRow title="Webhook de pagamento global" desc="Recebe eventos de pagamento via webhook" defaultChecked />
+                <SwitchRow title="Webhook de pagamento global" desc="Recebe eventos de pagamento via webhook" checked />
                 <SwitchRow title="Motor de retenção" desc="Envia alertas automáticos de churn" />
               </CardContent>
             </Card>
@@ -453,7 +453,7 @@ const AdminSettings: React.FC = () => {
                     key={t.slug} 
                     title={t.name} 
                     desc={`Template: ${t.slug}`} 
-                    defaultChecked={t.on}
+                    checked={t.on}
                     onCheckedChange={(checked) => toggleTemplate(t.slug, checked)}
                   />
                 ))}
@@ -469,13 +469,13 @@ const AdminSettings: React.FC = () => {
                 <SwitchRow 
                   title="Notificações push ativas" 
                   desc="Notificações em tempo real no navegador" 
-                  defaultChecked 
+                  checked 
                   onCheckedChange={(checked) => toast.info(`Push notifications ${checked ? 'ativadas' : 'desativadas'}`)}
                 />
                 <SwitchRow 
                   title="Agrupar notificações" 
                   desc="Agrupa notificações similares" 
-                  defaultChecked 
+                  checked 
                   onCheckedChange={(checked) => toast.info(`Agrupamento ${checked ? 'ativado' : 'desativado'}`)}
                 />
                 <div className="space-y-2">
@@ -504,9 +504,9 @@ const AdminSettings: React.FC = () => {
                   <Input defaultValue="https://allvita.com.br/termos" />
                 </div>
                 <Separator />
-                <SwitchRow title="Consentimento obrigatório no cadastro" desc="Usuários devem aceitar termos ao se registrar" defaultChecked />
-                <SwitchRow title="Consentimento granular de comunicação" desc="Opções separadas para email, SMS, WhatsApp" defaultChecked />
-                <SwitchRow title="Anonimização automática" desc="Dados anonimizados após exclusão de conta" defaultChecked />
+                <SwitchRow title="Consentimento obrigatório no cadastro" desc="Usuários devem aceitar termos ao se registrar" checked />
+                <SwitchRow title="Consentimento granular de comunicação" desc="Opções separadas para email, SMS, WhatsApp" checked />
+                <SwitchRow title="Anonimização automática" desc="Dados anonimizados após exclusão de conta" checked />
                 <Separator />
                 <p className="text-xs font-medium text-muted-foreground">Funcionalidades LGPD</p>
                 <div className="flex gap-3 flex-wrap">
@@ -554,8 +554,8 @@ const AdminSettings: React.FC = () => {
                   </div>
                 </div>
                 <Separator />
-                <SwitchRow title="Log de alterações em configurações" desc="Registra toda mudança nesta tela" defaultChecked />
-                <SwitchRow title="Log de operações financeiras" desc="Registra comissões, pagamentos e resgates" defaultChecked />
+                <SwitchRow title="Log de alterações em configurações" desc="Registra toda mudança nesta tela" checked />
+                <SwitchRow title="Log de operações financeiras" desc="Registra comissões, pagamentos e resgates" checked />
               </CardContent>
             </Card>
           </motion.div>
@@ -574,9 +574,9 @@ const AdminSettings: React.FC = () => {
                   <div className="space-y-2"><Label>Padrão de Subdomínio (Tenants)</Label><Input defaultValue="{slug}.allvita.com.br" className="font-mono text-sm" /></div>
                 </div>
                 <Separator />
-                <SwitchRow title="Geração automática de subdomínio" desc="Cria subdomínio ao criar tenant" defaultChecked />
-                <SwitchRow title="Validação de slug único" desc="Garante que slugs não se repitam" defaultChecked />
-                <SwitchRow title="SSL automático" desc="Certificado SSL provisionado automaticamente" defaultChecked />
+                <SwitchRow title="Geração automática de subdomínio" desc="Cria subdomínio ao criar tenant" checked />
+                <SwitchRow title="Validação de slug único" desc="Garante que slugs não se repitam" checked />
+                <SwitchRow title="SSL automático" desc="Certificado SSL provisionado automaticamente" checked />
                 <Separator />
                 <div className="space-y-2">
                   <Label>Slugs Reservados</Label>
@@ -599,11 +599,11 @@ const AdminSettings: React.FC = () => {
               <CardContent className="space-y-5">
                 <p className="text-xs text-muted-foreground">⚠️ Alterações aqui podem impactar toda a plataforma</p>
                 <SwitchRow title="Modo Debug" desc="Ativa logs verbose no console" />
-                <SwitchRow title="Feature: Rede Multinível v2" desc="Motor de comissões multinível aprimorado" defaultChecked />
-                <SwitchRow title="Feature: BI & Analytics API" desc="Endpoint dedicado para ferramentas de BI" defaultChecked />
+                <SwitchRow title="Feature: Rede Multinível v2" desc="Motor de comissões multinível aprimorado" checked />
+                <SwitchRow title="Feature: BI & Analytics API" desc="Endpoint dedicado para ferramentas de BI" checked />
                 <SwitchRow title="Feature: Motor de Retenção" desc="Detecção automática de risco de churn" />
-                <SwitchRow title="Feature: Quiz Público" desc="Formulário público para triagem de clientes" defaultChecked />
-                <SwitchRow title="Feature: Catálogo de Recompensas" desc="Marketplace interno de produtos para resgate" defaultChecked />
+                <SwitchRow title="Feature: Quiz Público" desc="Formulário público para triagem de clientes" checked />
+                <SwitchRow title="Feature: Catálogo de Recompensas" desc="Marketplace interno de produtos para resgate" checked />
                 <Separator />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
