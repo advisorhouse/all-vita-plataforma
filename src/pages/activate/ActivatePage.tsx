@@ -189,10 +189,6 @@ const ActivatePage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <OnboardingHeader 
-                    logoUrl={currentTenant?.logo_url} 
-                    tradeName={currentTenant?.trade_name} 
-                  />
                 </motion.div>
 
                 <motion.div
