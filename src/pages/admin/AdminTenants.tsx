@@ -1,14 +1,16 @@
 import React, { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import TenantKpiCards from "@/components/admin/tenants/TenantKpiCards";
 import TenantFilters from "@/components/admin/tenants/TenantFilters";
 import TenantTable from "@/components/admin/tenants/TenantTable";
 import TenantDrawer from "@/components/admin/tenants/TenantDrawer";
 import CreateTenantDialog from "@/components/admin/tenants/CreateTenantDialog";
+
 
 const AdminTenants: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +18,27 @@ const AdminTenants: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
+  const queryClient = useQueryClient();
+
+  const deleteTenantMutation = useMutation({
+    mutationFn: async (tenantId: string) => {
+      const { data, error } = await supabase.functions.invoke("manage-users/delete-tenant", {
+        body: { tenantId },
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    onSuccess: () => {
+      toast.success("Empresa excluída com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting tenant:", error);
+      toast.error("Erro ao excluir empresa: " + (error.message || "Tente novamente mais tarde"));
+    },
+  });
+
 
   const { data: tenants = [], isLoading } = useQuery({
     queryKey: ["admin-tenants"],
@@ -159,7 +182,12 @@ const AdminTenants: React.FC = () => {
         tenants={filtered}
         tenantMetrics={tenantMetrics}
         onViewTenant={setSelectedTenant}
+        onDeleteTenant={async (id) => {
+          await deleteTenantMutation.mutateAsync(id);
+        }}
+        isDeleting={deleteTenantMutation.isPending ? deleteTenantMutation.variables : null}
       />
+
 
       {/* Drawer */}
       <TenantDrawer
