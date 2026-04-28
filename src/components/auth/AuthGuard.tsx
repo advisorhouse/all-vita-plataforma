@@ -16,8 +16,16 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   requireTenant = true,
   requiredRole
 }) => {
-  const { user, loading } = useAuth();
-  const { currentTenant, availableTenants, isSuperAdmin, platformRole, memberships, isSubdomainAccess } = useTenant();
+  const { user, loading: authLoading } = useAuth();
+  const { 
+    currentTenant, 
+    availableTenants, 
+    isSuperAdmin, 
+    platformRole, 
+    memberships, 
+    isSubdomainAccess,
+    isLoading: tenantLoading
+  } = useTenant();
   const location = useLocation();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
@@ -46,7 +54,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     checkOnboarding();
   }, [user, location.pathname]);
 
-  if (loading || !onboardingChecked) {
+  if (authLoading || tenantLoading || !onboardingChecked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground" />
