@@ -117,20 +117,29 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
         owner_name: data.socios?.[0]?.nome || prev.owner_name,
       }));
 
-      // Try to fetch logo from Clearbit or similar service based on domain if available
-      // Or if the API provides a website, we can use that. 
-      // Most public CNPJ APIs don't return the logo directly, but they return the domain/email.
-      const domain = data.estabelecimento?.email?.split('@')[1];
-      if (domain && !['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'uol.com.br'].includes(domain)) {
-        const logoUrl = `https://logo.clearbit.com/${domain}`;
+      // Try to fetch logo from domain
+      let domain = data.estabelecimento?.email?.split('@')[1];
+      // Fallback: check if the API returns a website field (some do)
+      if (!domain && data.estabelecimento?.website) {
+        domain = data.estabelecimento.website.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+      }
+
+      if (domain && !['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'uol.com.br', 'terra.com.br', 'ig.com.br'].includes(domain)) {
+        // Primary source: Clearbit
+        const clearbitUrl = `https://logo.clearbit.com/${domain}`;
+        // Fallback source: Google Favicon (usually lower res but always exists if site exists)
+        const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+        
         try {
-          const logoCheck = await fetch(logoUrl, { method: 'HEAD' });
+          const logoCheck = await fetch(clearbitUrl, { method: 'HEAD' });
           if (logoCheck.ok) {
-            setLogoPreview(logoUrl);
-            // We'll handle downloading this image during form submission if it's a remote URL
+            setLogoPreview(clearbitUrl);
+          } else {
+            // Fallback if clearbit fails
+            setLogoPreview(googleFaviconUrl);
           }
         } catch (e) {
-          console.log("Could not auto-fetch logo from domain");
+          setLogoPreview(googleFaviconUrl);
         }
       }
 
