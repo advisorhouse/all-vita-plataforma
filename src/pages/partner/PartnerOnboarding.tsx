@@ -165,7 +165,7 @@ const PartnerOnboarding: React.FC = () => {
       <Lock className="h-3 w-3 text-muted-foreground/40" />
       <span className="text-[10px] text-muted-foreground/40">
         Seus dados são protegidos pela LGPD.{" "}
-        <button className="underline hover:text-muted-foreground transition-colors">Política de privacidade</button>
+        <button onClick={() => window.open('/privacy', '_blank')} className="underline hover:text-muted-foreground transition-colors">Política de privacidade</button>
       </span>
     </div>
   );
