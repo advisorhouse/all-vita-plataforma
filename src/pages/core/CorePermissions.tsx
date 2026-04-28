@@ -363,7 +363,7 @@ const CorePermissions: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-xs">
-                        {log.resource_name || log.table_name}
+                        {log.resource || log.entity_type}
                       </TableCell>
                     </TableRow>
                   ))
