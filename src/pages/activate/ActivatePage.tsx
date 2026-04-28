@@ -16,6 +16,7 @@ import iconVisionLift from "@/assets/icon-vision-lift.png";
 import product1Month from "@/assets/product-vision-lift-1month.png";
 import product3Month from "@/assets/product-vision-lift-3month.png";
 import product5Month from "@/assets/product-vision-lift-5month.png";
+import { OnboardingHeader, OnboardingFooter } from "@/components/onboarding/OnboardingLayout";
 
 type Step = "welcome" | "register" | "confirmation";
 
@@ -180,7 +181,10 @@ const ActivatePage: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <img src={currentTenant?.logo_url || iconVisionLift} alt={currentTenant?.trade_name || "Logo"} className="h-12 w-auto object-contain mx-auto" />
+                  <OnboardingHeader 
+                    logoUrl={currentTenant?.logo_url} 
+                    tradeName={currentTenant?.trade_name} 
+                  />
                 </motion.div>
 
                 <motion.div
@@ -255,7 +259,7 @@ const ActivatePage: React.FC = () => {
                   </Button>
                 </motion.div>
 
-                <SecurityFooter />
+                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
@@ -339,7 +343,7 @@ const ActivatePage: React.FC = () => {
                   {!loading && <ArrowRight className="h-5 w-5 ml-2" />}
                 </Button>
 
-                <SecurityFooter />
+                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
@@ -402,7 +406,7 @@ const ActivatePage: React.FC = () => {
                   </Button>
                 </motion.div>
 
-                <SecurityFooter />
+                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
           </motion.div>

@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, FileText, Loader2 } from "lucide-react";
-import logoAllVita from "@/assets/logo-allvita.png";
+import { OnboardingHeader, OnboardingFooter } from "@/components/onboarding/OnboardingLayout";
 
 type Step = "change_password" | "accept_terms" | "complete";
 
@@ -123,22 +123,7 @@ const AdminOnboarding: React.FC = () => {
     navigate("/core");
   };
 
-  const renderLogo = () => (
-    <div className="flex justify-center mb-8">
-      <img
-        src={currentTenant?.logo_url || logoAllVita}
-        alt={currentTenant?.trade_name || "All Vita"}
-        className="h-16 w-auto object-contain"
-      />
-    </div>
-  );
-
-  const renderFooter = () => (
-    <footer className="mt-12 pt-8 border-t border-muted text-center text-sm text-muted-foreground w-full max-w-md">
-      <p>© 2026 MAXIMA VITA HUMAN HEALTH LTDA | CNPJ: 60.410.363/0001-27</p>
-      <p className="mt-1 italic">All Vita - A Plataforma de Longevidade e Bem-estar</p>
-    </footer>
-  );
+// Render logo and footer are now handled by reusable components
 
   const renderStepContent = () => {
     if (step === "change_password") {
@@ -256,9 +241,12 @@ const AdminOnboarding: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4 sm:p-8">
       <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {renderLogo()}
+        <OnboardingHeader 
+          logoUrl={currentTenant?.logo_url} 
+          tradeName={currentTenant?.trade_name} 
+        />
         {renderStepContent()}
-        {renderFooter()}
+        <OnboardingFooter tenantName={currentTenant?.trade_name} />
       </div>
     </div>
   );

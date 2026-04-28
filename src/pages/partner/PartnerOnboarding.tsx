@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import iconVisionLift from "@/assets/icon-vision-lift.png";
 import partnerHeroImg from "@/assets/partner-onboarding-hero.png";
+import { OnboardingHeader, OnboardingFooter } from "@/components/onboarding/OnboardingLayout";
 
 // ─── Types ───────────────────────────────────────────────────
 interface DoctorFormData {
@@ -254,12 +255,10 @@ const PartnerOnboarding: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1, duration: 0.5 }}
                 >
-                  <div className="inline-flex items-center gap-2.5">
-                    <img src={iconVisionLift} alt="Vision Lift" className="h-7 w-7" />
-                    <span className="text-2xl font-semibold tracking-tight text-foreground">
-                      Vision Lift Partners
-                    </span>
-                  </div>
+                  <OnboardingHeader 
+                    logoUrl={currentTenant?.logo_url} 
+                    tradeName={currentTenant?.trade_name} 
+                  />
                 </motion.div>
 
                 <motion.div
@@ -317,7 +316,7 @@ const PartnerOnboarding: React.FC = () => {
                   </Button>
                 </motion.div>
 
-                <SecurityFooter />
+                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
@@ -376,7 +375,7 @@ const PartnerOnboarding: React.FC = () => {
                 </div>
 
                 <ContinueButton onClick={() => goTo("points")} />
-                <SecurityFooter />
+                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
