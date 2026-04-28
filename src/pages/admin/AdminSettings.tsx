@@ -465,8 +465,18 @@ const AdminSettings: React.FC = () => {
                 <CardTitle className="text-lg flex items-center gap-2"><Bell className="h-5 w-5 text-muted-foreground" /> Notificações In-App</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <SwitchRow title="Notificações push ativas" desc="Notificações em tempo real no navegador" defaultChecked />
-                <SwitchRow title="Agrupar notificações" desc="Agrupa notificações similares" defaultChecked />
+                <SwitchRow 
+                  title="Notificações push ativas" 
+                  desc="Notificações em tempo real no navegador" 
+                  defaultChecked 
+                  onCheckedChange={(checked) => toast.info(`Push notifications ${checked ? 'ativadas' : 'desativadas'}`)}
+                />
+                <SwitchRow 
+                  title="Agrupar notificações" 
+                  desc="Agrupa notificações similares" 
+                  defaultChecked 
+                  onCheckedChange={(checked) => toast.info(`Agrupamento ${checked ? 'ativado' : 'desativado'}`)}
+                />
                 <div className="space-y-2">
                   <Label>Retenção de Notificações (dias)</Label>
                   <Input type="number" defaultValue="90" />
