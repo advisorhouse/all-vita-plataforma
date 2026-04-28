@@ -44,46 +44,53 @@ serve(async (req) => {
   // Get tenant_id from header
   const tenantId = req.headers.get("X-Tenant-Id");
 
-  // Fetch user memberships
+  // Helper to check permissions using the unified RBAC function
+  const checkPermission = async (res: string, act: string, tId: string | null) => {
+    const { data: allowed, error: rpcError } = await adminClient.rpc('can', {
+      _user_id: userId,
+      _resource: res,
+      _action: act,
+      _tenant_id: tId
+    });
+    if (rpcError) {
+      console.error(`[RBAC] Error checking ${res}:${act} for user ${userId}:`, rpcError);
+      return false;
+    }
+    return !!allowed;
+  };
+
+  // Determine user role and primary tenant access
+  // We still need to know the role for some scoping logic later in handleGet
   const { data: memberships } = await adminClient
     .from("memberships")
     .select("tenant_id, role")
     .eq("user_id", userId)
     .eq("active", true);
 
-  const isSuperAdmin = memberships?.some((m: any) => m.role === "super_admin" && !m.tenant_id);
+  const { data: platformStaff } = await adminClient
+    .from("all_vita_staff")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .single();
 
-  // Validate tenant access
-  if (tenantId && !isSuperAdmin) {
+  const isSuperAdmin = platformStaff?.role === "super_admin";
+  const tenantMembership = memberships?.find((m: any) => m.tenant_id === tenantId);
+  const userRole = isSuperAdmin ? "admin" : (tenantMembership?.role || null);
+
+  if (!isSuperAdmin && tenantId) {
     const hasTenantAccess = memberships?.some((m: any) => m.tenant_id === tenantId);
     if (!hasTenantAccess) {
       return jsonRes(403, { error: "Access denied to this tenant" });
     }
   }
 
-  if (!tenantId && !isSuperAdmin) {
-    return jsonRes(400, { error: "X-Tenant-Id header required" });
-  }
-
-  // Get user role for this tenant
-  const tenantMembership = memberships?.find((m: any) => m.tenant_id === tenantId);
-  const userRole = isSuperAdmin ? "super_admin" : tenantMembership?.role || null;
-
-  if (!userRole) {
-    return jsonRes(403, { error: "No role in this tenant" });
-  }
-
-  // Check permission
+  // Check permission via unified RBAC
   const action = methodToAction(req.method);
-  const { data: perm } = await adminClient
-    .from("role_permissions")
-    .select("allowed")
-    .eq("role", userRole)
-    .eq("resource", mapResource(resource))
-    .eq("action", action)
-    .single();
+  const mappedRes = mapResource(resource);
+  const isAllowed = await checkPermission(mappedRes, action, tenantId);
 
-  if (!perm?.allowed) {
+  if (!isAllowed) {
     return jsonRes(403, { error: `No permission: ${action} on ${resource}` });
   }
 
