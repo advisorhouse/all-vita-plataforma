@@ -792,17 +792,50 @@ const AdminSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label>Domínio Base</Label><Input defaultValue="allvita.com.br" /></div>
-                  <div className="space-y-2"><Label>Padrão de Subdomínio (Tenants)</Label><Input defaultValue="{slug}.allvita.com.br" className="font-mono text-sm" /></div>
+                  <div className="space-y-2">
+                    <Label>Domínio Base</Label>
+                    <Input 
+                      value={domains?.base_domain || ""} 
+                      onChange={(e) => setDomains({ ...domains, base_domain: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Padrão de Subdomínio (Tenants)</Label>
+                    <Input 
+                      value={domains?.tenant_subdomain_pattern || ""} 
+                      onChange={(e) => setDomains({ ...domains, tenant_subdomain_pattern: e.target.value })}
+                      className="font-mono text-sm" 
+                    />
+                  </div>
                 </div>
                 <Separator />
-                <SwitchRow title="Geração automática de subdomínio" desc="Cria subdomínio ao criar tenant" checked />
-                <SwitchRow title="Validação de slug único" desc="Garante que slugs não se repitam" checked />
-                <SwitchRow title="SSL automático" desc="Certificado SSL provisionado automaticamente" checked />
+                <SwitchRow 
+                  title="Geração automática de subdomínio" 
+                  desc="Cria subdomínio ao criar tenant" 
+                  checked={domains?.auto_generate_subdomain}
+                  onCheckedChange={(checked) => setDomains({ ...domains, auto_generate_subdomain: checked })}
+                />
+                <SwitchRow 
+                  title="Validação de slug único" 
+                  desc="Garante que slugs não se repitam" 
+                  checked={domains?.validate_unique_slug}
+                  onCheckedChange={(checked) => setDomains({ ...domains, validate_unique_slug: checked })}
+                />
+                <SwitchRow 
+                  title="SSL automático" 
+                  desc="Certificado SSL provisionado automaticamente" 
+                  checked={domains?.auto_ssl}
+                  onCheckedChange={(checked) => setDomains({ ...domains, auto_ssl: checked })}
+                />
                 <Separator />
                 <div className="space-y-2">
                   <Label>Slugs Reservados</Label>
-                  <Textarea defaultValue="admin, api, app, auth, www, mail, static, cdn, docs, help, support" rows={2} className="font-mono text-sm" />
+                  <Textarea 
+                    value={domains?.reserved_slugs?.join(", ") || ""} 
+                    onChange={(e) => setDomains({ ...domains, reserved_slugs: e.target.value.split(",").map((s: string) => s.trim()) })}
+                    rows={2} 
+                    className="font-mono text-sm" 
+                  />
                   <p className="text-xs text-muted-foreground">Slugs que não podem ser usados por tenants</p>
                 </div>
               </CardContent>
