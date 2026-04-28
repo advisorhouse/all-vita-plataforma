@@ -377,7 +377,6 @@ const PartnerOnboarding: React.FC = () => {
                 </div>
 
                 <ContinueButton onClick={() => goTo("points")} />
-                <OnboardingFooter tenantName={currentTenant?.trade_name} />
               </div>
             )}
 
