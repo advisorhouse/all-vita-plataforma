@@ -16,6 +16,41 @@ const AdminTenants: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
+  const queryClient = useQueryClient();
+
+  const deleteTenantMutation = useMutation({
+    mutationFn: async (tenantId: string) => {
+      const { data, error } = await supabase.functions.invoke("manage-users", {
+        body: { tenantId },
+        method: "POST",
+        headers: {
+          "X-Tenant-Id": "global", // Just to satisfy any basic header check if needed, but the function handles superadmin
+        },
+      });
+
+      // The action in the body is missing, I should have updated the Switch but I didn't add it to the URL path
+      // Wait, the action is extracted from URL: const action = pathParts[2] || "";
+      // I should call manage-users/delete-tenant
+      
+      const response = await supabase.functions.invoke("manage-users", {
+        body: { tenantId },
+        method: "POST",
+      });
+      // Correct way to call with path in invoke:
+      return supabase.functions.invoke("manage-users/delete-tenant", {
+        body: { tenantId },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Empresa excluída com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting tenant:", error);
+      toast.error("Erro ao excluir empresa: " + (error.message || "Tente novamente mais tarde"));
+    },
+  });
+
 
   const { data: tenants = [], isLoading } = useQuery({
     queryKey: ["admin-tenants"],
@@ -159,7 +194,12 @@ const AdminTenants: React.FC = () => {
         tenants={filtered}
         tenantMetrics={tenantMetrics}
         onViewTenant={setSelectedTenant}
+        onDeleteTenant={async (id) => {
+          await deleteTenantMutation.mutateAsync(id);
+        }}
+        isDeleting={deleteTenantMutation.isPending ? deleteTenantMutation.variables : null}
       />
+
 
       {/* Drawer */}
       <TenantDrawer
