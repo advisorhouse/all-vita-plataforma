@@ -72,13 +72,16 @@ const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
   manager: "Manager",
   staff: "Staff",
-  ops: "Operações",
-  finance: "Financeiro",
-  support: "Suporte",
-  growth: "Growth",
 };
 
-const EDITABLE_ROLES: StaffRole[] = ["admin", "manager", "staff", "ops", "finance", "support", "growth"];
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  super_admin: "Acesso total à plataforma. Não editável.",
+  admin: "Gestão completa, exceto exclusões críticas e permissões.",
+  manager: "Leitura ampla e edição moderada.",
+  staff: "Acesso somente leitura.",
+};
+
+const EDITABLE_ROLES: StaffRole[] = ["admin", "manager", "staff"];
 
 const AdminStaff: React.FC = () => {
   const [rows, setRows] = useState<StaffRow[]>([]);
