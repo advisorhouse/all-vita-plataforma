@@ -126,21 +126,68 @@ const SignupPage: React.FC = () => {
 
       // If user is already logged in (no email confirmation needed) or session was created
       if (data.session) {
-        toast.success("Conta criada com sucesso!");
-        if (redirectTo) {
-          navigate(redirectTo);
-        } else {
-          navigate("/");
-        }
+        // Start MFA enrollment immediately
+        const { data: enrollData, error: enrollError } = await supabase.auth.mfa.enroll({
+          factorType: "totp",
+          friendlyName: "All Vita Staff Authenticator",
+        });
+
+        if (enrollError) throw enrollError;
+
+        setQrCode(enrollData.totp.qr_code);
+        setSecret(enrollData.totp.secret);
+        setFactorId(enrollData.id);
+        setStep("mfa-setup");
       } else {
-        toast.success("Conta criada! Verifique seu email para confirmar.");
+        // This case should be avoided by disabling "Confirm Email" in Supabase
+        toast.info("Verifique seu email para confirmar a conta e configurar o 2FA.");
         navigate(`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
       }
-    } catch {
-      toast.error("Erro ao criar conta");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar conta");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mfaCode.length !== 6) {
+      toast.error("Insira o código de 6 dígitos");
+      return;
+    }
+
+    setVerifyingMfa(true);
+    try {
+      const { data: challenge, error: challengeErr } =
+        await supabase.auth.mfa.challenge({ factorId });
+      if (challengeErr) throw challengeErr;
+
+      const { error: verifyErr } = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challenge.id,
+        code: mfaCode,
+      });
+      if (verifyErr) throw verifyErr;
+
+      toast.success("Conta criada e 2FA ativado!");
+      
+      if (redirectTo) {
+        navigate(redirectTo);
+      } else {
+        navigate("/");
+      }
+    } catch (err: any) {
+      toast.error("Código inválido. Tente novamente.");
+    } finally {
+      setVerifyingMfa(false);
+    }
+  };
+
+  const copySecret = () => {
+    navigator.clipboard.writeText(secret);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (checkingToken) {
