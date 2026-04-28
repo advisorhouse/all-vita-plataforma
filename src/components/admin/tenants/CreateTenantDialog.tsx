@@ -270,7 +270,18 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
           <DialogTitle className="text-2xl">Cadastrar nova empresa</DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); createTenant.mutate(form); }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
+        <form onSubmit={(e) => { 
+          e.preventDefault(); 
+          if (!form.cnpj || !validateCNPJ(form.cnpj)) {
+            toast.error("CNPJ Inválido", { description: "Por favor, informe um CNPJ válido antes de prosseguir." });
+            return;
+          }
+          if (!form.segment || form.segment.trim().length < 3) {
+            toast.error("Segmento Obrigatório", { description: "Por favor, informe o segmento ou nicho da empresa." });
+            return;
+          }
+          createTenant.mutate(form); 
+        }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
           {/* Company Info */}
           <div className="space-y-6">
             <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identificação e CNPJ</h3>
