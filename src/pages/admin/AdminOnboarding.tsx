@@ -16,7 +16,7 @@ type Step = "change_password" | "accept_terms" | "complete";
 
 const AdminOnboarding: React.FC = () => {
   const { user } = useAuth();
-  const { currentTenant, isLoading, isSuperAdmin, memberships } = useTenant();
+  const { currentTenant, isLoading, isSuperAdmin, platformRole, memberships } = useTenant();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("change_password");
   const [loading, setLoading] = useState(false);
@@ -75,7 +75,7 @@ const AdminOnboarding: React.FC = () => {
       const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
 
       let destination = "/auth/login";
-      if (isSuperAdmin) {
+      if (isSuperAdmin || platformRole) {
         destination = "/admin";
       } else if (hasTenantMemberships) {
         destination = "/core";
@@ -164,7 +164,7 @@ const AdminOnboarding: React.FC = () => {
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
 
     let destination = "/onboarding";
-    if (isSuperAdmin) {
+    if (isSuperAdmin || platformRole) {
       destination = "/admin";
     } else if (hasTenantMemberships) {
       destination = "/core";
@@ -285,7 +285,7 @@ const AdminOnboarding: React.FC = () => {
             const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
             
             let destination = "/onboarding";
-            if (isSuperAdmin) {
+            if (isSuperAdmin || platformRole) {
               destination = "/admin";
             } else if (hasTenantMemberships) {
               destination = "/core";
