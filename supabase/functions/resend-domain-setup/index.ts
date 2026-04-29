@@ -21,6 +21,7 @@ interface ResendDnsRecord {
 }
 
 async function callResend(path: string, init: RequestInit = {}) {
+  console.log(`[Resend] ${init.method || "GET"} ${path}`, init.body ? `body=${init.body}` : "");
   const res = await fetch(`https://api.resend.com${path}`, {
     ...init,
     headers: {
@@ -30,6 +31,7 @@ async function callResend(path: string, init: RequestInit = {}) {
     },
   });
   const data = await res.json().catch(() => ({}));
+  console.log(`[Resend] ${init.method || "GET"} ${path} -> ${res.status}`, JSON.stringify(data).slice(0, 500));
   return { ok: res.ok, status: res.status, data };
 }
 
