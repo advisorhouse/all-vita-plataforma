@@ -108,8 +108,19 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     if (dnsStepData) {
       try {
         const parsed = JSON.parse(dnsStepData);
-        setCreatedTenant(parsed.createdTenant);
-        setStep(parsed.step);
+        const tenantId = parsed?.createdTenant?.tenant?.id;
+        if (tenantId) {
+          // Validate the tenant still exists in the DB before restoring DNS step
+          supabase.from("tenants").select("id").eq("id", tenantId).maybeSingle().then(({ data }) => {
+            if (data) {
+              setCreatedTenant(parsed.createdTenant);
+              setStep(parsed.step);
+            } else {
+              // Stale draft — discard
+              localStorage.removeItem(DNS_STEP_STORAGE_KEY);
+            }
+          });
+        }
       } catch (e) {
         console.error("Error loading DNS step draft", e);
       }
@@ -438,16 +449,21 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     if (!createdTenant || !dnsResolved) return;
     setVerifyingDns(true);
     try {
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('tenants')
         .update({ 
           dns_status: 'verified',
           dns_verified_at: new Date().toISOString(),
           status: 'active'
         })
-        .eq('id', createdTenant.tenant.id);
+        .eq('id', createdTenant.tenant.id)
+        .select('id')
+        .maybeSingle();
 
       if (error) throw error;
+      if (!updated) {
+        throw new Error("Empresa não encontrada no banco de dados. O cadastro inicial não foi concluído. Feche este modal e crie a empresa novamente.");
+      }
 
       await supabase.functions.invoke("tenant-onboarding/send-activation", {
         body: { tenantId: createdTenant.tenant.id }
