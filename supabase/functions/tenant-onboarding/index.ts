@@ -37,7 +37,7 @@ serve(async (req) => {
     .from("memberships")
     .select("id")
     .eq("user_id", userData.user.id)
-    .eq("role", "super_admin")
+    .in("role", ["super_admin", "admin"])
     .is("tenant_id", null)
     .eq("active", true)
     .limit(1);
