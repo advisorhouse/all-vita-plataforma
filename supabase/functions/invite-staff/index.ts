@@ -56,6 +56,7 @@ serve(async (req) => {
       .from("staff_invitations")
       .insert({
         email,
+        full_name: fullName,
         role,
         invited_by: user.id,
       })
