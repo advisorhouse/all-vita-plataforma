@@ -80,11 +80,12 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
   const STORAGE_KEY = "allvita-tenant-form-draft";
+  const DNS_STEP_STORAGE_KEY = "allvita-tenant-dns-step";
 
   // Load draft on mount
   React.useEffect(() => {
     const draft = localStorage.getItem(STORAGE_KEY);
-    if (draft && step === "form" && !createdTenant) {
+    if (draft) {
       try {
         const parsed = JSON.parse(draft);
         setForm(parsed);
@@ -92,14 +93,31 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
         console.error("Error loading draft", e);
       }
     }
+
+    const dnsStepData = localStorage.getItem(DNS_STEP_STORAGE_KEY);
+    if (dnsStepData) {
+      try {
+        const parsed = JSON.parse(dnsStepData);
+        setCreatedTenant(parsed.createdTenant);
+        setStep(parsed.step);
+      } catch (e) {
+        console.error("Error loading DNS step draft", e);
+      }
+    }
   }, []);
 
-  // Save draft on change
+  // Save drafts on change
   React.useEffect(() => {
-    if (step === "form" && !createdTenant) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+  }, [form]);
+
+  React.useEffect(() => {
+    if (createdTenant || step === "dns") {
+      localStorage.setItem(DNS_STEP_STORAGE_KEY, JSON.stringify({ createdTenant, step }));
+    } else {
+      localStorage.removeItem(DNS_STEP_STORAGE_KEY);
     }
-  }, [form, step, createdTenant]);
+  }, [createdTenant, step]);
 
   const { data: segments } = useQuery({
     queryKey: ["tenant-segments"],
