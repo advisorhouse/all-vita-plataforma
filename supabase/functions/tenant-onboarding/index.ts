@@ -43,7 +43,7 @@ serve(async (req) => {
     .limit(1);
 
   if (!saCheck || saCheck.length === 0) {
-    return jsonRes(403, { error: "Only super admins can create tenants" });
+    return jsonRes(403, { error: "Você não tem permissão para cadastrar empresas. Contate o super administrador para isso." });
   }
 
   try {
