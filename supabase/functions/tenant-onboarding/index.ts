@@ -254,50 +254,78 @@ function generateTempPassword(): string {
 
 function buildWelcomeEmail(name: string, company: string, slug: string, tempPassword: string): string {
   return `
-    <div style="font-family: 'Inter', -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff; color: #1a1a1a;">
+    <div style="font-family: 'Inter', -apple-system, sans-serif; max-width: 650px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 16px; background-color: #ffffff; color: #1a1a1a; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
       <div style="text-align: center; margin-bottom: 32px;">
-        <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1a1a1a;">All Vita</h1>
-        <p style="font-size: 14px; color: #666; margin: 4px 0 0;">Parceiro Tecnológico</p>
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #000; letter-spacing: -0.02em;">All Vita</h1>
+        <p style="font-size: 14px; color: #666; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.1em;">Ecossistema de Alta Performance</p>
       </div>
       
-      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a;">Olá, ${name.split(' ')[0]}!</h2>
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Olá, ${name.split(' ')[0]}!</h2>
       
-      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-        É com grande entusiasmo que damos as boas-vindas à <strong>${company}</strong> na plataforma All Vita. 
-        Agora, sua empresa faz parte de um ecossistema focado em alta performance e excelência operacional.
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #444;">
+        Seja bem-vindo à All Vita. É um prazer ter a <strong>${company}</strong> como parceira. 
+        A partir de agora, você tem em mãos uma infraestrutura tecnológica completa para escalar sua operação com inteligência e eficiência.
       </p>
 
-      <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
-        <h3 style="font-size: 14px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 16px;">Dados de Acesso da Sua Unidade</h3>
+      <div style="background-color: #f8fafc; border-radius: 12px; padding: 28px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
+        <h3 style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 20px;">Seu Primeiro Acesso Administrativo</h3>
         
-        <div style="margin-bottom: 12px;">
-          <span style="font-size: 13px; color: #64748b; display: block;">Portal Exclusivo:</span>
-          <a href="https://${slug}.allvita.com.br" style="font-size: 15px; color: #2563eb; text-decoration: none; font-weight: 600;">${slug}.allvita.com.br</a>
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+          <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Link do Painel Administrativo (Core):</span>
+          <a href="https://${slug}.allvita.com.br/core" style="font-size: 16px; color: #2563eb; text-decoration: none; font-weight: 700;">${slug}.allvita.com.br/core</a>
         </div>
         
-        <div style="margin-bottom: 0;">
-          <span style="font-size: 13px; color: #64748b; display: block;">Sua Senha Provisória:</span>
-          <code style="font-size: 18px; color: #1e293b; font-weight: 700; font-family: monospace; letter-spacing: 0.05em;">${tempPassword}</code>
+        <div style="display: flex; gap: 40px;">
+          <div>
+            <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">E-mail de Acesso:</span>
+            <span style="font-size: 15px; color: #1e293b; font-weight: 600;">${owner.email}</span>
+          </div>
+          <div>
+            <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Senha Provisória:</span>
+            <code style="font-size: 16px; color: #1e293b; font-weight: 700; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</code>
+          </div>
         </div>
       </div>
 
-      <p style="font-size: 14px; color: #ef4444; font-weight: 600; margin-bottom: 32px; text-align: center;">
-        ⚠️ No primeiro acesso, o sistema solicitará obrigatoriamente a troca da senha por uma de sua preferência.
-      </p>
+      <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1a1a1a;">Explore os 3 Portais do seu Ecossistema:</h3>
+      
+      <div style="margin-bottom: 16px; padding: 16px; border: 1px solid #f0f0f0; border-radius: 8px;">
+        <h4 style="margin: 0 0 8px; color: #2563eb; font-size: 16px;">1. Portal CORE (Administrativo)</h4>
+        <p style="margin: 0 0 12px; font-size: 14px; color: #666; line-height: 1.5;">Onde tudo acontece. É aqui que você, como admin, fará a gestão completa: cadastrar colaboradores, configurar produtos, gerenciar finanças e acompanhar métricas em tempo real.</p>
+        <a href="https://${slug}.allvita.com.br/core" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;">Acessar Core &rarr;</a>
+      </div>
+
+      <div style="margin-bottom: 16px; padding: 16px; border: 1px solid #f0f0f0; border-radius: 8px;">
+        <h4 style="margin: 0 0 8px; color: #10b981; font-size: 16px;">2. Portal PARTNER (Parceiros/Afiliados)</h4>
+        <p style="margin: 0 0 12px; font-size: 14px; color: #666; line-height: 1.5;">Área dedicada aos seus parceiros de vendas. Eles terão acesso a materiais de apoio, links de indicação, acompanhamento de comissões e treinamentos.</p>
+        <a href="https://${slug}.allvita.com.br/partner" style="font-size: 13px; font-weight: 600; color: #10b981; text-decoration: none;">Acessar Partner &rarr;</a>
+      </div>
+
+      <div style="margin-bottom: 32px; padding: 16px; border: 1px solid #f0f0f0; border-radius: 8px;">
+        <h4 style="margin: 0 0 8px; color: #6366f1; font-size: 16px;">3. Portal CLUB (Área do Cliente)</h4>
+        <p style="margin: 0 0 12px; font-size: 14px; color: #666; line-height: 1.5;">A experiência do seu cliente final. Aqui ele gerencia sua assinatura, consome conteúdos exclusivos e participa da comunidade da sua marca.</p>
+        <a href="https://${slug}.allvita.com.br/club" style="font-size: 13px; font-weight: 600; color: #6366f1; text-decoration: none;">Acessar Club &rarr;</a>
+      </div>
+
+      <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; margin-bottom: 32px;">
+        <p style="margin: 0; font-size: 15px; color: #92400e; line-height: 1.6;">
+          <strong>Próximos passos:</strong> Ao logar no <strong>Portal Core</strong> pela primeira vez, o sistema solicitará a troca de senha. Em seguida, inicie o processo de configuração — que é super simples e intuitivo — começando pelo cadastro dos seus primeiros colaboradores.
+        </p>
+      </div>
 
       <div style="text-align: center; margin-bottom: 32px;">
-        <a href="https://${slug}.allvita.com.br/auth/login" style="background-color: #6366f1; color: #ffffff; padding: 18px 36px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block; transition: background-color 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-          Acessar Minha Unidade All Vita
+        <a href="https://${slug}.allvita.com.br/auth/login" style="background-color: #000; color: #ffffff; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 700; display: inline-block; transition: all 0.2s;">
+          Começar Agora
         </a>
       </div>
 
-      <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 0;">
-        Caso tenha qualquer dúvida durante o seu processo de configuração, nossa equipe de suporte está à sua inteira disposição.
+      <p style="font-size: 13px; line-height: 1.6; color: #94a3b8; text-align: center; margin-bottom: 0;">
+        Este é um e-mail automático. Caso precise de ajuda, nossa equipe de suporte está pronta para te auxiliar através dos nossos canais oficiais.
       </p>
       
       <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #f0f0f0; text-align: center;">
         <p style="font-size: 12px; color: #94a3b8; margin: 0;">
-          All Vita — A tecnologia por trás da sua performance.
+          All Vita — A tecnologia por trás da sua performance profissional.
         </p>
       </div>
     </div>
