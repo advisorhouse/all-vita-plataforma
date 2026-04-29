@@ -7,6 +7,8 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const url = new URL(req.url);
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -14,6 +16,57 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const adminClient = createClient(supabaseUrl, serviceKey);
+
+  // Handle send-activation sub-route
+  if (url.pathname.endsWith("/send-activation") && req.method === "POST") {
+    try {
+      const { tenantId } = await req.json();
+      if (!tenantId) return jsonRes(400, { error: "tenantId is required" });
+
+      const { data: tenant, error: tErr } = await adminClient
+        .from("tenants")
+        .select("*")
+        .eq("id", tenantId)
+        .single();
+
+      if (tErr || !tenant) return jsonRes(404, { error: "Tenant not found" });
+
+      const { data: owners } = await adminClient
+        .from("tenant_owners")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .limit(1);
+      
+      const owner = owners?.[0];
+      if (!owner) return jsonRes(404, { error: "Owner not found" });
+
+      // We need the password - usually we should have stored it temporarily or use a reset flow
+      // For this implementation, we assume the user already has the account created 
+      // but we send the "Welcome" email with the links now that DNS is active.
+      
+      const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify({
+          to: owner.email,
+          subject: `Acesso Liberado: All Vita — ${tenant.trade_name || tenant.name}`,
+          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada"),
+        }),
+      });
+
+      if (!emailRes.ok) throw new Error(await emailRes.text());
+
+      await adminClient.from("tenants").update({ activation_email_sent: true }).eq("id", tenantId);
+
+      return jsonRes(200, { success: true });
+    } catch (err) {
+      return jsonRes(500, { error: err.message });
+    }
+  }
 
   // Auth: only super_admin can create tenants
   const authHeader = req.headers.get("Authorization");
@@ -29,8 +82,6 @@ serve(async (req) => {
   if (authError || !userData?.user) {
     return jsonRes(401, { error: "Invalid token" });
   }
-
-  const adminClient = createClient(supabaseUrl, serviceKey);
 
   // Check staff role (super_admin or admin)
   const { data: staffMember } = await adminClient
