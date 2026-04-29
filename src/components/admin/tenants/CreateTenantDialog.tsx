@@ -402,9 +402,11 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       });
       
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(DNS_STEP_STORAGE_KEY);
       setOpen(false);
       setForm(emptyForm);
       setStep("form");
+      setCreatedTenant(null);
       setDnsResolved(false);
       removeLogo();
     } catch (error: any) {
