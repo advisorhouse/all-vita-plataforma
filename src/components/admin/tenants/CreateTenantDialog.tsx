@@ -73,7 +73,6 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
   const [step, setStep] = useState<"form" | "branding" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
-  const [dnsResolved, setDnsResolved] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [emailDnsRecords, setEmailDnsRecords] = useState<any[]>([]);
@@ -96,7 +95,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     if (resumeTenant && open) {
       setCreatedTenant({
         tenant: resumeTenant,
-        subdomain: `${resumeTenant.slug}.allvita.com.br`
+        url: `https://app.allvita.com.br/${resumeTenant.slug}`,
       });
       setStep("dns");
     }
@@ -457,16 +456,32 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       }
       return res.data;
     },
-    onSuccess: (data: any) => {
-      toast.success(`Pré-cadastro da "${form.name}" realizado!`, {
-        description: `Agora configure o DNS para ativar o subdomínio: ${data.subdomain}`,
+    onSuccess: async (data: any) => {
+      const tenantUrl = `https://app.allvita.com.br/${data.tenant.slug}`;
+
+      // Mark tenant as fully active immediately — no DNS step required.
+      try {
+        await supabase
+          .from('tenants')
+          .update({
+            dns_status: 'active',
+            dns_verified_at: new Date().toISOString(),
+            status: 'active',
+          })
+          .eq('id', data.tenant.id);
+      } catch (e) {
+        console.warn("Failed to auto-activate tenant", e);
+      }
+
+      toast.success(`Empresa "${form.name}" criada!`, {
+        description: `URL pronta: ${tenantUrl}`,
       });
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-dash-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-tenant-metrics"] });
-      
-      setCreatedTenant(data);
-      setStep("dns"); 
+
+      setCreatedTenant({ ...data, url: tenantUrl });
+      setStep("dns");
     },
     onError: (error: any) => {
       toast.error("Erro ao criar empresa", { description: error.message });
@@ -484,47 +499,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const set = (key: keyof TenantFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const checkDns = async (slug: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("check-subdomain", {
-        body: { slug }
-      });
-      if (error) throw error;
-      if (data?.resolved) {
-        setDnsResolved(true);
-        return true;
-      }
-      // Log diagnostic info for the admin (DNS resolved but HTTP failed = Cloudflare 1001)
-      if (data?.dnsResolved && !data?.httpReachable) {
-        console.warn(
-          `[DNS Check] ${data.domain}: DNS resolveu mas HTTP falhou (status ${data.httpStatus}). ` +
-          `Provável erro Cloudflare 1001 — verifique se o subdomínio existe no DNS do allvita.com.br.`
-        );
-      }
-      return false;
-    } catch (err) {
-      console.error("Error checking DNS:", err);
-      return false;
-    }
-  };
+  // Path-based routing: no DNS check needed. Tenant URL is ready instantly.
 
-  React.useEffect(() => {
-    let interval: number | undefined;
-    
-    if (step === "dns" && createdTenant?.tenant?.slug && !dnsResolved) {
-      // First check immediately
-      checkDns(createdTenant.tenant.slug);
-      
-      // Then check every 15 seconds
-      interval = window.setInterval(() => {
-        checkDns(createdTenant.tenant.slug);
-      }, 15000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [step, createdTenant, dnsResolved]);
 
   // Fetch real Resend DNS records when entering DNS step
   React.useEffect(() => {
@@ -563,33 +539,19 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   }, [step, createdTenant?.tenant?.id]);
 
   const handleVerifyDns = async () => {
-    if (!createdTenant || !dnsResolved) return;
+    if (!createdTenant) return;
     setVerifyingDns(true);
     try {
-      const { data: updated, error } = await supabase
-        .from('tenants')
-        .update({ 
-          dns_status: 'verified',
-          dns_verified_at: new Date().toISOString(),
-          status: 'active'
-        })
-        .eq('id', createdTenant.tenant.id)
-        .select('id')
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!updated) {
-        throw new Error("Empresa não encontrada no banco de dados. O cadastro inicial não foi concluído. Feche este modal e crie a empresa novamente.");
-      }
-
+      // Tenant is already active (set in mutation onSuccess). Just send the
+      // activation e-mail to the owner.
       await supabase.functions.invoke("tenant-onboarding/send-activation", {
         body: { tenantId: createdTenant.tenant.id }
       });
 
       toast.success("Cadastro Concluído!", {
-        description: "O subdomínio foi ativado e o e-mail de acesso foi enviado ao cliente."
+        description: "O e-mail de acesso foi enviado ao cliente."
       });
-      
+
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(DNS_STEP_STORAGE_KEY);
       localStorage.removeItem(OPEN_STATE_KEY);
@@ -597,11 +559,10 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       setForm(emptyForm);
       setStep("form");
       setCreatedTenant(null);
-      setDnsResolved(false);
       removeAllAssets();
     } catch (error: any) {
-      toast.error("Erro ao finalizar", {
-        description: error.message || "Não foi possível concluir a ativação."
+      toast.error("Erro ao enviar e-mail", {
+        description: error.message || "A empresa foi criada, mas o e-mail de acesso não pôde ser enviado. Você pode reenviar depois."
       });
     } finally {
       setVerifyingDns(false);
@@ -632,7 +593,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       >
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
           <DialogTitle className="text-2xl flex items-center justify-between">
-            {step === "form" ? "Cadastrar nova empresa" : step === "branding" ? "Identidade Visual da Empresa" : "Configuração de DNS"}
+            {step === "form" ? "Cadastrar nova empresa" : step === "branding" ? "Identidade Visual da Empresa" : "Empresa Pronta"}
             {step === "form" && (
               <Button 
                 variant="ghost" 
@@ -924,200 +885,130 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                 disabled={createTenant.isPending}
               >
                 {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
-                {createTenant.isPending ? "Criando empresa..." : "Criar empresa e configurar DNS"}
+                {createTenant.isPending ? "Criando empresa..." : "Criar empresa"}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto w-full py-12 space-y-8 text-center">
-            <div className="space-y-4">
-              <div className="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
-                <Search className="h-8 w-8" />
+          <div className="max-w-2xl mx-auto w-full py-12 space-y-8">
+            <div className="text-center space-y-4">
+              <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Check className="h-8 w-8" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Aguardando Configuração de DNS</h3>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                Para que o subdomínio <strong>{createdTenant?.subdomain}</strong> funcione, 
-                você precisa adicionar o seguinte registro na sua zona de DNS:
+              <h3 className="text-2xl font-bold text-foreground">Empresa criada e ativa!</h3>
+              <p className="text-muted-foreground text-base leading-relaxed">
+                A URL da plataforma de <strong>{form.trade_name || form.name}</strong> já está funcionando. Sem DNS, sem propagação, sem espera.
               </p>
             </div>
 
-            <div className="space-y-6 text-left">
-              <div className="bg-secondary/50 border rounded-xl p-8 space-y-6 shadow-sm">
-                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                  <Globe className="h-4 w-4" /> Registro de Acesso (Plataforma)
-                </h4>
-                <div className="grid grid-cols-3 gap-4 border-b pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  <div>Tipo</div>
-                  <div>Nome (Host)</div>
-                  <div>Valor (Destino)</div>
-                </div>
-                <div className="grid grid-cols-3 gap-6 font-mono text-sm items-center">
-                  <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded w-fit text-xs font-bold whitespace-nowrap">Tipo A (IP)</div>
-                  <div className="flex items-center justify-between gap-2 group min-w-0">
-                    <span className="font-bold text-foreground break-all">{form.slug}</span>
-                    <Button 
-                      type="button"
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background/50"
-                      onClick={() => copyToClipboard(form.slug, 'slug')}
-                    >
-                      {copiedField === 'slug' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 group min-w-0">
-                    <span className="text-foreground font-bold text-blue-600 break-all">185.158.133.1</span>
-                    <Button 
-                      type="button"
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background/50"
-                      onClick={() => copyToClipboard('185.158.133.1', 'ip-address')}
-                    >
-                      {copiedField === 'ip-address' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-secondary/30 border border-dashed rounded-xl p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                    <Plug className="h-4 w-4" /> Registros de E-mail (Opcional)
-                  </h4>
-                  <Badge variant="outline" className="text-[10px] font-normal">Recomendado para White-label</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Adicione os registros abaixo no seu provedor de DNS para que os e-mails enviados pela plataforma usem o domínio da empresa (autenticação SPF + DKIM gerada pelo Resend).
-                </p>
-
-                {loadingEmailDns && (
-                  <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Gerando chaves DKIM reais para o seu domínio...
-                  </div>
-                )}
-
-                {emailDnsError && !loadingEmailDns && (
-                  <div className="bg-amber-50 border border-amber-200 rounded p-4 text-xs text-amber-800">
-                    <strong>Não foi possível gerar os registros de e-mail agora.</strong>
-                    <p className="mt-1">{emailDnsError}</p>
-                    <p className="mt-2">Você pode prosseguir apenas com o registro A acima e configurar o e-mail depois.</p>
-                  </div>
-                )}
-
-                {!loadingEmailDns && !emailDnsError && emailDnsRecords.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-12 gap-3 border-b pb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      <div className="col-span-2">Tipo</div>
-                      <div className="col-span-3">Nome (Host)</div>
-                      <div className="col-span-7">Valor (Destino)</div>
-                    </div>
-                    {emailDnsRecords.map((rec: any, idx: number) => {
-                      const hostName = rec.name === createdTenant?.subdomain ? "@" : rec.name?.replace(`.${createdTenant?.subdomain}`, "");
-                      const recordType = rec.record || rec.type;
-                      return (
-                        <div key={idx} className="grid grid-cols-12 gap-3 font-mono text-xs items-start py-2 border-b border-border/30 last:border-0">
-                          <div className="col-span-2">
-                            <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold whitespace-nowrap text-[10px]">
-                              {recordType}
-                              {rec.priority ? ` (${rec.priority})` : ""}
-                            </div>
-                          </div>
-                          <div className="col-span-3 flex items-start justify-between gap-2 group bg-muted/30 p-2 rounded min-w-0">
-                            <span className="text-foreground break-all font-medium">{hostName || rec.name}</span>
-                            <Button 
-                              type="button"
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-7 w-7 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity bg-background"
-                              onClick={() => copyToClipboard(hostName || rec.name, `host-${idx}`)}
-                            >
-                              {copiedField === `host-${idx}` ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                            </Button>
-                          </div>
-                          <div className="col-span-7 flex items-start justify-between gap-2 group bg-muted/30 p-2 rounded min-w-0">
-                            <span className="text-foreground break-all leading-relaxed select-all whitespace-pre-wrap">{rec.value}</span>
-                            <Button 
-                              type="button"
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-7 w-7 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity bg-background"
-                              onClick={() => copyToClipboard(rec.value, `value-${idx}`)}
-                            >
-                              {copiedField === `value-${idx}` ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <p className="text-[10px] text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 italic">
-                  * Os registros de e-mail são apenas para autenticação de envio (SPF/DKIM). O recebimento (MX) continua com o provedor original da empresa.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 flex gap-4 text-left">
-              <div className="text-amber-500 mt-1">
-                <Plus className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-amber-900 mb-1">Nota sobre propagação</h4>
-                <p className="text-sm text-amber-800">
-                  Alterações de DNS podem levar de alguns minutos até 24 horas para propagar globalmente. 
-                  O e-mail de acesso <strong>não será enviado</strong> até que o DNS esteja funcional.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-8 space-y-4">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                {dnsResolved ? (
-                  <div className="flex items-center gap-2 text-green-600 font-semibold bg-green-50 px-4 py-2 rounded-full border border-green-200">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    Subdomínio Detectado e Pronto!
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-amber-600 font-medium bg-amber-50 px-4 py-2 rounded-full border border-amber-200">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Verificando conexão automaticamente...
-                  </div>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => checkDns(createdTenant.tenant.slug)}
-                  disabled={verifyingDns || dnsResolved}
-                  className="text-xs text-muted-foreground hover:text-primary"
+            {/* URL final */}
+            <div className="bg-secondary/50 border rounded-xl p-6 space-y-4 shadow-sm">
+              <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                <Globe className="h-4 w-4" /> URL de acesso da empresa
+              </h4>
+              <div className="flex items-center gap-2 bg-background border rounded-lg p-3 group">
+                <span className="font-mono text-sm font-bold text-primary flex-1 break-all">
+                  {createdTenant?.url || `https://app.allvita.com.br/${form.slug}`}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(createdTenant?.url || `https://app.allvita.com.br/${form.slug}`, 'tenant-url')}
+                  className="shrink-0"
                 >
-                  Verificar agora
+                  {copiedField === 'tenant-url' ? (
+                    <><Check className="h-3.5 w-3.5 mr-1.5 text-green-500" /> Copiado</>
+                  ) : (
+                    <><Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar</>
+                  )}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Compartilhe esse link com o cliente. O portal já carrega a logo, cores e identidade visual configuradas.
+              </p>
+            </div>
 
-              <Button 
-                onClick={handleVerifyDns} 
-                disabled={verifyingDns || !dnsResolved}
-                size="lg" 
-                className={`w-full h-14 text-lg ${dnsResolved ? 'bg-green-600 hover:bg-green-700' : ''}`}
+            {/* E-mail opcional */}
+            <div className="bg-secondary/30 border border-dashed rounded-xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                  <Plug className="h-4 w-4" /> Registros de E-mail (Opcional)
+                </h4>
+                <Badge variant="outline" className="text-[10px] font-normal">White-label</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Para que os e-mails da plataforma usem o domínio próprio do cliente (SPF + DKIM via Resend), adicione os registros abaixo no DNS dele. Você pode configurar isso depois.
+              </p>
+
+              {loadingEmailDns && (
+                <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Gerando chaves DKIM...
+                </div>
+              )}
+
+              {emailDnsError && !loadingEmailDns && (
+                <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-800">
+                  <strong>E-mail customizado não configurado.</strong>
+                  <p className="mt-1">{emailDnsError}</p>
+                  <p className="mt-1">A empresa funcionará normalmente; e-mails sairão pelo domínio padrão da All Vita.</p>
+                </div>
+              )}
+
+              {!loadingEmailDns && !emailDnsError && emailDnsRecords.length > 0 && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-12 gap-2 border-b pb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="col-span-2">Tipo</div>
+                    <div className="col-span-3">Nome</div>
+                    <div className="col-span-7">Valor</div>
+                  </div>
+                  {emailDnsRecords.map((rec: any, idx: number) => {
+                    const recordType = rec.record || rec.type;
+                    return (
+                      <div key={idx} className="grid grid-cols-12 gap-2 font-mono text-xs items-start py-1.5 border-b border-border/30 last:border-0">
+                        <div className="col-span-2">
+                          <div className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded w-fit font-bold whitespace-nowrap text-[10px]">
+                            {recordType}{rec.priority ? ` (${rec.priority})` : ""}
+                          </div>
+                        </div>
+                        <div className="col-span-3 bg-muted/30 p-1.5 rounded break-all">{rec.name}</div>
+                        <div className="col-span-7 bg-muted/30 p-1.5 rounded break-all whitespace-pre-wrap">{rec.value}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="pt-6 space-y-3">
+              <Button
+                onClick={handleVerifyDns}
+                disabled={verifyingDns}
+                size="lg"
+                className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
               >
                 {verifyingDns ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                    Finalizando configuração...
-                  </>
+                  <><Loader2 className="h-5 w-5 mr-3 animate-spin" /> Enviando e-mail de acesso...</>
                 ) : (
-                  dnsResolved ? "Concluir Cadastro e Enviar Acesso" : "Aguardando Propagação DNS"
+                  "Enviar e-mail de acesso ao cliente e concluir"
                 )}
               </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => setOpen(false)}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  localStorage.removeItem(STORAGE_KEY);
+                  localStorage.removeItem(DNS_STEP_STORAGE_KEY);
+                  localStorage.removeItem(OPEN_STATE_KEY);
+                  setOpen(false);
+                  setForm(emptyForm);
+                  setStep("form");
+                  setCreatedTenant(null);
+                  removeAllAssets();
+                }}
                 className="w-full text-muted-foreground"
               >
-                Configurar mais tarde (a empresa ficará pendente)
+                Fechar sem enviar e-mail (você pode reenviar depois)
               </Button>
             </div>
           </div>
