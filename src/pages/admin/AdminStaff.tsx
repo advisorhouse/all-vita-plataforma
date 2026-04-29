@@ -605,7 +605,10 @@ const AdminStaff: React.FC = () => {
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-2">
                                 <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="font-medium text-foreground">{inv.email}</span>
+                                <div>
+                                  <p className="font-medium text-foreground">{inv.full_name || "—"}</p>
+                                  <p className="text-[11px] text-muted-foreground">{inv.email}</p>
+                                </div>
                               </div>
                             </td>
                             <td className="py-3 px-4">
