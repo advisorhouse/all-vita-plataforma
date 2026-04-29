@@ -887,7 +887,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                 disabled={createTenant.isPending}
               >
                 {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
-                {createTenant.isPending ? "Criando empresa..." : "Criar empresa e configurar DNS"}
+                {createTenant.isPending ? "Criando empresa..." : "Criar empresa"}
               </Button>
             </div>
           </div>
