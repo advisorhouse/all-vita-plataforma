@@ -110,7 +110,15 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     if (draft) {
       try {
         const parsed = JSON.parse(draft);
-        setForm(parsed);
+        if (parsed?.form) {
+          const savedDraft = parsed as TenantDraftData;
+          setForm({ ...emptyForm, ...savedDraft.form });
+          setLogoPreview(savedDraft.logoPreview || null);
+          setCustomSegment(savedDraft.customSegment || "");
+          setIsCustomSegment(Boolean(savedDraft.isCustomSegment));
+        } else {
+          setForm({ ...emptyForm, ...parsed });
+        }
       } catch (e) {
         console.error("Error loading draft", e);
       }
@@ -147,8 +155,13 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
   // Save drafts on change
   React.useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-  }, [form]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      form,
+      logoPreview: persistableLogoPreview(logoPreview),
+      customSegment,
+      isCustomSegment,
+    } satisfies TenantDraftData));
+  }, [form, logoPreview, customSegment, isCustomSegment]);
 
   React.useEffect(() => {
     if (createdTenant || step === "dns") {
