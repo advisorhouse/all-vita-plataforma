@@ -653,8 +653,8 @@ serve(async (req) => {
         console.log(`[ManageUsers] Attempting to delete tenant: ${targetTenantId}`);
 
 
-        if (!isSuperAdmin) {
-          return jsonRes(403, { error: "Apenas Super Administradores podem excluir empresas." });
+        if (!isAdmin) {
+          return jsonRes(403, { error: "Apenas Administradores da All Vita podem excluir empresas." });
         }
 
         if (!targetTenantId) return jsonRes(400, { error: "tenantId é obrigatório" });
