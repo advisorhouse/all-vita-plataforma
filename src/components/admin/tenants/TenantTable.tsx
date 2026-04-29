@@ -115,6 +115,11 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      {t.dns_status === 'pending' && onResumeSetup && (
+                        <DropdownMenuItem onClick={() => onResumeSetup(t)} className="text-amber-600 font-medium">
+                          <Globe className="h-4 w-4 mr-2" /> Concluir Configuração
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}`)}>
                         <Eye className="h-4 w-4 mr-2" /> Ver empresa
                       </DropdownMenuItem>
