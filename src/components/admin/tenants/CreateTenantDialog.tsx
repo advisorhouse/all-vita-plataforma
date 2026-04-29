@@ -325,16 +325,46 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const set = (key: keyof TenantFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  const checkDns = async (slug: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("check-subdomain", {
+        body: { slug }
+      });
+      if (error) throw error;
+      if (data?.resolved) {
+        setDnsResolved(true);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Error checking DNS:", err);
+      return false;
+    }
+  };
+
+  React.useEffect(() => {
+    let interval: number | undefined;
+    
+    if (step === "dns" && createdTenant?.tenant?.slug && !dnsResolved) {
+      // First check immediately
+      checkDns(createdTenant.tenant.slug);
+      
+      // Then check every 15 seconds
+      interval = window.setInterval(() => {
+        checkDns(createdTenant.tenant.slug);
+      }, 15000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, createdTenant, dnsResolved]);
+
   const handleVerifyDns = async () => {
-    if (!createdTenant) return;
+    if (!createdTenant || !dnsResolved) return;
     setVerifyingDns(true);
     try {
-      // Simulação de verificação de DNS
-      // Em produção, isso chamaria uma Edge Function que faz lookup de DNS real
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Para demonstração, vamos simular que "funcionou" após o clique
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('tenants')
         .update({ 
           dns_status: 'verified',
@@ -345,23 +375,23 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
       if (error) throw error;
 
-      // Agora enviamos o email de ativação
       await supabase.functions.invoke("tenant-onboarding/send-activation", {
         body: { tenantId: createdTenant.tenant.id }
       });
 
-      toast.success("DNS Verificado!", {
-        description: "O subdomínio está no ar e o e-mail de acesso foi enviado ao cliente."
+      toast.success("Cadastro Concluído!", {
+        description: "O subdomínio foi ativado e o e-mail de acesso foi enviado ao cliente."
       });
       
       localStorage.removeItem(STORAGE_KEY);
       setOpen(false);
       setForm(emptyForm);
       setStep("form");
+      setDnsResolved(false);
       removeLogo();
     } catch (error: any) {
-      toast.error("DNS ainda não propagado", {
-        description: "Os registros CNAME não foram detectados. Aguarde alguns minutos e tente novamente."
+      toast.error("Erro ao finalizar", {
+        description: error.message || "Não foi possível concluir a ativação."
       });
     } finally {
       setVerifyingDns(false);
