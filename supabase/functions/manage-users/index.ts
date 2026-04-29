@@ -169,6 +169,7 @@ serve(async (req) => {
       .maybeSingle();
     
     const isSuperAdmin = staffData?.role === 'super_admin';
+    const isAdmin = staffData?.role === 'admin' || isSuperAdmin;
 
     switch (action) {
       case "list": {
