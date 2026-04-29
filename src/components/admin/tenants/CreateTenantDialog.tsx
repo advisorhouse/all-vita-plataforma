@@ -331,6 +331,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
         description: "O subdomínio está no ar e o e-mail de acesso foi enviado ao cliente."
       });
       
+      localStorage.removeItem(STORAGE_KEY);
       setOpen(false);
       setForm(emptyForm);
       setStep("form");
