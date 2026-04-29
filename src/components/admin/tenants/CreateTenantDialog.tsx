@@ -310,21 +310,64 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     }
   };
 
-  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("A logo deve ter no máximo 2MB");
-      return;
-    }
-    setLogoFile(file);
-    setLogoPreview(URL.createObjectURL(file));
+  const validateImageDimensions = (file: File, target: { w: number; h: number; label: string }): Promise<string | null> => {
+    return new Promise((resolve) => {
+      if (file.type === "image/svg+xml") return resolve(null);
+      const img = new window.Image();
+      img.onload = () => {
+        const tolerance = 0.15; // 15%
+        const wOk = Math.abs(img.width - target.w) / target.w <= tolerance;
+        const hOk = Math.abs(img.height - target.h) / target.h <= tolerance;
+        if (wOk && hOk) resolve(null);
+        else resolve(`Dimensão recomendada: ${target.w}×${target.h}px. Você enviou ${img.width}×${img.height}px.`);
+      };
+      img.onerror = () => resolve(null);
+      img.src = URL.createObjectURL(file);
+    });
   };
 
-  const removeLogo = () => {
-    setLogoFile(null);
-    setLogoPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleAssetSelect = (
+    asset: "logo" | "icon" | "favicon",
+    setFile: (f: File | null) => void,
+    setPreview: (p: string | null) => void,
+  ) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const maxSize = asset === "favicon" ? 512 * 1024 : 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error(`O arquivo deve ter no máximo ${asset === "favicon" ? "512KB" : "2MB"}`);
+      return;
+    }
+    setFile(file);
+    setPreview(URL.createObjectURL(file));
+    const warning = await validateImageDimensions(file, ASSET_SPECS[asset]);
+    setAssetWarnings((prev) => ({ ...prev, [asset]: warning }));
+  };
+
+  const handleLogoSelect = handleAssetSelect("logo", setLogoFile, setLogoPreview);
+  const handleIconSelect = handleAssetSelect("icon", setIconFile, setIconPreview);
+  const handleFaviconSelect = handleAssetSelect("favicon", setFaviconFile, setFaviconPreview);
+
+  const removeAsset = (
+    asset: "logo" | "icon" | "favicon",
+    setFile: (f: File | null) => void,
+    setPreview: (p: string | null) => void,
+    ref: React.RefObject<HTMLInputElement>,
+  ) => () => {
+    setFile(null);
+    setPreview(null);
+    setAssetWarnings((prev) => ({ ...prev, [asset]: null }));
+    if (ref.current) ref.current.value = "";
+  };
+
+  const removeLogo = removeAsset("logo", setLogoFile, setLogoPreview, fileInputRef);
+  const removeIcon = removeAsset("icon", setIconFile, setIconPreview, iconInputRef);
+  const removeFavicon = removeAsset("favicon", setFaviconFile, setFaviconPreview, faviconInputRef);
+
+  const removeAllAssets = () => {
+    removeLogo();
+    removeIcon();
+    removeFavicon();
   };
 
   const createTenant = useMutation({
