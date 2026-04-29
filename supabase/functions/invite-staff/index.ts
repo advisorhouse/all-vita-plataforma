@@ -17,7 +17,7 @@ serve(async (req) => {
   );
 
   try {
-    const { email, role, appUrl } = await req.json();
+    const { email, role, appUrl, fullName } = await req.json();
 
     if (!email || !role) {
       return new Response(
@@ -56,6 +56,7 @@ serve(async (req) => {
       .from("staff_invitations")
       .insert({
         email,
+        full_name: fullName,
         role,
         invited_by: user.id,
       })
@@ -90,7 +91,7 @@ serve(async (req) => {
               <p style="font-size: 14px; color: #666; margin: 4px 0 0;">Plataforma de Gestão Integrada</p>
             </div>
             
-            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a;">Olá, bem-vindo à equipe!</h2>
+            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a;">Olá ${fullName || 'bem-vindo'}, bem-vindo à equipe!</h2>
             
             <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
               Você foi convidado para fazer parte da equipe de <strong>Staff Global</strong> da All Vita. 

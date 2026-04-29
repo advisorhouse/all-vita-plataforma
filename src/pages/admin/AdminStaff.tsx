@@ -59,6 +59,7 @@ interface InvitationRow {
   id: string;
   email: string;
   role: StaffRole;
+  full_name?: string | null;
   status: "pending" | "accepted" | "expired";
   created_at: string;
   expires_at: string;
@@ -95,6 +96,7 @@ const AdminStaff: React.FC = () => {
   
   // Form states
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteFullName, setInviteFullName] = useState("");
   const [inviteRole, setInviteRole] = useState<StaffRole>("staff");
 
   const load = async () => {
@@ -167,7 +169,12 @@ const AdminStaff: React.FC = () => {
     setInviting(true);
     try {
       const { data, error } = await supabase.functions.invoke("invite-staff", {
-        body: { email: inviteEmail, role: inviteRole, appUrl: window.location.origin },
+        body: { 
+          email: inviteEmail, 
+          fullName: inviteFullName,
+          role: inviteRole, 
+          appUrl: window.location.origin 
+        },
       });
 
       if (error) throw error;
@@ -175,6 +182,7 @@ const AdminStaff: React.FC = () => {
       toast.success(`Convite enviado para ${inviteEmail}`);
       setIsInviteOpen(false);
       setInviteEmail("");
+      setInviteFullName("");
       load(); // Reload both lists
     } catch (err: any) {
       console.error(err);
@@ -222,7 +230,12 @@ const AdminStaff: React.FC = () => {
       await (supabase.from as any)("staff_invitations").delete().eq("id", inv.id);
       
       const { error } = await supabase.functions.invoke("invite-staff", {
-        body: { email: inv.email, role: inv.role, appUrl: window.location.origin },
+        body: { 
+          email: inv.email, 
+          fullName: inv.full_name,
+          role: inv.role, 
+          appUrl: window.location.origin 
+        },
       });
 
       if (error) throw error;
@@ -297,6 +310,16 @@ const AdminStaff: React.FC = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Nome Completo</Label>
+                  <Input 
+                    id="fullName" 
+                    placeholder="Nome do colaborador" 
+                    value={inviteFullName}
+                    onChange={(e) => setInviteFullName(e.target.value)}
+                    required
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
                   <Input 

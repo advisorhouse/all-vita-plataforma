@@ -1902,6 +1902,7 @@ export type Database = {
           created_at: string
           email: string
           expires_at: string
+          full_name: string | null
           id: string
           invited_by: string | null
           opened_at: string | null
@@ -1915,6 +1916,7 @@ export type Database = {
           created_at?: string
           email: string
           expires_at?: string
+          full_name?: string | null
           id?: string
           invited_by?: string | null
           opened_at?: string | null
@@ -1928,6 +1930,7 @@ export type Database = {
           created_at?: string
           email?: string
           expires_at?: string
+          full_name?: string | null
           id?: string
           invited_by?: string | null
           opened_at?: string | null
