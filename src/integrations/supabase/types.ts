@@ -2271,14 +2271,18 @@ export type Database = {
       }
       tenants: {
         Row: {
+          activation_email_sent: boolean | null
           active: boolean
           cnpj: string | null
           created_at: string
+          dns_status: string | null
+          dns_verified_at: string | null
           domain: string | null
           favicon_url: string | null
           id: string
           isotipo_url: string | null
           logo_url: string | null
+          manual_activation_required: boolean | null
           name: string
           primary_color: string | null
           secondary_color: string | null
@@ -2290,14 +2294,18 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          activation_email_sent?: boolean | null
           active?: boolean
           cnpj?: string | null
           created_at?: string
+          dns_status?: string | null
+          dns_verified_at?: string | null
           domain?: string | null
           favicon_url?: string | null
           id?: string
           isotipo_url?: string | null
           logo_url?: string | null
+          manual_activation_required?: boolean | null
           name: string
           primary_color?: string | null
           secondary_color?: string | null
@@ -2309,14 +2317,18 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          activation_email_sent?: boolean | null
           active?: boolean
           cnpj?: string | null
           created_at?: string
+          dns_status?: string | null
+          dns_verified_at?: string | null
           domain?: string | null
           favicon_url?: string | null
           id?: string
           isotipo_url?: string | null
           logo_url?: string | null
+          manual_activation_required?: boolean | null
           name?: string
           primary_color?: string | null
           secondary_color?: string | null

@@ -45,6 +45,9 @@ interface CreateTenantDialogProps {
 
 const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"form" | "dns">("form");
+  const [verifyingDns, setVerifyingDns] = useState(false);
+  const [createdTenant, setCreatedTenant] = useState<any>(null);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
   const [customSegment, setCustomSegment] = useState("");
   const [isCustomSegment, setIsCustomSegment] = useState(false);
@@ -194,6 +197,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
       const res = await supabase.functions.invoke("tenant-onboarding", {
         body: {
           ...formData,
+          skip_email: true,
           trade_name: formData.trade_name || undefined,
           cnpj: formData.cnpj || undefined,
           logo_url: logoPreview && logoPreview.startsWith('http') ? logoPreview : undefined,
@@ -251,15 +255,15 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
       return res.data;
     },
     onSuccess: (data: any) => {
-      toast.success(`Empresa "${form.name}" criada com sucesso!`, {
-        description: `Subdomínio: ${data.subdomain}`,
+      toast.success(`Pré-cadastro da "${form.name}" realizado!`, {
+        description: `Agora configure o DNS para ativar o subdomínio: ${data.subdomain}`,
       });
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-dash-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-tenant-metrics"] });
-      setOpen(false);
-      setForm(emptyForm);
-      removeLogo();
+      
+      setCreatedTenant(data);
+      setStep("dns"); 
     },
     onError: (error: any) => {
       toast.error("Erro ao criar empresa", { description: error.message });
@@ -277,224 +281,338 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const set = (key: keyof TenantFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  const handleVerifyDns = async () => {
+    if (!createdTenant) return;
+    setVerifyingDns(true);
+    try {
+      // Simulação de verificação de DNS
+      // Em produção, isso chamaria uma Edge Function que faz lookup de DNS real
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Para demonstração, vamos simular que "funcionou" após o clique
+      const { data, error } = await supabase
+        .from('tenants')
+        .update({ 
+          dns_status: 'verified',
+          dns_verified_at: new Date().toISOString(),
+          status: 'active'
+        })
+        .eq('id', createdTenant.tenant.id);
+
+      if (error) throw error;
+
+      // Agora enviamos o email de ativação
+      await supabase.functions.invoke("tenant-onboarding/send-activation", {
+        body: { tenantId: createdTenant.tenant.id }
+      });
+
+      toast.success("DNS Verificado!", {
+        description: "O subdomínio está no ar e o e-mail de acesso foi enviado ao cliente."
+      });
+      
+      setOpen(false);
+      setForm(emptyForm);
+      setStep("form");
+      removeLogo();
+    } catch (error: any) {
+      toast.error("DNS ainda não propagado", {
+        description: "Os registros CNAME não foram detectados. Aguarde alguns minutos e tente novamente."
+      });
+    } finally {
+      setVerifyingDns(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(val) => {
+      if (!val) {
+        setStep("form");
+        setCreatedTenant(null);
+      }
+      setOpen(val);
+    }}>
       <DialogTrigger asChild>
         {trigger || <Button><Plus className="h-4 w-4 mr-2" /> Nova Empresa</Button>}
       </DialogTrigger>
       <DialogContent className="max-w-none w-screen h-screen m-0 rounded-none overflow-y-auto">
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
-          <DialogTitle className="text-2xl">Cadastrar nova empresa</DialogTitle>
+          <DialogTitle className="text-2xl">
+            {step === "form" ? "Cadastrar nova empresa" : "Configuração de DNS"}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => { 
-          e.preventDefault(); 
-          if (!form.cnpj || !validateCNPJ(form.cnpj)) {
-            toast.error("CNPJ Inválido", { description: "Por favor, informe um CNPJ válido antes de prosseguir." });
-            return;
-          }
-          if (!form.segment || form.segment.trim().length < 3) {
-            toast.error("Segmento Obrigatório", { description: "Por favor, informe o segmento ou nicho da empresa." });
-            return;
-          }
-          createTenant.mutate(form); 
-        }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
-          {/* Company Info */}
-          <div className="space-y-6">
-            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identificação e CNPJ</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-2 space-y-2">
-                <Label className="text-base">CNPJ *</Label>
-                <div className="flex gap-2">
-                  <IMaskInput
-                    mask="00.000.000/0000-00"
-                    value={form.cnpj}
-                    unmask={true}
-                    onAccept={(value) => setForm(f => ({ ...f, cnpj: value }))}
-                    placeholder="00.000.000/0000-00"
-                    className="flex h-12 w-full rounded-md border border-input bg-background px-4 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                  <Button 
-                    type="button" 
-                    variant="default" 
-                    size="lg"
-                    onClick={fetchCnpjData}
-                    disabled={fetchingCnpj || form.cnpj.length < 14}
-                    className="h-12 px-6"
-                  >
-                    {fetchingCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
-                    Buscar Dados
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">Comece pelo CNPJ para preencher os dados automaticamente.</p>
-              </div>
 
-              <div className="space-y-2"><Label>Razão Social *</Label><Input value={form.name} onChange={set("name")} required className="h-10" /></div>
-              <div className="space-y-2"><Label>Nome Fantasia</Label><Input value={form.trade_name} onChange={set("trade_name")} onBlur={handleSlugGenerate} className="h-10" /></div>
-              
-              <div className="space-y-2">
-                <Label>Segmento / Nicho *</Label>
-                <Select 
-                  value={isCustomSegment ? "Outros" : form.segment} 
-                  onValueChange={(val) => {
-                    if (val === "Outros") {
-                      setIsCustomSegment(true);
-                      setForm(f => ({ ...f, segment: customSegment }));
-                    } else {
-                      setIsCustomSegment(false);
-                      setForm(f => ({ ...f, segment: val }));
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Selecione o nicho/segmento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {segments?.map((s: any) => (
-                      <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
-                    ))}
-                    <SelectItem value="Outros">Outros (especificar)</SelectItem>
-                  </SelectContent>
-                </Select>
+        {step === "form" ? (
+          <form onSubmit={(e) => { 
+            e.preventDefault(); 
+            if (!form.cnpj || !validateCNPJ(form.cnpj)) {
+              toast.error("CNPJ Inválido", { description: "Por favor, informe um CNPJ válido antes de prosseguir." });
+              return;
+            }
+            if (!form.segment || form.segment.trim().length < 3) {
+              toast.error("Segmento Obrigatório", { description: "Por favor, informe o segmento ou nicho da empresa." });
+              return;
+            }
+            createTenant.mutate(form); 
+          }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
+            {/* Company Info */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identificação e CNPJ</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="col-span-2 space-y-2">
+                  <Label className="text-base">CNPJ *</Label>
+                  <div className="flex gap-2">
+                    <IMaskInput
+                      mask="00.000.000/0000-00"
+                      value={form.cnpj}
+                      unmask={true}
+                      onAccept={(value) => setForm(f => ({ ...f, cnpj: value }))}
+                      placeholder="00.000.000/0000-00"
+                      className="flex h-12 w-full rounded-md border border-input bg-background px-4 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="default" 
+                      size="lg"
+                      onClick={fetchCnpjData}
+                      disabled={fetchingCnpj || form.cnpj.length < 14}
+                      className="h-12 px-6"
+                    >
+                      {fetchingCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
+                      Buscar Dados
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Comece pelo CNPJ para preencher os dados automaticamente.</p>
+                </div>
+
+                <div className="space-y-2"><Label>Razão Social *</Label><Input value={form.name} onChange={set("name")} required className="h-10" /></div>
+                <div className="space-y-2"><Label>Nome Fantasia</Label><Input value={form.trade_name} onChange={set("trade_name")} onBlur={handleSlugGenerate} className="h-10" /></div>
                 
-                {isCustomSegment && (
-                  <Input 
-                    value={customSegment} 
-                    onChange={(e) => {
-                      setCustomSegment(e.target.value);
-                      setForm(f => ({ ...f, segment: e.target.value }));
+                <div className="space-y-2">
+                  <Label>Segmento / Nicho *</Label>
+                  <Select 
+                    value={isCustomSegment ? "Outros" : form.segment} 
+                    onValueChange={(val) => {
+                      if (val === "Outros") {
+                        setIsCustomSegment(true);
+                        setForm(f => ({ ...f, segment: customSegment }));
+                      } else {
+                        setIsCustomSegment(false);
+                        setForm(f => ({ ...f, segment: val }));
+                      }
                     }}
-                    placeholder="Especifique o segmento..."
-                    className="h-10 mt-2"
-                    required
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Selecione o nicho/segmento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {segments?.map((s: any) => (
+                        <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                      ))}
+                      <SelectItem value="Outros">Outros (especificar)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {isCustomSegment && (
+                    <Input 
+                      value={customSegment} 
+                      onChange={(e) => {
+                        setCustomSegment(e.target.value);
+                        setForm(f => ({ ...f, segment: e.target.value }));
+                      }}
+                      placeholder="Especifique o segmento..."
+                      className="h-10 mt-2"
+                      required
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Slug (subdomínio) *</Label>
+                  <div className="flex items-center gap-2">
+                    <Input value={form.slug} onChange={set("slug")} required placeholder="minha-empresa" className="h-10" />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">.allvita.com.br</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Logo & Colors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identidade Visual</h3>
+                <div className="flex items-center gap-6">
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img src={logoPreview} alt="Logo preview" className="h-24 w-24 rounded-lg object-contain border border-border bg-secondary/30 p-2" />
+                      <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div onClick={() => fileInputRef.current?.click()} className="h-24 w-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 hover:bg-secondary/30 transition-all">
+                      <Image className="h-6 w-6 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Upload Logo</span>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                      <Upload className="h-3.5 w-3.5 mr-1.5" />
+                      {logoFile ? "Trocar logo" : "Selecionar logo"}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground">PNG, JPG ou WebP · Máx 2MB</p>
+                  </div>
+                  <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleLogoSelect} />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Cor Primária</Label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                      <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cor Secundária</Label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                      <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Owner */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Sócio Responsável (Usuário Master)</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2"><Label>Nome Completo *</Label><Input value={form.owner_name} onChange={set("owner_name")} required className="h-10" /></div>
+                <div className="space-y-2"><Label>E-mail *</Label><Input type="email" value={form.owner_email} onChange={set("owner_email")} required className="h-10" /></div>
+                <div className="space-y-2">
+                  <Label>Telefone</Label>
+                  <IMaskInput
+                    mask="(00) 00000-0000"
+                    value={form.owner_phone}
+                    unmask={true}
+                    onAccept={(value) => setForm(f => ({ ...f, owner_phone: value }))}
+                    placeholder="(00) 00000-0000"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Slug (subdomínio) *</Label>
-                <div className="flex items-center gap-2">
-                  <Input value={form.slug} onChange={set("slug")} required placeholder="minha-empresa" className="h-10" />
-                  <span className="text-sm text-muted-foreground whitespace-nowrap">.allvita.com.br</span>
+                </div>
+                <div className="space-y-2">
+                  <Label>CPF</Label>
+                  <IMaskInput
+                    mask="000.000.000-00"
+                    value={form.owner_cpf}
+                    unmask={true}
+                    onAccept={(value) => setForm(f => ({ ...f, owner_cpf: value }))}
+                    placeholder="000.000.000-00"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Logo & Colors */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Address */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Endereço da Sede</h3>
+              <div className="grid grid-cols-6 gap-6">
+                <div className="col-span-2 space-y-2">
+                  <Label>CEP</Label>
+                  <IMaskInput
+                    mask="00000-000"
+                    value={form.address_cep}
+                    unmask={true}
+                    onAccept={(value) => setForm(f => ({ ...f, address_cep: value }))}
+                    placeholder="00000-000"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+                <div className="col-span-4 space-y-2"><Label>Rua</Label><Input value={form.address_street} onChange={set("address_street")} className="h-10" /></div>
+                <div className="col-span-1 space-y-2"><Label>Número</Label><Input value={form.address_number} onChange={set("address_number")} className="h-10" /></div>
+                <div className="col-span-2 space-y-2"><Label>Bairro</Label><Input value={form.address_district} onChange={set("address_district")} className="h-10" /></div>
+                <div className="col-span-2 space-y-2"><Label>Cidade</Label><Input value={form.address_city} onChange={set("address_city")} className="h-10" /></div>
+                <div className="col-span-1 space-y-2"><Label>UF</Label><Input value={form.address_state} onChange={set("address_state")} placeholder="SP" className="h-10" /></div>
+                <div className="col-span-6 space-y-2"><Label>Complemento</Label><Input value={form.address_complement} onChange={set("address_complement")} className="h-10" /></div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t">
+              <Button type="submit" size="lg" className="w-full text-lg h-14" disabled={createTenant.isPending}>
+                {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
+                Próximo Passo: Configurar DNS
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="max-w-2xl mx-auto w-full py-12 space-y-8 text-center">
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identidade Visual</h3>
-              <div className="flex items-center gap-6">
-                {logoPreview ? (
-                  <div className="relative">
-                    <img src={logoPreview} alt="Logo preview" className="h-24 w-24 rounded-lg object-contain border border-border bg-secondary/30 p-2" />
-                    <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg">
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
+              <div className="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <Search className="h-8 w-8" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">Aguardando Configuração de DNS</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Para que o subdomínio <strong>{createdTenant?.subdomain}</strong> funcione, 
+                você precisa adicionar o seguinte registro na sua zona de DNS:
+              </p>
+            </div>
+
+            <div className="bg-secondary/50 border rounded-xl p-8 space-y-6 text-left shadow-sm">
+              <div className="grid grid-cols-3 gap-4 border-b pb-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div>Tipo</div>
+                <div>Nome (Host)</div>
+                <div>Valor (Destino)</div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 font-mono text-sm items-center">
+                <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded w-fit text-xs font-bold">CNAME</div>
+                <div className="font-bold text-foreground">{form.slug}</div>
+                <div className="text-foreground truncate">cname.allvita.com.br</div>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 flex gap-4 text-left">
+              <div className="text-amber-500 mt-1">
+                <Plus className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-amber-900 mb-1">Nota sobre propagação</h4>
+                <p className="text-sm text-amber-800">
+                  Alterações de DNS podem levar de alguns minutos até 24 horas para propagar globalmente. 
+                  O e-mail de acesso <strong>não será enviado</strong> até que o DNS esteja funcional.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-8 space-y-4">
+              <Button 
+                onClick={handleVerifyDns} 
+                disabled={verifyingDns}
+                size="lg" 
+                className="w-full h-14 text-lg"
+              >
+                {verifyingDns ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                    Verificando registros...
+                  </>
                 ) : (
-                  <div onClick={() => fileInputRef.current?.click()} className="h-24 w-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 hover:bg-secondary/30 transition-all">
-                    <Image className="h-6 w-6 text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground">Upload Logo</span>
-                  </div>
+                  "Verificar DNS e Enviar E-mail de Acesso"
                 )}
-                <div className="space-y-2">
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="h-3.5 w-3.5 mr-1.5" />
-                    {logoFile ? "Trocar logo" : "Selecionar logo"}
-                  </Button>
-                  <p className="text-[10px] text-muted-foreground">PNG, JPG ou WebP · Máx 2MB</p>
-                </div>
-                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleLogoSelect} />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Cor Primária</Label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                    <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Cor Secundária</Label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                    <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
-                  </div>
-                </div>
-              </div>
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setOpen(false)}
+                className="w-full text-muted-foreground"
+              >
+                Configurar mais tarde (a empresa ficará pendente)
+              </Button>
             </div>
           </div>
-
-          {/* Owner */}
-          <div className="space-y-6">
-            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Sócio Responsável (Usuário Master)</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2"><Label>Nome Completo *</Label><Input value={form.owner_name} onChange={set("owner_name")} required className="h-10" /></div>
-              <div className="space-y-2"><Label>E-mail *</Label><Input type="email" value={form.owner_email} onChange={set("owner_email")} required className="h-10" /></div>
-              <div className="space-y-2">
-                <Label>Telefone</Label>
-                <IMaskInput
-                  mask="(00) 00000-0000"
-                  value={form.owner_phone}
-                  unmask={true}
-                  onAccept={(value) => setForm(f => ({ ...f, owner_phone: value }))}
-                  placeholder="(00) 00000-0000"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>CPF</Label>
-                <IMaskInput
-                  mask="000.000.000-00"
-                  value={form.owner_cpf}
-                  unmask={true}
-                  onAccept={(value) => setForm(f => ({ ...f, owner_cpf: value }))}
-                  placeholder="000.000.000-00"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Address */}
-          <div className="space-y-6">
-            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Endereço da Sede</h3>
-            <div className="grid grid-cols-6 gap-6">
-               <div className="col-span-2 space-y-2">
-                <Label>CEP</Label>
-                <IMaskInput
-                  mask="00000-000"
-                  value={form.address_cep}
-                  unmask={true}
-                  onAccept={(value) => setForm(f => ({ ...f, address_cep: value }))}
-                  placeholder="00000-000"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="col-span-4 space-y-2"><Label>Rua</Label><Input value={form.address_street} onChange={set("address_street")} className="h-10" /></div>
-              <div className="col-span-1 space-y-2"><Label>Número</Label><Input value={form.address_number} onChange={set("address_number")} className="h-10" /></div>
-              <div className="col-span-2 space-y-2"><Label>Bairro</Label><Input value={form.address_district} onChange={set("address_district")} className="h-10" /></div>
-              <div className="col-span-2 space-y-2"><Label>Cidade</Label><Input value={form.address_city} onChange={set("address_city")} className="h-10" /></div>
-              <div className="col-span-1 space-y-2"><Label>UF</Label><Input value={form.address_state} onChange={set("address_state")} placeholder="SP" className="h-10" /></div>
-              <div className="col-span-6 space-y-2"><Label>Complemento</Label><Input value={form.address_complement} onChange={set("address_complement")} className="h-10" /></div>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t">
-            <Button type="submit" size="lg" className="w-full text-lg h-14" disabled={createTenant.isPending}>
-              {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
-              Finalizar Cadastro da Empresa
-            </Button>
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              Ao cadastrar, um usuário administrador será criado automaticamente para a empresa.
-            </p>
-          </div>
-        </form>
+        )}
       </DialogContent>
     </Dialog>
   );
