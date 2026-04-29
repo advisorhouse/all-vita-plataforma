@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Loader2, Upload, X, Image, Search } from "lucide-react";
+import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 interface TenantFormData {
@@ -679,16 +680,53 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               </p>
             </div>
 
-            <div className="bg-secondary/50 border rounded-xl p-8 space-y-6 text-left shadow-sm">
-              <div className="grid grid-cols-3 gap-4 border-b pb-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <div>Tipo</div>
-                <div>Nome (Host)</div>
-                <div>Valor (Destino)</div>
+            <div className="space-y-6 text-left">
+              <div className="bg-secondary/50 border rounded-xl p-8 space-y-6 shadow-sm">
+                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                  <Globe className="h-4 w-4" /> Registro de Acesso (Plataforma)
+                </h4>
+                <div className="grid grid-cols-3 gap-4 border-b pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div>Tipo</div>
+                  <div>Nome (Host)</div>
+                  <div>Valor (Destino)</div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 font-mono text-sm items-center">
+                  <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded w-fit text-xs font-bold">CNAME</div>
+                  <div className="font-bold text-foreground truncate">{form.slug}</div>
+                  <div className="text-foreground truncate">cname.allvita.com.br</div>
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-4 font-mono text-sm items-center">
-                <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded w-fit text-xs font-bold">CNAME</div>
-                <div className="font-bold text-foreground">{form.slug}</div>
-                <div className="text-foreground truncate">cname.allvita.com.br</div>
+
+              <div className="bg-secondary/30 border border-dashed rounded-xl p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                    <Plug className="h-4 w-4" /> Registros de E-mail (Opcional)
+                  </h4>
+                  <Badge variant="outline" className="text-[10px] font-normal">Recomendado para White-label</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Para que os e-mails enviados pela plataforma (boas-vindas, recuperação, etc) saiam com o nome da empresa e não caiam no SPAM, adicione também:
+                </p>
+                <div className="grid grid-cols-3 gap-4 border-b pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div>Tipo</div>
+                  <div>Nome (Host)</div>
+                  <div>Valor (Destino)</div>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 font-mono text-xs items-center">
+                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold">TXT</div>
+                    <div className="text-foreground truncate">{form.slug}</div>
+                    <div className="text-foreground truncate">v=spf1 include:spf.allvita.com.br ~all</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 font-mono text-xs items-center">
+                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold">TXT</div>
+                    <div className="text-foreground truncate">allvita._domainkey.{form.slug}</div>
+                    <div className="text-foreground truncate">v=DKIM1; k=rsa; p=MIGfMA0G... (chave-dkim)</div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 italic">
+                  * Os registros de e-mail são apenas para autenticação de envio. O recebimento (MX) continua com o provedor original da empresa.
+                </p>
               </div>
             </div>
 
