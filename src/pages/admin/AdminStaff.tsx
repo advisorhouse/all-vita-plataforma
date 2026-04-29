@@ -311,6 +311,16 @@ const AdminStaff: React.FC = () => {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
+                  <Label htmlFor="fullName">Nome Completo</Label>
+                  <Input 
+                    id="fullName" 
+                    placeholder="Nome do colaborador" 
+                    value={inviteFullName}
+                    onChange={(e) => setInviteFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
                   <Input 
                     id="email" 
