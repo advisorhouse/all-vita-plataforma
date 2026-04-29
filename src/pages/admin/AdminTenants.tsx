@@ -157,7 +157,14 @@ const AdminTenants: React.FC = () => {
           <Button variant="outline" size="sm" onClick={() => navigate("/admin/settings")}>
             <Settings className="h-4 w-4 mr-2" /> Configurações
           </Button>
-          <CreateTenantDialog />
+          <CreateTenantDialog 
+            open={isCreateDialogOpen} 
+            onOpenChange={(open) => {
+              setIsCreateDialogOpen(open);
+              if (!open) setTenantToResume(null);
+            }}
+            resumeTenant={tenantToResume}
+          />
         </div>
       </div>
 
