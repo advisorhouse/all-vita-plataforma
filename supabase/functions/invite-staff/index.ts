@@ -17,7 +17,7 @@ serve(async (req) => {
   );
 
   try {
-    const { email, role, appUrl } = await req.json();
+    const { email, role, appUrl, fullName } = await req.json();
 
     if (!email || !role) {
       return new Response(
