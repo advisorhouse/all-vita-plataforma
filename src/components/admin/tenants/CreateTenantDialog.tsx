@@ -56,6 +56,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
   const [step, setStep] = useState<"form" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
+  const [dnsResolved, setDnsResolved] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
 
   React.useEffect(() => {
@@ -324,16 +325,46 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const set = (key: keyof TenantFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  const checkDns = async (slug: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("check-subdomain", {
+        body: { slug }
+      });
+      if (error) throw error;
+      if (data?.resolved) {
+        setDnsResolved(true);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Error checking DNS:", err);
+      return false;
+    }
+  };
+
+  React.useEffect(() => {
+    let interval: number | undefined;
+    
+    if (step === "dns" && createdTenant?.tenant?.slug && !dnsResolved) {
+      // First check immediately
+      checkDns(createdTenant.tenant.slug);
+      
+      // Then check every 15 seconds
+      interval = window.setInterval(() => {
+        checkDns(createdTenant.tenant.slug);
+      }, 15000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, createdTenant, dnsResolved]);
+
   const handleVerifyDns = async () => {
-    if (!createdTenant) return;
+    if (!createdTenant || !dnsResolved) return;
     setVerifyingDns(true);
     try {
-      // Simulação de verificação de DNS
-      // Em produção, isso chamaria uma Edge Function que faz lookup de DNS real
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Para demonstração, vamos simular que "funcionou" após o clique
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('tenants')
         .update({ 
           dns_status: 'verified',
@@ -344,23 +375,23 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
       if (error) throw error;
 
-      // Agora enviamos o email de ativação
       await supabase.functions.invoke("tenant-onboarding/send-activation", {
         body: { tenantId: createdTenant.tenant.id }
       });
 
-      toast.success("DNS Verificado!", {
-        description: "O subdomínio está no ar e o e-mail de acesso foi enviado ao cliente."
+      toast.success("Cadastro Concluído!", {
+        description: "O subdomínio foi ativado e o e-mail de acesso foi enviado ao cliente."
       });
       
       localStorage.removeItem(STORAGE_KEY);
       setOpen(false);
       setForm(emptyForm);
       setStep("form");
+      setDnsResolved(false);
       removeLogo();
     } catch (error: any) {
-      toast.error("DNS ainda não propagado", {
-        description: "Os registros CNAME não foram detectados. Aguarde alguns minutos e tente novamente."
+      toast.error("Erro ao finalizar", {
+        description: error.message || "Não foi possível concluir a ativação."
       });
     } finally {
       setVerifyingDns(false);
@@ -648,19 +679,42 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
             </div>
 
             <div className="pt-8 space-y-4">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                {dnsResolved ? (
+                  <div className="flex items-center gap-2 text-green-600 font-semibold bg-green-50 px-4 py-2 rounded-full border border-green-200">
+                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    Subdomínio Detectado e Pronto!
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600 font-medium bg-amber-50 px-4 py-2 rounded-full border border-amber-200">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Verificando conexão automaticamente...
+                  </div>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => checkDns(createdTenant.tenant.slug)}
+                  disabled={verifyingDns || dnsResolved}
+                  className="text-xs text-muted-foreground hover:text-primary"
+                >
+                  Verificar agora
+                </Button>
+              </div>
+
               <Button 
                 onClick={handleVerifyDns} 
-                disabled={verifyingDns}
+                disabled={verifyingDns || !dnsResolved}
                 size="lg" 
-                className="w-full h-14 text-lg"
+                className={`w-full h-14 text-lg ${dnsResolved ? 'bg-green-600 hover:bg-green-700' : ''}`}
               >
                 {verifyingDns ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                    Verificando registros...
+                    Finalizando configuração...
                   </>
                 ) : (
-                  "Verificar DNS e Enviar E-mail de Acesso"
+                  dnsResolved ? "Concluir Cadastro e Enviar Acesso" : "Aguardando Propagação DNS"
                 )}
               </Button>
               <Button 
