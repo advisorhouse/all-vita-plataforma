@@ -701,30 +701,30 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                   <div>Nome (Host)</div>
                   <div>Valor (Destino)</div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 font-mono text-sm items-center">
-                  <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded w-fit text-xs font-bold">CNAME</div>
-                  <div className="flex items-center justify-between gap-2 group">
+                <div className="grid grid-cols-3 gap-6 font-mono text-sm items-center">
+                  <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded w-fit text-xs font-bold whitespace-nowrap">Tipo A (IP)</div>
+                  <div className="flex items-center justify-between gap-2 group min-w-0">
                     <span className="font-bold text-foreground break-all">{form.slug}</span>
                     <Button 
                       type="button"
                       variant="ghost" 
                       size="icon" 
-                      className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background/50"
                       onClick={() => copyToClipboard(form.slug, 'slug')}
                     >
-                      {copiedField === 'slug' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                      {copiedField === 'slug' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <div className="flex items-center justify-between gap-2 group">
-                    <span className="text-foreground break-all">cname.allvita.com.br</span>
+                  <div className="flex items-center justify-between gap-2 group min-w-0">
+                    <span className="text-foreground font-bold text-blue-600 break-all">185.158.133.1</span>
                     <Button 
                       type="button"
                       variant="ghost" 
                       size="icon" 
-                      className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => copyToClipboard('cname.allvita.com.br', 'cname')}
+                      className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background/50"
+                      onClick={() => copyToClipboard('185.158.133.1', 'ip-address')}
                     >
-                      {copiedField === 'cname' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                      {copiedField === 'ip-address' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
@@ -746,57 +746,58 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                   <div>Valor (Destino)</div>
                 </div>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4 font-mono text-xs items-center border-b border-border/40 pb-2 last:border-0 last:pb-0">
-                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold">TXT</div>
-                    <div className="flex items-center justify-between gap-2 group">
-                      <span className="text-foreground break-all">{form.slug}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs items-start border-b border-border/40 pb-4 last:border-0 last:pb-0">
+                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold whitespace-nowrap">TXT</div>
+                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
+                      <span className="text-foreground break-all font-medium">{form.slug}</span>
                       <Button 
                         type="button"
                         variant="ghost" 
                         size="icon" 
-                        className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
                         onClick={() => copyToClipboard(form.slug, 'spf-host')}
                       >
-                        {copiedField === 'spf-host' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        {copiedField === 'spf-host' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
-                    <div className="flex items-center justify-between gap-2 group">
-                      <span className="text-foreground break-all">v=spf1 include:spf.allvita.com.br ~all</span>
+                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
+                      <span className="text-foreground break-all leading-relaxed">v=spf1 include:spf.allvita.com.br ~all</span>
                       <Button 
                         type="button"
                         variant="ghost" 
                         size="icon" 
-                        className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
                         onClick={() => copyToClipboard('v=spf1 include:spf.allvita.com.br ~all', 'spf-value')}
                       >
-                        {copiedField === 'spf-value' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        {copiedField === 'spf-value' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 font-mono text-xs items-center">
-                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold">TXT</div>
-                    <div className="flex items-center justify-between gap-2 group">
-                      <span className="text-foreground break-all">allvita._domainkey.{form.slug}</span>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs items-start border-b border-border/40 pb-4 last:border-0 last:pb-0">
+                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold whitespace-nowrap">TXT</div>
+                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
+                      <span className="text-foreground break-all font-medium">allvita._domainkey.{form.slug}</span>
                       <Button 
                         type="button"
                         variant="ghost" 
                         size="icon" 
-                        className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
                         onClick={() => copyToClipboard(`allvita._domainkey.${form.slug}`, 'dkim-host')}
                       >
-                        {copiedField === 'dkim-host' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        {copiedField === 'dkim-host' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
-                    <div className="flex items-center justify-between gap-2 group">
-                      <span className="text-foreground break-all italic text-muted-foreground/60">v=DKIM1; k=rsa; p=MIGfMA0G... (chave completa)</span>
+                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
+                      <span className="text-foreground break-all leading-relaxed">v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnxF... (chave completa)</span>
                       <Button 
                         type="button"
                         variant="ghost" 
                         size="icon" 
-                        className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
                         onClick={() => copyToClipboard('v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnxF... (chave completa)', 'dkim-value')}
                       >
-                        {copiedField === 'dkim-value' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        {copiedField === 'dkim-value' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
