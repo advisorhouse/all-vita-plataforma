@@ -671,7 +671,7 @@ serve(async (req) => {
         // Audit log
         await adminClient.from("audit_logs").insert({
           user_id: callerUserId,
-          actor_type: "super_admin",
+          actor_type: staffData?.role || "staff",
           action: "tenant_deleted",
           entity_type: "tenant",
           entity_id: targetTenantId,
