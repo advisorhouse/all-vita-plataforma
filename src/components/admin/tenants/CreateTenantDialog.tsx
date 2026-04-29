@@ -60,6 +60,9 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const [dnsResolved, setDnsResolved] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [emailDnsRecords, setEmailDnsRecords] = useState<any[]>([]);
+  const [loadingEmailDns, setLoadingEmailDns] = useState(false);
+  const [emailDnsError, setEmailDnsError] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, fieldId: string) => {
     navigator.clipboard.writeText(text);
