@@ -56,6 +56,27 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
+  const STORAGE_KEY = "allvita-tenant-form-draft";
+
+  // Load draft on mount
+  React.useEffect(() => {
+    const draft = localStorage.getItem(STORAGE_KEY);
+    if (draft && step === "form" && !createdTenant) {
+      try {
+        const parsed = JSON.parse(draft);
+        setForm(parsed);
+      } catch (e) {
+        console.error("Error loading draft", e);
+      }
+    }
+  }, []);
+
+  // Save draft on change
+  React.useEffect(() => {
+    if (step === "form" && !createdTenant) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    }
+  }, [form, step, createdTenant]);
 
   const { data: segments } = useQuery({
     queryKey: ["tenant-segments"],
