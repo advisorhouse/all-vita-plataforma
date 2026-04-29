@@ -18,6 +18,8 @@ const AdminTenants: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
+  const [tenantToResume, setTenantToResume] = useState<any | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const deleteTenantMutation = useMutation({
