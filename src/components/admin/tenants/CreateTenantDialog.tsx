@@ -193,9 +193,10 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
 
       const res = await supabase.functions.invoke("tenant-onboarding", {
         body: {
-          ...formData, // simplified for brevity but keeping original logic
+          ...formData,
           trade_name: formData.trade_name || undefined,
           cnpj: formData.cnpj || undefined,
+          logo_url: logoPreview && logoPreview.startsWith('http') ? logoPreview : undefined,
           owner: {
             full_name: formData.owner_name,
             email: formData.owner_email,
