@@ -39,15 +39,37 @@ const emptyForm: TenantFormData = {
   address_complement: "", address_district: "", address_city: "", address_state: "",
 };
 
-interface CreateTenantDialogProps {
+ interface CreateTenantDialogProps {
   trigger?: React.ReactNode;
+  resumeTenant?: any;
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
 }
 
-const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
-  const [open, setOpen] = useState(false);
+const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resumeTenant, open: externalOpen, onOpenChange }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = (val: boolean) => {
+    if (onOpenChange) onOpenChange(val);
+    setInternalOpen(val);
+  };
+
   const [step, setStep] = useState<"form" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (resumeTenant) {
+      setCreatedTenant({
+        tenant: resumeTenant,
+        subdomain: `${resumeTenant.slug}.allvita.com.br`
+      });
+      setStep("dns");
+    } else if (open && step === "dns" && !createdTenant) {
+      // If opened normally and somehow stuck in DNS without tenant, go back to form
+      setStep("form");
+    }
+  }, [resumeTenant, open]);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
   const [customSegment, setCustomSegment] = useState("");
   const [isCustomSegment, setIsCustomSegment] = useState(false);
