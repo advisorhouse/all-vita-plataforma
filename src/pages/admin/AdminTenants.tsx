@@ -18,6 +18,8 @@ const AdminTenants: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
+  const [tenantToResume, setTenantToResume] = useState<any | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const deleteTenantMutation = useMutation({
@@ -155,7 +157,14 @@ const AdminTenants: React.FC = () => {
           <Button variant="outline" size="sm" onClick={() => navigate("/admin/settings")}>
             <Settings className="h-4 w-4 mr-2" /> Configurações
           </Button>
-          <CreateTenantDialog />
+          <CreateTenantDialog 
+            open={isCreateDialogOpen} 
+            onOpenChange={(open) => {
+              setIsCreateDialogOpen(open);
+              if (!open) setTenantToResume(null);
+            }}
+            resumeTenant={tenantToResume}
+          />
         </div>
       </div>
 
@@ -186,6 +195,10 @@ const AdminTenants: React.FC = () => {
           await deleteTenantMutation.mutateAsync(id);
         }}
         isDeleting={deleteTenantMutation.isPending ? deleteTenantMutation.variables : null}
+        onResumeSetup={(tenant) => {
+          setTenantToResume(tenant);
+          setIsCreateDialogOpen(true);
+        }}
       />
 
 

@@ -13,6 +13,7 @@ interface TenantTableProps {
   onViewTenant: (tenant: any) => void;
   onDeleteTenant?: (tenantId: string) => Promise<void>;
   isDeleting?: string | null;
+  onResumeSetup?: (tenant: any) => void;
 }
 
 function formatCnpj(cnpj: string): string {
@@ -21,7 +22,7 @@ function formatCnpj(cnpj: string): string {
   return clean.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 }
 
-const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant, onDeleteTenant, isDeleting }) => {
+const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant, onDeleteTenant, isDeleting, onResumeSetup }) => {
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
 
@@ -86,9 +87,15 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <Badge variant={active ? "default" : "destructive"} className="text-[10px]">
-                    {active ? "🟢 Ativa" : "🔴 Suspensa"}
-                  </Badge>
+                  {t.dns_status === 'pending' ? (
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px]">
+                      🟡 Aguardando DNS
+                    </Badge>
+                  ) : (
+                    <Badge variant={active ? "default" : "destructive"} className="text-[10px]">
+                      {active ? "🟢 Ativa" : "🔴 Suspensa"}
+                    </Badge>
+                  )}
                 </TableCell>
                 <TableCell className="text-right font-medium tabular-nums text-sm">
                   R$ {metrics.revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
@@ -108,6 +115,11 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      {t.dns_status === 'pending' && onResumeSetup && (
+                        <DropdownMenuItem onClick={() => onResumeSetup(t)} className="text-amber-600 font-medium">
+                          <Globe className="h-4 w-4 mr-2" /> Concluir Configuração
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => navigate(`/admin/tenants/${t.id}`)}>
                         <Eye className="h-4 w-4 mr-2" /> Ver empresa
                       </DropdownMenuItem>

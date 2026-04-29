@@ -39,15 +39,37 @@ const emptyForm: TenantFormData = {
   address_complement: "", address_district: "", address_city: "", address_state: "",
 };
 
-interface CreateTenantDialogProps {
+ interface CreateTenantDialogProps {
   trigger?: React.ReactNode;
+  resumeTenant?: any;
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
 }
 
-const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
-  const [open, setOpen] = useState(false);
+const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resumeTenant, open: externalOpen, onOpenChange }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = (val: boolean) => {
+    if (onOpenChange) onOpenChange(val);
+    setInternalOpen(val);
+  };
+
   const [step, setStep] = useState<"form" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (resumeTenant) {
+      setCreatedTenant({
+        tenant: resumeTenant,
+        subdomain: `${resumeTenant.slug}.allvita.com.br`
+      });
+      setStep("dns");
+    } else if (open && step === "dns" && !createdTenant) {
+      // If opened normally and somehow stuck in DNS without tenant, go back to form
+      setStep("form");
+    }
+  }, [resumeTenant, open]);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
   const [customSegment, setCustomSegment] = useState("");
   const [isCustomSegment, setIsCustomSegment] = useState(false);
@@ -56,6 +78,27 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
+  const STORAGE_KEY = "allvita-tenant-form-draft";
+
+  // Load draft on mount
+  React.useEffect(() => {
+    const draft = localStorage.getItem(STORAGE_KEY);
+    if (draft && step === "form" && !createdTenant) {
+      try {
+        const parsed = JSON.parse(draft);
+        setForm(parsed);
+      } catch (e) {
+        console.error("Error loading draft", e);
+      }
+    }
+  }, []);
+
+  // Save draft on change
+  React.useEffect(() => {
+    if (step === "form" && !createdTenant) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    }
+  }, [form, step, createdTenant]);
 
   const { data: segments } = useQuery({
     queryKey: ["tenant-segments"],
@@ -310,6 +353,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
         description: "O subdomínio está no ar e o e-mail de acesso foi enviado ao cliente."
       });
       
+      localStorage.removeItem(STORAGE_KEY);
       setOpen(false);
       setForm(emptyForm);
       setStep("form");
@@ -336,8 +380,24 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
       </DialogTrigger>
       <DialogContent className="max-w-none w-screen h-screen m-0 rounded-none overflow-y-auto">
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
-          <DialogTitle className="text-2xl">
+          <DialogTitle className="text-2xl flex items-center justify-between">
             {step === "form" ? "Cadastrar nova empresa" : "Configuração de DNS"}
+            {step === "form" && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  if (confirm("Deseja limpar todos os campos preenchidos?")) {
+                    setForm(emptyForm);
+                    localStorage.removeItem(STORAGE_KEY);
+                    removeLogo();
+                  }
+                }}
+                className="text-xs font-normal text-muted-foreground hover:text-destructive"
+              >
+                Limpar formulário
+              </Button>
+            )}
           </DialogTitle>
         </DialogHeader>
 
