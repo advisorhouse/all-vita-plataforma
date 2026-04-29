@@ -32,17 +32,15 @@ serve(async (req) => {
 
   const adminClient = createClient(supabaseUrl, serviceKey);
 
-  // Check super_admin
-  const { data: saCheck } = await adminClient
-    .from("memberships")
-    .select("id")
+  // Check staff role (super_admin or admin)
+  const { data: staffMember } = await adminClient
+    .from("all_vita_staff")
+    .select("role")
     .eq("user_id", userData.user.id)
-    .in("role", ["super_admin", "admin"])
-    .is("tenant_id", null)
-    .eq("active", true)
-    .limit(1);
+    .eq("is_active", true)
+    .single();
 
-  if (!saCheck || saCheck.length === 0) {
+  if (!staffMember || !["super_admin", "admin"].includes(staffMember.role)) {
     return jsonRes(403, { error: "Você não tem permissão para cadastrar empresas. Contate o super administrador para isso." });
   }
 
