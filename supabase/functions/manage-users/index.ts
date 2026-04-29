@@ -162,6 +162,14 @@ serve(async (req) => {
       return jsonRes(200, { html, tenantName });
     }
 
+    const { data: staffData } = await adminClient
+      .from("all_vita_staff")
+      .select("role")
+      .eq("user_id", callerUserId)
+      .maybeSingle();
+    
+    const isSuperAdmin = staffData?.role === 'super_admin';
+
     switch (action) {
       case "list": {
         // List all memberships + profiles for this tenant
