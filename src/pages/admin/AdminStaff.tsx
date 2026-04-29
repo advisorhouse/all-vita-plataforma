@@ -169,7 +169,12 @@ const AdminStaff: React.FC = () => {
     setInviting(true);
     try {
       const { data, error } = await supabase.functions.invoke("invite-staff", {
-        body: { email: inviteEmail, role: inviteRole, appUrl: window.location.origin },
+        body: { 
+          email: inviteEmail, 
+          fullName: inviteFullName,
+          role: inviteRole, 
+          appUrl: window.location.origin 
+        },
       });
 
       if (error) throw error;
