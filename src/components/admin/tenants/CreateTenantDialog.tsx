@@ -457,16 +457,32 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       }
       return res.data;
     },
-    onSuccess: (data: any) => {
-      toast.success(`Pré-cadastro da "${form.name}" realizado!`, {
-        description: `Agora configure o DNS para ativar o subdomínio: ${data.subdomain}`,
+    onSuccess: async (data: any) => {
+      const tenantUrl = `https://app.allvita.com.br/${data.tenant.slug}`;
+
+      // Mark tenant as fully active immediately — no DNS step required.
+      try {
+        await supabase
+          .from('tenants')
+          .update({
+            dns_status: 'active',
+            dns_verified_at: new Date().toISOString(),
+            status: 'active',
+          })
+          .eq('id', data.tenant.id);
+      } catch (e) {
+        console.warn("Failed to auto-activate tenant", e);
+      }
+
+      toast.success(`Empresa "${form.name}" criada!`, {
+        description: `URL pronta: ${tenantUrl}`,
       });
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-dash-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-tenant-metrics"] });
-      
-      setCreatedTenant(data);
-      setStep("dns"); 
+
+      setCreatedTenant({ ...data, url: tenantUrl });
+      setStep("dns");
     },
     onError: (error: any) => {
       toast.error("Erro ao criar empresa", { description: error.message });
