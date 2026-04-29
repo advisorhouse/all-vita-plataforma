@@ -162,6 +162,15 @@ serve(async (req) => {
       return jsonRes(200, { html, tenantName });
     }
 
+    const { data: staffData } = await adminClient
+      .from("all_vita_staff")
+      .select("role")
+      .eq("user_id", callerUserId)
+      .maybeSingle();
+    
+    const isSuperAdmin = staffData?.role === 'super_admin';
+    const isAdmin = staffData?.role === 'admin' || isSuperAdmin;
+
     switch (action) {
       case "list": {
         // List all memberships + profiles for this tenant
@@ -644,8 +653,8 @@ serve(async (req) => {
         console.log(`[ManageUsers] Attempting to delete tenant: ${targetTenantId}`);
 
 
-        if (!isSuperAdmin) {
-          return jsonRes(403, { error: "Apenas Super Administradores podem excluir empresas." });
+        if (!isAdmin) {
+          return jsonRes(403, { error: "Apenas Administradores da All Vita podem excluir empresas." });
         }
 
         if (!targetTenantId) return jsonRes(400, { error: "tenantId é obrigatório" });
@@ -662,7 +671,7 @@ serve(async (req) => {
         // Audit log
         await adminClient.from("audit_logs").insert({
           user_id: callerUserId,
-          actor_type: "super_admin",
+          actor_type: staffData?.role || "staff",
           action: "tenant_deleted",
           entity_type: "tenant",
           entity_id: targetTenantId,
