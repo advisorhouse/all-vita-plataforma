@@ -53,7 +53,7 @@ export function useMemberships() {
 
       if (!platformStaffRes.error && platformStaffRes.data?.is_active) {
         setPlatformRole(platformStaffRes.data.role);
-        setIsSuperAdmin(platformStaffRes.data.role === 'super_admin');
+        setIsSuperAdmin(platformStaffRes.data.role === 'super_admin' || platformStaffRes.data.role === 'admin');
       } else {
         setPlatformRole(null);
         setIsSuperAdmin(false);
