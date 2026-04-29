@@ -789,72 +789,74 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                   <Badge variant="outline" className="text-[10px] font-normal">Recomendado para White-label</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Para que os e-mails enviados pela plataforma saiam com o nome da empresa, adicione também:
+                  Adicione os registros abaixo no seu provedor de DNS para que os e-mails enviados pela plataforma usem o domínio da empresa (autenticação SPF + DKIM gerada pelo Resend).
                 </p>
-                <div className="grid grid-cols-3 gap-4 border-b pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  <div>Tipo</div>
-                  <div>Nome (Host)</div>
-                  <div>Valor (Destino)</div>
-                </div>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs items-start border-b border-border/40 pb-4 last:border-0 last:pb-0">
-                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold whitespace-nowrap">TXT</div>
-                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
-                      <span className="text-foreground break-all font-medium">{form.slug}</span>
-                      <Button 
-                        type="button"
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
-                        onClick={() => copyToClipboard(form.slug, 'spf-host')}
-                      >
-                        {copiedField === 'spf-host' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
-                      <span className="text-foreground break-all leading-relaxed">v=spf1 include:spf.allvita.com.br ~all</span>
-                      <Button 
-                        type="button"
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
-                        onClick={() => copyToClipboard('v=spf1 include:spf.allvita.com.br ~all', 'spf-value')}
-                      >
-                        {copiedField === 'spf-value' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
+
+                {loadingEmailDns && (
+                  <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Gerando chaves DKIM reais para o seu domínio...
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs items-start border-b border-border/40 pb-4 last:border-0 last:pb-0">
-                    <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold whitespace-nowrap">TXT</div>
-                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
-                      <span className="text-foreground break-all font-medium">allvita._domainkey.{form.slug}</span>
-                      <Button 
-                        type="button"
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
-                        onClick={() => copyToClipboard(`allvita._domainkey.${form.slug}`, 'dkim-host')}
-                      >
-                        {copiedField === 'dkim-host' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 group bg-muted/30 p-2 rounded">
-                      <span className="text-foreground break-all leading-relaxed">v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnxF... (chave completa)</span>
-                      <Button 
-                        type="button"
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background"
-                        onClick={() => copyToClipboard('v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnxF... (chave completa)', 'dkim-value')}
-                      >
-                        {copiedField === 'dkim-value' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
+                )}
+
+                {emailDnsError && !loadingEmailDns && (
+                  <div className="bg-amber-50 border border-amber-200 rounded p-4 text-xs text-amber-800">
+                    <strong>Não foi possível gerar os registros de e-mail agora.</strong>
+                    <p className="mt-1">{emailDnsError}</p>
+                    <p className="mt-2">Você pode prosseguir apenas com o registro A acima e configurar o e-mail depois.</p>
                   </div>
-                </div>
+                )}
+
+                {!loadingEmailDns && !emailDnsError && emailDnsRecords.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-12 gap-3 border-b pb-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      <div className="col-span-2">Tipo</div>
+                      <div className="col-span-3">Nome (Host)</div>
+                      <div className="col-span-7">Valor (Destino)</div>
+                    </div>
+                    {emailDnsRecords.map((rec: any, idx: number) => {
+                      const hostName = rec.name === createdTenant?.subdomain ? "@" : rec.name?.replace(`.${createdTenant?.subdomain}`, "");
+                      const recordType = rec.record || rec.type;
+                      return (
+                        <div key={idx} className="grid grid-cols-12 gap-3 font-mono text-xs items-start py-2 border-b border-border/30 last:border-0">
+                          <div className="col-span-2">
+                            <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded w-fit font-bold whitespace-nowrap text-[10px]">
+                              {recordType}
+                              {rec.priority ? ` (${rec.priority})` : ""}
+                            </div>
+                          </div>
+                          <div className="col-span-3 flex items-start justify-between gap-2 group bg-muted/30 p-2 rounded min-w-0">
+                            <span className="text-foreground break-all font-medium">{hostName || rec.name}</span>
+                            <Button 
+                              type="button"
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity bg-background"
+                              onClick={() => copyToClipboard(hostName || rec.name, `host-${idx}`)}
+                            >
+                              {copiedField === `host-${idx}` ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                            </Button>
+                          </div>
+                          <div className="col-span-7 flex items-start justify-between gap-2 group bg-muted/30 p-2 rounded min-w-0">
+                            <span className="text-foreground break-all leading-relaxed select-all whitespace-pre-wrap">{rec.value}</span>
+                            <Button 
+                              type="button"
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity bg-background"
+                              onClick={() => copyToClipboard(rec.value, `value-${idx}`)}
+                            >
+                              {copiedField === `value-${idx}` ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
                 <p className="text-[10px] text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 italic">
-                  * Os registros de e-mail são apenas para autenticação de envio. O recebimento (MX) continua com o provedor original da empresa.
+                  * Os registros de e-mail são apenas para autenticação de envio (SPF/DKIM). O recebimento (MX) continua com o provedor original da empresa.
                 </p>
               </div>
             </div>
