@@ -579,7 +579,7 @@ const AdminStaff: React.FC = () => {
                     <thead>
                       <tr className="border-b border-border/60 bg-muted/30">
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                          E-mail
+                          Convidado
                         </th>
                         <th className="text-left py-3 px-4 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                           Papel / Nível
