@@ -13,6 +13,7 @@ interface TenantTableProps {
   onViewTenant: (tenant: any) => void;
   onDeleteTenant?: (tenantId: string) => Promise<void>;
   isDeleting?: string | null;
+  onResumeSetup?: (tenant: any) => void;
 }
 
 function formatCnpj(cnpj: string): string {
