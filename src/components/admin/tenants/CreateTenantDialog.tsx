@@ -408,9 +408,25 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
       const tenantId = res.data?.tenant?.id;
       if (tenantId) {
-        let finalLogoFile = logoFile;
+        const updates: Record<string, string> = {};
 
-        // If we have a logoPreview that is a URL (from Clearbit), we need to fetch it first
+        // Helper: upload an asset to tenant-logos and return public URL
+        const uploadAsset = async (file: File, name: string): Promise<string | null> => {
+          const ext = file.name.split(".").pop() || "png";
+          const filePath = `${tenantId}/${name}.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from("tenant-logos")
+            .upload(filePath, file, { upsert: true });
+          if (uploadError) {
+            console.error(`Failed to upload ${name}`, uploadError);
+            return null;
+          }
+          const { data: urlData } = supabase.storage.from("tenant-logos").getPublicUrl(filePath);
+          return urlData.publicUrl;
+        };
+
+        // LOGO: file selected OR remote URL (Clearbit) OR persisted from draft
+        let finalLogoFile = logoFile;
         if (!finalLogoFile && logoPreview && logoPreview.startsWith('http')) {
           try {
             const logoRes = await fetch(logoPreview);
@@ -420,17 +436,23 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
             console.error("Failed to fetch remote logo", e);
           }
         }
-
         if (finalLogoFile) {
-          const ext = finalLogoFile.name.split(".").pop() || "png";
-          const filePath = `${tenantId}/logo.${ext}`;
-          const { error: uploadError } = await supabase.storage
-            .from("tenant-logos")
-            .upload(filePath, finalLogoFile, { upsert: true });
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from("tenant-logos").getPublicUrl(filePath);
-            await supabase.from("tenants").update({ logo_url: urlData.publicUrl }).eq("id", tenantId);
-          }
+          const url = await uploadAsset(finalLogoFile, "logo");
+          if (url) updates.logo_url = url;
+        }
+
+        if (iconFile) {
+          const url = await uploadAsset(iconFile, "icon");
+          if (url) updates.isotipo_url = url;
+        }
+
+        if (faviconFile) {
+          const url = await uploadAsset(faviconFile, "favicon");
+          if (url) updates.favicon_url = url;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          await supabase.from("tenants").update(updates).eq("id", tenantId);
         }
       }
       return res.data;
