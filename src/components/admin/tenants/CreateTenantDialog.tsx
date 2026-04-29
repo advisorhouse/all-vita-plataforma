@@ -540,33 +540,19 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   }, [step, createdTenant?.tenant?.id]);
 
   const handleVerifyDns = async () => {
-    if (!createdTenant || !dnsResolved) return;
+    if (!createdTenant) return;
     setVerifyingDns(true);
     try {
-      const { data: updated, error } = await supabase
-        .from('tenants')
-        .update({ 
-          dns_status: 'verified',
-          dns_verified_at: new Date().toISOString(),
-          status: 'active'
-        })
-        .eq('id', createdTenant.tenant.id)
-        .select('id')
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!updated) {
-        throw new Error("Empresa não encontrada no banco de dados. O cadastro inicial não foi concluído. Feche este modal e crie a empresa novamente.");
-      }
-
+      // Tenant is already active (set in mutation onSuccess). Just send the
+      // activation e-mail to the owner.
       await supabase.functions.invoke("tenant-onboarding/send-activation", {
         body: { tenantId: createdTenant.tenant.id }
       });
 
       toast.success("Cadastro Concluído!", {
-        description: "O subdomínio foi ativado e o e-mail de acesso foi enviado ao cliente."
+        description: "O e-mail de acesso foi enviado ao cliente."
       });
-      
+
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(DNS_STEP_STORAGE_KEY);
       localStorage.removeItem(OPEN_STATE_KEY);
@@ -577,8 +563,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       setDnsResolved(false);
       removeAllAssets();
     } catch (error: any) {
-      toast.error("Erro ao finalizar", {
-        description: error.message || "Não foi possível concluir a ativação."
+      toast.error("Erro ao enviar e-mail", {
+        description: error.message || "A empresa foi criada, mas o e-mail de acesso não pôde ser enviado. Você pode reenviar depois."
       });
     } finally {
       setVerifyingDns(false);
