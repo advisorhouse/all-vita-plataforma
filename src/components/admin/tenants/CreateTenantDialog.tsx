@@ -32,6 +32,13 @@ interface TenantFormData {
   address_state: string;
 }
 
+interface TenantDraftData {
+  form: TenantFormData;
+  logoPreview: string | null;
+  customSegment: string;
+  isCustomSegment: boolean;
+}
+
 const emptyForm: TenantFormData = {
   name: "", trade_name: "", slug: "", cnpj: "", segment: "",
   primary_color: "#6366f1", secondary_color: "#8b5cf6",
@@ -63,6 +70,11 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const [emailDnsRecords, setEmailDnsRecords] = useState<any[]>([]);
   const [loadingEmailDns, setLoadingEmailDns] = useState(false);
   const [emailDnsError, setEmailDnsError] = useState<string | null>(null);
+
+  const persistableLogoPreview = (preview: string | null) => {
+    if (!preview) return null;
+    return preview.startsWith("blob:") ? null : preview;
+  };
 
   const copyToClipboard = (text: string, fieldId: string) => {
     navigator.clipboard.writeText(text);
@@ -98,7 +110,15 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     if (draft) {
       try {
         const parsed = JSON.parse(draft);
-        setForm(parsed);
+        if (parsed?.form) {
+          const savedDraft = parsed as TenantDraftData;
+          setForm({ ...emptyForm, ...savedDraft.form });
+          setLogoPreview(savedDraft.logoPreview || null);
+          setCustomSegment(savedDraft.customSegment || "");
+          setIsCustomSegment(Boolean(savedDraft.isCustomSegment));
+        } else {
+          setForm({ ...emptyForm, ...parsed });
+        }
       } catch (e) {
         console.error("Error loading draft", e);
       }
@@ -135,8 +155,13 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
   // Save drafts on change
   React.useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-  }, [form]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      form,
+      logoPreview: persistableLogoPreview(logoPreview),
+      customSegment,
+      isCustomSegment,
+    } satisfies TenantDraftData));
+  }, [form, logoPreview, customSegment, isCustomSegment]);
 
   React.useEffect(() => {
     if (createdTenant || step === "dns") {
