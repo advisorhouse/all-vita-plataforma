@@ -29,7 +29,15 @@ const Index = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth/login" replace />;
+    // If no tenant parameter, redirect to login
+    if (!tenantParam) {
+      return <Navigate to="/auth/login" replace />;
+    }
+
+    // If there is a tenant parameter, we could show the public portal or redirect to login with that tenant
+    // Based on user request "without a tenant parameter", we prioritize login.
+    // However, usually we want login to know about the tenant:
+    return <Navigate to={`/auth/login?tenant=${tenantParam}`} replace />;
   }
 
   // If no memberships yet and no tenant context, show loader
