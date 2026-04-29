@@ -87,6 +87,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const queryClient = useQueryClient();
   const STORAGE_KEY = "allvita-tenant-form-draft";
   const DNS_STEP_STORAGE_KEY = "allvita-tenant-dns-step";
+  const OPEN_STATE_KEY = "allvita-tenant-dialog-open";
 
   // Load draft on mount
   React.useEffect(() => {
@@ -110,6 +111,12 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
         console.error("Error loading DNS step draft", e);
       }
     }
+
+    // Restore open state if we had a draft or was in DNS step
+    const wasOpen = localStorage.getItem(OPEN_STATE_KEY);
+    if (wasOpen === "true" && (draft || dnsStepData)) {
+      setOpen(true);
+    }
   }, []);
 
   // Save drafts on change
@@ -124,6 +131,10 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       localStorage.removeItem(DNS_STEP_STORAGE_KEY);
     }
   }, [createdTenant, step]);
+
+  React.useEffect(() => {
+    localStorage.setItem(OPEN_STATE_KEY, String(open));
+  }, [open]);
 
   const { data: segments } = useQuery({
     queryKey: ["tenant-segments"],
@@ -409,6 +420,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(DNS_STEP_STORAGE_KEY);
+      localStorage.removeItem(OPEN_STATE_KEY);
       setOpen(false);
       setForm(emptyForm);
       setStep("form");
