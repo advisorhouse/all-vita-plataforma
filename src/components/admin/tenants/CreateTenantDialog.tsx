@@ -691,6 +691,15 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                     Verificando conexão automaticamente...
                   </div>
                 )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => checkDns(createdTenant.tenant.slug)}
+                  disabled={verifyingDns || dnsResolved}
+                  className="text-xs text-muted-foreground hover:text-primary"
+                >
+                  Verificar agora
+                </Button>
               </div>
 
               <Button 
