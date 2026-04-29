@@ -96,7 +96,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     if (resumeTenant && open) {
       setCreatedTenant({
         tenant: resumeTenant,
-        subdomain: `${resumeTenant.slug}.allvita.com.br`
+        url: `https://app.allvita.com.br/${resumeTenant.slug}`,
       });
       setStep("dns");
     }
