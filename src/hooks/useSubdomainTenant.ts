@@ -96,20 +96,9 @@ export function useSubdomainTenant() {
       return;
     }
 
-    // For path-based mode: strip slug from URL so React Router sees the
-    // "real" route (/club, /partner, /core, etc.). This must happen BEFORE
-    // any route rendering decisions are taken.
-    if (detected.mode === "path") {
-      const fullPath = window.location.pathname;
-      const segments = fullPath.split("/").filter(Boolean);
-      // Drop the first segment (the slug)
-      const rewritten = "/" + segments.slice(1).join("/");
-      const finalPath = rewritten === "/" ? "/" : rewritten;
-      const search = window.location.search;
-      const hash = window.location.hash;
-      // Use replaceState so we don't add a history entry
-      window.history.replaceState(null, "", `${finalPath}${search}${hash}`);
-    }
+    // Note: For path mode, the slug was already stripped from the URL in
+    // main.tsx (synchronously, before React mounted) so React Router sees
+    // the cleaned route directly.
 
     setIsSubdomainAccess(detected.mode === "path" || detected.mode === "subdomain" || detected.mode === "custom-domain");
 
