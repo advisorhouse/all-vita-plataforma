@@ -420,6 +420,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(DNS_STEP_STORAGE_KEY);
+      localStorage.removeItem(OPEN_STATE_KEY);
       setOpen(false);
       setForm(emptyForm);
       setStep("form");
