@@ -56,6 +56,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
   const [step, setStep] = useState<"form" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
+  const [dnsResolved, setDnsResolved] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
 
   React.useEffect(() => {
