@@ -260,7 +260,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
         <p style="font-size: 14px; color: #666; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.1em;">Ecossistema de Alta Performance</p>
       </div>
       
-      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Olá, ${name.split(' ')[0]}!</h2>
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Olá, ${name}!</h2>
       
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #444;">
         Seja bem-vindo à All Vita. É um prazer ter a <strong>${company}</strong> como parceira. 
