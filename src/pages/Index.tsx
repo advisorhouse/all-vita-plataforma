@@ -29,14 +29,7 @@ const Index = () => {
   }
 
   if (!user) {
-    const isMainDomain = 
-      window.location.hostname === "app.allvita.com.br" || 
-      window.location.hostname === "localhost" ||
-      window.location.hostname.endsWith(".lovableproject.com");
-
-    if (isMainDomain && !tenantParam) {
-      return <Navigate to="/auth/login" replace />;
-    }
+    return <Navigate to="/auth/login" replace />;
 
     if (!tenantParam) {
       const search = window.location.search;
