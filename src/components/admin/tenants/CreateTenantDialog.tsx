@@ -71,7 +71,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     setInternalOpen(val);
   };
 
-  const [step, setStep] = useState<"form" | "dns">("form");
+  const [step, setStep] = useState<"form" | "branding" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [dnsResolved, setDnsResolved] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
@@ -106,7 +106,14 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const [isCustomSegment, setIsCustomSegment] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+  const [assetWarnings, setAssetWarnings] = useState<Record<string, string | null>>({ logo: null, icon: null, favicon: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const iconInputRef = useRef<HTMLInputElement>(null);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
   const STORAGE_KEY = "allvita-tenant-form-draft";
@@ -123,6 +130,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
           const savedDraft = parsed as TenantDraftData;
           setForm({ ...emptyForm, ...savedDraft.form });
           setLogoPreview(savedDraft.logoPreview || null);
+          setIconPreview(savedDraft.iconPreview || null);
+          setFaviconPreview(savedDraft.faviconPreview || null);
           setCustomSegment(savedDraft.customSegment || "");
           setIsCustomSegment(Boolean(savedDraft.isCustomSegment));
         } else {
@@ -167,10 +176,12 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       form,
       logoPreview: persistableLogoPreview(logoPreview),
+      iconPreview: persistableLogoPreview(iconPreview),
+      faviconPreview: persistableLogoPreview(faviconPreview),
       customSegment,
       isCustomSegment,
     } satisfies TenantDraftData));
-  }, [form, logoPreview, customSegment, isCustomSegment]);
+  }, [form, logoPreview, iconPreview, faviconPreview, customSegment, isCustomSegment]);
 
   React.useEffect(() => {
     if (createdTenant || step === "dns") {
