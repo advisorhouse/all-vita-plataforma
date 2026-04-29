@@ -494,6 +494,13 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
         setDnsResolved(true);
         return true;
       }
+      // Log diagnostic info for the admin (DNS resolved but HTTP failed = Cloudflare 1001)
+      if (data?.dnsResolved && !data?.httpReachable) {
+        console.warn(
+          `[DNS Check] ${data.domain}: DNS resolveu mas HTTP falhou (status ${data.httpStatus}). ` +
+          `Provável erro Cloudflare 1001 — verifique se o subdomínio existe no DNS do allvita.com.br.`
+        );
+      }
       return false;
     } catch (err) {
       console.error("Error checking DNS:", err);
