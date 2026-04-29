@@ -679,19 +679,33 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
             </div>
 
             <div className="pt-8 space-y-4">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                {dnsResolved ? (
+                  <div className="flex items-center gap-2 text-green-600 font-semibold bg-green-50 px-4 py-2 rounded-full border border-green-200">
+                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    Subdomínio Detectado e Pronto!
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600 font-medium bg-amber-50 px-4 py-2 rounded-full border border-amber-200">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Verificando conexão automaticamente...
+                  </div>
+                )}
+              </div>
+
               <Button 
                 onClick={handleVerifyDns} 
-                disabled={verifyingDns}
+                disabled={verifyingDns || !dnsResolved}
                 size="lg" 
-                className="w-full h-14 text-lg"
+                className={`w-full h-14 text-lg ${dnsResolved ? 'bg-green-600 hover:bg-green-700' : ''}`}
               >
                 {verifyingDns ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                    Verificando registros...
+                    Finalizando configuração...
                   </>
                 ) : (
-                  "Verificar DNS e Enviar E-mail de Acesso"
+                  dnsResolved ? "Concluir Cadastro e Enviar Acesso" : "Aguardando Propagação DNS"
                 )}
               </Button>
               <Button 
