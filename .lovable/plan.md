@@ -1,44 +1,51 @@
-## Diagnóstico do problema
+## Objetivo
 
-Existe uma inconsistência real entre as duas telas:
+Substituir o placeholder `(chave completa)` por chaves DKIM reais geradas pela API do Resend para cada tenant durante o onboarding, e exibir os registros DNS corretos na tela de Configuração de DNS.
 
-- **`/admin/staff`** (convidar staff) oferece 8 papéis: Super Admin, Admin, Manager, Staff, Operações, Financeiro, Suporte, Growth.
-- **`/admin/settings` → Permissões da Plataforma** mostra apenas 4: Super Admin, Admin, Manager, Staff.
+## Como funciona hoje
 
-A causa: o enum `staff_role` no banco de dados **só aceita 4 valores** (`super_admin`, `admin`, `manager`, `staff`). Os outros 4 (`ops`, `finance`, `support`, `growth`) foram colocados apenas como labels no frontend de `AdminStaff.tsx`, mas:
-- Não existem no enum do Postgres → qualquer convite com esses papéis **falharia ao gravar** no banco.
-- Não aparecem na matriz de permissões porque a matriz só conhece o que existe no enum.
-- Confundem o usuário porque sugerem papéis que na verdade não funcionam.
+- A tela "Configuração de DNS" mostra um texto fixo `v=DKIM1; k=rsa; p=MIGfMA0G... (chave completa)` — não é uma chave real, apenas um exemplo visual.
+- Não existe nenhuma chamada à API do Resend para registrar o subdomínio do tenant.
+- O tenant é criado pela edge function `tenant-onboarding`, que retorna apenas o registro A genérico.
 
-## Decisão recomendada
+## Solução proposta
 
-Manter o modelo simples e consistente que já está implementado no banco e na matriz de permissões: **4 papéis de staff da plataforma**.
+### 1. Backend — Nova edge function `resend-domain-setup`
 
-| Papel | O que é |
-|---|---|
-| Super Admin | Acesso total. Não editável, não convidável (criado manualmente). |
-| Admin | Gestão completa, exceto exclusões críticas e edição de permissões. |
-| Manager | Leitura ampla e edição moderada. |
-| Staff | Acesso somente leitura. |
+Função que recebe um `tenantId` e:
+1. Lê o slug do tenant.
+2. Chama `POST https://api.resend.com/domains` com `{ name: "<slug>.allvita.com.br", region: "sa-east-1" }` usando o secret `RESEND_API_KEY` (já existe no projeto).
+3. Recebe da Resend a lista completa de registros DNS necessários (SPF, DKIM com chave RSA real, DMARC, MX opcional).
+4. Salva esses registros em uma nova coluna `dns_records` (JSONB) na tabela `tenants` para reuso.
+5. Retorna os registros para o frontend.
 
-Se no futuro fizer sentido criar papéis especializados (Financeiro, Suporte, etc.), a forma correta é adicionar valores ao enum `staff_role` **e** criar as linhas correspondentes em `platform_role_permissions` na mesma migration — para que apareçam nas duas telas automaticamente.
+Endpoints adicionais:
+- `GET /resend-domain-setup?tenantId=...` → retorna registros já salvos (evita recriar).
+- `POST /resend-domain-setup/verify` → chama `POST /domains/:id/verify` na Resend para acionar verificação.
 
-## Mudanças
+### 2. Banco de dados — Migration
 
-### 1. `src/pages/admin/AdminStaff.tsx`
-- Reduzir `StaffRole` para `"super_admin" | "admin" | "manager" | "staff"`.
-- Remover de `ROLE_LABELS` as entradas `ops`, `finance`, `support`, `growth`.
-- Reduzir `EDITABLE_ROLES` para `["admin", "manager", "staff"]` (super_admin não é convidável).
-- Adicionar uma descrição curta ao lado de cada papel no select de convite, igual à da tela de Permissões, para o admin entender o que está concedendo.
+Adicionar à tabela `tenants`:
+- `resend_domain_id` (text) — ID do domínio na Resend.
+- `dns_records` (jsonb) — array com os registros retornados.
+- `email_dns_status` (text) — `pending` | `verified` | `failed`.
 
-### 2. `src/components/admin/AdminPermissions.tsx`
-- Adicionar um link/aviso no topo: "Estes são os mesmos papéis usados ao convidar staff em /admin/staff" — para reforçar a coerência entre as telas.
+### 3. Frontend — `CreateTenantDialog.tsx`
 
-### 3. Banco de dados
-- Nenhuma migration necessária. O enum já está correto com 4 valores.
+Na transição para o passo "DNS":
+- Após criar o tenant, invocar `resend-domain-setup` automaticamente.
+- Armazenar `dnsRecords` em estado e renderizar dinamicamente cada linha (Tipo, Nome, Valor) com botão de copiar funcional para o valor REAL.
+- Manter o registro A do subdomínio (`185.158.133.1`) como linha fixa de "Apontamento da aplicação".
+- Substituir os blocos hardcoded de SPF/DKIM pelo `dnsRecords.map(...)`.
+- Layout em coluna única dentro de cards (não mais grid de 3 colunas apertado), garantindo que valores longos como a chave DKIM apareçam por completo com `break-all` e `whitespace-pre-wrap`.
 
-## Como ficará para o usuário
+### 4. Tratamento de erro
 
-- Em **/admin/staff**, o select de convite mostrará exatamente 3 opções convidáveis (Admin, Manager, Staff), cada uma com uma frase descrevendo o nível de acesso.
-- Em **/admin/settings → Permissões da Plataforma**, os mesmos 3 papéis aparecem como cards editáveis (Super Admin é mencionado como "não editável").
-- A correspondência entre as duas telas fica 1:1, sem papéis fantasmas.
+Se a chamada à Resend falhar (ex.: domínio já cadastrado, rate limit), exibir banner amarelo informando que apenas o registro A deve ser configurado por enquanto e mostrar o erro técnico para o admin.
+
+## Considerações
+
+- O secret `RESEND_API_KEY` já está configurado.
+- A API da Resend aceita até 100 domínios por conta — verificar limite ao escalar.
+- DNS Delegation do Lovable Emails NÃO se aplica aqui: estamos usando Resend diretamente, sem o sistema interno de Lovable Emails.
+- Os registros DKIM da Resend usam o nome `resend._domainkey.<slug>` (não `allvita._domainkey`).
