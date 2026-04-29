@@ -45,6 +45,9 @@ interface CreateTenantDialogProps {
 
 const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"form" | "dns">("form");
+  const [verifyingDns, setVerifyingDns] = useState(false);
+  const [createdTenant, setCreatedTenant] = useState<any>(null);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
   const [customSegment, setCustomSegment] = useState("");
   const [isCustomSegment, setIsCustomSegment] = useState(false);
@@ -187,13 +190,14 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
   };
 
   const createTenant = useMutation({
-    mutationFn: async (formData: TenantFormData) => {
+    mutationFn: async (formData: TenantFormData & { skip_email?: boolean }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
       const res = await supabase.functions.invoke("tenant-onboarding", {
         body: {
           ...formData,
+          skip_email: true, // We always skip the email now until DNS is verified
           trade_name: formData.trade_name || undefined,
           cnpj: formData.cnpj || undefined,
           logo_url: logoPreview && logoPreview.startsWith('http') ? logoPreview : undefined,
@@ -251,15 +255,14 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
       return res.data;
     },
     onSuccess: (data: any) => {
-      toast.success(`Empresa "${form.name}" criada com sucesso!`, {
-        description: `Subdomínio: ${data.subdomain}`,
+      toast.success(`Pré-cadastro da "${form.name}" realizado!`, {
+        description: `Agora configure o DNS para ativar o subdomínio: ${data.subdomain}`,
       });
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-dash-tenants"] });
       queryClient.invalidateQueries({ queryKey: ["admin-tenant-metrics"] });
-      setOpen(false);
-      setForm(emptyForm);
-      removeLogo();
+      // We don't close immediately anymore or we show the DNS info
+      setStep("dns"); 
     },
     onError: (error: any) => {
       toast.error("Erro ao criar empresa", { description: error.message });

@@ -49,7 +49,7 @@ serve(async (req) => {
     const {
       name, trade_name, slug, cnpj, segment,
       primary_color, secondary_color, logo_url,
-      address, owner,
+      address, owner, skip_email = false,
     } = body;
 
     if (!name || !slug || !owner?.email || !owner?.full_name) {
@@ -103,8 +103,11 @@ serve(async (req) => {
         secondary_color: secondary_color || "#8b5cf6",
         logo_url: logo_url || null,
         domain: `${normalizedSlug}.allvita.com.br`,
-        status: "active",
+        status: "pending_dns",
         active: true,
+        dns_status: "pending",
+        manual_activation_required: true,
+        activation_email_sent: false,
       })
       .select()
       .single();
@@ -199,25 +202,32 @@ serve(async (req) => {
       active: true,
     });
 
-    // 7. Send welcome email via send-email function
-    try {
-      const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({
-          to: owner.email,
-          subject: `Bem-vindo à All Vita — ${trade_name || name}`,
-          html: buildWelcomeEmail(owner.full_name, trade_name || name, normalizedSlug, tempPassword),
-        }),
-      });
-      if (!emailRes.ok) {
-        console.warn("Welcome email failed:", await emailRes.text());
+    // 7. Send welcome email via send-email function (ONLY if not skipped)
+    if (!skip_email) {
+      try {
+        const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            to: owner.email,
+            subject: `Bem-vindo à All Vita — ${trade_name || name}`,
+            html: buildWelcomeEmail(owner.full_name, trade_name || name, normalizedSlug, tempPassword),
+          }),
+        });
+        if (emailRes.ok) {
+          // Mark email as sent
+          await adminClient.from("tenants").update({ activation_email_sent: true }).eq("id", tenant.id);
+        } else {
+          console.warn("Welcome email failed:", await emailRes.text());
+        }
+      } catch (emailErr) {
+        console.warn("Email send error (non-blocking):", emailErr);
       }
-    } catch (emailErr) {
-      console.warn("Email send error (non-blocking):", emailErr);
+    } else {
+      console.log(`Skipping initial welcome email for ${owner.email} - awaiting DNS activation.`);
     }
 
     // 8. Audit log
