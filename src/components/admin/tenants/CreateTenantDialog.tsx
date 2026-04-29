@@ -425,7 +425,13 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(val) => {
+      // Logic for closing
+      if (!val) {
+        // Here we could add logic if needed, but for now we just pass through
+      }
+      setOpen(val);
+    }} modal={true}>
       <DialogTrigger asChild>
         {trigger || <Button><Plus className="h-4 w-4 mr-2" /> Nova Empresa</Button>}
       </DialogTrigger>
