@@ -358,8 +358,24 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
       </DialogTrigger>
       <DialogContent className="max-w-none w-screen h-screen m-0 rounded-none overflow-y-auto">
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
-          <DialogTitle className="text-2xl">
+          <DialogTitle className="text-2xl flex items-center justify-between">
             {step === "form" ? "Cadastrar nova empresa" : "Configuração de DNS"}
+            {step === "form" && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  if (confirm("Deseja limpar todos os campos preenchidos?")) {
+                    setForm(emptyForm);
+                    localStorage.removeItem(STORAGE_KEY);
+                    removeLogo();
+                  }
+                }}
+                className="text-xs font-normal text-muted-foreground hover:text-destructive"
+              >
+                Limpar formulário
+              </Button>
+            )}
           </DialogTitle>
         </DialogHeader>
 
