@@ -417,17 +417,21 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   };
 
   return (
-    <Dialog open={open} onOpenChange={(val) => {
-      if (!val) {
-        setStep("form");
-        setCreatedTenant(null);
-      }
-      setOpen(val);
-    }}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || <Button><Plus className="h-4 w-4 mr-2" /> Nova Empresa</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-none w-screen h-screen m-0 rounded-none overflow-y-auto">
+      <DialogContent 
+        className="max-w-none w-screen h-screen m-0 rounded-none overflow-y-auto"
+        onPointerDownOutside={(e) => {
+          // Prevent closing when clicking outside to avoid losing work
+          e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          // Prevent closing on escape key
+          e.preventDefault();
+        }}
+      >
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
           <DialogTitle className="text-2xl flex items-center justify-between">
             {step === "form" ? "Cadastrar nova empresa" : "Configuração de DNS"}
