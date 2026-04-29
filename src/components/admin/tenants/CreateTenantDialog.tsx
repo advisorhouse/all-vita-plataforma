@@ -821,12 +821,106 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
             </div>
 
             <div className="pt-6 border-t">
-              <Button type="submit" size="lg" className="w-full text-lg h-14" disabled={createTenant.isPending}>
-                {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
-                Próximo Passo: Configurar DNS
+              <Button type="submit" size="lg" className="w-full text-lg h-14">
+                Próximo Passo: Identidade Visual
               </Button>
             </div>
           </form>
+        ) : step === "branding" ? (
+          <div className="max-w-4xl mx-auto w-full pb-12 space-y-8">
+            <div className="text-center space-y-2">
+              <p className="text-muted-foreground">
+                Configure os assets visuais que serão exibidos nos portais <strong>{form.trade_name || form.name}</strong>.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Recomendamos as dimensões abaixo, mas você pode enviar qualquer tamanho — receberá apenas um aviso.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { key: "logo" as const, file: logoFile, preview: logoPreview, ref: fileInputRef, onSelect: handleLogoSelect, onRemove: removeLogo, hint: "Exibido na TopBar e tela de login.", previewClass: "h-20 w-full max-w-[180px] object-contain", boxClass: "h-32" },
+                { key: "icon" as const, file: iconFile, preview: iconPreview, ref: iconInputRef, onSelect: handleIconSelect, onRemove: removeIcon, hint: "Sidebar colapsada e versão mobile.", previewClass: "h-20 w-20 object-contain", boxClass: "h-32" },
+                { key: "favicon" as const, file: faviconFile, preview: faviconPreview, ref: faviconInputRef, onSelect: handleFaviconSelect, onRemove: removeFavicon, hint: "Aba do navegador.", previewClass: "h-12 w-12 object-contain", boxClass: "h-32" },
+              ].map((asset) => (
+                <div key={asset.key} className="space-y-3 border border-border rounded-xl p-5 bg-secondary/30">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">{ASSET_SPECS[asset.key].label}</h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{asset.hint}</p>
+                  </div>
+
+                  <div className={`${asset.boxClass} rounded-lg border-2 border-dashed border-border bg-background flex items-center justify-center relative overflow-hidden`}>
+                    {asset.preview ? (
+                      <>
+                        <img src={asset.preview} alt={`${asset.key} preview`} className={asset.previewClass} />
+                        <button
+                          type="button"
+                          onClick={asset.onRemove}
+                          className="absolute top-2 right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => asset.ref.current?.click()}
+                        className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <Image className="h-7 w-7" />
+                        <span className="text-[11px]">Clique para enviar</span>
+                      </button>
+                    )}
+                    <input
+                      ref={asset.ref}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+                      className="hidden"
+                      onChange={asset.onSelect}
+                    />
+                  </div>
+
+                  <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => asset.ref.current?.click()}>
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
+                    {asset.file || asset.preview ? "Trocar arquivo" : "Selecionar arquivo"}
+                  </Button>
+
+                  {assetWarnings[asset.key] && (
+                    <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 leading-snug">
+                      ⚠️ {assetWarnings[asset.key]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-secondary/40 border border-dashed rounded-lg p-4 text-xs text-muted-foreground">
+              <strong className="text-foreground">Dica:</strong> Você pode pular este passo e configurar a identidade visual depois em <code className="text-[10px] bg-background px-1 py-0.5 rounded">/admin/tenants/:id</code>. Os portais usarão a logo do CNPJ (se encontrada) e um favicon padrão até lá.
+            </div>
+
+            <div className="pt-6 border-t flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="flex-1 h-14"
+                onClick={() => setStep("form")}
+                disabled={createTenant.isPending}
+              >
+                Voltar
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                className="flex-[2] text-lg h-14"
+                onClick={() => createTenant.mutate(form)}
+                disabled={createTenant.isPending}
+              >
+                {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
+                {createTenant.isPending ? "Criando empresa..." : "Criar empresa e configurar DNS"}
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="max-w-2xl mx-auto w-full py-12 space-y-8 text-center">
             <div className="space-y-4">
