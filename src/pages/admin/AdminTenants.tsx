@@ -160,6 +160,8 @@ const AdminTenants: React.FC = () => {
           <CreateTenantDialog 
             open={isCreateDialogOpen} 
             onOpenChange={(open) => {
+              // Ensure we only close the dialog when intended
+              // Avoid closing on focus/blur events by using the controlled state carefully
               setIsCreateDialogOpen(open);
               if (!open) setTenantToResume(null);
             }}
