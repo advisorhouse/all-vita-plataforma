@@ -270,6 +270,17 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
     },
   });
 
+  const handleSlugGenerate = () => {
+    if (!form.trade_name && !form.name) return;
+    const base = (form.trade_name || form.name)
+      .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    setForm((f) => ({ ...f, slug: base }));
+  };
+
+  const set = (key: keyof TenantFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+
   const handleVerifyDns = async () => {
     if (!createdTenant) return;
     setVerifyingDns(true);
