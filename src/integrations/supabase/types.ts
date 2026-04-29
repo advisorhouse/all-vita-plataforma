@@ -2275,9 +2275,11 @@ export type Database = {
           active: boolean
           cnpj: string | null
           created_at: string
+          dns_records: Json | null
           dns_status: string | null
           dns_verified_at: string | null
           domain: string | null
+          email_dns_status: string | null
           favicon_url: string | null
           id: string
           isotipo_url: string | null
@@ -2285,6 +2287,7 @@ export type Database = {
           manual_activation_required: boolean | null
           name: string
           primary_color: string | null
+          resend_domain_id: string | null
           secondary_color: string | null
           segment: string | null
           settings: Json | null
@@ -2298,9 +2301,11 @@ export type Database = {
           active?: boolean
           cnpj?: string | null
           created_at?: string
+          dns_records?: Json | null
           dns_status?: string | null
           dns_verified_at?: string | null
           domain?: string | null
+          email_dns_status?: string | null
           favicon_url?: string | null
           id?: string
           isotipo_url?: string | null
@@ -2308,6 +2313,7 @@ export type Database = {
           manual_activation_required?: boolean | null
           name: string
           primary_color?: string | null
+          resend_domain_id?: string | null
           secondary_color?: string | null
           segment?: string | null
           settings?: Json | null
@@ -2321,9 +2327,11 @@ export type Database = {
           active?: boolean
           cnpj?: string | null
           created_at?: string
+          dns_records?: Json | null
           dns_status?: string | null
           dns_verified_at?: string | null
           domain?: string | null
+          email_dns_status?: string | null
           favicon_url?: string | null
           id?: string
           isotipo_url?: string | null
@@ -2331,6 +2339,7 @@ export type Database = {
           manual_activation_required?: boolean | null
           name?: string
           primary_color?: string | null
+          resend_domain_id?: string | null
           secondary_color?: string | null
           segment?: string | null
           settings?: Json | null
