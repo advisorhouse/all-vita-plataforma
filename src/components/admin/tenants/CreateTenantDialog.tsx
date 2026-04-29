@@ -444,7 +444,10 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                 onClick={() => {
                   if (confirm("Deseja limpar todos os campos preenchidos?")) {
                     setForm(emptyForm);
+                    setStep("form");
+                    setCreatedTenant(null);
                     localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(DNS_STEP_STORAGE_KEY);
                     removeLogo();
                   }
                 }}
