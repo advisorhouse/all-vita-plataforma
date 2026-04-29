@@ -195,6 +195,10 @@ const AdminTenants: React.FC = () => {
           await deleteTenantMutation.mutateAsync(id);
         }}
         isDeleting={deleteTenantMutation.isPending ? deleteTenantMutation.variables : null}
+        onResumeSetup={(tenant) => {
+          setTenantToResume(tenant);
+          setIsCreateDialogOpen(true);
+        }}
       />
 
 
