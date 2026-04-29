@@ -96,6 +96,7 @@ const AdminStaff: React.FC = () => {
   
   // Form states
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteFullName, setInviteFullName] = useState("");
   const [inviteRole, setInviteRole] = useState<StaffRole>("staff");
 
   const load = async () => {
