@@ -22,7 +22,7 @@ function formatCnpj(cnpj: string): string {
   return clean.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 }
 
-const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant, onDeleteTenant, isDeleting }) => {
+const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onViewTenant, onDeleteTenant, isDeleting, onResumeSetup }) => {
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
 
