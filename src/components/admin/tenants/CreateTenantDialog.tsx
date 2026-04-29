@@ -591,7 +591,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       setStep("form");
       setCreatedTenant(null);
       setDnsResolved(false);
-      removeLogo();
+      removeAllAssets();
     } catch (error: any) {
       toast.error("Erro ao finalizar", {
         description: error.message || "Não foi possível concluir a ativação."
@@ -625,7 +625,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       >
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
           <DialogTitle className="text-2xl flex items-center justify-between">
-            {step === "form" ? "Cadastrar nova empresa" : "Configuração de DNS"}
+            {step === "form" ? "Cadastrar nova empresa" : step === "branding" ? "Identidade Visual da Empresa" : "Configuração de DNS"}
             {step === "form" && (
               <Button 
                 variant="ghost" 
@@ -637,7 +637,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                     setCreatedTenant(null);
                     localStorage.removeItem(STORAGE_KEY);
                     localStorage.removeItem(DNS_STEP_STORAGE_KEY);
-                    removeLogo();
+                    removeAllAssets();
                   }
                 }}
                 className="text-xs font-normal text-muted-foreground hover:text-destructive"
