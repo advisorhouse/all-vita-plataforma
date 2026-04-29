@@ -69,15 +69,12 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   };
 
   React.useEffect(() => {
-    if (resumeTenant) {
+    if (resumeTenant && open) {
       setCreatedTenant({
         tenant: resumeTenant,
         subdomain: `${resumeTenant.slug}.allvita.com.br`
       });
       setStep("dns");
-    } else if (open && step === "dns" && !createdTenant) {
-      // If opened normally and somehow stuck in DNS without tenant, go back to form
-      setStep("form");
     }
   }, [resumeTenant, open]);
   const [form, setForm] = useState<TenantFormData>(emptyForm);
