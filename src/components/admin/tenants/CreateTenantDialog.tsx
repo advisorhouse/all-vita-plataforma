@@ -35,9 +35,18 @@ interface TenantFormData {
 interface TenantDraftData {
   form: TenantFormData;
   logoPreview: string | null;
+  iconPreview: string | null;
+  faviconPreview: string | null;
   customSegment: string;
   isCustomSegment: boolean;
 }
+
+// Specs (memória tenant-identity-specifications)
+const ASSET_SPECS = {
+  logo: { w: 240, h: 64, label: "Logo (240×64)" },
+  icon: { w: 64, h: 64, label: "Ícone (64×64)" },
+  favicon: { w: 32, h: 32, label: "Favicon (32×32)" },
+};
 
 const emptyForm: TenantFormData = {
   name: "", trade_name: "", slug: "", cnpj: "", segment: "",
@@ -62,7 +71,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     setInternalOpen(val);
   };
 
-  const [step, setStep] = useState<"form" | "dns">("form");
+  const [step, setStep] = useState<"form" | "branding" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [dnsResolved, setDnsResolved] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
@@ -97,7 +106,14 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const [isCustomSegment, setIsCustomSegment] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+  const [assetWarnings, setAssetWarnings] = useState<Record<string, string | null>>({ logo: null, icon: null, favicon: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const iconInputRef = useRef<HTMLInputElement>(null);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const queryClient = useQueryClient();
   const STORAGE_KEY = "allvita-tenant-form-draft";
@@ -114,6 +130,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
           const savedDraft = parsed as TenantDraftData;
           setForm({ ...emptyForm, ...savedDraft.form });
           setLogoPreview(savedDraft.logoPreview || null);
+          setIconPreview(savedDraft.iconPreview || null);
+          setFaviconPreview(savedDraft.faviconPreview || null);
           setCustomSegment(savedDraft.customSegment || "");
           setIsCustomSegment(Boolean(savedDraft.isCustomSegment));
         } else {
@@ -158,10 +176,12 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       form,
       logoPreview: persistableLogoPreview(logoPreview),
+      iconPreview: persistableLogoPreview(iconPreview),
+      faviconPreview: persistableLogoPreview(faviconPreview),
       customSegment,
       isCustomSegment,
     } satisfies TenantDraftData));
-  }, [form, logoPreview, customSegment, isCustomSegment]);
+  }, [form, logoPreview, iconPreview, faviconPreview, customSegment, isCustomSegment]);
 
   React.useEffect(() => {
     if (createdTenant || step === "dns") {
@@ -290,21 +310,64 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     }
   };
 
-  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("A logo deve ter no máximo 2MB");
-      return;
-    }
-    setLogoFile(file);
-    setLogoPreview(URL.createObjectURL(file));
+  const validateImageDimensions = (file: File, target: { w: number; h: number; label: string }): Promise<string | null> => {
+    return new Promise((resolve) => {
+      if (file.type === "image/svg+xml") return resolve(null);
+      const img = new window.Image();
+      img.onload = () => {
+        const tolerance = 0.15; // 15%
+        const wOk = Math.abs(img.width - target.w) / target.w <= tolerance;
+        const hOk = Math.abs(img.height - target.h) / target.h <= tolerance;
+        if (wOk && hOk) resolve(null);
+        else resolve(`Dimensão recomendada: ${target.w}×${target.h}px. Você enviou ${img.width}×${img.height}px.`);
+      };
+      img.onerror = () => resolve(null);
+      img.src = URL.createObjectURL(file);
+    });
   };
 
-  const removeLogo = () => {
-    setLogoFile(null);
-    setLogoPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleAssetSelect = (
+    asset: "logo" | "icon" | "favicon",
+    setFile: (f: File | null) => void,
+    setPreview: (p: string | null) => void,
+  ) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const maxSize = asset === "favicon" ? 512 * 1024 : 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error(`O arquivo deve ter no máximo ${asset === "favicon" ? "512KB" : "2MB"}`);
+      return;
+    }
+    setFile(file);
+    setPreview(URL.createObjectURL(file));
+    const warning = await validateImageDimensions(file, ASSET_SPECS[asset]);
+    setAssetWarnings((prev) => ({ ...prev, [asset]: warning }));
+  };
+
+  const handleLogoSelect = handleAssetSelect("logo", setLogoFile, setLogoPreview);
+  const handleIconSelect = handleAssetSelect("icon", setIconFile, setIconPreview);
+  const handleFaviconSelect = handleAssetSelect("favicon", setFaviconFile, setFaviconPreview);
+
+  const removeAsset = (
+    asset: "logo" | "icon" | "favicon",
+    setFile: (f: File | null) => void,
+    setPreview: (p: string | null) => void,
+    ref: React.RefObject<HTMLInputElement>,
+  ) => () => {
+    setFile(null);
+    setPreview(null);
+    setAssetWarnings((prev) => ({ ...prev, [asset]: null }));
+    if (ref.current) ref.current.value = "";
+  };
+
+  const removeLogo = removeAsset("logo", setLogoFile, setLogoPreview, fileInputRef);
+  const removeIcon = removeAsset("icon", setIconFile, setIconPreview, iconInputRef);
+  const removeFavicon = removeAsset("favicon", setFaviconFile, setFaviconPreview, faviconInputRef);
+
+  const removeAllAssets = () => {
+    removeLogo();
+    removeIcon();
+    removeFavicon();
   };
 
   const createTenant = useMutation({
@@ -345,9 +408,25 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
       const tenantId = res.data?.tenant?.id;
       if (tenantId) {
-        let finalLogoFile = logoFile;
+        const updates: Record<string, string> = {};
 
-        // If we have a logoPreview that is a URL (from Clearbit), we need to fetch it first
+        // Helper: upload an asset to tenant-logos and return public URL
+        const uploadAsset = async (file: File, name: string): Promise<string | null> => {
+          const ext = file.name.split(".").pop() || "png";
+          const filePath = `${tenantId}/${name}.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from("tenant-logos")
+            .upload(filePath, file, { upsert: true });
+          if (uploadError) {
+            console.error(`Failed to upload ${name}`, uploadError);
+            return null;
+          }
+          const { data: urlData } = supabase.storage.from("tenant-logos").getPublicUrl(filePath);
+          return urlData.publicUrl;
+        };
+
+        // LOGO: file selected OR remote URL (Clearbit) OR persisted from draft
+        let finalLogoFile = logoFile;
         if (!finalLogoFile && logoPreview && logoPreview.startsWith('http')) {
           try {
             const logoRes = await fetch(logoPreview);
@@ -357,17 +436,23 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
             console.error("Failed to fetch remote logo", e);
           }
         }
-
         if (finalLogoFile) {
-          const ext = finalLogoFile.name.split(".").pop() || "png";
-          const filePath = `${tenantId}/logo.${ext}`;
-          const { error: uploadError } = await supabase.storage
-            .from("tenant-logos")
-            .upload(filePath, finalLogoFile, { upsert: true });
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from("tenant-logos").getPublicUrl(filePath);
-            await supabase.from("tenants").update({ logo_url: urlData.publicUrl }).eq("id", tenantId);
-          }
+          const url = await uploadAsset(finalLogoFile, "logo");
+          if (url) updates.logo_url = url;
+        }
+
+        if (iconFile) {
+          const url = await uploadAsset(iconFile, "icon");
+          if (url) updates.isotipo_url = url;
+        }
+
+        if (faviconFile) {
+          const url = await uploadAsset(faviconFile, "favicon");
+          if (url) updates.favicon_url = url;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          await supabase.from("tenants").update(updates).eq("id", tenantId);
         }
       }
       return res.data;
@@ -506,7 +591,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       setStep("form");
       setCreatedTenant(null);
       setDnsResolved(false);
-      removeLogo();
+      removeAllAssets();
     } catch (error: any) {
       toast.error("Erro ao finalizar", {
         description: error.message || "Não foi possível concluir a ativação."
@@ -540,7 +625,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       >
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
           <DialogTitle className="text-2xl flex items-center justify-between">
-            {step === "form" ? "Cadastrar nova empresa" : "Configuração de DNS"}
+            {step === "form" ? "Cadastrar nova empresa" : step === "branding" ? "Identidade Visual da Empresa" : "Configuração de DNS"}
             {step === "form" && (
               <Button 
                 variant="ghost" 
@@ -552,7 +637,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                     setCreatedTenant(null);
                     localStorage.removeItem(STORAGE_KEY);
                     localStorage.removeItem(DNS_STEP_STORAGE_KEY);
-                    removeLogo();
+                    removeAllAssets();
                   }
                 }}
                 className="text-xs font-normal text-muted-foreground hover:text-destructive"
@@ -574,7 +659,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               toast.error("Segmento Obrigatório", { description: "Por favor, informe o segmento ou nicho da empresa." });
               return;
             }
-            createTenant.mutate(form); 
+            setStep("branding");
           }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
             {/* Company Info */}
             <div className="space-y-6">
@@ -658,54 +743,26 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               </div>
             </div>
 
-            {/* Logo & Colors */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identidade Visual</h3>
-                <div className="flex items-center gap-6">
-                  {logoPreview ? (
-                    <div className="relative">
-                      <img src={logoPreview} alt="Logo preview" className="h-24 w-24 rounded-lg object-contain border border-border bg-secondary/30 p-2" />
-                      <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div onClick={() => fileInputRef.current?.click()} className="h-24 w-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 hover:bg-secondary/30 transition-all">
-                      <Image className="h-6 w-6 text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">Upload Logo</span>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="h-3.5 w-3.5 mr-1.5" />
-                      {logoFile ? "Trocar logo" : "Selecionar logo"}
-                    </Button>
-                    <p className="text-[10px] text-muted-foreground">PNG, JPG ou WebP · Máx 2MB</p>
+            {/* Colors */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Cor Primária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
                   </div>
-                  <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleLogoSelect} />
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Cor Primária</Label>
-                    <div className="flex items-center gap-2">
-                      <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                      <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Cor Secundária</Label>
-                    <div className="flex items-center gap-2">
-                      <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                      <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
-                    </div>
+                <div className="space-y-2">
+                  <Label>Cor Secundária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
                   </div>
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground">Logo, ícone e favicon serão configurados no próximo passo.</p>
             </div>
 
             {/* Owner */}
@@ -764,12 +821,106 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
             </div>
 
             <div className="pt-6 border-t">
-              <Button type="submit" size="lg" className="w-full text-lg h-14" disabled={createTenant.isPending}>
-                {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
-                Próximo Passo: Configurar DNS
+              <Button type="submit" size="lg" className="w-full text-lg h-14">
+                Próximo Passo: Identidade Visual
               </Button>
             </div>
           </form>
+        ) : step === "branding" ? (
+          <div className="max-w-4xl mx-auto w-full pb-12 space-y-8">
+            <div className="text-center space-y-2">
+              <p className="text-muted-foreground">
+                Configure os assets visuais que serão exibidos nos portais <strong>{form.trade_name || form.name}</strong>.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Recomendamos as dimensões abaixo, mas você pode enviar qualquer tamanho — receberá apenas um aviso.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { key: "logo" as const, file: logoFile, preview: logoPreview, ref: fileInputRef, onSelect: handleLogoSelect, onRemove: removeLogo, hint: "Exibido na TopBar e tela de login.", previewClass: "h-20 w-full max-w-[180px] object-contain", boxClass: "h-32" },
+                { key: "icon" as const, file: iconFile, preview: iconPreview, ref: iconInputRef, onSelect: handleIconSelect, onRemove: removeIcon, hint: "Sidebar colapsada e versão mobile.", previewClass: "h-20 w-20 object-contain", boxClass: "h-32" },
+                { key: "favicon" as const, file: faviconFile, preview: faviconPreview, ref: faviconInputRef, onSelect: handleFaviconSelect, onRemove: removeFavicon, hint: "Aba do navegador.", previewClass: "h-12 w-12 object-contain", boxClass: "h-32" },
+              ].map((asset) => (
+                <div key={asset.key} className="space-y-3 border border-border rounded-xl p-5 bg-secondary/30">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">{ASSET_SPECS[asset.key].label}</h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{asset.hint}</p>
+                  </div>
+
+                  <div className={`${asset.boxClass} rounded-lg border-2 border-dashed border-border bg-background flex items-center justify-center relative overflow-hidden`}>
+                    {asset.preview ? (
+                      <>
+                        <img src={asset.preview} alt={`${asset.key} preview`} className={asset.previewClass} />
+                        <button
+                          type="button"
+                          onClick={asset.onRemove}
+                          className="absolute top-2 right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => asset.ref.current?.click()}
+                        className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <Image className="h-7 w-7" />
+                        <span className="text-[11px]">Clique para enviar</span>
+                      </button>
+                    )}
+                    <input
+                      ref={asset.ref}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+                      className="hidden"
+                      onChange={asset.onSelect}
+                    />
+                  </div>
+
+                  <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => asset.ref.current?.click()}>
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
+                    {asset.file || asset.preview ? "Trocar arquivo" : "Selecionar arquivo"}
+                  </Button>
+
+                  {assetWarnings[asset.key] && (
+                    <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 leading-snug">
+                      ⚠️ {assetWarnings[asset.key]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-secondary/40 border border-dashed rounded-lg p-4 text-xs text-muted-foreground">
+              <strong className="text-foreground">Dica:</strong> Você pode pular este passo e configurar a identidade visual depois em <code className="text-[10px] bg-background px-1 py-0.5 rounded">/admin/tenants/:id</code>. Os portais usarão a logo do CNPJ (se encontrada) e um favicon padrão até lá.
+            </div>
+
+            <div className="pt-6 border-t flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="flex-1 h-14"
+                onClick={() => setStep("form")}
+                disabled={createTenant.isPending}
+              >
+                Voltar
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                className="flex-[2] text-lg h-14"
+                onClick={() => createTenant.mutate(form)}
+                disabled={createTenant.isPending}
+              >
+                {createTenant.isPending && <Loader2 className="h-5 w-5 mr-3 animate-spin" />}
+                {createTenant.isPending ? "Criando empresa..." : "Criar empresa e configurar DNS"}
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="max-w-2xl mx-auto w-full py-12 space-y-8 text-center">
             <div className="space-y-4">
