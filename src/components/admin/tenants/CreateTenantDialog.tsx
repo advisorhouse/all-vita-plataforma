@@ -743,54 +743,26 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               </div>
             </div>
 
-            {/* Logo & Colors */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Identidade Visual</h3>
-                <div className="flex items-center gap-6">
-                  {logoPreview ? (
-                    <div className="relative">
-                      <img src={logoPreview} alt="Logo preview" className="h-24 w-24 rounded-lg object-contain border border-border bg-secondary/30 p-2" />
-                      <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div onClick={() => fileInputRef.current?.click()} className="h-24 w-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 hover:bg-secondary/30 transition-all">
-                      <Image className="h-6 w-6 text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">Upload Logo</span>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="h-3.5 w-3.5 mr-1.5" />
-                      {logoFile ? "Trocar logo" : "Selecionar logo"}
-                    </Button>
-                    <p className="text-[10px] text-muted-foreground">PNG, JPG ou WebP · Máx 2MB</p>
+            {/* Colors */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Cor Primária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
                   </div>
-                  <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleLogoSelect} />
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Cor Primária</Label>
-                    <div className="flex items-center gap-2">
-                      <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                      <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Cor Secundária</Label>
-                    <div className="flex items-center gap-2">
-                      <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                      <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
-                    </div>
+                <div className="space-y-2">
+                  <Label>Cor Secundária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
                   </div>
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground">Logo, ícone e favicon serão configurados no próximo passo.</p>
             </div>
 
             {/* Owner */}
