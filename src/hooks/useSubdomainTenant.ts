@@ -31,8 +31,13 @@ function detectTenant(): DetectedTenant {
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
 
-  // 1) Path-based detection (primary strategy on app.allvita.com.br)
+  // 1) Path-based detection (primary strategy on app.allvita.com.br).
+  //    The slug was stripped from the URL in main.tsx and saved on
+  //    window.__tenantSlug — read it from there.
   if (isPathBasedHost(hostname)) {
+    const cached = (window as any).__tenantSlug as string | undefined;
+    if (cached) return { mode: "path", slug: cached };
+    // Fallback: re-extract in case main.tsx didn't run (SSR/tests)
     const slug = extractSlugFromPath(pathname);
     if (slug) return { mode: "path", slug };
   }
