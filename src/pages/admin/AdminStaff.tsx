@@ -182,6 +182,7 @@ const AdminStaff: React.FC = () => {
       toast.success(`Convite enviado para ${inviteEmail}`);
       setIsInviteOpen(false);
       setInviteEmail("");
+      setInviteFullName("");
       load(); // Reload both lists
     } catch (err: any) {
       console.error(err);
