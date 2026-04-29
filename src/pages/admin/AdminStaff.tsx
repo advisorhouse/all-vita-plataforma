@@ -59,6 +59,7 @@ interface InvitationRow {
   id: string;
   email: string;
   role: StaffRole;
+  full_name?: string | null;
   status: "pending" | "accepted" | "expired";
   created_at: string;
   expires_at: string;
