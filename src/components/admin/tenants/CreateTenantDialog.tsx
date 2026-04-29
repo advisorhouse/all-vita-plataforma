@@ -35,9 +35,18 @@ interface TenantFormData {
 interface TenantDraftData {
   form: TenantFormData;
   logoPreview: string | null;
+  iconPreview: string | null;
+  faviconPreview: string | null;
   customSegment: string;
   isCustomSegment: boolean;
 }
+
+// Specs (memória tenant-identity-specifications)
+const ASSET_SPECS = {
+  logo: { w: 240, h: 64, label: "Logo (240×64)" },
+  icon: { w: 64, h: 64, label: "Ícone (64×64)" },
+  favicon: { w: 32, h: 32, label: "Favicon (32×32)" },
+};
 
 const emptyForm: TenantFormData = {
   name: "", trade_name: "", slug: "", cnpj: "", segment: "",
