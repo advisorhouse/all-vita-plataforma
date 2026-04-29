@@ -230,7 +230,12 @@ const AdminStaff: React.FC = () => {
       await (supabase.from as any)("staff_invitations").delete().eq("id", inv.id);
       
       const { error } = await supabase.functions.invoke("invite-staff", {
-        body: { email: inv.email, role: inv.role, appUrl: window.location.origin },
+        body: { 
+          email: inv.email, 
+          fullName: inv.full_name,
+          role: inv.role, 
+          appUrl: window.location.origin 
+        },
       });
 
       if (error) throw error;
