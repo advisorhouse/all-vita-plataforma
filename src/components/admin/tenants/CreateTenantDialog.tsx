@@ -608,7 +608,3 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger }) => {
 };
 
 export default CreateTenantDialog;
-  );
-};
-
-export default CreateTenantDialog;
