@@ -135,7 +135,7 @@ const AdminTenants: React.FC = () => {
     return list;
   }, [tenants, search, statusFilter, sortBy, tenantMetrics]);
 
-  if (isLoading) {
+  if (isLoading && tenants.length === 0) {
     return (
       <div className="flex justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
