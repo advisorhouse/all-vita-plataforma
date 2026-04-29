@@ -559,7 +559,6 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       setForm(emptyForm);
       setStep("form");
       setCreatedTenant(null);
-      setDnsResolved(false);
       removeAllAssets();
     } catch (error: any) {
       toast.error("Erro ao enviar e-mail", {
