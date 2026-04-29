@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug } from "lucide-react";
+import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug, Copy, Check } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 interface TenantFormData {
@@ -59,6 +59,14 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [dnsResolved, setDnsResolved] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, fieldId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldId);
+    toast.success("Copiado para a área de transferência");
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   React.useEffect(() => {
     if (resumeTenant) {
