@@ -164,7 +164,7 @@ const AdminOnboarding: React.FC = () => {
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
 
     let destination = "/onboarding";
-    if (isSuperAdmin) {
+    if (isSuperAdmin || platformRole) {
       destination = "/admin";
     } else if (hasTenantMemberships) {
       destination = "/core";
