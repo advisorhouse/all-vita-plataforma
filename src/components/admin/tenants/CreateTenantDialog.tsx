@@ -398,6 +398,42 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     };
   }, [step, createdTenant, dnsResolved]);
 
+  // Fetch real Resend DNS records when entering DNS step
+  React.useEffect(() => {
+    const fetchEmailDns = async () => {
+      if (step !== "dns" || !createdTenant?.tenant?.id) return;
+      setLoadingEmailDns(true);
+      setEmailDnsError(null);
+      try {
+        // Try cached first via GET
+        const { data: getData } = await supabase.functions.invoke("resend-domain-setup", {
+          method: "GET" as any,
+          body: { tenantId: createdTenant.tenant.id },
+        });
+
+        let records = getData?.records;
+
+        // If no cached records, create the domain
+        if (!records || records.length === 0) {
+          const { data: postData, error } = await supabase.functions.invoke("resend-domain-setup", {
+            body: { tenantId: createdTenant.tenant.id },
+          });
+          if (error) throw error;
+          if (postData?.error) throw new Error(postData.error);
+          records = postData?.records || [];
+        }
+
+        setEmailDnsRecords(records || []);
+      } catch (err: any) {
+        console.error("Erro ao buscar DNS de e-mail:", err);
+        setEmailDnsError(err.message || "Não foi possível obter os registros de e-mail");
+      } finally {
+        setLoadingEmailDns(false);
+      }
+    };
+    fetchEmailDns();
+  }, [step, createdTenant?.tenant?.id]);
+
   const handleVerifyDns = async () => {
     if (!createdTenant || !dnsResolved) return;
     setVerifyingDns(true);
