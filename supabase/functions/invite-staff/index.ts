@@ -46,7 +46,7 @@ serve(async (req) => {
 
     if (staffError || !staffMember || !["super_admin", "admin"].includes(staffMember.role)) {
       return new Response(
-        JSON.stringify({ error: "Apenas administradores podem convidar staff" }),
+        JSON.stringify({ error: "Você não tem permissão para convidar membros para o staff. Contate o super administrador para isso." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
