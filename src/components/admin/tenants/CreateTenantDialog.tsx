@@ -500,47 +500,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const set = (key: keyof TenantFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const checkDns = async (slug: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("check-subdomain", {
-        body: { slug }
-      });
-      if (error) throw error;
-      if (data?.resolved) {
-        setDnsResolved(true);
-        return true;
-      }
-      // Log diagnostic info for the admin (DNS resolved but HTTP failed = Cloudflare 1001)
-      if (data?.dnsResolved && !data?.httpReachable) {
-        console.warn(
-          `[DNS Check] ${data.domain}: DNS resolveu mas HTTP falhou (status ${data.httpStatus}). ` +
-          `Provável erro Cloudflare 1001 — verifique se o subdomínio existe no DNS do allvita.com.br.`
-        );
-      }
-      return false;
-    } catch (err) {
-      console.error("Error checking DNS:", err);
-      return false;
-    }
-  };
+  // Path-based routing: no DNS check needed. Tenant URL is ready instantly.
 
-  React.useEffect(() => {
-    let interval: number | undefined;
-    
-    if (step === "dns" && createdTenant?.tenant?.slug && !dnsResolved) {
-      // First check immediately
-      checkDns(createdTenant.tenant.slug);
-      
-      // Then check every 15 seconds
-      interval = window.setInterval(() => {
-        checkDns(createdTenant.tenant.slug);
-      }, 15000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [step, createdTenant, dnsResolved]);
 
   // Fetch real Resend DNS records when entering DNS step
   React.useEffect(() => {
