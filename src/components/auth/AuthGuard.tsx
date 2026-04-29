@@ -121,7 +121,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
       (requireTenant ? m.tenant_id === currentTenant?.id : true)
     );
 
-    if (!hasRole && !isSuperAdmin) {
+    if (!hasRole && !isSuperAdmin && !(location.pathname.startsWith("/admin") && platformRole)) {
       return <Navigate to="/onboarding" replace />;
     }
   }
