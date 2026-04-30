@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +11,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone } from "lucide-react";
 import { IMaskInput } from "react-imask";
+import logoAllVita from "@/assets/logo-allvita.png";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
