@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import {
   Package, Plus, Eye, Sparkles, Pill, Bone,
   Search, Filter, MoreHorizontal, Link2, Users,
