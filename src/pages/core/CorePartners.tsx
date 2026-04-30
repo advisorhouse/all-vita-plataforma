@@ -50,20 +50,61 @@ const CorePartners: React.FC = () => {
   const [registerOpen, setRegisterOpen] = useState(searchParams.get("register") === "true");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [levelFilter, setLevelFilter] = useState<FilterLevel>("all");
+  const { currentTenant } = useTenant();
 
-  const filtered = PARTNERS.filter((p) => {
+  const { data: partners = [], isLoading } = useQuery({
+    queryKey: ["core-partners", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("partners")
+        .select(`
+          id,
+          level,
+          active,
+          metadata,
+          profiles:user_id (email, first_name, last_name)
+        `)
+        .eq("tenant_id", currentTenant.id);
+      
+      if (error) throw error;
+      
+      return (data || []).map(p => {
+        const profile = p.profiles as any;
+        return {
+          id: p.id,
+          name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "Sem nome",
+          email: profile?.email || "Sem email",
+          level: p.level || "basic",
+          status: p.active ? "active" : "inactive",
+          clients: (p.metadata as any)?.clients || 0,
+          activeClients: (p.metadata as any)?.activeClients || 0,
+          retention: (p.metadata as any)?.retention || 0,
+          mrr: (p.metadata as any)?.mrr || 0,
+          ltv: (p.metadata as any)?.ltv || 0,
+          commission: (p.metadata as any)?.commission || 0,
+          progress: (p.metadata as any)?.progress || 0,
+          trend: (p.metadata as any)?.trend || "up",
+          riskClients: (p.metadata as any)?.riskClients || 0
+        };
+      });
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const filtered = partners.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (levelFilter !== "all" && p.level !== levelFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const totalPartners = PARTNERS.length;
-  const activePartners = PARTNERS.filter((p) => p.status === "active").length;
-  const totalMRR = PARTNERS.reduce((sum, p) => sum + p.mrr, 0);
-  const avgRetention = Math.round(PARTNERS.filter(p => p.status === "active").reduce((s, p) => s + p.retention, 0) / activePartners);
-  const totalClients = PARTNERS.reduce((sum, p) => sum + p.activeClients, 0);
-  const totalCommission = PARTNERS.reduce((sum, p) => sum + p.commission, 0);
+  const totalPartners = partners.length;
+  const activePartners = partners.filter((p) => p.status === "active").length;
+  const totalMRR = partners.reduce((sum, p) => sum + p.mrr, 0);
+  const avgRetention = activePartners > 0 ? Math.round(partners.filter(p => p.status === "active").reduce((s, p) => s + p.retention, 0) / activePartners) : 0;
+  const totalClients = partners.reduce((sum, p) => sum + p.activeClients, 0);
+  const totalCommission = partners.reduce((sum, p) => sum + p.commission, 0);
 
   return (
     <TooltipProvider delayDuration={200}>
