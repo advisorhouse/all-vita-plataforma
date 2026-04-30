@@ -18,6 +18,8 @@ import TenantTable from "@/components/admin/dashboard/TenantTable";
 import ActivityFeed from "@/components/admin/dashboard/ActivityFeed";
 import ConversionFunnel from "@/components/admin/dashboard/ConversionFunnel";
 import GamificationMetrics from "@/components/admin/dashboard/GamificationMetrics";
+import PendingTenantsWidget from "@/components/admin/dashboard/PendingTenantsWidget";
+import CreateTenantDialog from "@/components/admin/tenants/CreateTenantDialog";
 import { cn } from "@/lib/utils";
 
 const fadeUp = {
@@ -29,6 +31,8 @@ const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [period, setPeriod] = useState("30d");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [resumeTenant, setResumeTenant] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const getSinceDate = () => {
     if (period === "custom" && dateRange?.from) {
