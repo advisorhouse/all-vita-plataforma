@@ -95,7 +95,12 @@ const LoginPage: React.FC = () => {
             className="h-16 w-auto mx-auto mb-4 object-contain"
             style={{ maxHeight: '80px' }}
           />
-          <p className="text-sm text-muted-foreground mt-1">
+          <p 
+            className="text-sm mt-1 transition-colors duration-500"
+            style={{ 
+              color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
+            }}
+          >
             Acesse sua conta {currentTenant?.trade_name || currentTenant?.name || "All Vita"}
           </p>
         </div>
