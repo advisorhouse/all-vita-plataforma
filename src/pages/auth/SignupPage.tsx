@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,9 +11,12 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, User, Eye, EyeOff, Loader2, Phone } from "lucide-react";
 import { IMaskInput } from "react-imask";
+import logoAllVita from "@/assets/logo-allvita.png";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
+  const { currentTenant } = useTenant();
+  const { tenantPath } = useTenantNavigation();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
   
@@ -137,7 +142,12 @@ const SignupPage: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div 
+      className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500"
+      style={{ 
+        backgroundColor: currentTenant?.primary_color || 'var(--background)' 
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -145,9 +155,27 @@ const SignupPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Complete seu cadastro para acessar a All Vita
+          <img 
+            src={currentTenant?.logo_url || logoAllVita} 
+            alt={currentTenant?.trade_name || currentTenant?.name || "All Vita"} 
+            className="h-16 w-auto mx-auto mb-4 object-contain" 
+            style={{ maxHeight: '80px' }}
+          />
+          <h1 
+            className="text-2xl font-semibold tracking-tight transition-colors duration-500"
+            style={{ 
+              color: currentTenant?.primary_color ? 'white' : 'var(--foreground)'
+            }}
+          >
+            Criar conta
+          </h1>
+          <p 
+            className="text-sm mt-1 transition-colors duration-500"
+            style={{ 
+              color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
+            }}
+          >
+            Complete seu cadastro para acessar a {currentTenant?.trade_name || currentTenant?.name || "All Vita"}
           </p>
         </div>
 
@@ -230,7 +258,7 @@ const SignupPage: React.FC = () => {
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Já tem conta?{" "}
               <Link 
-                to={`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} 
+                to={tenantPath("/auth/login") + (redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : "")} 
                 className="text-foreground font-medium hover:underline"
               >
                 Entrar
@@ -239,7 +267,12 @@ const SignupPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-[11px] text-muted-foreground mt-6">
+        <p 
+          className="text-center text-[11px] mt-6 transition-colors duration-500"
+          style={{ 
+            color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.7)' : 'var(--muted-foreground)'
+          }}
+        >
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>

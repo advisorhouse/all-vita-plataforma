@@ -76,7 +76,12 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div 
+      className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500"
+      style={{ 
+        backgroundColor: currentTenant?.primary_color || 'var(--background)' 
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -87,9 +92,15 @@ const LoginPage: React.FC = () => {
           <img
             src={currentTenant?.logo_url || logoAllVita}
             alt={currentTenant?.trade_name || currentTenant?.name || "All Vita"}
-            className="h-10 w-auto mx-auto mb-4"
+            className="h-16 w-auto mx-auto mb-4 object-contain"
+            style={{ maxHeight: '80px' }}
           />
-          <p className="text-sm text-muted-foreground mt-1">
+          <p 
+            className="text-sm mt-1 transition-colors duration-500"
+            style={{ 
+              color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
+            }}
+          >
             Acesse sua conta {currentTenant?.trade_name || currentTenant?.name || "All Vita"}
           </p>
         </div>
@@ -184,7 +195,12 @@ const LoginPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-[11px] text-muted-foreground mt-6">
+        <p 
+          className="text-center text-[11px] mt-6 transition-colors duration-500"
+          style={{ 
+            color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.7)' : 'var(--muted-foreground)'
+          }}
+        >
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>

@@ -53,7 +53,12 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div 
+      className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500"
+      style={{ 
+        backgroundColor: currentTenant?.primary_color || 'var(--background)' 
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -61,9 +66,26 @@ const ForgotPasswordPage: React.FC = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <img src={tenantLogo} alt={tenantName} className="h-10 w-auto mx-auto mb-4" />
-          <h1 className="text-2xl font-semibold tracking-tight">Recuperar senha</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <img 
+            src={tenantLogo} 
+            alt={tenantName} 
+            className="h-16 w-auto mx-auto mb-4 object-contain" 
+            style={{ maxHeight: '80px' }}
+          />
+          <h1 
+            className="text-2xl font-semibold tracking-tight transition-colors duration-500"
+            style={{ 
+              color: currentTenant?.primary_color ? 'white' : 'var(--foreground)'
+            }}
+          >
+            Recuperar senha
+          </h1>
+          <p 
+            className="text-sm mt-1 transition-colors duration-500"
+            style={{ 
+              color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
+            }}
+          >
             Enviaremos um link para redefinir sua senha
           </p>
         </div>
@@ -115,7 +137,12 @@ const ForgotPasswordPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-[11px] text-muted-foreground mt-6">
+        <p 
+          className="text-center text-[11px] mt-6 transition-colors duration-500"
+          style={{ 
+            color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.7)' : 'var(--muted-foreground)'
+          }}
+        >
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
