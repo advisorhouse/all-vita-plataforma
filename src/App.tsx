@@ -89,6 +89,63 @@ import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
 
+const ClubRoutes = () => (
+  <>
+    <Route index element={<ClubDashboard />} />
+    <Route path="subscription" element={<ClubSubscription />} />
+    <Route path="orders" element={<ClubOrders />} />
+    <Route path="benefits" element={<ClubBenefits />} />
+    <Route path="content" element={<ClubContent />} />
+    <Route path="community" element={<ClubCommunity />} />
+    <Route path="referrals" element={<ClubReferrals />} />
+    <Route path="support" element={<ClubSupport />} />
+    <Route path="settings" element={<ClubSettings />} />
+    <Route path="notifications" element={<NotificationsPage />} />
+    <Route path="profile" element={<UserProfile />} />
+  </>
+);
+
+const PartnerRoutes = () => (
+  <>
+    <Route index element={<PartnerDashboard />} />
+    <Route path="network" element={<PartnerNetwork />} />
+    <Route path="referrals" element={<PartnerReferrals />} />
+    <Route path="formation" element={<PartnerFormation />} />
+    <Route path="clients" element={<PartnerClients />} />
+    <Route path="revenue" element={<PartnerRevenue />} />
+    <Route path="materials" element={<PartnerMaterials />} />
+    <Route path="links" element={<PartnerLinksPage />} />
+    <Route path="levels" element={<PartnerLevels />} />
+    <Route path="ranking" element={<PartnerRanking />} />
+    <Route path="referred-partners" element={<PartnerReferredPartners />} />
+    <Route path="support" element={<PartnerSupport />} />
+    <Route path="settings" element={<PartnerSettings />} />
+    <Route path="notifications" element={<NotificationsPage />} />
+    <Route path="profile" element={<UserProfile />} />
+  </>
+);
+
+const CoreRoutes = () => (
+  <>
+    <Route index element={<CoreDashboard />} />
+    <Route path="customers" element={<CoreCustomers />} />
+    <Route path="partners" element={<CorePartners />} />
+    <Route path="subscriptions" element={<CoreSubscriptions />} />
+    <Route path="commissions" element={<CoreCommissions />} />
+    <Route path="finance" element={<CoreFinance />} />
+    <Route path="reports" element={<CoreReports />} />
+    <Route path="gamification" element={<CoreGamification />} />
+    <Route path="products" element={<CoreProducts />} />
+    <Route path="permissions" element={<CorePermissions />} />
+    <Route path="settings" element={<CoreSettings />} />
+    <Route path="settings/permissions" element={<TenantPermissionMatrix />} />
+    <Route path="users" element={<CoreUsers />} />
+    <Route path="integrations" element={<CoreIntegrations />} />
+    <Route path="notifications" element={<NotificationsPage />} />
+    <Route path="profile" element={<UserProfile />} />
+  </>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <HelmetProvider>
