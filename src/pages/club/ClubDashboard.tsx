@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { cn } from "@/lib/utils";
 import {
   Check, Package, ArrowRight, Truck, CreditCard, BookOpen,
   Users, Gift, ShieldCheck, Sparkles, Heart,
@@ -103,20 +104,26 @@ const ClubDashboard: React.FC = () => {
     queryFn: async () => {
       if (!currentTenant?.id || !user?.id) return null;
 
-      const [profileRes, subscriptionRes] = await Promise.all([
+      const [profileRes, clientRes] = await Promise.all([
         supabase.from("profiles").select("first_name").eq("id", user.id).single(),
-        supabase.from("subscriptions")
-          .select("*, products(name)")
-          .eq("tenant_id", currentTenant.id)
-          .eq("user_id", user.id) // Assuming user_id maps to client identity
-          .maybeSingle()
+        supabase.from("clients").select("id").eq("user_id", user.id).eq("tenant_id", currentTenant.id).maybeSingle(),
       ]);
+
+      let subscription = null;
+      const clientId = clientRes.data?.id;
+      if (clientId) {
+        const subRes = await supabase.from("subscriptions")
+          .select("*, products(name)")
+          .eq("client_id", clientId)
+          .maybeSingle();
+        subscription = subRes.data;
+      }
 
       return {
         firstName: profileRes.data?.first_name || "Membro",
-        subscription: subscriptionRes.data,
-        productName: subscriptionRes.data?.products?.name || "Plano All Vita",
-        renewalDate: subscriptionRes.data?.renewal_date ? new Date(subscriptionRes.data.renewal_date).toLocaleDateString("pt-BR", { day: 'numeric', month: 'long' }) : "N/A"
+        subscription: subscription,
+        productName: subscription?.products?.name || "Plano All Vita",
+        renewalDate: subscription?.renewal_date ? new Date(subscription.renewal_date).toLocaleDateString("pt-BR", { day: 'numeric', month: 'long' }) : "N/A"
       };
     },
     enabled: !!currentTenant?.id && !!user?.id
