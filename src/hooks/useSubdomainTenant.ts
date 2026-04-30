@@ -96,14 +96,16 @@ export function useSubdomainTenant() {
 
   useEffect(() => {
     const detected = detectTenant();
+    setTenantMode(detected ? detected.mode : null);
 
     if (!detected) {
       setChecked(true);
       setIsLoading(false);
+      setIsSubdomainAccess(false);
       return;
     }
 
-    setIsSubdomainAccess(detected.mode === "path" || detected.mode === "subdomain" || detected.mode === "custom-domain");
+    setIsSubdomainAccess(detected.mode === "subdomain" || detected.mode === "custom-domain");
 
     // Custom-domain lookup needs to query by `domain` field
     if (detected.mode === "custom-domain") {
