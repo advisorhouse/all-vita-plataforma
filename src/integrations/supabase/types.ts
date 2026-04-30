@@ -1052,6 +1052,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          all_vita_fee: number | null
           amount: number
           client_id: string
           created_at: string
@@ -1063,10 +1064,12 @@ export type Database = {
           product_id: string | null
           status: string
           subscription_cycle: number
+          tenant_amount: number | null
           tenant_id: string
           updated_at: string
         }
         Insert: {
+          all_vita_fee?: number | null
           amount?: number
           client_id: string
           created_at?: string
@@ -1078,10 +1081,12 @@ export type Database = {
           product_id?: string | null
           status?: string
           subscription_cycle?: number
+          tenant_amount?: number | null
           tenant_id: string
           updated_at?: string
         }
         Update: {
+          all_vita_fee?: number | null
           amount?: number
           client_id?: string
           created_at?: string
@@ -1093,6 +1098,7 @@ export type Database = {
           product_id?: string | null
           status?: string
           subscription_cycle?: number
+          tenant_amount?: number | null
           tenant_id?: string
           updated_at?: string
         }
@@ -1182,6 +1188,7 @@ export type Database = {
           id: string
           metadata: Json | null
           provider: string
+          recipient_id: string | null
           tenant_id: string | null
           updated_at: string
           webhook_secret: string | null
@@ -1193,6 +1200,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           provider: string
+          recipient_id?: string | null
           tenant_id?: string | null
           updated_at?: string
           webhook_secret?: string | null
@@ -1204,6 +1212,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           provider?: string
+          recipient_id?: string | null
           tenant_id?: string | null
           updated_at?: string
           webhook_secret?: string | null
@@ -1793,6 +1802,7 @@ export type Database = {
           price_monthly: number
           price_yearly: number
           sort_order: number
+          transaction_fee_percentage: number | null
           updated_at: string
         }
         Insert: {
@@ -1807,6 +1817,7 @@ export type Database = {
           price_monthly?: number
           price_yearly?: number
           sort_order?: number
+          transaction_fee_percentage?: number | null
           updated_at?: string
         }
         Update: {
@@ -1821,6 +1832,7 @@ export type Database = {
           price_monthly?: number
           price_yearly?: number
           sort_order?: number
+          transaction_fee_percentage?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -2281,6 +2293,7 @@ export type Database = {
           active: boolean
           cnpj: string | null
           created_at: string
+          custom_transaction_fee: number | null
           dns_records: Json | null
           dns_status: string | null
           dns_verified_at: string | null
@@ -2310,6 +2323,7 @@ export type Database = {
           active?: boolean
           cnpj?: string | null
           created_at?: string
+          custom_transaction_fee?: number | null
           dns_records?: Json | null
           dns_status?: string | null
           dns_verified_at?: string | null
@@ -2339,6 +2353,7 @@ export type Database = {
           active?: boolean
           cnpj?: string | null
           created_at?: string
+          custom_transaction_fee?: number | null
           dns_records?: Json | null
           dns_status?: string | null
           dns_verified_at?: string | null
