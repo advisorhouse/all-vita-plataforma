@@ -15,6 +15,8 @@ import logoAllVita from "@/assets/logo-allvita.png";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
+  const { currentTenant } = useTenant();
+  const { tenantPath } = useTenantNavigation();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
   
