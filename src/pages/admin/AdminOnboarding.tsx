@@ -163,7 +163,7 @@ const AdminOnboarding: React.FC = () => {
     // Extra validation before navigating
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
 
-    let destination = "/onboarding";
+    let destination = "/";
     if (isSuperAdmin || platformRole) {
       destination = "/admin";
     } else if (hasTenantMemberships) {
@@ -171,7 +171,8 @@ const AdminOnboarding: React.FC = () => {
     }
 
     await logOnboardingRedirect("complete", destination);
-    navigate(destination);
+    // Use window.location.href for a clean reload to clear all guard states
+    window.location.href = destination;
   };
 
 // Render logo and footer are now handled by reusable components
@@ -284,7 +285,7 @@ const AdminOnboarding: React.FC = () => {
           <Button onClick={async () => {
             const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
             
-            let destination = "/onboarding";
+            let destination = "/";
             if (isSuperAdmin || platformRole) {
               destination = "/admin";
             } else if (hasTenantMemberships) {
@@ -292,7 +293,7 @@ const AdminOnboarding: React.FC = () => {
             }
             
             await logOnboardingRedirect("complete", destination);
-            navigate(destination);
+            window.location.href = destination;
           }} className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.02] bg-green-600 hover:bg-green-700">
             Começar Agora
           </Button>

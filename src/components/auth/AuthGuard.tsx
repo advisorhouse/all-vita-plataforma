@@ -37,22 +37,32 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     }
 
     const checkOnboarding = async () => {
+      // Small delay to let TenantContext/Memberships settle if we just logged in
+      if (tenantLoading) return;
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("must_change_password, onboarding_completed")
         .eq("id", user.id)
         .single();
 
-      if (profile && (profile.must_change_password || !profile.onboarding_completed)) {
-        // Check if user has any non-super_admin memberships (tenant users need onboarding)
+      if (profile) {
         const hasNonComplete = profile.must_change_password || !profile.onboarding_completed;
-        setNeedsOnboarding(hasNonComplete);
+        
+        // If they need onboarding, double check if they are actually a tenant user or just a super admin
+        // Super admins might not need onboarding if they don't have tenant-specific duties, 
+        // but typically all users created via tenant-onboarding get these flags.
+        if (hasNonComplete) {
+          setNeedsOnboarding(true);
+        } else {
+          setNeedsOnboarding(false);
+        }
       }
       setOnboardingChecked(true);
     };
 
     checkOnboarding();
-  }, [user, location.pathname]);
+  }, [user, location.pathname, tenantLoading]);
 
   if (authLoading || tenantLoading || !onboardingChecked) {
     return (
