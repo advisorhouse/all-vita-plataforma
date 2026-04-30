@@ -76,6 +76,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        tenant: {
+          primary: "var(--tenant-primary)",
+          secondary: "var(--tenant-secondary)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
