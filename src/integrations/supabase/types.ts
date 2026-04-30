@@ -399,7 +399,6 @@ export type Database = {
       }
       commissions: {
         Row: {
-          affiliate_id: string
           amount: number
           client_id: string | null
           commission_type: string
@@ -408,11 +407,11 @@ export type Database = {
           metadata: Json | null
           order_id: string | null
           paid_status: string
+          partner_id: string
           percentage_applied: number
           tenant_id: string
         }
         Insert: {
-          affiliate_id: string
           amount?: number
           client_id?: string | null
           commission_type?: string
@@ -421,11 +420,11 @@ export type Database = {
           metadata?: Json | null
           order_id?: string | null
           paid_status?: string
+          partner_id: string
           percentage_applied?: number
           tenant_id: string
         }
         Update: {
-          affiliate_id?: string
           amount?: number
           client_id?: string | null
           commission_type?: string
@@ -434,13 +433,14 @@ export type Database = {
           metadata?: Json | null
           order_id?: string | null
           paid_status?: string
+          partner_id?: string
           percentage_applied?: number
           tenant_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "commissions_affiliate_id_fkey"
-            columns: ["affiliate_id"]
+            columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
             referencedColumns: ["id"]
