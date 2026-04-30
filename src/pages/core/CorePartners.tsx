@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import RegisterPartnerModal from "@/components/core/RegisterPartnerModal";
 import {
   Handshake, Search, Users, DollarSign, TrendingUp, ShieldCheck,
@@ -21,7 +24,6 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-/* ─── Animation ─────────────────────────────────────────── */
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
@@ -30,7 +32,6 @@ const fadeUp = {
   }),
 };
 
-/* ─── Level Config ──────────────────────────────────────── */
 const LEVEL_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   basic: { label: "Basic", color: "text-muted-foreground", bg: "bg-secondary", icon: Star },
   silver: { label: "Silver", color: "text-foreground", bg: "bg-secondary", icon: Award },
@@ -38,18 +39,6 @@ const LEVEL_CONFIG: Record<string, { label: string; color: string; bg: string; i
   platinum: { label: "Platinum", color: "text-accent", bg: "bg-accent/10", icon: Crown },
   diamond: { label: "Diamond", color: "text-accent", bg: "bg-accent/10", icon: Crown },
 };
-
-/* ─── Mock Data ─────────────────────────────────────────── */
-const PARTNERS = [
-  { id: "1", name: "Camila Souza", email: "camila@email.com", level: "platinum", status: "active", clients: 24, activeClients: 22, retention: 92, mrr: 4380, ltv: 1840, commission: 1248, progress: 88, trend: "up", riskClients: 1 },
-  { id: "2", name: "Ana Paula Costa", email: "ana@email.com", level: "gold", status: "active", clients: 18, activeClients: 16, retention: 88, mrr: 3120, ltv: 1620, commission: 892, progress: 72, trend: "up", riskClients: 2 },
-  { id: "3", name: "Julia Mendes", email: "julia@email.com", level: "gold", status: "active", clients: 15, activeClients: 13, retention: 85, mrr: 2540, ltv: 1480, commission: 720, progress: 65, trend: "up", riskClients: 1 },
-  { id: "4", name: "Fernanda Rocha", email: "fernanda@email.com", level: "silver", status: "active", clients: 12, activeClients: 10, retention: 78, mrr: 1890, ltv: 1120, commission: 540, progress: 52, trend: "up", riskClients: 3 },
-  { id: "5", name: "Patrícia Lima", email: "patricia@email.com", level: "silver", status: "active", clients: 8, activeClients: 6, retention: 65, mrr: 1180, ltv: 780, commission: 340, progress: 38, trend: "down", riskClients: 2 },
-  { id: "6", name: "Mariana Santos", email: "mariana@email.com", level: "basic", status: "active", clients: 5, activeClients: 4, retention: 72, mrr: 780, ltv: 620, commission: 220, progress: 24, trend: "up", riskClients: 1 },
-  { id: "7", name: "Beatriz Oliveira", email: "beatriz@email.com", level: "basic", status: "active", clients: 3, activeClients: 3, retention: 80, mrr: 480, ltv: 540, commission: 135, progress: 15, trend: "up", riskClients: 0 },
-  { id: "8", name: "Larissa Almeida", email: "larissa@email.com", level: "basic", status: "inactive", clients: 2, activeClients: 0, retention: 0, mrr: 0, ltv: 320, commission: 45, progress: 5, trend: "down", riskClients: 2 },
-];
 
 type FilterStatus = "all" | "active" | "inactive";
 type FilterLevel = "all" | "basic" | "silver" | "gold" | "platinum" | "diamond";
@@ -61,20 +50,61 @@ const CorePartners: React.FC = () => {
   const [registerOpen, setRegisterOpen] = useState(searchParams.get("register") === "true");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [levelFilter, setLevelFilter] = useState<FilterLevel>("all");
+  const { currentTenant } = useTenant();
 
-  const filtered = PARTNERS.filter((p) => {
+  const { data: partners = [], isLoading } = useQuery({
+    queryKey: ["core-partners", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("partners")
+        .select(`
+          id,
+          level,
+          active,
+          metadata,
+          profiles:user_id (email, first_name, last_name)
+        `)
+        .eq("tenant_id", currentTenant.id);
+      
+      if (error) throw error;
+      
+      return (data || []).map(p => {
+        const profile = p.profiles as any;
+        return {
+          id: p.id,
+          name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "Sem nome",
+          email: profile?.email || "Sem email",
+          level: p.level || "basic",
+          status: p.active ? "active" : "inactive",
+          clients: (p.metadata as any)?.clients || 0,
+          activeClients: (p.metadata as any)?.activeClients || 0,
+          retention: (p.metadata as any)?.retention || 0,
+          mrr: (p.metadata as any)?.mrr || 0,
+          ltv: (p.metadata as any)?.ltv || 0,
+          commission: (p.metadata as any)?.commission || 0,
+          progress: (p.metadata as any)?.progress || 0,
+          trend: (p.metadata as any)?.trend || "up",
+          riskClients: (p.metadata as any)?.riskClients || 0
+        };
+      });
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const filtered = partners.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (levelFilter !== "all" && p.level !== levelFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const totalPartners = PARTNERS.length;
-  const activePartners = PARTNERS.filter((p) => p.status === "active").length;
-  const totalMRR = PARTNERS.reduce((sum, p) => sum + p.mrr, 0);
-  const avgRetention = Math.round(PARTNERS.filter(p => p.status === "active").reduce((s, p) => s + p.retention, 0) / activePartners);
-  const totalClients = PARTNERS.reduce((sum, p) => sum + p.activeClients, 0);
-  const totalCommission = PARTNERS.reduce((sum, p) => sum + p.commission, 0);
+  const totalPartners = partners.length;
+  const activePartners = partners.filter((p) => p.status === "active").length;
+  const totalMRR = partners.reduce((sum, p) => sum + p.mrr, 0);
+  const avgRetention = activePartners > 0 ? Math.round(partners.filter(p => p.status === "active").reduce((s, p) => s + p.retention, 0) / activePartners) : 0;
+  const totalClients = partners.reduce((sum, p) => sum + p.activeClients, 0);
+  const totalCommission = partners.reduce((sum, p) => sum + p.commission, 0);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -298,8 +328,8 @@ const CorePartners: React.FC = () => {
               <CardContent className="p-5 space-y-4">
                 <h3 className="text-sm font-semibold text-foreground">Distribuição por Nível</h3>
                 {(["platinum", "gold", "silver", "basic"] as const).map((level) => {
-                  const count = PARTNERS.filter((p) => p.level === level).length;
-                  const pct = Math.round((count / totalPartners) * 100);
+                  const count = partners.filter((p) => p.level === level).length;
+                  const pct = totalPartners > 0 ? Math.round((count / totalPartners) * 100) : 0;
                   const cfg = LEVEL_CONFIG[level];
                   return (
                     <div key={level} className="space-y-1.5">
@@ -324,7 +354,7 @@ const CorePartners: React.FC = () => {
                   <h3 className="text-sm font-semibold text-foreground">Top Performers</h3>
                   <span className="text-[10px] text-muted-foreground">Por MRR gerado</span>
                 </div>
-                {PARTNERS.filter((p) => p.status === "active")
+                {partners.filter((p) => p.status === "active")
                   .sort((a, b) => b.mrr - a.mrr)
                   .slice(0, 5)
                   .map((p, i) => {

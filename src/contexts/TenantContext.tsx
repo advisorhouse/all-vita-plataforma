@@ -41,6 +41,8 @@ interface TenantContextValue {
   availableTenants: Tenant[];
   isSubdomainAccess: boolean;
   setIsSubdomainAccess: (v: boolean) => void;
+  tenantMode: "path" | "subdomain" | "custom-domain" | "query" | null;
+  setTenantMode: (v: "path" | "subdomain" | "custom-domain" | "query" | null) => void;
 }
 
 const TenantContext = createContext<TenantContextValue | undefined>(undefined);
@@ -52,6 +54,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isLoading, setIsLoading] = useState(true);
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [isSubdomainAccess, setIsSubdomainAccess] = useState(false);
+  const [tenantMode, setTenantMode] = useState<"path" | "subdomain" | "custom-domain" | "query" | null>(null);
 
   // We will derive isSuperAdmin and platform staff status 
   // from a separate effect that checks all_vita_staff
@@ -132,6 +135,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         availableTenants,
         isSubdomainAccess,
         setIsSubdomainAccess,
+        tenantMode,
+        setTenantMode,
       }}
     >
       {children}

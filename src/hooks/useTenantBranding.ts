@@ -38,6 +38,22 @@ function hexToHslVariables(hex: string): string {
 }
 
 /**
+ * Helper to determine if a color is light or dark
+ */
+function getContrastColor(hex: string): string {
+  if (!hex) return "240 10% 4%"; // Default dark text
+  
+  hex = hex.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  
+  // YIQ formula
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return yiq >= 128 ? "240 10% 4%" : "0 0% 100%"; // Dark text if light bg, Light text if dark bg
+}
+
+/**
  * Applies tenant branding: CSS colors, document title, and favicon.
  * Re-runs on every route change to ensure branding persists across navigation.
  * Falls back to defaults when no tenant is active.
@@ -58,12 +74,22 @@ export function useTenantBranding() {
       // User said Cor 1 (primary) = Background, Cor 2 (secondary) = Buttons
       if (currentTenant.primary_color) {
         const primaryHsl = hexToHslVariables(currentTenant.primary_color);
+        const foreground = getContrastColor(currentTenant.primary_color);
         root.style.setProperty("--sidebar-background", primaryHsl);
+        root.style.setProperty("--sidebar-foreground", foreground);
+        root.style.setProperty("--background", primaryHsl);
+        root.style.setProperty("--foreground", foreground);
       }
       
       if (currentTenant.secondary_color) {
         const secondaryHsl = hexToHslVariables(currentTenant.secondary_color);
+        const foreground = getContrastColor(currentTenant.secondary_color);
+        root.style.setProperty("--primary", secondaryHsl);
+        root.style.setProperty("--primary-foreground", foreground);
+        root.style.setProperty("--sidebar-primary", secondaryHsl);
+        root.style.setProperty("--sidebar-primary-foreground", foreground);
         root.style.setProperty("--accent", secondaryHsl);
+        root.style.setProperty("--accent-foreground", foreground);
         root.style.setProperty("--ring", secondaryHsl);
       }
 
@@ -78,7 +104,15 @@ export function useTenantBranding() {
       root.style.removeProperty("--tenant-primary");
       root.style.removeProperty("--tenant-secondary");
       root.style.removeProperty("--sidebar-background");
+      root.style.removeProperty("--sidebar-foreground");
+      root.style.removeProperty("--background");
+      root.style.removeProperty("--foreground");
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--primary-foreground");
+      root.style.removeProperty("--sidebar-primary");
+      root.style.removeProperty("--sidebar-primary-foreground");
       root.style.removeProperty("--accent");
+      root.style.removeProperty("--accent-foreground");
       root.style.removeProperty("--ring");
       delete root.dataset.tenant;
       document.title = DEFAULT_TITLE;
@@ -90,7 +124,15 @@ export function useTenantBranding() {
       root.style.removeProperty("--tenant-primary");
       root.style.removeProperty("--tenant-secondary");
       root.style.removeProperty("--sidebar-background");
+      root.style.removeProperty("--sidebar-foreground");
+      root.style.removeProperty("--background");
+      root.style.removeProperty("--foreground");
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--primary-foreground");
+      root.style.removeProperty("--sidebar-primary");
+      root.style.removeProperty("--sidebar-primary-foreground");
       root.style.removeProperty("--accent");
+      root.style.removeProperty("--accent-foreground");
       root.style.removeProperty("--ring");
       delete root.dataset.tenant;
       document.title = DEFAULT_TITLE;

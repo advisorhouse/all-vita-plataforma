@@ -9,7 +9,7 @@ import { useTenant } from "@/contexts/TenantContext";
 export function useTenantNavigation() {
   const navigate = useNavigate();
   const { slug: routeSlug } = useParams();
-  const { currentTenant } = useTenant();
+  const { currentTenant, isSubdomainAccess } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantQueryParam = searchParams.get("tenant");
   
@@ -25,7 +25,7 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
       
-      if (activeSlug && needsSlug && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
+      if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
 
@@ -49,7 +49,7 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
 
-      if (activeSlug && needsSlug && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
+      if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
 

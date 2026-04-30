@@ -81,7 +81,14 @@ function detectTenant(): DetectedTenant {
  * is internally treated as `/club` with tenant=lumyss in context.
  */
 export function useSubdomainTenant() {
-  const { setCurrentTenant, currentTenant, availableTenants, setIsSubdomainAccess, setIsLoading } = useTenant();
+  const { 
+    setCurrentTenant, 
+    currentTenant, 
+    availableTenants, 
+    setIsSubdomainAccess, 
+    setIsLoading,
+    setTenantMode 
+  } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantQueryParam = searchParams.get("tenant");
   const [tenantSlug, setTenantSlug] = useState<string | null>(null);
@@ -89,14 +96,16 @@ export function useSubdomainTenant() {
 
   useEffect(() => {
     const detected = detectTenant();
+    setTenantMode(detected ? detected.mode : null);
 
     if (!detected) {
       setChecked(true);
       setIsLoading(false);
+      setIsSubdomainAccess(false);
       return;
     }
 
-    setIsSubdomainAccess(detected.mode === "path" || detected.mode === "subdomain" || detected.mode === "custom-domain");
+    setIsSubdomainAccess(detected.mode === "subdomain" || detected.mode === "custom-domain");
 
     // Custom-domain lookup needs to query by `domain` field
     if (detected.mode === "custom-domain") {

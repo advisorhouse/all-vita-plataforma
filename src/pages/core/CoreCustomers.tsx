@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users, Search, AlertTriangle, Activity,
-  CheckCircle2, Minus, TrendingUp, TrendingDown,
-  Eye, BarChart3, UserX, Shield,
+  CheckCircle2, TrendingUp,
+  BarChart3, Shield,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,66 +24,76 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.35 } }),
 };
 
-const CLIENTS = [
-  { name: "Maria S.", email: "maria@email.com", status: "active", months: 8, engagement: 92, consistency: 88, risk: "low", level: "Elite", plan: "Premium", ltv: 1840, lastLogin: "Hoje", partner: "Dra. Marina Costa" },
-  { name: "Ana P.", email: "ana@email.com", status: "active", months: 6, engagement: 85, consistency: 80, risk: "low", level: "6M+", plan: "Original", ltv: 1140, lastLogin: "Hoje", partner: "Dr. Ricardo Alves" },
-  { name: "Juliana M.", email: "juliana@email.com", status: "active", months: 5, engagement: 78, consistency: 75, risk: "low", level: "3M+", plan: "Premium", ltv: 1150, lastLogin: "Ontem", partner: "Dra. Marina Costa" },
-  { name: "Carla R.", email: "carla@email.com", status: "active", months: 3, engagement: 65, consistency: 60, risk: "medium", level: "3M+", plan: "Original", ltv: 570, lastLogin: "3 dias", partner: "Dra. Camila Reis" },
-  { name: "Fernanda L.", email: "fernanda@email.com", status: "active", months: 2, engagement: 55, consistency: 50, risk: "medium", level: "Início", plan: "Kit Trimestral", ltv: 460, lastLogin: "5 dias", partner: "Dr. Ricardo Alves" },
-  { name: "Patrícia D.", email: "patricia@email.com", status: "active", months: 1, engagement: 40, consistency: 35, risk: "high", level: "Início", plan: "Original", ltv: 190, lastLogin: "7 dias", partner: "Dra. Camila Reis" },
-  { name: "Luciana T.", email: "luciana@email.com", status: "paused", months: 4, engagement: 30, consistency: 25, risk: "high", level: "3M+", plan: "Original", ltv: 760, lastLogin: "15 dias", partner: "Dr. Felipe Santos" },
-  { name: "Roberta F.", email: "roberta@email.com", status: "cancelled", months: 2, engagement: 15, consistency: 10, risk: "high", level: "Início", plan: "Original", ltv: 380, lastLogin: "30 dias", partner: "Dr. Felipe Santos" },
-  { name: "Beatriz G.", email: "beatriz@email.com", status: "active", months: 10, engagement: 95, consistency: 92, risk: "low", level: "Elite", plan: "Premium", ltv: 2300, lastLogin: "Hoje", partner: "Dra. Marina Costa" },
-  { name: "Camila V.", email: "camila@email.com", status: "active", months: 7, engagement: 82, consistency: 78, risk: "low", level: "6M+", plan: "Premium", ltv: 1610, lastLogin: "Ontem", partner: "Dr. Ricardo Alves" },
-];
-
 const LEVEL_DISTRIBUTION = [
-  { name: "Início", value: 3, fill: "hsl(var(--muted-foreground))" },
-  { name: "3M+", value: 3, fill: "hsl(var(--primary))" },
-  { name: "6M+", value: 2, fill: "hsl(var(--accent-foreground))" },
-  { name: "Elite", value: 2, fill: "hsl(var(--destructive))" },
+  { name: "Início", value: 0, fill: "hsl(var(--muted-foreground))" },
+  { name: "3M+", value: 0, fill: "hsl(var(--primary))" },
+  { name: "6M+", value: 0, fill: "hsl(var(--accent-foreground))" },
+  { name: "Elite", value: 0, fill: "hsl(var(--destructive))" },
 ];
 
 const RISK_DISTRIBUTION = [
-  { name: "Baixo", value: 5, fill: "hsl(var(--primary))" },
-  { name: "Médio", value: 2, fill: "hsl(var(--accent-foreground))" },
-  { name: "Alto", value: 3, fill: "hsl(var(--destructive))" },
+  { name: "Baixo", value: 0, fill: "hsl(var(--primary))" },
+  { name: "Médio", value: 0, fill: "hsl(var(--accent-foreground))" },
+  { name: "Alto", value: 0, fill: "hsl(var(--destructive))" },
 ];
 
-const MONTHLY_EVOLUTION = [
-  { month: "Set", ativos: 4, novos: 2, cancelados: 0 },
-  { month: "Out", ativos: 5, novos: 2, cancelados: 1 },
-  { month: "Nov", ativos: 6, novos: 2, cancelados: 1 },
-  { month: "Dez", ativos: 7, novos: 2, cancelados: 1 },
-  { month: "Jan", ativos: 8, novos: 2, cancelados: 1 },
-  { month: "Fev", ativos: 8, novos: 1, cancelados: 1 },
-];
-
-const ENGAGEMENT_TREND = [
-  { month: "Set", score: 62 },
-  { month: "Out", score: 65 },
-  { month: "Nov", score: 68 },
-  { month: "Dez", score: 71 },
-  { month: "Jan", score: 69 },
-  { month: "Fev", score: 72 },
-];
+const MONTHLY_EVOLUTION: any[] = [];
+const ENGAGEMENT_TREND: any[] = [];
 
 const CoreCustomers: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "paused" | "cancelled">("all");
+  const { currentTenant } = useTenant();
 
-  const filtered = CLIENTS.filter(
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ["core-customers", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("clients")
+        .select(`
+          id,
+          full_name,
+          phone,
+          created_at,
+          metadata,
+          profiles:user_id (email)
+        `)
+        .eq("tenant_id", currentTenant.id);
+      
+      if (error) throw error;
+      
+      return (data || []).map(c => ({
+        id: c.id,
+        name: c.full_name || "Sem nome",
+        email: (c.profiles as any)?.email || "Sem email",
+        status: (c.metadata as any)?.status || "active",
+        months: Math.floor((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30)),
+        engagement: (c.metadata as any)?.engagement || 0,
+        consistency: (c.metadata as any)?.consistency || 0,
+        risk: (c.metadata as any)?.risk || "low",
+        level: (c.metadata as any)?.level || "Início",
+        plan: (c.metadata as any)?.plan || "N/A",
+        ltv: (c.metadata as any)?.ltv || 0,
+        lastLogin: (c.metadata as any)?.lastLogin || "N/A",
+        partner: (c.metadata as any)?.partner || "Direto"
+      }));
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const filtered = clients.filter(
     (c) =>
       (filter === "all" || c.status === filter) &&
       c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const active = CLIENTS.filter(c => c.status === "active").length;
-  const paused = CLIENTS.filter(c => c.status === "paused").length;
-  const cancelled = CLIENTS.filter(c => c.status === "cancelled").length;
-  const avgEngagement = Math.round(CLIENTS.reduce((s, c) => s + c.engagement, 0) / CLIENTS.length);
-  const highRisk = CLIENTS.filter(c => c.risk === "high").length;
-  const totalLtv = CLIENTS.reduce((s, c) => s + c.ltv, 0);
+  const active = clients.filter(c => c.status === "active").length;
+  const paused = clients.filter(c => c.status === "paused").length;
+  const cancelled = clients.filter(c => c.status === "cancelled").length;
+  const avgEngagement = clients.length > 0 ? Math.round(clients.reduce((s, c) => s + c.engagement, 0) / clients.length) : 0;
+  const highRisk = clients.filter(c => c.risk === "high").length;
+  const totalLtv = clients.reduce((s, c) => s + c.ltv, 0);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -88,8 +101,8 @@ const CoreCustomers: React.FC = () => {
       {/* KPIs */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
-          { label: "Total clientes", value: CLIENTS.length, icon: Users, sub: `${active} ativos`, tip: "Número total de clientes cadastrados na plataforma, incluindo ativos, pausados e cancelados." },
-          { label: "Ativos", value: active, icon: CheckCircle2, sub: `${Math.round((active / CLIENTS.length) * 100)}% da base`, tip: "Clientes com assinatura ativa e pagamento em dia." },
+          { label: "Total clientes", value: clients.length, icon: Users, sub: `${active} ativos`, tip: "Número total de clientes cadastrados na plataforma, incluindo ativos, pausados e cancelados." },
+          { label: "Ativos", value: active, icon: CheckCircle2, sub: `${clients.length > 0 ? Math.round((active / clients.length) * 100) : 0}% da base`, tip: "Clientes com assinatura ativa e pagamento em dia." },
           { label: "Engajamento médio", value: `${avgEngagement}%`, icon: Activity, sub: "+3pp vs mês anterior", tip: "Média ponderada de uso do produto, login e interações com conteúdo da plataforma." },
           { label: "Risco alto", value: highRisk, icon: AlertTriangle, sub: "Requerem atenção", tip: "Clientes com probabilidade elevada de cancelamento baseado em engajamento, consistência e tempo sem login." },
           { label: "LTV total", value: `R$ ${(totalLtv / 1000).toFixed(1)}k`, icon: TrendingUp, sub: "Lifetime value", tip: "Valor total estimado que todos os clientes geram ao longo da vida útil da assinatura." },
@@ -316,9 +329,9 @@ const CoreCustomers: React.FC = () => {
         <TabsContent value="risk" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              { title: "Risco Alto", count: highRisk, color: "text-destructive", bgColor: "bg-destructive/10", clients: CLIENTS.filter(c => c.risk === "high") },
-              { title: "Atenção", count: CLIENTS.filter(c => c.risk === "medium").length, color: "text-accent-foreground", bgColor: "bg-accent/10", clients: CLIENTS.filter(c => c.risk === "medium") },
-              { title: "Estável", count: CLIENTS.filter(c => c.risk === "low").length, color: "text-primary", bgColor: "bg-primary/10", clients: CLIENTS.filter(c => c.risk === "low") },
+              { title: "Risco Alto", count: highRisk, color: "text-destructive", bgColor: "bg-destructive/10", clients: clients.filter(c => c.risk === "high") },
+              { title: "Atenção", count: clients.filter(c => c.risk === "medium").length, color: "text-accent-foreground", bgColor: "bg-accent/10", clients: clients.filter(c => c.risk === "medium") },
+              { title: "Estável", count: clients.filter(c => c.risk === "low").length, color: "text-primary", bgColor: "bg-primary/10", clients: clients.filter(c => c.risk === "low") },
             ].map(group => (
               <Card key={group.title} className="border border-border shadow-sm">
                 <CardHeader className="pb-2">
