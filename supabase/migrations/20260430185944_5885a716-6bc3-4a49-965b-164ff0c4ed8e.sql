@@ -1,0 +1,1 @@
+UPDATE public.tenants SET registration_status = 'pending', pending_registration_notification = false WHERE slug = 'lumyss';
