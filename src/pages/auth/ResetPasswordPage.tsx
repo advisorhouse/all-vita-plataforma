@@ -59,7 +59,12 @@ const ResetPasswordPage: React.FC = () => {
 
   if (!isRecovery) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div 
+        className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500"
+        style={{ 
+          backgroundColor: currentTenant?.primary_color || 'var(--background)' 
+        }}
+      >
         <Card className="w-full max-w-sm">
           <CardContent className="pt-6 text-center">
             <p className="text-sm text-muted-foreground">
