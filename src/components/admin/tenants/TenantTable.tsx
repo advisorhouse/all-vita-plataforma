@@ -44,7 +44,7 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
           <TableRow>
             <TableHead className="w-[280px]">Empresa</TableHead>
             <TableHead>Domínio</TableHead>
-            <TableHead className="text-center">Status</TableHead>
+            <TableHead className="text-center">Segmento</TableHead>
             <TableHead className="text-right">Receita (MRR)</TableHead>
             <TableHead className="text-center">Clientes</TableHead>
             <TableHead className="text-center">Parceiros</TableHead>
@@ -86,16 +86,8 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                     <span>{t.slug}.allvita.com.br</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">
-                  {t.dns_status === 'pending' ? (
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px]">
-                      🟡 Aguardando DNS
-                    </Badge>
-                  ) : (
-                    <Badge variant={active ? "default" : "destructive"} className="text-[10px]">
-                      {active ? "🟢 Ativa" : "🔴 Suspensa"}
-                    </Badge>
-                  )}
+                <TableCell className="text-center capitalize text-xs text-muted-foreground">
+                  {t.segment || "—"}
                 </TableCell>
                 <TableCell className="text-right font-medium tabular-nums text-sm">
                   R$ {metrics.revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
