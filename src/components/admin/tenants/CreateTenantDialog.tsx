@@ -915,23 +915,38 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                 Para que o endereço <strong>{form.slug}.allvita.com.br</strong> funcione, você precisa adicionar este registro no DNS do <strong>allvita.com.br</strong>:
               </p>
               
-              <div className="grid grid-cols-12 gap-2 mt-4 bg-white/60 p-4 rounded-lg border border-amber-100 font-mono text-xs">
-                <div className="col-span-3 text-amber-700 font-bold uppercase tracking-wider">Tipo</div>
-                <div className="col-span-3 text-amber-700 font-bold uppercase tracking-wider">Nome</div>
-                <div className="col-span-6 text-amber-700 font-bold uppercase tracking-wider">Valor (IP)</div>
+              <div className="grid grid-cols-12 gap-2 mt-4 bg-white/60 p-4 rounded-lg border border-amber-100 font-mono text-[10px] sm:text-xs">
+                <div className="col-span-2 text-amber-700 font-bold uppercase tracking-wider">Tipo</div>
+                <div className="col-span-4 text-amber-700 font-bold uppercase tracking-wider">Nome</div>
+                <div className="col-span-6 text-amber-700 font-bold uppercase tracking-wider">Valor</div>
                 
-                <div className="col-span-3 py-1 font-bold text-amber-900 bg-amber-200/50 rounded text-center w-fit px-2">A</div>
-                <div className="col-span-3 py-1 text-foreground flex items-center gap-1">
+                {/* Registro A */}
+                <div className="col-span-2 py-1 font-bold text-amber-900 bg-amber-200/50 rounded text-center w-fit px-2">A</div>
+                <div className="col-span-4 py-1 text-foreground flex items-center gap-1">
                   {form.slug}
-                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => copyToClipboard(form.slug, 'dns-name')}>
+                  <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => copyToClipboard(form.slug, 'dns-name')}>
                     <Copy className="h-3 w-3" />
                   </Button>
                 </div>
                 <div className="col-span-6 py-1 text-foreground font-bold flex items-center gap-1">
                   185.158.133.1
-                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => copyToClipboard('185.158.133.1', 'dns-value')}>
+                  <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => copyToClipboard('185.158.133.1', 'dns-value')}>
                     <Copy className="h-3 w-3" />
                   </Button>
+                </div>
+
+                <div className="col-span-12 border-t border-amber-100 my-1" />
+
+                {/* Registro TXT (Verificação) */}
+                <div className="col-span-2 py-1 font-bold text-amber-900 bg-amber-200/50 rounded text-center w-fit px-2">TXT</div>
+                <div className="col-span-4 py-1 text-foreground flex items-center gap-1">
+                  _lovable
+                  <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => copyToClipboard('_lovable', 'dns-txt-name')}>
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="col-span-6 py-1 text-amber-700 italic text-[9px] sm:text-[10px] leading-tight">
+                  lovable_verify=... (copiar do painel Lovable)
                 </div>
               </div>
 

@@ -43,7 +43,7 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
         <TableHeader>
           <TableRow>
             <TableHead className="w-[280px]">Empresa</TableHead>
-            <TableHead>Domínio</TableHead>
+            <TableHead>Subdomínio (Acesso)</TableHead>
             <TableHead className="text-center">Segmento</TableHead>
             <TableHead className="text-right">Receita (MRR)</TableHead>
             <TableHead className="text-center">Clientes</TableHead>

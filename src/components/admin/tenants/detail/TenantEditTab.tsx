@@ -156,25 +156,67 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
               <Input value={form.cnpj} onChange={(e) => handleChange("cnpj", e.target.value)} placeholder="00.000.000/0000-00" />
             </div>
             <div className="space-y-1.5">
-              <Label>Slug</Label>
+              <Label>Slug / Subdomínio *</Label>
               <Input value={form.slug} onChange={(e) => handleChange("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} />
             </div>
           </div>
 
           {/* Domain section */}
-          <div className="space-y-3 pt-2">
-            <div className="space-y-1.5">
-              <Label>Subdomínio Padrão</Label>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50 text-sm">
-                <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="font-medium">{form.slug || "slug"}.allvita.com.br</span>
+          <div className="space-y-6 pt-4 border-t">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Globe className="h-4 w-4 text-primary" /> Configuração de Domínio e DNS
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Subdomínio Padrão</Label>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50 text-sm">
+                    <span className="font-medium flex-1">{form.slug || "slug"}.allvita.com.br</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 px-2"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${form.slug}.allvita.com.br`);
+                        toast.success("Copiado!");
+                      }}
+                    >
+                      Copiar
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground italic">Este endereço é gerado automaticamente e requer o registro A no DNS do allvita.com.br.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Domínio Personalizado (Opcional)</Label>
+                  <Input value={form.domain} onChange={(e) => handleChange("domain", e.target.value)} placeholder="exemplo.com.br" />
+                  <p className="text-[11px] text-muted-foreground">Configure caso o cliente queira usar um domínio próprio.</p>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">Gerado automaticamente a partir do slug</p>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Domínio Personalizado</Label>
-              <Input value={form.domain} onChange={(e) => handleChange("domain", e.target.value)} placeholder="exemplo.com.br" />
-              <p className="text-xs text-muted-foreground">Opcional. Configure o DNS para apontar para a plataforma.</p>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+                <p className="text-xs font-bold text-amber-800 uppercase flex items-center gap-1.5">
+                  Registros DNS Necessários
+                </p>
+                
+                <div className="space-y-2 font-mono text-[10px]">
+                  <div className="flex items-center justify-between bg-white/80 p-2 rounded border border-amber-100">
+                    <span className="font-bold text-amber-900 w-6">A</span>
+                    <span className="flex-1 px-2">{form.slug || "slug"}</span>
+                    <span className="font-bold">185.158.133.1</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white/80 p-2 rounded border border-amber-100">
+                    <span className="font-bold text-amber-900 w-6">TXT</span>
+                    <span className="flex-1 px-2">_lovable</span>
+                    <span className="text-amber-700 italic">lovable_verify=...</span>
+                  </div>
+                </div>
+                
+                <p className="text-[10px] text-amber-700 leading-tight">
+                  <strong>Atenção:</strong> Adicione os registros acima no Registro.br (allvita.com.br) e conecte o domínio no painel do Lovable para ativar o SSL.
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>

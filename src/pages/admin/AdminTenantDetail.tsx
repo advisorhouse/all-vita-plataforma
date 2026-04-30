@@ -118,8 +118,8 @@ const AdminTenantDetail: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="edit">Editar</TabsTrigger>
-          <TabsTrigger value="config">Configurações</TabsTrigger>
+          <TabsTrigger value="edit">Identidade e Domínio</TabsTrigger>
+          <TabsTrigger value="config">Módulos</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
