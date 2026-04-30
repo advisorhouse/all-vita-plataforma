@@ -541,6 +541,50 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     fetchEmailDns();
   }, [step, createdTenant?.tenant?.id]);
 
+  // Poll subdomain DNS propagation while on the DNS step
+  React.useEffect(() => {
+    if (step !== "dns" || !createdTenant?.tenant?.slug) return;
+    if (dnsCheckStatus === "propagated") return;
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const check = async () => {
+      if (cancelled) return;
+      setDnsCheckStatus((prev) => (prev === "propagated" ? prev : "checking"));
+      try {
+        const { data, error } = await supabase.functions.invoke("check-subdomain", {
+          body: { slug: createdTenant.tenant.slug },
+        });
+        if (cancelled) return;
+        if (error) throw error;
+        setDnsCheckAttempts((a) => a + 1);
+        setDnsCheckInfo({ stage: data?.stage, error: data?.error, lastCheck: new Date() });
+        if (data?.resolved) {
+          setDnsCheckStatus("propagated");
+          toast.success("DNS propagado!", {
+            description: `${createdTenant.tenant.slug}.allvita.com.br está acessível.`,
+          });
+          return;
+        }
+        setDnsCheckStatus("waiting");
+        timer = setTimeout(check, 15000);
+      } catch (err: any) {
+        if (cancelled) return;
+        setDnsCheckInfo({ error: err.message, lastCheck: new Date() });
+        setDnsCheckStatus("waiting");
+        timer = setTimeout(check, 20000);
+      }
+    };
+
+    // initial small delay
+    timer = setTimeout(check, 1500);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [step, createdTenant?.tenant?.slug, dnsCheckStatus]);
+
   const handleVerifyDns = async () => {
     if (!createdTenant) return;
     setVerifyingDns(true);
