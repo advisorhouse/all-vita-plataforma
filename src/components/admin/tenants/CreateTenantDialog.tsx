@@ -1106,9 +1106,15 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                     </>
                   ) : (
                     <>
-                      <p className="font-bold text-blue-900">Aguardando propagação do DNS...</p>
+                      <p className="font-bold text-blue-900">
+                        {dnsCheckInfo.stage === "http" 
+                          ? "DNS Identificado! Aguardando SSL..." 
+                          : "Aguardando propagação do DNS..."}
+                      </p>
                       <p className="text-blue-800 mt-1">
-                        Verificando <strong>{createdTenant?.tenant?.slug}.allvita.com.br</strong> a cada 15s. Pode levar de 15 minutos a algumas horas.
+                        {dnsCheckInfo.stage === "http"
+                          ? "O domínio já aponta para nossos servidores. Agora o Lovable está gerando o certificado de segurança (HTTPS). Isso leva poucos minutos."
+                          : `Verificando ${createdTenant?.tenant?.slug}.allvita.com.br a cada 15s. Pode levar de 15 minutos a algumas horas.`}
                       </p>
                       <p className="text-blue-700 mt-1 text-[11px]">
                         Tentativa #{dnsCheckAttempts}
