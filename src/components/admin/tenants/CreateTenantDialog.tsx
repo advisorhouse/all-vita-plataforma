@@ -779,11 +779,31 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
           <div className="max-w-4xl mx-auto w-full pb-12 space-y-8">
             <div className="text-center space-y-2">
               <p className="text-muted-foreground">
-                Configure os assets visuais que serão exibidos nos portais <strong>{form.trade_name || form.name}</strong>.
+                Configure os assets visuais e cores que serão exibidos nos portais <strong>{form.trade_name || form.name}</strong>.
               </p>
               <p className="text-xs text-muted-foreground">
                 Recomendamos as dimensões abaixo, mas você pode enviar qualquer tamanho — receberá apenas um aviso.
               </p>
+            </div>
+
+            <div className="bg-muted/30 p-6 rounded-lg border space-y-4">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Cor Primária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Cor Secundária</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
+                    <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
