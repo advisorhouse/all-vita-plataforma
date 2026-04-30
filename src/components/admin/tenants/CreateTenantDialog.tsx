@@ -702,11 +702,12 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Slug da Empresa *</Label>
+                  <Label>Slug da Empresa / Subdomínio *</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">app.allvita.com.br/</span>
                     <Input value={form.slug} onChange={set("slug")} required placeholder="minha-empresa" className="h-10" />
+                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">.allvita.com.br</span>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">Este será o endereço principal de acesso do portal.</p>
                 </div>
               </div>
             </div>
