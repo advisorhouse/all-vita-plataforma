@@ -101,8 +101,8 @@ const CoreCustomers: React.FC = () => {
       {/* KPIs */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
-          { label: "Total clientes", value: CLIENTS.length, icon: Users, sub: `${active} ativos`, tip: "Número total de clientes cadastrados na plataforma, incluindo ativos, pausados e cancelados." },
-          { label: "Ativos", value: active, icon: CheckCircle2, sub: `${Math.round((active / CLIENTS.length) * 100)}% da base`, tip: "Clientes com assinatura ativa e pagamento em dia." },
+          { label: "Total clientes", value: clients.length, icon: Users, sub: `${active} ativos`, tip: "Número total de clientes cadastrados na plataforma, incluindo ativos, pausados e cancelados." },
+          { label: "Ativos", value: active, icon: CheckCircle2, sub: `${clients.length > 0 ? Math.round((active / clients.length) * 100) : 0}% da base`, tip: "Clientes com assinatura ativa e pagamento em dia." },
           { label: "Engajamento médio", value: `${avgEngagement}%`, icon: Activity, sub: "+3pp vs mês anterior", tip: "Média ponderada de uso do produto, login e interações com conteúdo da plataforma." },
           { label: "Risco alto", value: highRisk, icon: AlertTriangle, sub: "Requerem atenção", tip: "Clientes com probabilidade elevada de cancelamento baseado em engajamento, consistência e tempo sem login." },
           { label: "LTV total", value: `R$ ${(totalLtv / 1000).toFixed(1)}k`, icon: TrendingUp, sub: "Lifetime value", tip: "Valor total estimado que todos os clientes geram ao longo da vida útil da assinatura." },
