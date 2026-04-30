@@ -64,8 +64,8 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
               >
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    {t.isotipo_url || t.logo_url ? (
-                      <img src={t.isotipo_url || t.logo_url} alt={t.name} className="h-9 w-9 rounded-lg object-contain border" />
+                    {t.favicon_url || t.isotipo_url || t.logo_url ? (
+                      <img src={t.favicon_url || t.isotipo_url || t.logo_url} alt={t.name} className="h-9 w-9 rounded-lg object-contain border" />
                     ) : (
                       <div
                         className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
