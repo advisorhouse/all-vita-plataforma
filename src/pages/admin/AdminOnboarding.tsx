@@ -73,16 +73,19 @@ const AdminOnboarding: React.FC = () => {
 
     if (profile?.onboarding_completed) {
       const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+      const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
       let destination = "/auth/login";
       if (isSuperAdmin || platformRole) {
         destination = "/admin";
+      } else if (hasTenantMemberships && tenantSlug) {
+        destination = `/${tenantSlug}/core`;
       } else if (hasTenantMemberships) {
         destination = "/core";
       }
 
       await logOnboardingRedirect("resume", destination);
-      navigate(destination);
+      window.location.href = destination;
       return;
     }
     if (!profile?.must_change_password) {
