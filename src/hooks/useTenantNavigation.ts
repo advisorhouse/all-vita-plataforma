@@ -49,7 +49,7 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
 
-      if (activeSlug && needsSlug && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
+      if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
 
