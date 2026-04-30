@@ -13,19 +13,23 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
  */
 (function rewriteTenantPath() {
   if (typeof window === "undefined") return;
-  if (!isPathBasedHost(window.location.hostname)) return;
-  const slug = extractSlugFromPath(window.location.pathname);
+  
+  const hostname = window.location.hostname;
+  const isPathBased = isPathBasedHost(hostname);
+  
+  if (!isPathBased) return;
+  
+  const pathname = window.location.pathname;
+  const slug = extractSlugFromPath(pathname);
   if (!slug) return;
 
   (window as any).__tenantSlug = slug;
-  const segments = window.location.pathname.split("/").filter(Boolean);
-  const rewritten = "/" + segments.slice(1).join("/");
-  const finalPath = rewritten === "/" ? "/" : rewritten;
-  window.history.replaceState(
-    null,
-    "",
-    `${finalPath}${window.location.search}${window.location.hash}`
-  );
+  
+  // NOTE: We used to use window.history.replaceState here to strip the slug from the URL.
+  // This caused the URL in the browser to appear as just /core instead of /lumyss/core.
+  // We've disabled this rewrite to ensure the URL accurately reflects the tenant path.
+  // The useSubdomainTenant hook and React Router are being adjusted to handle the slug
+  // as part of the routing structure where necessary.
 })();
 
 createRoot(document.getElementById("root")!).render(<App />);

@@ -68,8 +68,12 @@ export function extractSlugFromPath(pathname: string): string | null {
  */
 export function buildTenantUrl(slug: string, path: string = "/", params?: Record<string, string>): string {
   const base = "https://app.allvita.com.br";
+  
+  // Ensure path starts with /
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const url = new URL(`${slug}${cleanPath === "/" ? "" : cleanPath}`, base);
+  
+  // For path-based routing, the slug must be the first segment of the path
+  const url = new URL(`/${slug}${cleanPath}`, base);
   
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
