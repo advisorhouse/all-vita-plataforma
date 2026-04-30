@@ -7,17 +7,12 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   TrendingUp, Users, ShieldCheck, Repeat, Coins,
-  Clock, Zap, Gift, CreditCard, GraduationCap, Ticket, Wrench, Eye, Lightbulb,
+  Clock, Zap, Gift, CreditCard, GraduationCap, Ticket, Wrench,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip as RTooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 // ─── Helpers ─────────────────────────────────────────────────
 const fadeUp = {
@@ -108,19 +103,25 @@ const PartnerDashboard: React.FC = () => {
     queryFn: async () => {
       if (!currentTenant?.id || !user?.id) return null;
 
-      const [profile, partner, wallet, clientsCount] = await Promise.all([
+      const [profileRes, partnerRes, walletRes] = await Promise.all([
         supabase.from("profiles").select("first_name").eq("id", user.id).single(),
         supabase.from("partners").select("id, level").eq("user_id", user.id).eq("tenant_id", currentTenant.id).single(),
-        supabase.from("vitacoins_wallet").select("balance, total_earned").eq("user_id", user.id).eq("tenant_id", currentTenant.id).single(),
-        supabase.from("clients").select("id", { count: "exact", head: true }).eq("tenant_id", currentTenant.id).eq("linked_partner_id", user.id) // This depends on how clients are linked
+        supabase.from("vitacoins_wallet").select("balance, total_earned").eq("user_id", user.id).eq("tenant_id", currentTenant.id).maybeSingle(),
       ]);
 
+      const partnerId = partnerRes.data?.id;
+      let patientsCount = 0;
+      if (partnerId) {
+        const referralsRes = await supabase.from("referrals").select("id", { count: "exact", head: true }).eq("partner_id", partnerId);
+        patientsCount = referralsRes.count || 0;
+      }
+
       return {
-        firstName: profile.data?.first_name || "Partner",
-        level: partner.data?.level || "Iniciante",
-        balance: wallet.data?.balance || 0,
-        totalEarned: wallet.data?.total_earned || 0,
-        patientsCount: clientsCount.count || 0
+        firstName: profileRes.data?.first_name || "Partner",
+        level: partnerRes.data?.level || "Iniciante",
+        balance: walletRes.data?.balance || 0,
+        totalEarned: walletRes.data?.total_earned || 0,
+        patientsCount
       };
     },
     enabled: !!currentTenant?.id && !!user?.id
@@ -193,8 +194,9 @@ const PartnerDashboard: React.FC = () => {
         <div className="grid grid-cols-12 gap-4">
            <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-8">
             <Card className="border-border shadow-sm h-full">
-              <CardContent className="p-5 space-y-3 h-full flex flex-col items-center justify-center">
-                 <p className="text-muted-foreground text-sm">Nenhum dado de evolução disponível.</p>
+              <CardContent className="p-5 space-y-3 h-full flex flex-col items-center justify-center text-center">
+                 <p className="text-muted-foreground text-sm font-medium">Histórico de Performance</p>
+                 <p className="text-muted-foreground/60 text-[11px] mt-1">Dados de crescimento serão exibidos assim que houver volume suficiente.</p>
               </CardContent>
             </Card>
           </motion.div>
