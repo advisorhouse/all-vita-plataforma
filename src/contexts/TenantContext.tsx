@@ -54,6 +54,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isLoading, setIsLoading] = useState(true);
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [isSubdomainAccess, setIsSubdomainAccess] = useState(false);
+  const [tenantMode, setTenantMode] = useState<"path" | "subdomain" | "custom-domain" | "query" | null>(null);
 
   // We will derive isSuperAdmin and platform staff status 
   // from a separate effect that checks all_vita_staff
