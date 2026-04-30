@@ -41,9 +41,6 @@ serve(async (req) => {
       const owner = owners?.[0];
       if (!owner) return jsonRes(404, { error: "Owner not found" });
 
-      // Generate a new temporary password and update the user
-      const newTempPassword = generateTempPassword();
-      
       // Find user by email
       const { data: usersData, error: listError } = await adminClient.auth.admin.listUsers();
       if (listError) throw listError;
@@ -51,18 +48,32 @@ serve(async (req) => {
       const authUser = usersData.users.find(u => u.email?.toLowerCase() === owner.email.toLowerCase());
       if (!authUser) return jsonRes(404, { error: "User not found in Auth" });
 
-      // Update password and force change
-      const { error: updateError } = await adminClient.auth.admin.updateUserById(authUser.id, {
-        password: newTempPassword,
-      });
-      if (updateError) throw updateError;
-
-      await adminClient
+      // Check profile to see if they already completed onboarding
+      const { data: profile } = await adminClient
         .from("profiles")
-        .update({ must_change_password: true, onboarding_completed: false })
-        .eq("id", authUser.id);
+        .select("onboarding_completed, must_change_password")
+        .eq("id", authUser.id)
+        .single();
 
-      // Build the email content with the real temporary password
+      let passwordToShow = "Sua senha pessoal";
+      
+      // Only reset password if they haven't completed onboarding
+      if (!profile?.onboarding_completed) {
+        const newTempPassword = generateTempPassword();
+        const { error: updateError } = await adminClient.auth.admin.updateUserById(authUser.id, {
+          password: newTempPassword,
+        });
+        if (updateError) throw updateError;
+
+        await adminClient
+          .from("profiles")
+          .update({ must_change_password: true })
+          .eq("id", authUser.id);
+        
+        passwordToShow = newTempPassword;
+      }
+
+      // Build the email content with the real temporary password (or "Sua senha pessoal")
       const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
         method: "POST",
         headers: {
@@ -72,7 +83,7 @@ serve(async (req) => {
         body: JSON.stringify({
           to: owner.email,
           subject: `Acesso Liberado: All Vita — ${tenant.trade_name || tenant.name}`,
-          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, newTempPassword, owner.email),
+          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, passwordToShow, owner.email),
         }),
       });
 
