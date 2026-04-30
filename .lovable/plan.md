@@ -1,80 +1,142 @@
-## Contexto
+# Análise: Arquitetura de Pagamento + Integração (All Vita)
 
-A migração para subdomínios está 80% pronta, mas a última edição quebrou o roteamento (`<ClubRoutes>` usado como filho direto de `<Routes>`, o que React Router não permite). O preview está bloqueado por esse erro. Além disso, precisamos finalizar a limpeza para a empresa "Lumyss" ser recadastrada do zero usando o novo fluxo.
+## Resumo executivo
 
-## Etapas
+O prompt descreve uma arquitetura onde a All Vita é **orquestradora** (não processadora) de pagamentos, com Pagar.me cuidando do split financeiro e Shopify cuidando da logística. **Boa notícia: cerca de 60% disso já está implementado** na sua plataforma. O que falta é principalmente: **subcontas/split**, **integração Shopify de saída** (hoje só recebemos webhook de entrada), e **rastreabilidade financeira granular** (tabelas `payment_transactions` e `payment_splits`).
 
-### 1. Corrigir o bug de roteamento (urgente — desbloqueia preview)
+---
 
-Em `src/App.tsx`, transformar `ClubRoutes`, `PartnerRoutes` e `CoreRoutes` de **componentes** em **fragmentos JSX constantes** que podem ser interpolados diretamente dentro de `<Route>...</Route>`.
+## 1. O que JÁ ESTÁ FEITO (alinhado ao prompt)
 
+### Arquitetura conceitual
+- All Vita já é orquestradora (não processa cartão) — confirmado em `mem://integration/ecommerce-and-payments`
+- Separação de responsabilidades já existe: edge functions atuam como API Gateway
+- Pagar.me já é o gateway escolhido (memória `pagarme-webhook` + tabela `payment_integrations`)
+
+### Tabelas existentes
+| Prompt pede | Já existe? | Tabela atual |
+|---|---|---|
+| `orders` | ✅ Sim | `orders` (id, tenant_id, client_id, product_id, amount, status, payment_status, external_id, subscription_cycle) |
+| `order_items` | ❌ Não | — (orders tem só `product_id` único) |
+| `payment_transactions` | ⚠️ Parcial | Dados ficam dentro de `orders.metadata.pagarme_data` |
+| `payment_splits` | ❌ Não | — |
+| `tenant_gateway_accounts` | ❌ Não | `payment_integrations` guarda só credencial, não subconta |
+| Comissões | ✅ Sim | `commissions`, `mt_commissions`, `commission_rules` |
+| Vitacoins | ✅ Sim | `vitacoins_wallet`, `vitacoin_transactions`, `commission_to_coin_rules` |
+
+### Edge functions existentes
+- `pagarme-api` — cria orders/customers via API Pagar.me
+- `pagarme-webhook` — recebe `order.paid`, `order.payment_failed`, `subscription.*`
+- `webhook-receiver` — receptor genérico (Stripe-like)
+- `process-commission` — calcula comissão pós-pagamento (lê afiliado, nível, ciclo)
+- `commission-engine-v2` + `commission-simulator`
+- `gamification-engine` — Vitacoins
+- `process-attribution` — vincula cliente↔parceiro
+
+### Fluxo já funcional
 ```text
-ANTES (quebrado):
-  <Route path="/club" element={...}>
-    <ClubRoutes />          ← React Router rejeita
-  </Route>
-
-DEPOIS:
-  const clubChildren = <><Route index .../><Route path="..." .../></>;
-  
-  <Route path="/club" element={...}>
-    {clubChildren}          ← fragmento, funciona
-  </Route>
-  <Route path="/:slug/club" element={...}>
-    {clubChildren}
-  </Route>
+Pagar.me webhook → pagarme-webhook → atualiza orders.payment_status='paid'
+                                  → chama process-commission
+                                  → calcula comissão por nível
+                                  → (gamification-engine gera Vitacoins)
 ```
 
-Aplicar o mesmo padrão para Partner e Core.
+---
 
-### 2. Excluir o tenant "Lumyss" atual do banco
+## 2. O que FALTA (gaps reais)
 
-Criar migração SQL para deletar o tenant `slug='lumyss'` e dependências (memberships, partners, clients vinculados). Deixa o terreno limpo para o novo cadastro.
+### Gap A — Subcontas e Split (CRÍTICO)
+Hoje a plataforma assume **uma conta Pagar.me global ou uma por tenant** (toggle em `GatewaysPanel`), mas **não há split**: o dinheiro cai inteiro numa conta e a comissão é só registro contábil interno. O prompt pede que o split aconteça **no próprio Pagar.me**, ou seja:
+- Cada tenant precisa ter `recipient_id` (subconta) no Pagar.me
+- Cada transação precisa enviar array `split` com: tenant + All Vita (fee SaaS) + parceiro (se houver comissão paga via gateway)
 
-### 3. Adicionar painel de status de subdomínio em `/admin/tenants/[id]`
+### Gap B — Tabelas de rastreabilidade financeira
+- `payment_transactions` — hoje só temos `orders` com metadata. Para auditoria fiscal e relatórios financeiros precisos, transação ≠ pedido (1 pedido pode ter N tentativas, refunds, chargebacks).
+- `payment_splits` — registro de quanto cada recebedor pegou em cada transação.
+- `tenant_gateway_accounts` — mapping tenant ↔ recipient_id Pagar.me, status KYC, dados bancários.
 
-Nova seção na aba Overview do tenant mostrando:
-- URL esperada: `{slug}.allvita.com.br`
-- Status DNS (resolvido? aponta pro IP correto?)
-- Status SSL (ativo? pendente?)
-- Botão "Copiar instruções DNS" com os valores prontos pra colar no Registro.br
-- Aviso: "Conecte o subdomínio no Lovable em Project Settings → Domains"
+### Gap C — Integração Shopify de SAÍDA
+Hoje a plataforma **recebe webhook do Shopify** (memória menciona ingestão read-only), mas o prompt pede o inverso: **All Vita cria pedido no Shopify** após pagamento aprovado. Não existe `/integrations/shopify` para criar order via Admin API.
 
-### 4. Remover prefixo `/lumyss/` legado
+### Gap D — Order items
+`orders` atual tem `product_id` único (modelo de assinatura). Para e-commerce real (carrinho com múltiplos itens) precisa de `order_items`.
 
-Como ninguém ainda usou path-based, remover as rotas duplicadas `/:slug/club`, `/:slug/partner`, `/:slug/core` do `App.tsx`. O app passa a usar exclusivamente subdomínio (mais query param `?tenant=` para dev local). Simplifica o `useTenantNavigation` (remove toda a lógica de injetar slug no path).
+### Gap E — Validação de assinatura de webhook
+`pagarme-webhook/index.ts` **não valida assinatura HMAC** do Pagar.me. Hoje qualquer um pode chamar o endpoint e marcar order como paga. Risco crítico.
 
-### 5. Atualizar `tenant-routing.ts` e remover `main.tsx` rewrite
+### Gap F — Criptografia de credenciais
+`payment_integrations.api_key_encrypted` — o nome diz "encrypted" mas o código de `pagarme-api` lê `config.api_key_encrypted` e usa direto como Bearer. Não está criptografado de fato.
 
-- Remover `extractSlugFromPath`, `PATH_BASED_HOSTS`, `RESERVED_PATH_SEGMENTS`
-- Remover o IIFE de rewrite em `main.tsx`
-- `useSubdomainTenant` passa a detectar **só** subdomínio + custom domain + query param
-- `buildTenantUrl(slug, path)` retorna `https://{slug}.allvita.com.br{path}`
+### Gap G — Onboarding de subconta (KYC)
+Não existe fluxo no portal `/core` para o tenant submeter dados bancários + documentos para criar a subconta no Pagar.me.
 
-### 6. Documentação inline no admin
+---
 
-Adicionar tooltip/help no formulário de criação de tenant explicando os 2 passos manuais (Lovable Domains + Registro.br DNS) com o IP `185.158.133.1`.
+## 3. O que o prompt MELHORA vs hoje
 
-## Aspectos técnicos
+| Aspecto | Hoje | Com a proposta |
+|---|---|---|
+| Split financeiro | Manual/contábil | Automático no gateway (dinheiro vai direto pro tenant) |
+| Risco de inadimplência da All Vita | Alto (ela recebe tudo e repassa) | Zero (cada um recebe sua parte) |
+| Compliance fiscal | All Vita aparece como recebedora de tudo | Cada tenant emite NF do que recebe |
+| Auditoria | `orders.metadata` JSON | Tabelas estruturadas |
+| Logística | Cada tenant cuida manual | Centralizada via Shopify |
+| Multi-gateway futuro | Acoplado | `tenant_gateway_accounts` permite Stripe/MP/Asaas |
 
-- **Detecção de tenant**: `window.location.hostname` → extrai primeiro segmento se domínio é `*.allvita.com.br` e não é reservado (`app`, `www`, `api`, `admin`)
-- **Reservados**: `app.allvita.com.br` continua sendo o admin global (super admin); subdomínios como `lumyss.allvita.com.br` são tenants
-- **Branding**: já corrigido na conversa anterior — cor 1 → `--background` + `--sidebar-background`, cor 2 → `--primary` + `--accent`, com cálculo automático de contraste pro texto
-- **Dev local**: continuar suportando `?tenant=lumyss` via query param (já implementado)
-- **SSL**: Lovable provisiona via Let's Encrypt automaticamente após DNS resolver — sem ação manual
+## 4. O que o prompt PIORA / RISCOS
 
-## Fora de escopo
+- **Complexidade operacional**: KYC de subconta Pagar.me leva dias e exige CNPJ ativo de cada tenant. Tenants pequenos podem não conseguir abrir subconta.
+- **Dependência de Shopify**: o prompt diz "não depender de Shopify para pagamento" mas cria forte dependência para logística. Tenants sem produto físico (ex: serviços, assinatura digital) não precisam de Shopify — a arquitetura precisa tornar Shopify **opcional por tenant**.
+- **Ciclo de assinatura**: o modelo atual de `subscription_cycle` em `orders` é mais simples e funciona bem para Vision Lift/recorrência. Migrar para `orders` + `order_items` precisa preservar esse caso.
+- **Hardcode Vision Lift**: o prompt cita evitar isso, mas hoje boa parte da lógica de comissão (`commission-engine-v2`) já é genérica via `commission_rules` por tenant. Não é um problema real.
 
-- Wildcard DNS (`*.allvita.com.br`) — Lovable não suporta, então cada tenant exige conexão manual no painel Lovable. Como serão só 2-3 tenants, isso é aceitável.
-- Self-service onboarding (cliente cria tenant sozinho) — não faz sentido com fluxo manual de DNS. Cadastro de tenant continua sendo prerrogativa do super admin.
+---
 
-## O que VOCÊ precisará fazer depois que eu implementar
+## 5. Roadmap sugerido (fases)
 
-Para cada nova empresa (incluindo recadastrar a Lumyss):
+### Fase 1 — Segurança e fundação (1-2 dias)
+1. Implementar validação HMAC no `pagarme-webhook` (header `X-Hub-Signature`)
+2. Criptografar de fato `api_key_encrypted` (usar Supabase Vault ou pgcrypto)
+3. Criar tabela `payment_transactions` (separada de `orders`) e migrar metadata existente
+4. Criar tabela `payment_splits`
 
-1. Criar a empresa em `app.allvita.com.br/admin/tenants` (~2 min)
-2. Conectar o subdomínio em **Lovable → Project Settings → Domains** (~1 min)
-3. Adicionar 1 registro DNS tipo A no Registro.br (~2 min)
-4. Aguardar propagação e SSL (~15 min a 4h, sem ação sua)
+### Fase 2 — Subcontas Pagar.me (3-5 dias)
+1. Criar tabela `tenant_gateway_accounts`
+2. Edge function `pagarme-create-recipient` (cria subconta via API)
+3. UI no `/core/settings/financeiro`: formulário KYC (CNPJ, dados bancários, sócios)
+4. Edge function `pagarme-recipient-status` (polling KYC)
+5. Notificação ao admin All Vita quando KYC aprovado/recusado
 
-Total: **~5 minutos de trabalho ativo por empresa**, uma única vez na vida.
+### Fase 3 — Split em transações (2-3 dias)
+1. Atualizar `pagarme-api` para incluir `split` array em cada `create_order`
+2. Lógica de split: tenant (X%) + All Vita fee SaaS (Y%) + parceiro (Z% se aplicável e configurado)
+3. Configuração de fee All Vita por plano em `subscription_plans`
+4. Dashboard de splits no `/admin/finance`
+
+### Fase 4 — Shopify de saída (3-4 dias)
+1. Tabela `tenant_shopify_config` (loja URL + admin token por tenant, opcional)
+2. Edge function `shopify-create-order` (chamada após `payment.paid`)
+3. Tabela `order_items` + migração
+4. Sync de status (fulfilled, shipped) via webhook Shopify → `orders.fulfillment_status`
+5. Tornar Shopify **opt-in** por tenant (flag em `tenants`)
+
+### Fase 5 — Rastreabilidade e relatórios (2 dias)
+1. View `financial_traceability`: transação → split → recebedor → comissão → vitacoins
+2. Relatório de repasses por tenant
+3. Reconciliação automática Pagar.me ↔ All Vita
+
+---
+
+## 6. Recomendação
+
+**Aprovar Fase 1 imediatamente** (gaps de segurança são críticos — hoje qualquer pessoa pode forjar um webhook de pagamento aprovado). 
+
+**Fases 2-3 (split)** são o coração do prompt e o maior diferencial — recomendo seguir.
+
+**Fase 4 (Shopify)** só faz sentido se você confirmar que tenants vão vender produtos físicos. Para Vision Lift hoje (assinatura), **não é prioridade**.
+
+**Decisões que preciso de você antes de codar:**
+1. Todos os tenants vão obrigatoriamente abrir subconta Pagar.me, ou aceitamos modelo híbrido (subconta opcional + conta global da All Vita como fallback)?
+2. Shopify é obrigatório para todos os tenants ou opt-in?
+3. Fee SaaS da All Vita é fixo (%) por plano, ou configurável por tenant?
+4. Comissão de parceiro vai pelo split do Pagar.me (parceiro recebe direto) ou continua como hoje (registro interno + repasse manual)?
