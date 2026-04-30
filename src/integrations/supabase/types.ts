@@ -1182,7 +1182,7 @@ export type Database = {
           id: string
           metadata: Json | null
           provider: string
-          tenant_id: string
+          tenant_id: string | null
           updated_at: string
           webhook_secret: string | null
         }
@@ -1193,7 +1193,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           provider: string
-          tenant_id: string
+          tenant_id?: string | null
           updated_at?: string
           webhook_secret?: string | null
         }
@@ -1204,7 +1204,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           provider?: string
-          tenant_id?: string
+          tenant_id?: string | null
           updated_at?: string
           webhook_secret?: string | null
         }
@@ -2214,8 +2214,10 @@ export type Database = {
           current_period_end: string
           current_period_start: string
           discount_percent: number | null
+          external_id: string | null
           id: string
           metadata: Json | null
+          payment_method: string | null
           plan_id: string
           status: string
           tenant_id: string
@@ -2229,8 +2231,10 @@ export type Database = {
           current_period_end?: string
           current_period_start?: string
           discount_percent?: number | null
+          external_id?: string | null
           id?: string
           metadata?: Json | null
+          payment_method?: string | null
           plan_id: string
           status?: string
           tenant_id: string
@@ -2244,8 +2248,10 @@ export type Database = {
           current_period_end?: string
           current_period_start?: string
           discount_percent?: number | null
+          external_id?: string | null
           id?: string
           metadata?: Json | null
+          payment_method?: string | null
           plan_id?: string
           status?: string
           tenant_id?: string
@@ -2286,6 +2292,7 @@ export type Database = {
           logo_url: string | null
           manual_activation_required: boolean | null
           name: string
+          pagarme_customer_id: string | null
           pending_registration_notification: boolean | null
           primary_color: string | null
           registration_status: string | null
@@ -2314,6 +2321,7 @@ export type Database = {
           logo_url?: string | null
           manual_activation_required?: boolean | null
           name: string
+          pagarme_customer_id?: string | null
           pending_registration_notification?: boolean | null
           primary_color?: string | null
           registration_status?: string | null
@@ -2342,6 +2350,7 @@ export type Database = {
           logo_url?: string | null
           manual_activation_required?: boolean | null
           name?: string
+          pagarme_customer_id?: string | null
           pending_registration_notification?: boolean | null
           primary_color?: string | null
           registration_status?: string | null
