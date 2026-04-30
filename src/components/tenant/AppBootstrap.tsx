@@ -19,5 +19,3 @@ const AppBootstrap: React.FC = () => {
 };
 
 export default AppBootstrap;
-
-export default AppBootstrap;
