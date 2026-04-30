@@ -329,9 +329,9 @@ const CoreCustomers: React.FC = () => {
         <TabsContent value="risk" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              { title: "Risco Alto", count: highRisk, color: "text-destructive", bgColor: "bg-destructive/10", clients: CLIENTS.filter(c => c.risk === "high") },
-              { title: "Atenção", count: CLIENTS.filter(c => c.risk === "medium").length, color: "text-accent-foreground", bgColor: "bg-accent/10", clients: CLIENTS.filter(c => c.risk === "medium") },
-              { title: "Estável", count: CLIENTS.filter(c => c.risk === "low").length, color: "text-primary", bgColor: "bg-primary/10", clients: CLIENTS.filter(c => c.risk === "low") },
+              { title: "Risco Alto", count: highRisk, color: "text-destructive", bgColor: "bg-destructive/10", clients: clients.filter(c => c.risk === "high") },
+              { title: "Atenção", count: clients.filter(c => c.risk === "medium").length, color: "text-accent-foreground", bgColor: "bg-accent/10", clients: clients.filter(c => c.risk === "medium") },
+              { title: "Estável", count: clients.filter(c => c.risk === "low").length, color: "text-primary", bgColor: "bg-primary/10", clients: clients.filter(c => c.risk === "low") },
             ].map(group => (
               <Card key={group.title} className="border border-border shadow-sm">
                 <CardHeader className="pb-2">
