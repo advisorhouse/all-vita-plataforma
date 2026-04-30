@@ -108,6 +108,8 @@ serve(async (req) => {
 
       if (tenant && tenant.registration_status === 'pending') {
         console.log(`Tenant ${slug} is now dns_ready! Updating database...`);
+        
+        // 1. Update tenant status
         await supabaseAdmin
           .from("tenants")
           .update({ 
@@ -115,6 +117,27 @@ serve(async (req) => {
             pending_registration_notification: true 
           })
           .eq("slug", slug);
+
+        // 2. Fetch Super Admins to notify
+        const { data: superAdmins } = await supabaseAdmin
+          .from("all_vita_staff")
+          .select("user_id")
+          .eq("role", "super_admin");
+
+        if (superAdmins && superAdmins.length > 0) {
+          // 3. Insert system notification for each super admin
+          const notifications = superAdmins.map(admin => ({
+            user_id: admin.user_id,
+            title: "🚀 Novo domínio pronto para ativação",
+            message: `O domínio para o tenant "${slug}" (${slug}.allvita.com.br) já está propagado e acessível. A empresa já pode ser finalizada.`,
+            type: "system",
+            metadata: { slug, tenant_id: tenant.id }
+          }));
+
+          await supabaseAdmin
+            .from("notifications")
+            .insert(notifications);
+        }
       }
     }
 
