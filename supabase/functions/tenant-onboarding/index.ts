@@ -310,7 +310,7 @@ function generateTempPassword(): string {
   return password;
 }
 
-function buildWelcomeEmail(name: string, company: string, slug: string, tempPassword: string): string {
+function buildWelcomeEmail(name: string, company: string, slug: string, tempPassword: string, email: string): string {
   return `
     <div style="font-family: 'Inter', -apple-system, sans-serif; max-width: 650px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 16px; background-color: #ffffff; color: #1a1a1a; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
       <div style="text-align: center; margin-bottom: 32px;">
