@@ -186,29 +186,20 @@ const App = () => (
               {/* Club (Cliente) - Protected */}
               <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />
               <Route path="/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
-                <ClubRoutes />
-              </Route>
-              <Route path="/:slug/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
-                <ClubRoutes />
+                {clubChildren}
               </Route>
 
               {/* Partner (Afiliado) - Protected */}
               <Route path="/partner/start" element={<AuthGuard><PartnerStart /></AuthGuard>} />
               <Route path="/partner/onboarding" element={<PartnerOnboarding />} />
               <Route path="/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
-                <PartnerRoutes />
-              </Route>
-              <Route path="/:slug/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
-                <PartnerRoutes />
+                {partnerChildren}
               </Route>
 
               {/* Core (Admin da empresa) - Protected */}
               <Route path="/core/select-role" element={<AuthGuard><CoreSelectRole /></AuthGuard>} />
               <Route path="/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
-                <CoreRoutes />
-              </Route>
-              <Route path="/:slug/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
-                <CoreRoutes />
+                {coreChildren}
               </Route>
 
               {/* Admin (All Vita - Super Admin) - Protected */}
