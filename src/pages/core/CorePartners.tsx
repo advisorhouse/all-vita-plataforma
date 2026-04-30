@@ -354,7 +354,7 @@ const CorePartners: React.FC = () => {
                   <h3 className="text-sm font-semibold text-foreground">Top Performers</h3>
                   <span className="text-[10px] text-muted-foreground">Por MRR gerado</span>
                 </div>
-                {PARTNERS.filter((p) => p.status === "active")
+                {partners.filter((p) => p.status === "active")
                   .sort((a, b) => b.mrr - a.mrr)
                   .slice(0, 5)
                   .map((p, i) => {
