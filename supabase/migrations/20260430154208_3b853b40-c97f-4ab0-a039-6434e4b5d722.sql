@@ -1,0 +1,1 @@
+UPDATE tenants SET status = 'active', activation_email_sent = true WHERE id = '9d70579a-3fc4-4f0a-8ac3-59fc989b29a7';
