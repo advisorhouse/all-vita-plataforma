@@ -1,6 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import {
   Users, DollarSign, TrendingUp, ShieldCheck, Package,
   Award, AlertTriangle, BarChart3, ArrowUpRight, ArrowDownRight,
@@ -65,15 +68,6 @@ const GreetingIcon: React.FC = () => {
 };
 
 /* ─── Mock Data ──────────────────────────────────────────── */
-const KPI_CARDS = [
-  { label: "Clientes Ativos", value: "890", change: "+12%", up: true, icon: Users, tip: "Total de assinantes com status ativo.", href: "/core/customers" },
-  { label: "Partners Ativos", value: "47", change: "+8%", up: true, icon: Handshake, tip: "Partners com pelo menos 1 cliente ativo.", href: "/core/partners" },
-  { label: "MRR", value: "R$ 52.1k", change: "+15%", up: true, icon: DollarSign, tip: "Receita mensal recorrente.", accent: true, href: "/core/finance" },
-  { label: "Ticket Médio", value: "R$ 198", change: "+3%", up: true, icon: Repeat, tip: "Valor médio por assinatura ativa." },
-  { label: "Churn", value: "4.2%", change: "-0.8%", up: false, icon: AlertTriangle, tip: "Taxa de cancelamento mensal.", invertColor: true },
-  { label: "Retenção 90d", value: "82%", change: "+2%", up: true, icon: ShieldCheck, tip: "Clientes retidos após 90 dias." },
-];
-
 const SPARKLINE_DATA = [
   [38, 42, 40, 48, 52, 58, 62, 68, 72, 78, 82, 89],
   [12, 15, 18, 20, 24, 28, 30, 34, 38, 40, 44, 47],
@@ -83,45 +77,16 @@ const SPARKLINE_DATA = [
   [68, 70, 71, 73, 74, 75, 76, 77, 78, 79, 81, 82],
 ];
 
-const REVENUE_DATA = [
-  { month: "Set", receita: 18200, comissao: 2180 },
-  { month: "Out", receita: 24500, comissao: 3120 },
-  { month: "Nov", receita: 31800, comissao: 4200 },
-  { month: "Dez", receita: 38900, comissao: 5100 },
-  { month: "Jan", receita: 45200, comissao: 6300 },
-  { month: "Fev", receita: 52100, comissao: 7400 },
-];
-
-const COHORT_DATA = [
-  { cohort: "Set", m1: 100, m2: 88, m3: 79, m4: 72, m5: 68, m6: 65 },
-  { cohort: "Out", m1: 100, m2: 90, m3: 82, m4: 75, m5: 70 },
-  { cohort: "Nov", m1: 100, m2: 91, m3: 84, m4: 77 },
-  { cohort: "Dez", m1: 100, m2: 89, m3: 81 },
-  { cohort: "Jan", m1: 100, m2: 92 },
-  { cohort: "Fev", m1: 100 },
-];
-
-const TOP_PARTNERS = [
-  { name: "Camila S.", clients: 24, retention: 92, ltv: 1840, trend: "up" },
-  { name: "Ana P.", clients: 18, retention: 88, ltv: 1620, trend: "up" },
-  { name: "Julia M.", clients: 15, retention: 85, ltv: 1480, trend: "up" },
-  { name: "Fernanda R.", clients: 12, retention: 78, ltv: 1120, trend: "up" },
-  { name: "Patrícia L.", clients: 8, retention: 65, ltv: 780, trend: "down" },
-];
-
-const GROWTH_PROJECTION = [
-  { month: "Fev", real: 890, proj: 890 },
-  { month: "Mar", real: null, proj: 980 },
-  { month: "Abr", real: null, proj: 1080 },
-  { month: "Mai", real: null, proj: 1190 },
-  { month: "Jun", real: null, proj: 1310 },
-  { month: "Jul", real: null, proj: 1440 },
-];
+const chartTooltipStyle = {
+  background: "hsl(var(--card))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: 12,
+  fontSize: 11,
+  boxShadow: "0 4px 12px hsl(var(--foreground) / 0.08)",
+};
 
 const ALERTS = [
-  { type: "warning", title: "Churn acima da média", desc: "Kit Trimestral: retenção caiu 8% este mês.", icon: AlertTriangle, action: "Ver produto" },
-  { type: "info", title: "Partner com potencial", desc: "Fernanda R. adicionou 5 clientes em 2 semanas.", icon: TrendingUp, action: "Ver partner" },
-  { type: "danger", title: "Retenção em queda", desc: "Cohort de Dezembro abaixo do esperado no mês 3.", icon: Activity, action: "Analisar" },
+  { type: "info", title: "Configuração Concluída", desc: "A plataforma está pronta para uso.", icon: ShieldCheck, action: "Explorar" },
 ];
 
 const chartTooltipStyle = {
