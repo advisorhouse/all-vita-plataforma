@@ -161,7 +161,12 @@ const ResetPasswordPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-[11px] text-muted-foreground mt-6">
+        <p 
+          className="text-center text-[11px] mt-6 transition-colors duration-500"
+          style={{ 
+            color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.7)' : 'var(--muted-foreground)'
+          }}
+        >
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
