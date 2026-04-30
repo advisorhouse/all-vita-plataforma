@@ -69,7 +69,7 @@ const AdminIntegrations: React.FC = () => {
   const gateways: PaymentGateway[] = useMemo(() =>
     paymentIntegrations.map((pi) => ({
       id: pi.id,
-      tenant_name: tenantMap[pi.tenant_id] || pi.tenant_id.slice(0, 8),
+      tenant_name: pi.tenant_id ? (tenantMap[pi.tenant_id] || pi.tenant_id.slice(0, 8)) : "Global (All Vita Platform)",
       provider: pi.provider,
       active: pi.active,
       updated_at: pi.updated_at,
