@@ -60,15 +60,97 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = config.api_key_encrypted; // Assuming it's the raw key for now or decrypted via some vault
+    const apiKey = config.api_key_encrypted; 
     const auth = btoa(`${apiKey}:`);
 
     let endpoint = "";
     let method = "POST";
+    let bodyData = params;
 
     switch (action) {
       case "create_order":
         endpoint = "/orders";
+        
+        // Handle Splits for All Vita fee
+        if (tenant_id) {
+          // 1. Get All Vita Master recipient
+          const { data: globalConfig } = await supabase
+            .from("payment_integrations")
+            .select("recipient_id")
+            .is("tenant_id", null)
+            .eq("provider", "pagarme")
+            .eq("active", true)
+            .single();
+
+          // 2. Get Tenant recipient
+          const { data: tenantConfig } = await supabase
+            .from("payment_integrations")
+            .select("recipient_id")
+            .eq("tenant_id", tenant_id)
+            .eq("provider", "pagarme")
+            .eq("active", true)
+            .single();
+
+          // 3. Get Fee Percentage
+          let feePercentage = 0;
+          const { data: tenant } = await supabase
+            .from("tenants")
+            .select("custom_transaction_fee")
+            .eq("id", tenant_id)
+            .single();
+          
+          if (tenant?.custom_transaction_fee !== null && tenant?.custom_transaction_fee !== undefined) {
+            feePercentage = tenant.custom_transaction_fee;
+          } else {
+            // Get from plan
+            const { data: subscription } = await supabase
+              .from("tenant_subscriptions")
+              .select("plan_id")
+              .eq("tenant_id", tenant_id)
+              .eq("status", "active")
+              .single();
+            
+            if (subscription?.plan_id) {
+              const { data: plan } = await supabase
+                .from("saas_plans")
+                .select("transaction_fee_percentage")
+                .eq("id", subscription.plan_id)
+                .single();
+              feePercentage = plan?.transaction_fee_percentage || 0;
+            }
+          }
+
+          if (globalConfig?.recipient_id && tenantConfig?.recipient_id && feePercentage > 0) {
+            // Inject splits into each payment method (usually 'credit_card' or 'pix')
+            if (bodyData.payments && Array.isArray(bodyData.payments)) {
+              bodyData.payments = bodyData.payments.map((payment: any) => {
+                const splits = [
+                  {
+                    recipient_id: globalConfig.recipient_id,
+                    type: "percentage",
+                    amount: feePercentage,
+                    options: {
+                      charge_processing_fee: true,
+                      charge_remainder_fee: true,
+                      liable: true,
+                    },
+                  },
+                  {
+                    recipient_id: tenantConfig.recipient_id,
+                    type: "percentage",
+                    amount: 100 - feePercentage,
+                    options: {
+                      charge_processing_fee: false,
+                      charge_remainder_fee: false,
+                      liable: false,
+                    },
+                  },
+                ];
+                return { ...payment, split: splits };
+              });
+            }
+          }
+        }
         break;
       case "create_customer":
         endpoint = "/customers";
@@ -90,10 +172,26 @@ serve(async (req) => {
         "Content-Type": "application/json",
         Authorization: `Basic ${auth}`,
       },
-      body: method === "POST" ? JSON.stringify(params) : undefined,
+      body: method === "POST" ? JSON.stringify(bodyData) : undefined,
     });
 
     const result = await response.json();
+
+    // If order was created successfully and we have splits, record the split info in the order metadata
+    if (action === "create_order" && response.status === 200 && result.id && bodyData.code) {
+       const feePercentage = bodyData.payments?.[0]?.split?.[0]?.amount || 0;
+       if (feePercentage > 0) {
+         await supabase
+           .from("orders")
+           .update({ 
+             metadata: { 
+               all_vita_fee_percentage: feePercentage,
+               pagarme_order_id: result.id 
+             } 
+           })
+           .eq("id", bodyData.code);
+       }
+    }
 
     return new Response(JSON.stringify(result), {
       status: response.status,

@@ -41,13 +41,21 @@ serve(async (req) => {
           .single();
 
         if (order) {
+          // Calculate split amounts for recording
+          const metadata = order.metadata || {};
+          const feePercentage = metadata.all_vita_fee_percentage || 0;
+          const all_vita_fee = (order.amount * feePercentage) / 100;
+          const tenant_amount = order.amount - all_vita_fee;
+
           await supabase
             .from("orders")
             .update({ 
               payment_status: "paid", 
               status: "confirmed",
               external_id: external_id,
-              metadata: { ...order.metadata, pagarme_data: data }
+              all_vita_fee: all_vita_fee,
+              tenant_amount: tenant_amount,
+              metadata: { ...metadata, pagarme_data: data }
             })
             .eq("id", order_id);
 
