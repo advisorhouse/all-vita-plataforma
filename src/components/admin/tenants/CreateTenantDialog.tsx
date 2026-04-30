@@ -1083,14 +1083,59 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
             </div>
 
             <div className="pt-6 space-y-3">
+              {/* Status de propagação DNS */}
+              <div
+                className={`rounded-xl border p-4 flex items-start gap-3 ${
+                  dnsCheckStatus === "propagated"
+                    ? "bg-green-50 border-green-200"
+                    : "bg-blue-50 border-blue-200"
+                }`}
+              >
+                {dnsCheckStatus === "propagated" ? (
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                ) : (
+                  <Loader2 className="h-5 w-5 text-blue-600 mt-0.5 shrink-0 animate-spin" />
+                )}
+                <div className="flex-1 text-xs leading-relaxed">
+                  {dnsCheckStatus === "propagated" ? (
+                    <>
+                      <p className="font-bold text-green-900">DNS propagado e domínio acessível ✓</p>
+                      <p className="text-green-800 mt-1">
+                        <strong>{createdTenant?.tenant?.slug}.allvita.com.br</strong> já responde corretamente. Você pode enviar o e-mail de acesso ao cliente.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-bold text-blue-900">Aguardando propagação do DNS...</p>
+                      <p className="text-blue-800 mt-1">
+                        Verificando <strong>{createdTenant?.tenant?.slug}.allvita.com.br</strong> a cada 15s. Pode levar de 15 minutos a algumas horas.
+                      </p>
+                      <p className="text-blue-700 mt-1 text-[11px]">
+                        Tentativa #{dnsCheckAttempts}
+                        {dnsCheckInfo.stage && ` · estágio: ${dnsCheckInfo.stage}`}
+                        {dnsCheckInfo.lastCheck && ` · última: ${dnsCheckInfo.lastCheck.toLocaleTimeString("pt-BR")}`}
+                      </p>
+                      {dnsCheckInfo.error && (
+                        <p className="text-blue-700 mt-1 text-[11px] italic">{dnsCheckInfo.error}</p>
+                      )}
+                      <p className="text-blue-700 mt-2 text-[11px]">
+                        💡 O envio do e-mail e a finalização ficam liberados assim que o domínio responder.
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+
               <Button
                 onClick={handleVerifyDns}
-                disabled={verifyingDns}
+                disabled={verifyingDns || dnsCheckStatus !== "propagated"}
                 size="lg"
-                className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
+                className="w-full h-14 text-lg bg-green-600 hover:bg-green-700 disabled:bg-muted disabled:text-muted-foreground"
               >
                 {verifyingDns ? (
                   <><Loader2 className="h-5 w-5 mr-3 animate-spin" /> Enviando e-mail de acesso...</>
+                ) : dnsCheckStatus !== "propagated" ? (
+                  <><Loader2 className="h-5 w-5 mr-3 animate-spin" /> Aguardando propagação do DNS...</>
                 ) : (
                   "Enviar e-mail de acesso ao cliente e concluir"
                 )}
