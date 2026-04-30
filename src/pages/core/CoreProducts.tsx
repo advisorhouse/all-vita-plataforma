@@ -60,8 +60,36 @@ const CoreProducts: React.FC = () => {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showBindPartner, setShowBindPartner] = useState(false);
   const [activeTab, setActiveTab] = useState("products");
+  const { currentTenant } = useTenant();
 
-  const filteredProducts = PRODUCTS.filter((p) => {
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["core-products", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("tenant_id", currentTenant.id);
+      
+      if (error) throw error;
+      
+      return (data || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.type || "Geral",
+        price: Number(p.price),
+        discountedPrice: Number(p.price), // Fallback if no discount logic
+        months: (p.metadata as any)?.months || 1,
+        points: (p.metadata as any)?.points || 0,
+        active: p.active,
+        partners: 0,
+        exclusivePartners: 0
+      }));
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
     return matchesSearch && matchesCategory;
