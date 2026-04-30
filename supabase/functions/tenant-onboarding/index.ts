@@ -362,7 +362,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
           </div>
           <div>
             <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Senha Provisória:</span>
-            <code style="font-size: 16px; color: #1e293b; font-weight: 700; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword === "Sua senha cadastrada no onboarding" ? "Sua senha pessoal" : tempPassword}</code>
+            <code style="font-size: 16px; color: #1e293b; font-weight: 700; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</code>
           </div>
         </div>
       </div>
