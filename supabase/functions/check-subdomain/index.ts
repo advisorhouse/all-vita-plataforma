@@ -1,12 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -92,7 +90,7 @@ serve(async (req) => {
 
     const fullyResolved = dnsResolved && httpReachable;
 
-    // Side effect: update registration_status if resolved
+    // Side effect: update status and notify admins if resolved
     if (fullyResolved) {
       const supabaseAdmin = createClient(
         Deno.env.get("SUPABASE_URL") ?? "",
@@ -102,18 +100,20 @@ serve(async (req) => {
       // Get current status first to avoid redundant notifications
       const { data: tenant } = await supabaseAdmin
         .from("tenants")
-        .select("registration_status")
+        .select("id, registration_status")
         .eq("slug", slug)
         .maybeSingle();
 
       if (tenant && tenant.registration_status === 'pending') {
-        console.log(`Tenant ${slug} is now dns_ready! Updating database...`);
+        console.log(`Tenant ${slug} is now dns_ready! Updating database and notifying admins...`);
         
         // 1. Update tenant status
         await supabaseAdmin
           .from("tenants")
           .update({ 
             registration_status: 'dns_ready',
+            dns_status: 'active',
+            dns_verified_at: new Date().toISOString(),
             pending_registration_notification: true 
           })
           .eq("slug", slug);
@@ -129,7 +129,7 @@ serve(async (req) => {
           const notifications = superAdmins.map(admin => ({
             user_id: admin.user_id,
             title: "🚀 Novo domínio pronto para ativação",
-            message: `O domínio para o tenant "${slug}" (${slug}.allvita.com.br) já está propagado e acessível. A empresa já pode ser finalizada.`,
+            message: `O domínio para o tenant "${slug}" (${domain}) já está propagado e acessível. A empresa já pode ser finalizada.`,
             type: "system",
             metadata: { slug, tenant_id: tenant.id }
           }));
