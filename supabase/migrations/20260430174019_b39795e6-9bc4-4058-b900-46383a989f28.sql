@@ -1,0 +1,1 @@
+DELETE FROM public.tenants WHERE slug = 'lumyss';
