@@ -41,10 +41,7 @@ serve(async (req) => {
       const owner = owners?.[0];
       if (!owner) return jsonRes(404, { error: "Owner not found" });
 
-      // We need the password - usually we should have stored it temporarily or use a reset flow
-      // For this implementation, we assume the user already has the account created 
-      // but we send the "Welcome" email with the links now that DNS is active.
-      
+      // Build the email content - if the user hasn't completed onboarding, they need to reset/set password
       const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
         method: "POST",
         headers: {
@@ -54,7 +51,7 @@ serve(async (req) => {
         body: JSON.stringify({
           to: owner.email,
           subject: `Acesso Liberado: All Vita — ${tenant.trade_name || tenant.name}`,
-          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada"),
+          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada no onboarding"),
         }),
       });
 
