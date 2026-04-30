@@ -9,7 +9,7 @@ import { useTenant } from "@/contexts/TenantContext";
 export function useTenantNavigation() {
   const navigate = useNavigate();
   const { slug: routeSlug } = useParams();
-  const { currentTenant } = useTenant();
+  const { currentTenant, isSubdomainAccess } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantQueryParam = searchParams.get("tenant");
   
