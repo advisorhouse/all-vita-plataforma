@@ -38,25 +38,11 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 };
 
 const CATEGORIES = [
-  { id: "cat-1", name: "Oftalmologia", slug: "oftalmologia", icon: "eye", productCount: 4, active: true },
-  { id: "cat-2", name: "Dermatologia", slug: "dermatologia", icon: "sparkles", productCount: 0, active: true },
-  { id: "cat-3", name: "Nutrologia", slug: "nutrologia", icon: "pill", productCount: 0, active: true },
-  { id: "cat-4", name: "Ortopedia", slug: "ortopedia", icon: "bone", productCount: 0, active: true },
+  { id: "cat-default", name: "Geral", slug: "geral", icon: "package", productCount: 0, active: true },
 ];
 
-const PRODUCTS = [
-  { id: "p1", name: "Vision Lift Original - 1 Mês", category: "Oftalmologia", price: 196.00, discountedPrice: 147.00, months: 1, points: 100, active: true, partners: 12, exclusivePartners: 0 },
-  { id: "p2", name: "Vision Lift Original - 3 Meses", category: "Oftalmologia", price: 396.00, discountedPrice: 297.00, months: 3, points: 350, active: true, partners: 10, exclusivePartners: 0 },
-  { id: "p3", name: "Vision Lift Original - 5 Meses", category: "Oftalmologia", price: 528.00, discountedPrice: 396.00, months: 5, points: 650, active: true, partners: 8, exclusivePartners: 0 },
-  { id: "p4", name: "Vision Lift Original - 10 Meses", category: "Oftalmologia", price: 796.00, discountedPrice: 597.00, months: 10, points: 1500, active: true, partners: 6, exclusivePartners: 2 },
-];
-
-const PARTNER_BINDINGS = [
-  { id: "pb1", partnerName: "Dra. Camila Santos", specialty: "Oftalmologia", crm: "CRM/SP 54321", productName: "Vision Lift Original - 1 Mês", exclusive: false, customPoints: null, active: true },
-  { id: "pb2", partnerName: "Dra. Camila Santos", specialty: "Oftalmologia", crm: "CRM/SP 54321", productName: "Vision Lift Original - 3 Meses", exclusive: false, customPoints: null, active: true },
-  { id: "pb3", partnerName: "Dr. Rafael Lima", specialty: "Oftalmologia", crm: "CRM/RJ 12345", productName: "Vision Lift Original - 10 Meses", exclusive: true, customPoints: 2000, active: true },
-  { id: "pb4", partnerName: "Dra. Marina Costa", specialty: "Dermatologia", crm: "CRM/SP 67890", productName: "Vision Lift Original - 1 Mês", exclusive: false, customPoints: null, active: false },
-];
+const PRODUCTS: any[] = [];
+const PARTNER_BINDINGS: any[] = [];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
