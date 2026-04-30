@@ -28,7 +28,7 @@ serve(async (req) => {
     // 1. Get order details
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("id, client_id, amount, subscription_cycle, payment_status")
+      .select("id, client_id, tenant_id, amount, subscription_cycle, payment_status")
       .eq("id", order_id)
       .single();
 
@@ -46,43 +46,43 @@ serve(async (req) => {
       );
     }
 
-    // 2. Get client profile with affiliate
-    const { data: client } = await supabase
-      .from("client_profiles")
-      .select("id, affiliate_id, affiliate_locked")
-      .eq("id", order.client_id)
+    // 2. Get referral for this client
+    const { data: referral } = await supabase
+      .from("referrals")
+      .select("partner_id")
+      .eq("client_id", order.client_id)
+      .eq("status", "active")
       .single();
 
-    if (!client || !client.affiliate_id || !client.affiliate_locked) {
+    if (!referral || !referral.partner_id) {
       return new Response(
-        JSON.stringify({ message: "No affiliate linked, no commission generated" }),
+        JSON.stringify({ message: "No active referral found, no commission generated" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 3. Get affiliate level
-    const { data: affiliate } = await supabase
-      .from("affiliates")
-      .select("id, level")
-      .eq("id", client.affiliate_id)
+    // 3. Get partner details
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("id, user_id, level")
+      .eq("id", referral.partner_id)
       .single();
 
-    if (!affiliate) {
+    if (!partner) {
       return new Response(
-        JSON.stringify({ error: "Affiliate not found" }),
+        JSON.stringify({ error: "Partner not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Determine commission type based on cycle
-    const isFirst = order.subscription_cycle === 1;
-    const months = order.subscription_cycle;
+    // 4. Get applicable commission rules
+    const months = order.subscription_cycle || 1;
+    const isFirst = months === 1;
 
-    // Get all applicable rules
     const { data: rules } = await supabase
       .from("commission_rules")
       .select("*")
-      .eq("level", affiliate.level)
+      .eq("level", partner.level)
       .eq("active", true)
       .lte("min_months", months);
 
@@ -96,21 +96,20 @@ serve(async (req) => {
     const commissionsCreated = [];
 
     for (const rule of rules) {
-      // Skip initial commission if not first cycle
+      // Logic for different commission types
       if (rule.commission_type === "initial" && !isFirst) continue;
-      // Skip recurring commission if first cycle
       if (rule.commission_type === "recurring" && isFirst) continue;
-      // Bonus commissions only apply at exact milestone months
       if (rule.commission_type === "bonus_6m" && months !== 6) continue;
       if (rule.commission_type === "bonus_12m" && months !== 12) continue;
 
       const commissionAmount = (order.amount * rule.percentage) / 100;
 
+      // Create commission record
       const { data: commission, error: commError } = await supabase
         .from("commissions")
         .insert({
-          affiliate_id: affiliate.id,
-          client_id: client.id,
+          partner_id: partner.id,
+          client_id: order.client_id,
           order_id: order.id,
           commission_type: rule.commission_type,
           percentage_applied: rule.percentage,
@@ -122,27 +121,60 @@ serve(async (req) => {
 
       if (!commError && commission) {
         commissionsCreated.push(commission);
+
+        // 5. Generate Vitacoins for the partner (Internal Repayment)
+        // Assume 1 Vitacoin = 1 unit of currency (e.g. 1 BRL)
+        const vitacoinAmount = commissionAmount;
+
+        const { error: vitaError } = await supabase
+          .from("vitacoin_transactions")
+          .insert({
+            user_id: partner.user_id,
+            tenant_id: order.tenant_id,
+            type: "credit",
+            amount: vitacoinAmount,
+            source: "commission",
+            reference_id: commission.id,
+            reference_type: "commission",
+            description: `Comissão da venda ${order.id}`,
+          });
+        
+        if (vitaError) {
+          console.error("Error creating Vitacoin transaction:", vitaError);
+        }
+
+        // Update Partner/User wallet balance (handled by triggers usually, but let's be safe if no trigger exists)
+        const { data: wallet } = await supabase
+          .from("vitacoins_wallet")
+          .select("balance")
+          .eq("user_id", partner.user_id)
+          .eq("tenant_id", order.tenant_id)
+          .single();
+        
+        if (wallet) {
+          await supabase
+            .from("vitacoins_wallet")
+            .update({ balance: wallet.balance + vitacoinAmount })
+            .eq("user_id", partner.user_id)
+            .eq("tenant_id", order.tenant_id);
+        } else {
+          await supabase
+            .from("vitacoins_wallet")
+            .insert({ 
+              user_id: partner.user_id, 
+              tenant_id: order.tenant_id, 
+              balance: vitacoinAmount 
+            });
+        }
       }
     }
-
-    // 5. Update affiliate recurring revenue
-    const { data: totalRevenue } = await supabase
-      .from("commissions")
-      .select("amount")
-      .eq("affiliate_id", affiliate.id);
-
-    const totalCommission = totalRevenue?.reduce((sum: number, c: any) => sum + Number(c.amount), 0) || 0;
-
-    await supabase
-      .from("affiliates")
-      .update({ recurring_revenue: totalCommission })
-      .eq("id", affiliate.id);
 
     return new Response(
       JSON.stringify({ success: true, commissions: commissionsCreated }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
+    console.error("Process commission error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
