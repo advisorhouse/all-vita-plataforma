@@ -711,27 +711,8 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               </div>
             </div>
 
-            {/* Colors */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b pb-2">Cores da Plataforma</h3>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label>Cor Primária</Label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={form.primary_color} onChange={(e) => setForm(f => ({ ...f, primary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                    <Input value={form.primary_color} onChange={set("primary_color")} className="font-mono text-xs h-10" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Cor Secundária</Label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={form.secondary_color} onChange={(e) => setForm(f => ({ ...f, secondary_color: e.target.value }))} className="h-10 w-12 rounded border cursor-pointer" />
-                    <Input value={form.secondary_color} onChange={set("secondary_color")} className="font-mono text-xs h-10" />
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Logo, ícone e favicon serão configurados no próximo passo.</p>
-            </div>
+            {/* Cores movidas para a segunda etapa */}
+
 
             {/* Owner */}
             <div className="space-y-6">
