@@ -96,10 +96,6 @@ export function useSubdomainTenant() {
       return;
     }
 
-    // Note: For path mode, the slug was already stripped from the URL in
-    // main.tsx (synchronously, before React mounted) so React Router sees
-    // the cleaned route directly.
-
     setIsSubdomainAccess(detected.mode === "path" || detected.mode === "subdomain" || detected.mode === "custom-domain");
 
     // Custom-domain lookup needs to query by `domain` field
