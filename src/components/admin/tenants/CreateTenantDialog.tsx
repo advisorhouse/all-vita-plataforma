@@ -380,7 +380,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
           skip_email: true,
           trade_name: formData.trade_name || undefined,
           cnpj: formData.cnpj || undefined,
-          logo_url: logoPreview && logoPreview.startsWith('http') ? logoPreview : undefined,
+          favicon_url: faviconPreview && faviconPreview.startsWith('http') ? faviconPreview : undefined,
           owner: {
             full_name: formData.owner_name,
             email: formData.owner_email,
