@@ -177,9 +177,20 @@ serve(async (req) => {
 
     const result = await response.json();
 
-    // If order was created successfully and we have splits, record the estimated split in our DB
-    if (action === "create_order" && response.status === 200 && result.id) {
-       // We can record the split amounts here or wait for webhook
+    // If order was created successfully and we have splits, record the split info in the order metadata
+    if (action === "create_order" && response.status === 200 && result.id && bodyData.code) {
+       const feePercentage = bodyData.payments?.[0]?.split?.[0]?.amount || 0;
+       if (feePercentage > 0) {
+         await supabase
+           .from("orders")
+           .update({ 
+             metadata: { 
+               all_vita_fee_percentage: feePercentage,
+               pagarme_order_id: result.id 
+             } 
+           })
+           .eq("id", bodyData.code);
+       }
     }
 
     return new Response(JSON.stringify(result), {
