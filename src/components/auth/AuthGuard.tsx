@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import TenantSelectScreen from "@/components/tenant/TenantSelectScreen";
+import { extractSlugFromPath } from "@/lib/tenant-routing";
 
 interface AuthGuardProps {
   children: React.ReactNode;
