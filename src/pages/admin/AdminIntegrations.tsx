@@ -120,14 +120,26 @@ const AdminIntegrations: React.FC = () => {
 
   // Handlers
   const handleConnectGateway = async (data: { tenant_id: string; provider: string; api_key: string; webhook_secret: string }) => {
-    await supabase.from("payment_integrations").insert({
-      tenant_id: data.tenant_id,
+    const payload: any = {
       provider: data.provider,
       api_key_encrypted: data.api_key,
       webhook_secret: data.webhook_secret,
-    });
-    toast.success("Gateway conectado!");
-    refetchPi();
+      active: true,
+    };
+    
+    // If tenant_id is "global", we leave it null
+    if (data.tenant_id !== "global") {
+      payload.tenant_id = data.tenant_id;
+    }
+
+    const { error } = await supabase.from("payment_integrations").insert(payload);
+    
+    if (error) {
+      toast.error("Erro ao conectar gateway: " + error.message);
+    } else {
+      toast.success("Gateway conectado!");
+      refetchPi();
+    }
   };
 
   const handleDisconnectGateway = async (id: string) => {
