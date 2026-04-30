@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Users, Handshake, DollarSign, Globe, ExternalLink, Calendar, FileText } from "lucide-react";
+import { Building2, Users, Handshake, DollarSign, Globe, ExternalLink, Calendar, FileText, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 interface TenantOverviewTabProps {
@@ -65,9 +66,34 @@ const TenantOverviewTab: React.FC<TenantOverviewTabProps> = ({ tenant, metrics }
                 <p className="font-medium">{formatCnpj(tenant.cnpj)}</p>
               </div>
             )}
-            <div>
-              <p className="text-muted-foreground text-xs">Slug</p>
-              <p className="font-medium">{tenant.slug}</p>
+            <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 col-span-2 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-amber-800 text-xs font-bold uppercase tracking-wider">Endereço de Acesso</p>
+                <Badge variant="outline" className="text-[10px] bg-amber-100 border-amber-200 text-amber-700">Principal</Badge>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-mono font-bold text-amber-900 text-base">{tenant.slug}.allvita.com.br</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-7 text-[10px] border-amber-200 hover:bg-amber-100"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${tenant.slug}.allvita.com.br`);
+                    toast.success("Domínio copiado");
+                  }}
+                >
+                  <Copy className="h-3 w-3 mr-1" /> Copiar
+                </Button>
+              </div>
+              {tenant.domain && (
+                <div className="pt-2 border-t border-amber-200/50">
+                  <p className="text-muted-foreground text-[10px]">Domínio Customizado</p>
+                  <p className="font-medium text-xs flex items-center gap-1">
+                    <Globe className="h-3 w-3" />
+                    {tenant.domain}
+                  </p>
+                </div>
+              )}
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Domínio</p>

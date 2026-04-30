@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug, Copy, Check } from "lucide-react";
+import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug, Copy, Check, Settings } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 interface TenantFormData {
@@ -702,11 +702,12 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Slug da Empresa *</Label>
+                  <Label>Slug da Empresa / Subdomínio *</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">app.allvita.com.br/</span>
                     <Input value={form.slug} onChange={set("slug")} required placeholder="minha-empresa" className="h-10" />
+                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">.allvita.com.br</span>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">Este será o endereço principal de acesso do portal.</p>
                 </div>
               </div>
             </div>
@@ -896,38 +897,75 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Check className="h-8 w-8" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Empresa criada e ativa!</h3>
+              <h3 className="text-2xl font-bold text-foreground">Empresa cadastrada com sucesso!</h3>
               <p className="text-muted-foreground text-base leading-relaxed">
-                A URL da plataforma de <strong>{form.trade_name || form.name}</strong> já está funcionando. Sem DNS, sem propagação, sem espera.
+                A estrutura da <strong>{form.trade_name || form.name}</strong> foi criada. Siga os passos abaixo para ativar o acesso.
               </p>
             </div>
 
-            {/* URL final */}
-            <div className="bg-secondary/50 border rounded-xl p-6 space-y-4 shadow-sm">
-              <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                <Globe className="h-4 w-4" /> URL de acesso da empresa
+            {/* Passo DNS */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-amber-900 flex items-center gap-2 uppercase tracking-wide">
+                  <Globe className="h-4 w-4" /> Passo 1: Configurar DNS (Registro.br)
+                </h4>
+                <Badge className="bg-amber-600">Obrigatório</Badge>
+              </div>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Para que o endereço <strong>{form.slug}.allvita.com.br</strong> funcione, você precisa adicionar este registro no DNS do <strong>allvita.com.br</strong>:
+              </p>
+              
+              <div className="grid grid-cols-12 gap-2 mt-4 bg-white/60 p-4 rounded-lg border border-amber-100 font-mono text-xs">
+                <div className="col-span-3 text-amber-700 font-bold uppercase tracking-wider">Tipo</div>
+                <div className="col-span-3 text-amber-700 font-bold uppercase tracking-wider">Nome</div>
+                <div className="col-span-6 text-amber-700 font-bold uppercase tracking-wider">Valor (IP)</div>
+                
+                <div className="col-span-3 py-1 font-bold text-amber-900 bg-amber-200/50 rounded text-center w-fit px-2">A</div>
+                <div className="col-span-3 py-1 text-foreground flex items-center gap-1">
+                  {form.slug}
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => copyToClipboard(form.slug, 'dns-name')}>
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="col-span-6 py-1 text-foreground font-bold flex items-center gap-1">
+                  185.158.133.1
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => copyToClipboard('185.158.133.1', 'dns-value')}>
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2 mt-4 p-3 bg-amber-100/50 rounded border border-amber-200 text-xs text-amber-800">
+                <p><strong>Atenção:</strong></p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>O SSL (HTTPS) será ativado automaticamente pelo Lovable após a propagação.</li>
+                  <li>A propagação pode levar de 15 minutos a algumas horas.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Passo Lovable */}
+            <div className="bg-secondary/50 border border-border rounded-xl p-6 space-y-4 shadow-sm">
+              <h4 className="font-bold text-sm text-foreground flex items-center gap-2 uppercase tracking-wide">
+                <Settings className="h-4 w-4 text-primary" /> Passo 2: Conectar no Lovable
               </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Acesse <strong>Project Settings → Domains</strong> e conecte o domínio completo:
+              </p>
               <div className="flex items-center gap-2 bg-background border rounded-lg p-3 group">
                 <span className="font-mono text-sm font-bold text-primary flex-1 break-all">
-                  {createdTenant?.url || `https://app.allvita.com.br/${form.slug}`}
+                  {form.slug}.allvita.com.br
                 </span>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => copyToClipboard(createdTenant?.url || `https://app.allvita.com.br/${form.slug}`, 'tenant-url')}
+                  onClick={() => copyToClipboard(`${form.slug}.allvita.com.br`, 'domain-full')}
                   className="shrink-0"
                 >
-                  {copiedField === 'tenant-url' ? (
-                    <><Check className="h-3.5 w-3.5 mr-1.5 text-green-500" /> Copiado</>
-                  ) : (
-                    <><Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar</>
-                  )}
+                  <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Compartilhe esse link com o cliente. O portal já carrega a logo, cores e identidade visual configuradas.
-              </p>
             </div>
 
             {/* E-mail opcional */}

@@ -81,9 +81,17 @@ const TenantTable: React.FC<TenantTableProps> = ({ tenants, tenantMetrics, onVie
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Globe className="h-3 w-3" />
-                    <span>{t.slug}.allvita.com.br</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                      <Globe className="h-3 w-3" />
+                      <span>{t.slug}.allvita.com.br</span>
+                    </div>
+                    {t.domain && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                        <Globe className="h-2.5 w-2.5" />
+                        <span>{t.domain}</span>
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="text-center capitalize text-xs text-muted-foreground">

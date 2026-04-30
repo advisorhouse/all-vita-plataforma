@@ -94,8 +94,14 @@ const AdminTenantDetail: React.FC = () => {
                 {isActive ? "Ativa" : "Suspensa"}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-              <Globe className="h-3 w-3" /> {tenant.slug}.allvita.com.br
+            <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+              <Globe className="h-3.5 w-3.5" />
+              <span className="font-medium text-foreground">{tenant.slug}.allvita.com.br</span>
+              {tenant.domain && (
+                <span className="flex items-center gap-1 ml-2 px-1.5 py-0.5 bg-muted rounded text-[10px]">
+                  <Globe className="h-3 w-3" /> {tenant.domain}
+                </span>
+              )}
             </p>
           </div>
         </div>
