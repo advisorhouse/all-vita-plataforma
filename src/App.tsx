@@ -122,7 +122,7 @@ const App = () => (
 
               {/* Club (Cliente) - Protected */}
               <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />
-              <Route path="/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
+              <Route path="/:slug/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
                 <Route index element={<ClubDashboard />} />
                 <Route path="subscription" element={<ClubSubscription />} />
                 <Route path="orders" element={<ClubOrders />} />
@@ -135,11 +135,17 @@ const App = () => (
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="profile" element={<UserProfile />} />
               </Route>
+              {/* Fallback for path without slug if already in context */}
+              <Route path="/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
+                <Route index element={<ClubDashboard />} />
+                <Route path="subscription" element={<ClubSubscription />} />
+                {/* ... keep existing inner routes if needed, but the slug version is primary */}
+              </Route>
 
               {/* Partner (Afiliado) - Protected */}
               <Route path="/partner/start" element={<AuthGuard><PartnerStart /></AuthGuard>} />
               <Route path="/partner/onboarding" element={<PartnerOnboarding />} />
-              <Route path="/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
+              <Route path="/:slug/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
                 <Route index element={<PartnerDashboard />} />
                 <Route path="network" element={<PartnerNetwork />} />
                 <Route path="referrals" element={<PartnerReferrals />} />
@@ -159,7 +165,7 @@ const App = () => (
 
               {/* Core (Admin da empresa) - Protected */}
               <Route path="/core/select-role" element={<AuthGuard><CoreSelectRole /></AuthGuard>} />
-              <Route path="/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
+              <Route path="/:slug/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
                 <Route index element={<CoreDashboard />} />
                 <Route path="customers" element={<CoreCustomers />} />
                 <Route path="partners" element={<CorePartners />} />
