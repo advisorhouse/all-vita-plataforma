@@ -67,11 +67,11 @@ const MOCK_UNIT_ECONOMICS = {
   active_clients: 890,
   avg_churn_pct: 7.4,
   affiliate_roi: [
-    { affiliate_id: "1", level: "Premium", revenue: 48200, commission: 5780, roi: 8.3, clients: 42, retention: 88 },
-    { affiliate_id: "2", level: "Elite", revenue: 36500, commission: 4015, roi: 9.1, clients: 28, retention: 92 },
-    { affiliate_id: "3", level: "Advanced", revenue: 28800, commission: 3744, roi: 7.7, clients: 35, retention: 78 },
-    { affiliate_id: "4", level: "Basic", revenue: 15600, commission: 2340, roi: 6.7, clients: 22, retention: 65 },
-    { affiliate_id: "5", level: "Premium", revenue: 32100, commission: 3852, roi: 8.3, clients: 31, retention: 85 },
+    { partner_id: "1", level: "Premium", revenue: 48200, commission: 5780, roi: 8.3, clients: 42, retention: 88 },
+    { partner_id: "2", level: "Elite", revenue: 36500, commission: 4015, roi: 9.1, clients: 28, retention: 92 },
+    { partner_id: "3", level: "Advanced", revenue: 28800, commission: 3744, roi: 7.7, clients: 35, retention: 78 },
+    { partner_id: "4", level: "Basic", revenue: 15600, commission: 2340, roi: 6.7, clients: 22, retention: 65 },
+    { partner_id: "5", level: "Premium", revenue: 32100, commission: 3852, roi: 8.3, clients: 31, retention: 85 },
   ],
 };
 
@@ -423,7 +423,7 @@ const StrategicInsights: React.FC = () => {
                   </thead>
                   <tbody>
                     {(ue.affiliate_roi || []).map((a: any, i: number) => (
-                      <tr key={a.affiliate_id} className="border-b border-border/50">
+                      <tr key={a.partner_id} className="border-b border-border/50">
                         <td className="py-2 px-3 font-medium text-foreground">{i + 1}</td>
                         <td className="py-2 px-3">
                           <Badge variant="secondary" className={cn("text-[10px]",
