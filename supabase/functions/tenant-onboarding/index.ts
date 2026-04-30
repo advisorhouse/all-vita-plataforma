@@ -51,7 +51,7 @@ serve(async (req) => {
         body: JSON.stringify({
           to: owner.email,
           subject: `Acesso Liberado: All Vita — ${tenant.trade_name || tenant.name}`,
-          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada no onboarding"),
+          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada no onboarding", owner.email),
         }),
       });
 
@@ -262,7 +262,7 @@ serve(async (req) => {
           body: JSON.stringify({
             to: owner.email,
             subject: `Bem-vindo à All Vita — ${trade_name || name}`,
-            html: buildWelcomeEmail(owner.full_name, trade_name || name, normalizedSlug, tempPassword),
+            html: buildWelcomeEmail(owner.full_name, trade_name || name, normalizedSlug, tempPassword, owner.email),
           }),
         });
         if (emailRes.ok) {
@@ -310,7 +310,7 @@ function generateTempPassword(): string {
   return password;
 }
 
-function buildWelcomeEmail(name: string, company: string, slug: string, tempPassword: string): string {
+function buildWelcomeEmail(name: string, company: string, slug: string, tempPassword: string, email: string): string {
   return `
     <div style="font-family: 'Inter', -apple-system, sans-serif; max-width: 650px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 16px; background-color: #ffffff; color: #1a1a1a; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
       <div style="text-align: center; margin-bottom: 32px;">
@@ -336,7 +336,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
         <div style="display: flex; gap: 40px;">
           <div>
             <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">E-mail de Acesso:</span>
-            <span style="font-size: 15px; color: #1e293b; font-weight: 600;">${owner.email}</span>
+            <span style="font-size: 15px; color: #1e293b; font-weight: 600;">${email}</span>
           </div>
           <div>
             <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Senha Provisória:</span>
