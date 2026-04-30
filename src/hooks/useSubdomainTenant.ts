@@ -81,7 +81,14 @@ function detectTenant(): DetectedTenant {
  * is internally treated as `/club` with tenant=lumyss in context.
  */
 export function useSubdomainTenant() {
-  const { setCurrentTenant, currentTenant, availableTenants, setIsSubdomainAccess, setIsLoading } = useTenant();
+  const { 
+    setCurrentTenant, 
+    currentTenant, 
+    availableTenants, 
+    setIsSubdomainAccess, 
+    setIsLoading,
+    setTenantMode 
+  } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantQueryParam = searchParams.get("tenant");
   const [tenantSlug, setTenantSlug] = useState<string | null>(null);
