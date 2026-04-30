@@ -88,7 +88,7 @@ const AdminAnalytics: React.FC = () => {
   const { data: commissions } = useQuery({
     queryKey: ["analytics-commissions", period],
     queryFn: async () => {
-      const { data } = await supabase.from("commissions").select("amount, affiliate_id, tenant_id, created_at").gte("created_at", sinceDate);
+      const { data } = await supabase.from("commissions").select("amount, partner_id, tenant_id, created_at").gte("created_at", sinceDate);
       return data || [];
     },
   });
@@ -204,7 +204,7 @@ const AdminAnalytics: React.FC = () => {
     const partnerCommMap: Record<string, number> = {};
     const partnerClientMap: Record<string, number> = {};
     for (const c of commissions || []) {
-      partnerCommMap[c.affiliate_id] = (partnerCommMap[c.affiliate_id] || 0) + Number(c.amount);
+      partnerCommMap[c.partner_id] = (partnerCommMap[c.partner_id] || 0) + Number(c.amount);
     }
     for (const r of referrals || []) {
       partnerClientMap[r.partner_id] = (partnerClientMap[r.partner_id] || 0) + 1;

@@ -110,6 +110,7 @@ serve(async (req) => {
         .insert({
           partner_id: partner.id,
           client_id: order.client_id,
+          tenant_id: order.tenant_id,
           order_id: order.id,
           commission_type: rule.commission_type,
           percentage_applied: rule.percentage,
