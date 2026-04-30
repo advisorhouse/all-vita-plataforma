@@ -2286,7 +2286,9 @@ export type Database = {
           logo_url: string | null
           manual_activation_required: boolean | null
           name: string
+          pending_registration_notification: boolean | null
           primary_color: string | null
+          registration_status: string | null
           resend_domain_id: string | null
           secondary_color: string | null
           segment: string | null
@@ -2312,7 +2314,9 @@ export type Database = {
           logo_url?: string | null
           manual_activation_required?: boolean | null
           name: string
+          pending_registration_notification?: boolean | null
           primary_color?: string | null
+          registration_status?: string | null
           resend_domain_id?: string | null
           secondary_color?: string | null
           segment?: string | null
@@ -2338,7 +2342,9 @@ export type Database = {
           logo_url?: string | null
           manual_activation_required?: boolean | null
           name?: string
+          pending_registration_notification?: boolean | null
           primary_color?: string | null
+          registration_status?: string | null
           resend_domain_id?: string | null
           secondary_color?: string | null
           segment?: string | null

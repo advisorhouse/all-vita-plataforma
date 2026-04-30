@@ -5,6 +5,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,7 +29,7 @@ serve(async (req) => {
     const domain = `${slug}.allvita.com.br`;
     console.log(`Checking DNS+HTTP for ${domain}`);
 
-    // Step 1: DNS resolution (A or CNAME)
+    // Step 1: DNS resolution
     let dnsResolved = false;
     let dnsRecords: string[] = [];
     let dnsError: string | null = null;
@@ -60,7 +67,7 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Step 2: HTTP reachability (avoid Cloudflare 1001 false positives)
+    // Step 2: HTTP reachability
     let httpReachable = false;
     let httpStatus: number | null = null;
     let httpError: string | null = null;
@@ -76,14 +83,11 @@ serve(async (req) => {
       });
       clearTimeout(timeout);
       httpStatus = res.status;
-      // Cloudflare error pages return 5xx; treat 2xx/3xx/4xx (auth) as reachable.
-      // 530/521/522/523/524/525/526 = Cloudflare origin/DNS errors
       const cfErrors = [530, 521, 522, 523, 524, 525, 526];
       httpReachable = !cfErrors.includes(res.status);
     } catch (e) {
       const msg = (e as Error).message;
       httpError = msg;
-      // SSL Handshake failures mean DNS is pointed but cert isn't ready
       if (msg.includes("HandshakeFailure") || msg.includes("ssl") || msg.includes("certificate")) {
         httpError = "DNS apontado corretamente! Aguardando ativação do certificado SSL (HTTPS)...";
       }
@@ -91,6 +95,32 @@ serve(async (req) => {
     }
 
     const fullyResolved = dnsResolved && httpReachable;
+
+    // Side effect: update registration_status if resolved
+    if (fullyResolved) {
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+
+      // Get current status first to avoid redundant notifications
+      const { data: tenant } = await supabaseAdmin
+        .from("tenants")
+        .select("registration_status")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (tenant && tenant.registration_status === 'pending') {
+        console.log(`Tenant ${slug} is now dns_ready! Updating database...`);
+        await supabaseAdmin
+          .from("tenants")
+          .update({ 
+            registration_status: 'dns_ready',
+            pending_registration_notification: true 
+          })
+          .eq("slug", slug);
+      }
+    }
 
     return new Response(JSON.stringify({
       resolved: fullyResolved,
@@ -100,7 +130,7 @@ serve(async (req) => {
       stage: fullyResolved ? "ok" : (dnsResolved ? "http" : "dns"),
       records: dnsRecords,
       error: !fullyResolved
-        ? (httpError || `Servidor respondeu ${httpStatus} (provável erro Cloudflare 1001 — subdomínio não existe no DNS do allvita.com.br)`)
+        ? (httpError || `Servidor respondeu ${httpStatus}`)
         : null,
       domain,
     }), {
