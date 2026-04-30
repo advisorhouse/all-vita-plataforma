@@ -41,7 +41,28 @@ serve(async (req) => {
       const owner = owners?.[0];
       if (!owner) return jsonRes(404, { error: "Owner not found" });
 
-      // Build the email content - if the user hasn't completed onboarding, they need to reset/set password
+      // Generate a new temporary password and update the user
+      const newTempPassword = generateTempPassword();
+      
+      // Find user by email
+      const { data: usersData, error: listError } = await adminClient.auth.admin.listUsers();
+      if (listError) throw listError;
+      
+      const authUser = usersData.users.find(u => u.email?.toLowerCase() === owner.email.toLowerCase());
+      if (!authUser) return jsonRes(404, { error: "User not found in Auth" });
+
+      // Update password and force change
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(authUser.id, {
+        password: newTempPassword,
+      });
+      if (updateError) throw updateError;
+
+      await adminClient
+        .from("profiles")
+        .update({ must_change_password: true, onboarding_completed: false })
+        .eq("id", authUser.id);
+
+      // Build the email content with the real temporary password
       const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
         method: "POST",
         headers: {
@@ -51,7 +72,7 @@ serve(async (req) => {
         body: JSON.stringify({
           to: owner.email,
           subject: `Acesso Liberado: All Vita — ${tenant.trade_name || tenant.name}`,
-          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada no onboarding", owner.email),
+          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, newTempPassword, owner.email),
         }),
       });
 
@@ -61,6 +82,7 @@ serve(async (req) => {
 
       return jsonRes(200, { success: true });
     } catch (err) {
+      console.error("Activation error:", err);
       return jsonRes(500, { error: err.message });
     }
   }
