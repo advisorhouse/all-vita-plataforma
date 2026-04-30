@@ -262,7 +262,7 @@ serve(async (req) => {
           body: JSON.stringify({
             to: owner.email,
             subject: `Bem-vindo à All Vita — ${trade_name || name}`,
-            html: buildWelcomeEmail(owner.full_name, trade_name || name, normalizedSlug, tempPassword),
+            html: buildWelcomeEmail(owner.full_name, trade_name || name, normalizedSlug, tempPassword, owner.email),
           }),
         });
         if (emailRes.ok) {
