@@ -135,6 +135,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         availableTenants,
         isSubdomainAccess,
         setIsSubdomainAccess,
+        tenantMode,
+        setTenantMode,
       }}
     >
       {children}
