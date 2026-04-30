@@ -291,13 +291,13 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
         try {
           const logoCheck = await fetch(clearbitUrl, { method: 'HEAD' });
           if (logoCheck.ok) {
-            setLogoPreview(clearbitUrl);
+            setFaviconPreview(clearbitUrl);
           } else {
             // Fallback if clearbit fails
-            setLogoPreview(googleFaviconUrl);
+            setFaviconPreview(googleFaviconUrl);
           }
         } catch (e) {
-          setLogoPreview(googleFaviconUrl);
+          setFaviconPreview(googleFaviconUrl);
         }
       }
 
