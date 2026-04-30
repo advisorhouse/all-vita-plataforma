@@ -1,17 +1,20 @@
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
+import { cn } from "@/lib/utils";
 import {
   Check, Package, ArrowRight, Truck, CreditCard, BookOpen,
-  Users, Gift, ShieldCheck, Sparkles, Heart, CalendarDays,
+  Users, Gift, ShieldCheck, Sparkles, Heart,
   Droplets, Star, UserPlus,
 } from "lucide-react";
 import ConsistencyCalendar from "@/components/club/ConsistencyCalendar";
-import HelpButton from "@/components/club/HelpButton";
 import RewardsRoadmap from "@/components/club/rewards/RewardsRoadmap";
 import VideoPlaylistWidget from "@/components/club/dashboard/VideoPlaylistWidget";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { useActivationFlow } from "@/hooks/useActivationFlow";
 import { useReEngagement } from "@/hooks/useReEngagement";
@@ -21,10 +24,7 @@ import WeekCompleteModal from "@/components/club/activation/WeekCompleteModal";
 import ActivationCard from "@/components/club/activation/ActivationCard";
 import ReEngagementCard from "@/components/club/reengagement/ReEngagementCard";
 import MilestoneModal from "@/components/club/milestone/MilestoneModal";
-import EliteInviteCard from "@/components/club/elite/EliteInviteCard";
-import { useEliteInvite } from "@/hooks/useEliteInvite";
 import { t } from "@/lib/emotional-copy";
-import productImage from "@/assets/product-vision-lift-1month.png";
 import iconVisionLift from "@/assets/icon-vision-lift.png";
 
 const fadeUp = {
@@ -79,12 +79,6 @@ function getTimeIcon() {
   );
 }
 
-// Mock data
-const userName = "Maria";
-const currentDay = new Date().getDate();
-const productName = "Vision Lift Original";
-const nextShipment = "15 de Março, 2026";
-
 const STEPS = [
   { icon: Droplets, title: "1. Tome diariamente", desc: "Aplique o Vision Lift todos os dias e registre aqui no app. A consistência é o segredo dos melhores resultados." },
   { icon: Star, title: "2. Ganhe prêmios", desc: "Cada mês ativo desbloqueia um benefício exclusivo: descontos, brindes e até consultas gratuitas." },
@@ -94,13 +88,50 @@ const STEPS = [
 
 const ClubDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { currentTenant } = useTenant();
   const activation = useActivationFlow();
   const reengagement = useReEngagement();
   const milestone = useMilestone3M();
-  const eliteInvite = useEliteInvite(milestone.state.elite_status, milestone.state.average_consistency);
   const [justMarked, setJustMarked] = useState(false);
   const [activationCardDismissed, setActivationCardDismissed] = useState(false);
   const [weekModalDismissed, setWeekModalDismissed] = useState(false);
+
+  const currentDay = new Date().getDate();
+
+  const { data: dashboardData } = useQuery({
+    queryKey: ["club-dashboard-data", currentTenant?.id, user?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id || !user?.id) return null;
+
+      const [profileRes, clientRes] = await Promise.all([
+        supabase.from("profiles").select("first_name").eq("id", user.id).single(),
+        supabase.from("clients").select("id").eq("user_id", user.id).eq("tenant_id", currentTenant.id).maybeSingle(),
+      ]);
+
+      let subscription = null;
+      const clientId = clientRes.data?.id;
+      if (clientId) {
+        const subRes = await supabase.from("subscriptions")
+          .select("*, products(name)")
+          .eq("client_id", clientId)
+          .maybeSingle();
+        subscription = subRes.data;
+      }
+
+      return {
+        firstName: profileRes.data?.first_name || "Membro",
+        subscription: subscription,
+        productName: subscription?.products?.name || "Plano All Vita",
+        renewalDate: subscription?.renewal_date ? new Date(subscription.renewal_date).toLocaleDateString("pt-BR", { day: 'numeric', month: 'long' }) : "N/A"
+      };
+    },
+    enabled: !!currentTenant?.id && !!user?.id
+  });
+
+  const userName = dashboardData?.firstName || "Membro";
+  const productName = dashboardData?.productName || "Plano All Vita";
+  const nextShipment = dashboardData?.renewalDate || "A definir";
 
   const todayMarked = activation.state.days_marked.includes(currentDay) || justMarked;
   const markedDays = [...activation.state.days_marked, ...(justMarked && !activation.state.days_marked.includes(currentDay) ? [currentDay] : [])];
@@ -116,16 +147,6 @@ const ClubDashboard: React.FC = () => {
 
   const greetingKey = milestone.is12MPlus ? "greeting_12m" : milestone.is6MPlus ? "greeting_6m" : milestone.is3MPlus ? "greeting_3m" : "greeting_default";
 
-  const streak = useMemo(() => {
-    const sorted = [...new Set(markedDays)].sort((a, b) => a - b);
-    let s = 0;
-    for (let d = currentDay; d >= 1; d--) {
-      if (sorted.includes(d)) s++;
-      else break;
-    }
-    return s;
-  }, [markedDays, currentDay]);
-
   const activeMonths = milestone.state.active_months || 1;
 
   return (
@@ -137,12 +158,11 @@ const ClubDashboard: React.FC = () => {
       <MilestoneModal open={milestone.show6MModal} onDismiss={milestone.dismiss6MModal} variant="6m" />
       <MilestoneModal open={milestone.show12MModal} onDismiss={milestone.dismiss12MModal} variant="12m" />
 
-      {/* ===== HERO BANNER — Full width, humanized ===== */}
+      {/* ===== HERO BANNER ===== */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
         <Card className="border-0 shadow-md overflow-hidden bg-gradient-to-br from-accent/10 via-card to-accent/5">
           <CardContent className="p-0">
             <div className="flex flex-col lg:flex-row">
-              {/* Left ~60% — greeting + product */}
               <div className="flex-1 p-8 space-y-4">
                 <div className="flex items-center gap-2">
                   {getTimeIcon()}
@@ -154,25 +174,30 @@ const ClubDashboard: React.FC = () => {
                   {t(greetingKey)}
                 </h1>
                 <div className="flex items-center gap-4 pt-2">
-                  <motion.img
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3, duration: 0.6 }}
-                    src={productImage}
-                    alt={productName}
-                    className="h-24 w-auto object-contain drop-shadow-lg shrink-0"
-                  />
+                  <div className="h-24 w-24 flex items-center justify-center bg-accent/5 rounded-2xl p-4">
+                    <motion.img
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3, duration: 0.6 }}
+                      src={iconVisionLift}
+                      alt={productName}
+                      className="h-16 w-auto object-contain drop-shadow-lg shrink-0"
+                    />
+                  </div>
                   <div>
                     <p className="text-xl font-semibold text-foreground">{productName}</p>
-                    <p className="text-base text-muted-foreground">Plano 1 Mês · Mês {activeMonths}</p>
+                    <p className="text-base text-muted-foreground">Mês {activeMonths}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Right ~40% — subscription info */}
               <div className="lg:w-[340px] shrink-0 border-t lg:border-t-0 lg:border-l border-border bg-secondary/20 p-8 flex flex-col justify-center space-y-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent w-fit">
-                  <ShieldCheck className="h-4 w-4" /> Assinatura ativa
+                <span className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium w-fit",
+                  dashboardData?.subscription?.status === 'active' ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
+                )}>
+                  <ShieldCheck className="h-4 w-4" /> 
+                  {dashboardData?.subscription?.status === 'active' ? "Assinatura ativa" : "Pendente"}
                 </span>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
@@ -180,7 +205,7 @@ const ClubDashboard: React.FC = () => {
                       <Truck className="h-4 w-4 text-accent" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">Próximo envio</p>
+                      <p className="text-sm font-medium text-foreground">Renovação</p>
                       <p className="text-sm text-muted-foreground">{nextShipment}</p>
                     </div>
                   </div>
@@ -189,8 +214,8 @@ const ClubDashboard: React.FC = () => {
                       <CreditCard className="h-4 w-4 text-accent" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">Pagamento</p>
-                      <p className="text-sm text-accent font-medium">Confirmado</p>
+                      <p className="text-sm font-medium text-foreground">Status</p>
+                      <p className="text-sm text-accent font-medium">Regular</p>
                     </div>
                   </div>
                 </div>
@@ -208,7 +233,7 @@ const ClubDashboard: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* ===== COMO FUNCIONA — Second widget, solid accent ===== */}
+      {/* ===== COMO FUNCIONA ===== */}
       <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
         <Card className="border border-border shadow-md bg-secondary/30">
           <CardContent className="p-8 space-y-6">
@@ -247,9 +272,7 @@ const ClubDashboard: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* ===== DAILY USE + CONSISTENCY — Side by side ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Register daily use */}
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
           <Card className={`border shadow-sm overflow-hidden h-full ${todayMarked ? "border-accent/30 bg-accent/5" : "border-border"}`}>
             <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-center">
@@ -284,7 +307,6 @@ const ClubDashboard: React.FC = () => {
           </Card>
         </motion.div>
 
-        {/* Right: Consistency Calendar */}
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
           <div className="h-full [&>div]:h-full [&>div>div]:h-full">
             <ConsistencyCalendar
@@ -297,7 +319,6 @@ const ClubDashboard: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* ===== ACTIVATION / RE-ENGAGEMENT CARDS ===== */}
       {showActivationCard && (
         <ActivationCard
           dayCounter={activation.currentDay}
@@ -321,9 +342,6 @@ const ClubDashboard: React.FC = () => {
         />
       )}
 
-
-
-      {/* ===== REWARDS ROADMAP — Full width highlight ===== */}
       <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
         <RewardsRoadmap
           currentMonth={activeMonths}
@@ -331,65 +349,9 @@ const ClubDashboard: React.FC = () => {
         />
       </motion.div>
 
-      {/* ===== VIDEO PLAYLIST — Full width ===== */}
       <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
         <VideoPlaylistWidget />
       </motion.div>
-
-      {/* ===== COMMUNITY ===== */}
-      <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
-        <Card className="border border-border shadow-sm overflow-hidden">
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                <Users className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">Comunidade</h2>
-                <p className="text-sm text-muted-foreground">Histórias de outros membros</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { name: "Ana C.", text: "Já sinto diferença após 2 meses de uso consistente!", days: 58 },
-                { name: "Beatriz R.", text: "O calendário me ajuda a manter o hábito todos os dias.", days: 120 },
-              ].map((h) => (
-                <div key={h.name} className="rounded-xl bg-secondary/50 p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-accent/15 flex items-center justify-center text-sm font-semibold text-accent">
-                      {h.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{h.name}</p>
-                      <p className="text-xs text-muted-foreground">{h.days} dias ativos</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-foreground/80 italic leading-relaxed">"{h.text}"</p>
-                </div>
-              ))}
-            </div>
-            <Button
-              variant="outline"
-              className="w-full rounded-xl h-11 text-sm hover:bg-accent hover:text-accent-foreground hover:border-accent"
-              onClick={() => navigate("/club/community")}
-            >
-              Ver comunidade
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* ===== ELITE INVITE ===== */}
-      {eliteInvite.eligible && (
-        <EliteInviteCard
-          canGenerateInvite={eliteInvite.canGenerateInvite}
-          invitesRemaining={eliteInvite.state.max_invites_per_month - eliteInvite.state.total_invites_this_month}
-          onGenerateInvite={eliteInvite.generateInvite}
-        />
-      )}
-
-      <HelpButton />
     </div>
   );
 };

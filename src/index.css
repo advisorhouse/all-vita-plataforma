@@ -50,6 +50,9 @@
     --sidebar-accent-foreground: 240 10% 4%;
     --sidebar-border: 240 3% 93%;
     --sidebar-ring: 217 91% 60%;
+
+    --tenant-primary: #6366f1;
+    --tenant-secondary: #818cf8;
   }
 
   .dark {
