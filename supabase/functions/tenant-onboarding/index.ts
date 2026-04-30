@@ -336,7 +336,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
         <div style="display: flex; gap: 40px;">
           <div>
             <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">E-mail de Acesso:</span>
-            <span style="font-size: 15px; color: #1e293b; font-weight: 600;">${owner.email}</span>
+            <span style="font-size: 15px; color: #1e293b; font-weight: 600;">${email}</span>
           </div>
           <div>
             <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Senha Provisória:</span>
