@@ -43,19 +43,57 @@ const ENGAGEMENT_TREND: any[] = [];
 const CoreCustomers: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "paused" | "cancelled">("all");
+  const { currentTenant } = useTenant();
 
-  const filtered = CLIENTS.filter(
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ["core-customers", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("clients")
+        .select(`
+          id,
+          full_name,
+          phone,
+          created_at,
+          metadata,
+          profiles:user_id (email)
+        `)
+        .eq("tenant_id", currentTenant.id);
+      
+      if (error) throw error;
+      
+      return (data || []).map(c => ({
+        id: c.id,
+        name: c.full_name || "Sem nome",
+        email: (c.profiles as any)?.email || "Sem email",
+        status: (c.metadata as any)?.status || "active",
+        months: Math.floor((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30)),
+        engagement: (c.metadata as any)?.engagement || 0,
+        consistency: (c.metadata as any)?.consistency || 0,
+        risk: (c.metadata as any)?.risk || "low",
+        level: (c.metadata as any)?.level || "Início",
+        plan: (c.metadata as any)?.plan || "N/A",
+        ltv: (c.metadata as any)?.ltv || 0,
+        lastLogin: (c.metadata as any)?.lastLogin || "N/A",
+        partner: (c.metadata as any)?.partner || "Direto"
+      }));
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const filtered = clients.filter(
     (c) =>
       (filter === "all" || c.status === filter) &&
       c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const active = CLIENTS.filter(c => c.status === "active").length;
-  const paused = CLIENTS.filter(c => c.status === "paused").length;
-  const cancelled = CLIENTS.filter(c => c.status === "cancelled").length;
-  const avgEngagement = Math.round(CLIENTS.reduce((s, c) => s + c.engagement, 0) / CLIENTS.length);
-  const highRisk = CLIENTS.filter(c => c.risk === "high").length;
-  const totalLtv = CLIENTS.reduce((s, c) => s + c.ltv, 0);
+  const active = clients.filter(c => c.status === "active").length;
+  const paused = clients.filter(c => c.status === "paused").length;
+  const cancelled = clients.filter(c => c.status === "cancelled").length;
+  const avgEngagement = clients.length > 0 ? Math.round(clients.reduce((s, c) => s + c.engagement, 0) / clients.length) : 0;
+  const highRisk = clients.filter(c => c.risk === "high").length;
+  const totalLtv = clients.reduce((s, c) => s + c.ltv, 0);
 
   return (
     <TooltipProvider delayDuration={200}>
