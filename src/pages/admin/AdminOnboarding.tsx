@@ -289,10 +289,13 @@ const AdminOnboarding: React.FC = () => {
         <CardContent>
           <Button onClick={async () => {
             const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+            const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
             
             let destination = "/";
             if (isSuperAdmin || platformRole) {
               destination = "/admin";
+            } else if (hasTenantMemberships && tenantSlug) {
+              destination = `/${tenantSlug}/core`;
             } else if (hasTenantMemberships) {
               destination = "/core";
             }
