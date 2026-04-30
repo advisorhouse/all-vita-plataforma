@@ -41,7 +41,39 @@ serve(async (req) => {
       const owner = owners?.[0];
       if (!owner) return jsonRes(404, { error: "Owner not found" });
 
-      // Build the email content - if the user hasn't completed onboarding, they need to reset/set password
+      // Find user by email
+      const { data: usersData, error: listError } = await adminClient.auth.admin.listUsers();
+      if (listError) throw listError;
+      
+      const authUser = usersData.users.find(u => u.email?.toLowerCase() === owner.email.toLowerCase());
+      if (!authUser) return jsonRes(404, { error: "User not found in Auth" });
+
+      // Check profile to see if they already completed onboarding
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("onboarding_completed, must_change_password")
+        .eq("id", authUser.id)
+        .single();
+
+      let passwordToShow = "Sua senha pessoal";
+      
+      // Only reset password if they haven't completed onboarding
+      if (!profile?.onboarding_completed) {
+        const newTempPassword = generateTempPassword();
+        const { error: updateError } = await adminClient.auth.admin.updateUserById(authUser.id, {
+          password: newTempPassword,
+        });
+        if (updateError) throw updateError;
+
+        await adminClient
+          .from("profiles")
+          .update({ must_change_password: true })
+          .eq("id", authUser.id);
+        
+        passwordToShow = newTempPassword;
+      }
+
+      // Build the email content with the real temporary password (or "Sua senha pessoal")
       const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
         method: "POST",
         headers: {
@@ -51,7 +83,7 @@ serve(async (req) => {
         body: JSON.stringify({
           to: owner.email,
           subject: `Acesso Liberado: All Vita — ${tenant.trade_name || tenant.name}`,
-          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada no onboarding", owner.email),
+          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, passwordToShow, owner.email),
         }),
       });
 
@@ -61,6 +93,7 @@ serve(async (req) => {
 
       return jsonRes(200, { success: true });
     } catch (err) {
+      console.error("Activation error:", err);
       return jsonRes(500, { error: err.message });
     }
   }
@@ -340,7 +373,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
           </div>
           <div>
             <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Senha Provisória:</span>
-            <code style="font-size: 16px; color: #1e293b; font-weight: 700; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword === "Sua senha cadastrada no onboarding" ? "Sua senha pessoal" : tempPassword}</code>
+            <code style="font-size: 16px; color: #1e293b; font-weight: 700; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</code>
           </div>
         </div>
       </div>
