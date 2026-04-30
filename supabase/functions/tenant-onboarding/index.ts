@@ -51,7 +51,7 @@ serve(async (req) => {
         body: JSON.stringify({
           to: owner.email,
           subject: `Acesso Liberado: All Vita — ${tenant.trade_name || tenant.name}`,
-          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada no onboarding"),
+          html: buildWelcomeEmail(owner.full_name, tenant.trade_name || tenant.name, tenant.slug, "Sua senha cadastrada no onboarding", owner.email),
         }),
       });
 
