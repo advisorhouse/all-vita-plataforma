@@ -81,9 +81,12 @@ serve(async (req) => {
       const cfErrors = [530, 521, 522, 523, 524, 525, 526];
       httpReachable = !cfErrors.includes(res.status);
     } catch (e) {
-      httpError = (e as Error).message;
-      // DNS-level fetch failure (Cloudflare 1001 is returned as a 530 normally,
-      // but if Cloudflare can't even find the zone the fetch may fail entirely)
+      const msg = (e as Error).message;
+      httpError = msg;
+      // SSL Handshake failures mean DNS is pointed but cert isn't ready
+      if (msg.includes("HandshakeFailure") || msg.includes("ssl") || msg.includes("certificate")) {
+        httpError = "DNS apontado corretamente! Aguardando ativação do certificado SSL (HTTPS)...";
+      }
       httpReachable = false;
     }
 
