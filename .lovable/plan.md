@@ -1,108 +1,53 @@
 ## Objetivo
 
-Migrar identificação de tenant de **subdomínio** (`lumyss.allvita.com.br`) para **path** (`app.allvita.com.br/lumyss`). Resultado: criar tenant volta a ser 1 clique, sem nenhum trabalho de DNS por tenant.
+Eliminar o conflito visual e de roteamento que ocorre quando um usuário não autenticado acessa uma rota de tenant (ex: `/lumyss/core`) e é redirecionado para `/auth/login` — perdendo o slug da URL, mas mantendo o branding do tenant em memória.
 
----
+## Por que não migrar para subdomínios?
 
-## Contexto rápido
+A Lovable **não suporta wildcard DNS** (`*.allvita.com.br`). Cada subdomínio precisaria ser cadastrado manualmente no painel da Lovable, inviabilizando o cadastro automatizado de novas empresas via `/admin/tenants`. O modelo path-based é a única abordagem que escala automaticamente nesta plataforma.
 
-- Lovable não suporta wildcard custom domain. Cada hostname precisa ser cadastrado individualmente em Project Settings → Domains com TXT de verificação.
-- `app.allvita.com.br` já está cadastrado e ativo na Lovable.
-- Hoje `useSubdomainTenant` lê o tenant do subdomínio. Vamos passar a ler do primeiro segmento do path quando o host for `app.allvita.com.br`.
+A solução é tornar o path-based **100% consistente** — o slug deve viajar junto em TODAS as rotas, inclusive auth.
 
----
+## O que será feito
 
-## Mudanças
+### 1. Tornar as rotas de Auth conscientes do tenant
 
-### 1. Detecção de tenant por path (`src/hooks/useSubdomainTenant.ts`)
+Adicionar variantes de rotas com slug em `App.tsx`:
+- `/:slug/auth/login`
+- `/:slug/auth/signup`
+- `/:slug/auth/forgot-password`
+- `/:slug/auth/reset-password`
+- `/:slug/onboarding`
 
-Adicionar nova lógica que roda **antes** da detecção por subdomínio:
+As rotas globais sem slug (`/auth/login`) continuam existindo apenas para super-admins acessando `/admin`.
 
-- Se `hostname === "app.allvita.com.br"` (ou é o domínio principal publicado), pegar `pathname.split("/")[1]`.
-- Se esse segmento não for uma rota reservada (`admin`, `auth`, `quiz`, `core`, `partner`, `club`, `activate`, `invite`, `notifications`, `proposal`, `profile`, `privacy-policy`, `terms-of-use`), tratá-lo como slug do tenant.
-- Resolver tenant por `slug` no Supabase, idêntico ao fluxo atual.
-- Manter detecção por subdomínio como fallback (continuará funcionando para tenants que eventualmente tiverem domínio próprio cadastrado manualmente).
-- Manter `?tenant=` para preview/dev.
+### 2. AuthGuard preserva o slug ao redirecionar
 
-### 2. Reescrita de URLs internas (router/links)
+Quando o `AuthGuard` detectar usuário não autenticado tentando acessar uma rota de tenant, redirecionar para `/<slug>/auth/login?redirect=<rota_original>` em vez de `/auth/login`.
 
-Quando estamos no modo path-based (`isPathBasedTenant === true`), todas as rotas dos portais precisam ser prefixadas com `/<slug>`:
+### 3. Após o login, redirect respeita o slug
 
-- Criar helper `buildTenantPath(slug, path)` em `src/lib/tenant-brand.ts` (ou novo `src/lib/tenant-routing.ts`).
-- Atualizar `useTenantNavigation` para usar esse helper.
-- No `App.tsx`, adicionar rotas com prefixo dinâmico `/:tenantSlug/core/*`, `/:tenantSlug/partner/*`, `/:tenantSlug/club/*` em paralelo às rotas existentes.
-- Manter rotas atuais (`/core/*`, `/partner/*`, `/club/*`) para retrocompatibilidade (subdomínio + preview).
+A `LoginPage` já usa `useTenantNavigation`. Garantir que o `redirect` da query string e o `currentTenant.slug` sejam combinados corretamente para devolver o usuário ao portal certo (`/<slug>/core`, `/<slug>/club`, etc).
 
-### 3. Modal de criação de tenant (`CreateTenantDialog.tsx`)
+### 4. Onboarding também respeita o slug
 
-- Remover etapa "Registros DNS" completamente.
-- Após criar o tenant, mostrar URL final pronta para copiar: `https://app.allvita.com.br/<slug>`.
-- Manter etapa de e-mail (Resend) como está.
-- Marcar `dns_status = 'active'` automaticamente para todos os novos tenants (não há mais DNS para validar).
+O fluxo de troca de senha (`/onboarding`) deve, quando o usuário pertence a um tenant, redirecionar ao final para `/<slug>/core` (ou `/<slug>/club`/`/<slug>/partner` conforme o role).
 
-### 4. Edge function `check-subdomain`
+### 5. Documentar o modelo
 
-- Manter a função (útil se algum dia alguém quiser configurar subdomínio próprio), mas não é mais chamada no fluxo padrão de criação.
+Atualizar a memória de roteamento (`mem://architecture/tenant-routing-logic`) para deixar explícito que **todas** as rotas que vivem dentro do contexto de um tenant devem aceitar o prefixo `/:slug`, incluindo auth e onboarding.
 
-### 5. Hub público / landing do tenant
+## Resultado esperado
 
-- `TenantPublicHub` e CRM público passam a viver em `/<slug>` ao invés de `<slug>.allvita.com.br`.
-- Atualizar componentes que geram links públicos (convites, links de partner, links do quiz) para usar `app.allvita.com.br/<slug>/...`.
-
-### 6. Memórias
-
-Atualizar:
-- `mem://architecture/tenant-routing-logic` — nova lógica path-based como padrão.
-- `mem://features/tenant-creation-branding-step` — remover passo DNS.
-- `mem://core` — adicionar regra "Tenant routing path-based em app.allvita.com.br/<slug>".
-
----
+- Acessar `app.allvita.com.br/lumyss/core` sem login → redireciona para `app.allvita.com.br/lumyss/auth/login` (branding e URL coerentes).
+- Após login → volta para `app.allvita.com.br/lumyss/core`.
+- Branding nunca mais "vaza" entre contextos: se a URL mostra `/lumyss/...`, o branding é da Lumyss; se mostra apenas `/auth/login` (sem slug), o branding é o All Vita global.
+- Modelo escalável: adicionar 1.000 tenants não exige nenhuma configuração de DNS ou Lovable adicional.
 
 ## Detalhes técnicos
 
-### Estrutura de detecção (pseudocódigo)
-
-```text
-hostname = window.location.hostname
-pathname = window.location.pathname
-
-1. host === "app.allvita.com.br" OR host ends with ".lovable.app/dev":
-   slug = pathname.split("/")[1]
-   if slug && !RESERVED_PATHS.includes(slug):
-     → load tenant by slug, mark isPathBased=true
-
-2. host é subdomínio de allvita.com.br (fallback legado):
-   slug = subdomínio
-   → fluxo atual
-
-3. host é domínio custom (lookup por tenants.domain):
-   → fluxo atual
-
-4. ?tenant=slug (dev):
-   → fluxo atual
-```
-
-### Rotas reservadas (não são tenant slugs)
-
-`admin`, `auth`, `quiz`, `notifications`, `profile`, `privacy-policy`, `terms-of-use`, `proposal`, `invite`, `activate`, e qualquer asset (`assets`, `favicon.ico`, etc.).
-
-### Compatibilidade
-
-- Tenant `lumyss` que já foi criado: continuará funcionando via `app.allvita.com.br/lumyss` automaticamente assim que esta mudança for ao ar.
-- Subdomínio `lumyss.allvita.com.br` segue quebrado (Cloudflare 1001) — não vamos consertar, apenas comunicar nova URL.
-
----
-
-## Fora de escopo
-
-- Suporte a domínio próprio do cliente (ex: `clube.lumyss.com.br`). Pode ser adicionado depois como feature opcional via cadastro manual na Lovable + campo `tenants.domain`.
-- Cloudflare. Não será usado.
-- Wildcard DNS. Não será usado.
-
----
-
-## Resultado para o usuário
-
-- Criar novo tenant: preenche dados → 1 clique → URL `app.allvita.com.br/<slug>` funciona instantaneamente.
-- Zero DNS, zero TXT, zero espera de propagação, zero Cloudflare.
-- Tenants existentes acessam via nova URL automaticamente.
+- `App.tsx`: duplicar blocos de rotas auth/onboarding sob `/:slug/...`.
+- `AuthGuard.tsx`: ler `useParams().slug` (ou `currentTenant.slug` como fallback) e construir o caminho de redirect com prefixo.
+- `useTenantNavigation.ts`: já está preparado para prefixar slug — estender a lista de rotas tenant-aware para incluir `/auth` e `/onboarding`.
+- `LoginPage.tsx`: ao fazer redirect pós-login, usar `tenantPath()` em vez de path absoluto.
+- `AdminOnboarding.tsx`: aplicar o mesmo padrão no destino final (`window.location.href = tenantPath('/core')`).

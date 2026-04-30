@@ -112,13 +112,19 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/auth/accept-invitation" element={<AcceptInvitation />} />
 
-              {/* Auth routes */}
+              {/* Auth routes (global) */}
               <Route path="/auth/login" element={<LoginPage />} />
               <Route path="/auth/signup" element={<SignupPage />} />
-              
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
               <Route path="/auth/mfa-setup" element={<AuthGuard requireTenant={false}><MfaSetupPage /></AuthGuard>} />
+
+              {/* Auth routes (tenant-scoped) — preserves slug in URL */}
+              <Route path="/:slug/auth/login" element={<LoginPage />} />
+              <Route path="/:slug/auth/signup" element={<SignupPage />} />
+              <Route path="/:slug/auth/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/:slug/auth/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/:slug/onboarding" element={<AuthGuard requireTenant={false}><AdminOnboarding /></AuthGuard>} />
 
               {/* Club (Cliente) - Protected */}
               <Route path="/club/start" element={<AuthGuard><ClubStart /></AuthGuard>} />

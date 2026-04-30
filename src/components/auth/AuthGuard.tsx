@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import TenantSelectScreen from "@/components/tenant/TenantSelectScreen";
+import { extractSlugFromPath } from "@/lib/tenant-routing";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -27,11 +28,17 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     isLoading: tenantLoading
   } = useTenant();
   const location = useLocation();
+  const params = useParams();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
+  // Determine active tenant slug from route params, context, or URL fallback
+  const activeSlug = (params as any).slug 
+    || currentTenant?.slug 
+    || extractSlugFromPath(location.pathname);
+
   useEffect(() => {
-    if (!user || location.pathname === "/onboarding") {
+    if (!user || location.pathname.endsWith("/onboarding")) {
       setOnboardingChecked(true);
       return;
     }
@@ -80,12 +87,14 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     }
 
     const search = location.search || window.location.search;
-    return <Navigate to={`/auth/login${search}`} state={{ from: location }} replace />;
+    const loginPath = activeSlug ? `/${activeSlug}/auth/login` : "/auth/login";
+    return <Navigate to={`${loginPath}${search}`} state={{ from: location }} replace />;
   }
 
   // Redirect to onboarding if needed (but not if already on onboarding page)
-  if (needsOnboarding && location.pathname !== "/onboarding") {
-    return <Navigate to="/onboarding" replace />;
+  if (needsOnboarding && !location.pathname.endsWith("/onboarding")) {
+    const onboardingPath = activeSlug ? `/${activeSlug}/onboarding` : "/onboarding";
+    return <Navigate to={onboardingPath} replace />;
   }
 
   // Super admin without tenant context goes to admin
@@ -114,11 +123,12 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // 1. Super admin protection for /admin
   if (location.pathname.startsWith("/admin") && !isSuperAdmin && !platformRole) {
-    return <Navigate to="/core" replace />;
+    const fallback = activeSlug ? `/${activeSlug}/core` : "/core";
+    return <Navigate to={fallback} replace />;
   }
 
   // 2. Prevent staff from entering /core if they have no tenant context
-  if (location.pathname.startsWith("/core") && isSuperAdmin && !currentTenant) {
+  if (location.pathname.includes("/core") && isSuperAdmin && !currentTenant && !activeSlug) {
     return <Navigate to="/admin" replace />;
   }
 
@@ -132,7 +142,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     );
 
     if (!hasRole && !isSuperAdmin && !(location.pathname.startsWith("/admin") && platformRole)) {
-      return <Navigate to="/onboarding" replace />;
+      const onboardingPath = activeSlug ? `/${activeSlug}/onboarding` : "/onboarding";
+      return <Navigate to={onboardingPath} replace />;
     }
   }
 

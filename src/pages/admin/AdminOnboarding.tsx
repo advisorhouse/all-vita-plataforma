@@ -73,16 +73,19 @@ const AdminOnboarding: React.FC = () => {
 
     if (profile?.onboarding_completed) {
       const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+      const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
       let destination = "/auth/login";
       if (isSuperAdmin || platformRole) {
         destination = "/admin";
+      } else if (hasTenantMemberships && tenantSlug) {
+        destination = `/${tenantSlug}/core`;
       } else if (hasTenantMemberships) {
         destination = "/core";
       }
 
       await logOnboardingRedirect("resume", destination);
-      navigate(destination);
+      window.location.href = destination;
       return;
     }
     if (!profile?.must_change_password) {
@@ -162,16 +165,18 @@ const AdminOnboarding: React.FC = () => {
     
     // Extra validation before navigating
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+    const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
     let destination = "/";
     if (isSuperAdmin || platformRole) {
       destination = "/admin";
+    } else if (hasTenantMemberships && tenantSlug) {
+      destination = `/${tenantSlug}/core`;
     } else if (hasTenantMemberships) {
       destination = "/core";
     }
 
     await logOnboardingRedirect("complete", destination);
-    // Use window.location.href for a clean reload to clear all guard states
     window.location.href = destination;
   };
 
@@ -284,10 +289,13 @@ const AdminOnboarding: React.FC = () => {
         <CardContent>
           <Button onClick={async () => {
             const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
+            const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
             
             let destination = "/";
             if (isSuperAdmin || platformRole) {
               destination = "/admin";
+            } else if (hasTenantMemberships && tenantSlug) {
+              destination = `/${tenantSlug}/core`;
             } else if (hasTenantMemberships) {
               destination = "/core";
             }

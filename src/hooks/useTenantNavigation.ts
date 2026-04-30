@@ -21,16 +21,14 @@ export function useTenantNavigation() {
       const [basePath, existingQuery] = path.split("?");
       const params = new URLSearchParams(existingQuery || "");
 
-      // If we have an active slug and the path doesn't already start with a slug-like segment
-      // (and it's a tenant-aware route like /core, /club, /partner), we should prepend the slug.
       let finalBasePath = basePath;
-      const needsSlug = ["/core", "/club", "/partner"].some(p => basePath.startsWith(p));
+      const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
+      const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
       
-      if (activeSlug && needsSlug && !basePath.startsWith(`/${activeSlug}`)) {
+      if (activeSlug && needsSlug && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
 
-      // Fallback for dev: preserve ?tenant=
       if (tenantQueryParam && !params.has("tenant")) {
         params.set("tenant", tenantQueryParam);
       }
@@ -48,9 +46,10 @@ export function useTenantNavigation() {
       const params = new URLSearchParams(existingQuery || "");
       
       let finalBasePath = basePath;
-      const needsSlug = ["/core", "/club", "/partner"].some(p => basePath.startsWith(p));
+      const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
+      const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
 
-      if (activeSlug && needsSlug && !basePath.startsWith(`/${activeSlug}`)) {
+      if (activeSlug && needsSlug && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
 
