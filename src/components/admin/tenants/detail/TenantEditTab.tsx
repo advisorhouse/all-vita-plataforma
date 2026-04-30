@@ -156,7 +156,7 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
               <Input value={form.cnpj} onChange={(e) => handleChange("cnpj", e.target.value)} placeholder="00.000.000/0000-00" />
             </div>
             <div className="space-y-1.5">
-              <Label>Slug</Label>
+              <Label>Slug / Subdomínio *</Label>
               <Input value={form.slug} onChange={(e) => handleChange("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} />
             </div>
           </div>
