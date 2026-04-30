@@ -1132,36 +1132,43 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
                 </div>
               </div>
 
-              <Button
-                onClick={handleVerifyDns}
-                disabled={verifyingDns || dnsCheckStatus !== "propagated"}
-                size="lg"
-                className="w-full h-14 text-lg bg-green-600 hover:bg-green-700 disabled:bg-muted disabled:text-muted-foreground"
-              >
-                {verifyingDns ? (
-                  <><Loader2 className="h-5 w-5 mr-3 animate-spin" /> Enviando e-mail de acesso...</>
-                ) : dnsCheckStatus !== "propagated" ? (
-                  <><Loader2 className="h-5 w-5 mr-3 animate-spin" /> Aguardando propagação do DNS...</>
-                ) : (
-                  "Enviar e-mail de acesso ao cliente e concluir"
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  localStorage.removeItem(STORAGE_KEY);
-                  localStorage.removeItem(DNS_STEP_STORAGE_KEY);
-                  localStorage.removeItem(OPEN_STATE_KEY);
-                  setOpen(false);
-                  setForm(emptyForm);
-                  setStep("form");
-                  setCreatedTenant(null);
-                  removeAllAssets();
-                }}
-                className="w-full text-muted-foreground"
-              >
-                Fechar sem enviar e-mail (você pode reenviar depois)
-              </Button>
+              <div className="grid grid-cols-2 gap-3 pt-4">
+                <Button
+                  onClick={handleVerifyDns}
+                  disabled={verifyingDns || dnsCheckStatus !== "propagated"}
+                  size="lg"
+                  className="h-14 text-lg bg-green-600 hover:bg-green-700 disabled:bg-muted disabled:text-muted-foreground"
+                >
+                  {verifyingDns ? (
+                    <><Loader2 className="h-5 w-5 mr-3 animate-spin" /> Enviando...</>
+                  ) : dnsCheckStatus !== "propagated" ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Aguardando...</>
+                  ) : (
+                    "Concluir e Enviar E-mail"
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(DNS_STEP_STORAGE_KEY);
+                    localStorage.removeItem(OPEN_STATE_KEY);
+                    setOpen(false);
+                    // No need to reset form, user might want to continue later
+                    toast.info("Processo pausado", {
+                      description: "A empresa continua em 'Pendentes' no dashboard. Você pode finalizar depois."
+                    });
+                  }}
+                  className="h-14 text-lg text-muted-foreground border-dashed"
+                >
+                  Continuar depois
+                </Button>
+              </div>
+
+              <p className="text-[11px] text-center text-muted-foreground italic">
+                Você receberá uma notificação no dashboard assim que o DNS propagar.
+              </p>
             </div>
           </div>
         )}
