@@ -328,8 +328,8 @@ const CorePartners: React.FC = () => {
               <CardContent className="p-5 space-y-4">
                 <h3 className="text-sm font-semibold text-foreground">Distribuição por Nível</h3>
                 {(["platinum", "gold", "silver", "basic"] as const).map((level) => {
-                  const count = PARTNERS.filter((p) => p.level === level).length;
-                  const pct = Math.round((count / totalPartners) * 100);
+                  const count = partners.filter((p) => p.level === level).length;
+                  const pct = totalPartners > 0 ? Math.round((count / totalPartners) * 100) : 0;
                   const cfg = LEVEL_CONFIG[level];
                   return (
                     <div key={level} className="space-y-1.5">
