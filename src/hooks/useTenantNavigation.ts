@@ -11,11 +11,15 @@ export function useTenantNavigation() {
 
   const tenantNavigate = useCallback(
     (path: string, options?: { replace?: boolean }) => {
-      // Parse existing params from the path
+      let finalPath = path;
       const [basePath, existingQuery] = path.split("?");
       const params = new URLSearchParams(existingQuery || "");
 
-      // Preserve tenant param
+      // If we are in a tenant context and the path doesn't start with a slash and a slug, prepend it
+      // However, React Router with :slug will handle it if we just provide the path relative to root
+      // or if we use absolute paths.
+      
+      // For now, focus on preserving the tenant query param as a fallback
       if (tenantParam && !params.has("tenant")) {
         params.set("tenant", tenantParam);
       }
@@ -29,12 +33,13 @@ export function useTenantNavigation() {
   /** Build a path string with tenant param preserved (for Link `to` props) */
   const tenantPath = useCallback(
     (path: string) => {
-      if (!tenantParam) return path;
       const [basePath, existingQuery] = path.split("?");
       const params = new URLSearchParams(existingQuery || "");
-      if (!params.has("tenant")) {
+      
+      if (tenantParam && !params.has("tenant")) {
         params.set("tenant", tenantParam);
       }
+      
       const qs = params.toString();
       return `${basePath}${qs ? `?${qs}` : ""}`;
     },
