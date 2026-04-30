@@ -66,8 +66,16 @@ export function extractSlugFromPath(pathname: string): string | null {
  * Builds the full external URL for a tenant page (used in invitations,
  * referral links, share buttons, etc.).
  */
-export function buildTenantUrl(slug: string, path: string = "/"): string {
+export function buildTenantUrl(slug: string, path: string = "/", params?: Record<string, string>): string {
   const base = "https://app.allvita.com.br";
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  return `${base}/${slug}${cleanPath === "/" ? "" : cleanPath}`;
+  const url = new URL(`${slug}${cleanPath === "/" ? "" : cleanPath}`, base);
+  
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.set(key, value);
+    });
+  }
+  
+  return url.toString();
 }
