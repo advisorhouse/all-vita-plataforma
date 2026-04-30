@@ -344,6 +344,21 @@ const AdminDashboard: React.FC = () => {
         </div>
       </motion.div>
 
+      {/* Pending Registrations Widget */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="w-full">
+        <PendingTenantsWidget onResume={(tenant) => {
+          setResumeTenant(tenant);
+          setIsDialogOpen(true);
+        }} />
+      </motion.div>
+
+      {/* Hidden Dialog for Resuming */}
+      <CreateTenantDialog 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+        resumeTenant={resumeTenant} 
+      />
+
       {/* KPIs */}
       <KpiCards data={{
         totalRevenue,
