@@ -89,7 +89,7 @@ import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 const queryClient = new QueryClient();
 
-const ClubRoutes = () => (
+const clubChildren = (
   <>
     <Route index element={<ClubDashboard />} />
     <Route path="subscription" element={<ClubSubscription />} />
@@ -105,7 +105,7 @@ const ClubRoutes = () => (
   </>
 );
 
-const PartnerRoutes = () => (
+const partnerChildren = (
   <>
     <Route index element={<PartnerDashboard />} />
     <Route path="network" element={<PartnerNetwork />} />
@@ -125,7 +125,7 @@ const PartnerRoutes = () => (
   </>
 );
 
-const CoreRoutes = () => (
+const coreChildren = (
   <>
     <Route index element={<CoreDashboard />} />
     <Route path="customers" element={<CoreCustomers />} />
