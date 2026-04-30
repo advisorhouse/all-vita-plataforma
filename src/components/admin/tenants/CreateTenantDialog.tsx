@@ -78,6 +78,9 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
   const [emailDnsRecords, setEmailDnsRecords] = useState<any[]>([]);
   const [loadingEmailDns, setLoadingEmailDns] = useState(false);
   const [emailDnsError, setEmailDnsError] = useState<string | null>(null);
+  const [dnsCheckStatus, setDnsCheckStatus] = useState<"idle" | "checking" | "propagated" | "waiting">("idle");
+  const [dnsCheckInfo, setDnsCheckInfo] = useState<{ stage?: string; error?: string | null; lastCheck?: Date }>({});
+  const [dnsCheckAttempts, setDnsCheckAttempts] = useState(0);
 
   const persistableLogoPreview = (preview: string | null) => {
     if (!preview) return null;
