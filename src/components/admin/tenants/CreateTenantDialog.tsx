@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug, Copy, Check } from "lucide-react";
+import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug, Copy, Check, Settings } from "lucide-react";
 import { IMaskInput } from "react-imask";
 
 interface TenantFormData {
