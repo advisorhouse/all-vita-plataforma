@@ -589,8 +589,9 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     if (!createdTenant) return;
     setVerifyingDns(true);
     try {
-      // Tenant is already active (set in mutation onSuccess). Just send the
-      // activation e-mail to the owner.
+      // Update status to completed
+      await supabase.from("tenants").update({ registration_status: 'completed' }).eq("id", createdTenant.tenant.id);
+
       await supabase.functions.invoke("tenant-onboarding/send-activation", {
         body: { tenantId: createdTenant.tenant.id }
       });
