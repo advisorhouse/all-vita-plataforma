@@ -41,6 +41,8 @@ interface TenantContextValue {
   availableTenants: Tenant[];
   isSubdomainAccess: boolean;
   setIsSubdomainAccess: (v: boolean) => void;
+  tenantMode: "path" | "subdomain" | "custom-domain" | "query" | null;
+  setTenantMode: (v: "path" | "subdomain" | "custom-domain" | "query" | null) => void;
 }
 
 const TenantContext = createContext<TenantContextValue | undefined>(undefined);
