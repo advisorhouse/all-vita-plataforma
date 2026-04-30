@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import RegisterPartnerModal from "@/components/core/RegisterPartnerModal";
 import {
   Handshake, Search, Users, DollarSign, TrendingUp, ShieldCheck,
@@ -21,7 +24,6 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-/* ─── Animation ─────────────────────────────────────────── */
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
@@ -30,7 +32,6 @@ const fadeUp = {
   }),
 };
 
-/* ─── Level Config ──────────────────────────────────────── */
 const LEVEL_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   basic: { label: "Basic", color: "text-muted-foreground", bg: "bg-secondary", icon: Star },
   silver: { label: "Silver", color: "text-foreground", bg: "bg-secondary", icon: Award },
@@ -38,18 +39,6 @@ const LEVEL_CONFIG: Record<string, { label: string; color: string; bg: string; i
   platinum: { label: "Platinum", color: "text-accent", bg: "bg-accent/10", icon: Crown },
   diamond: { label: "Diamond", color: "text-accent", bg: "bg-accent/10", icon: Crown },
 };
-
-/* ─── Mock Data ─────────────────────────────────────────── */
-const PARTNERS = [
-  { id: "1", name: "Camila Souza", email: "camila@email.com", level: "platinum", status: "active", clients: 24, activeClients: 22, retention: 92, mrr: 4380, ltv: 1840, commission: 1248, progress: 88, trend: "up", riskClients: 1 },
-  { id: "2", name: "Ana Paula Costa", email: "ana@email.com", level: "gold", status: "active", clients: 18, activeClients: 16, retention: 88, mrr: 3120, ltv: 1620, commission: 892, progress: 72, trend: "up", riskClients: 2 },
-  { id: "3", name: "Julia Mendes", email: "julia@email.com", level: "gold", status: "active", clients: 15, activeClients: 13, retention: 85, mrr: 2540, ltv: 1480, commission: 720, progress: 65, trend: "up", riskClients: 1 },
-  { id: "4", name: "Fernanda Rocha", email: "fernanda@email.com", level: "silver", status: "active", clients: 12, activeClients: 10, retention: 78, mrr: 1890, ltv: 1120, commission: 540, progress: 52, trend: "up", riskClients: 3 },
-  { id: "5", name: "Patrícia Lima", email: "patricia@email.com", level: "silver", status: "active", clients: 8, activeClients: 6, retention: 65, mrr: 1180, ltv: 780, commission: 340, progress: 38, trend: "down", riskClients: 2 },
-  { id: "6", name: "Mariana Santos", email: "mariana@email.com", level: "basic", status: "active", clients: 5, activeClients: 4, retention: 72, mrr: 780, ltv: 620, commission: 220, progress: 24, trend: "up", riskClients: 1 },
-  { id: "7", name: "Beatriz Oliveira", email: "beatriz@email.com", level: "basic", status: "active", clients: 3, activeClients: 3, retention: 80, mrr: 480, ltv: 540, commission: 135, progress: 15, trend: "up", riskClients: 0 },
-  { id: "8", name: "Larissa Almeida", email: "larissa@email.com", level: "basic", status: "inactive", clients: 2, activeClients: 0, retention: 0, mrr: 0, ltv: 320, commission: 45, progress: 5, trend: "down", riskClients: 2 },
-];
 
 type FilterStatus = "all" | "active" | "inactive";
 type FilterLevel = "all" | "basic" | "silver" | "gold" | "platinum" | "diamond";
