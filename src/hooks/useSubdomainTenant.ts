@@ -30,8 +30,8 @@ const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
   // 1) Explicit Subdomain detection (high priority)
   for (const base of BASE_DOMAINS) {
     if (hostname.endsWith(`.${base}`) && hostname !== `app.${base}`) {
-      const sub = hostname.slice(0, hostname.length - base.length - 1);
-      if (sub && !sub.includes(".") && !RESERVED_SUBDOMAINS.includes(sub)) {
+      const sub = hostname.split('.')[0];
+      if (sub && !RESERVED_SUBDOMAINS.includes(sub)) {
         return { mode: "subdomain", slug: sub };
       }
     }
