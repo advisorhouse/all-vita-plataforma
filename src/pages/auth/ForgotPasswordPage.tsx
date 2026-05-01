@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
+import { isColorLight } from "@/lib/utils";
 import logoAllVita from "@/assets/logo-allvita.png";
 
 const ForgotPasswordPage: React.FC = () => {
@@ -88,7 +89,9 @@ const ForgotPasswordPage: React.FC = () => {
           <h1 
             className="text-2xl font-semibold tracking-tight transition-colors duration-500"
             style={{ 
-              color: currentTenant?.primary_color ? 'white' : 'var(--foreground)'
+              color: currentTenant?.primary_color 
+                ? (isColorLight(currentTenant.primary_color) ? '#1A1A1A' : 'white') 
+                : 'var(--foreground)'
             }}
           >
             Recuperar senha
@@ -96,7 +99,9 @@ const ForgotPasswordPage: React.FC = () => {
           <p 
             className="text-sm mt-2 transition-colors duration-500 max-w-[280px] mx-auto"
             style={{ 
-              color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
+              color: currentTenant?.primary_color 
+                ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)') 
+                : 'var(--muted-foreground)'
             }}
           >
             Esqueceu sua senha? Não se preocupe. Informe seu e-mail abaixo e enviaremos as instruções para você criar uma nova.
@@ -153,7 +158,9 @@ const ForgotPasswordPage: React.FC = () => {
         <p 
           className="text-center text-[11px] mt-6 transition-colors duration-500"
           style={{ 
-            color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.7)' : 'var(--muted-foreground)'
+            color: currentTenant?.primary_color 
+              ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.7)') 
+              : 'var(--muted-foreground)'
           }}
         >
           Powered by <span className="font-medium">All Vita</span>
