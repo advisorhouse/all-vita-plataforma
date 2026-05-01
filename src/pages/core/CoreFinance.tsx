@@ -4,7 +4,8 @@ import {
   DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
   CreditCard, Wallet, Receipt, Download, Calendar, FileText,
   BarChart3, PieChart as PieChartIcon, Landmark, CircleDollarSign,
-  CheckCircle, Clock, XCircle, Users, Banknote, RefreshCw
+  CheckCircle, Clock, XCircle, Users, Banknote, RefreshCw, Truck, ScrollText,
+  ShoppingCart, ExternalLink
 } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InfoTip } from "@/components/ui/info-tip";
