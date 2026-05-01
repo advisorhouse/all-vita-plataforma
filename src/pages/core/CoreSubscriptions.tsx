@@ -347,8 +347,8 @@ const CoreSubscriptions: React.FC = () => {
                 <div className="h-40 flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={PLAN_DISTRIBUTION} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={2} dataKey="value">
-                        {PLAN_DISTRIBUTION.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      <Pie data={planDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={2} dataKey="value">
+                        {planDistribution.map((entry: any, i: number) => <Cell key={i} fill={entry.color} />)}
                       </Pie>
                       <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }} />
                     </PieChart>
