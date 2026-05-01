@@ -134,19 +134,29 @@ serve(async (req) => {
       }
 
       case "EMAIL_CHANGE":
-      case "EMAIL_CHANGE_CONFIRM":
+      case "EMAIL_CHANGE_CONFIRM": {
         subject = `Confirme seu novo e-mail - ${tenantBranding.name}`;
+        
+        let confirmationUrl = redirect_to;
+        if (email_data?.token_hash) {
+          const url = new URL(redirect_to);
+          url.searchParams.set("token_hash", email_data.token_hash);
+          url.searchParams.set("type", "email_change");
+          confirmationUrl = url.toString();
+        }
+
         html = getTemplate(tenantBranding, `
           <h2 style="color: ${tenantBranding.primaryColor};">Confirmação de Alteração</h2>
           <p>Você solicitou a alteração do seu e-mail na plataforma <strong>${tenantBranding.name}</strong>.</p>
           <p>Para concluir o processo, clique no botão abaixo:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Confirmar Novo E-mail
             </a>
           </div>
         `);
         break;
+      }
 
       case "INVITE":
         subject = `Você foi convidado para ${tenantBranding.name}`;
