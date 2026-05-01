@@ -123,6 +123,7 @@ const PartnerOnboarding: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tenantParam = searchParams.get("tenant");
+  const referrerParam = searchParams.get("ref");
   const { currentTenant, isLoading } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
