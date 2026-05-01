@@ -4,6 +4,7 @@ import { useTenantNavigation } from "@/hooks/useTenantNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { logAccessEvent } from "@/lib/security-logger";
 import { useTenant } from "@/contexts/TenantContext";
+import { isColorLight } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,7 +103,9 @@ const LoginPage: React.FC = () => {
           <p 
             className="text-sm mt-1 transition-colors duration-500"
             style={{ 
-              color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
+              color: currentTenant?.primary_color 
+                ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)') 
+                : 'var(--muted-foreground)'
             }}
           >
             Acesse sua conta {currentTenant?.trade_name || currentTenant?.name || "All Vita"}
@@ -202,7 +205,9 @@ const LoginPage: React.FC = () => {
         <p 
           className="text-center text-[11px] mt-6 transition-colors duration-500"
           style={{ 
-            color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.7)' : 'var(--muted-foreground)'
+            color: currentTenant?.primary_color 
+              ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.7)') 
+              : 'var(--muted-foreground)'
           }}
         >
           Powered by <span className="font-medium">All Vita</span>
