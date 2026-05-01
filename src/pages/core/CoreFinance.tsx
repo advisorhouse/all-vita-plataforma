@@ -570,8 +570,115 @@ const CoreFinance: React.FC = () => {
           </motion.div>
         </TabsContent>
 
-        {/* ===== FLUXO DE CAIXA ===== */}
-        <TabsContent value="cashflow" className="space-y-4 mt-4">
+        {/* ===== LOGÍSTICA ===== */}
+        <TabsContent value="freights" className="space-y-4 mt-4">
+          <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm overflow-hidden">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-semibold">Gestão de Envios (Melhor Envio)</CardTitle>
+                  {!data.activeIntegrations.some(i => i.type === 'melhorenvio') && (
+                    <p className="text-[10px] text-muted-foreground mt-1">Integração com Melhor Envio desativada.</p>
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />Exportar</Button>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[10px]">Etiqueta</TableHead>
+                    <TableHead className="text-[10px]">Pedido</TableHead>
+                    <TableHead className="text-[10px]">Transportadora</TableHead>
+                    <TableHead className="text-[10px]">Custo</TableHead>
+                    <TableHead className="text-[10px]">Data</TableHead>
+                    <TableHead className="text-[10px]">Status</TableHead>
+                    <TableHead className="text-[10px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.freights.length > 0 ? (
+                    data.freights.map((f: any) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="text-[11px] font-mono text-muted-foreground">{f.id}</TableCell>
+                        <TableCell className="text-xs font-medium text-foreground">{f.orderId}</TableCell>
+                        <TableCell className="text-xs text-foreground">{f.carrier}</TableCell>
+                        <TableCell className="text-xs text-foreground">R$ {f.cost.toFixed(2)}</TableCell>
+                        <TableCell className="text-[11px] text-muted-foreground">{f.date}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-[9px] gap-1">
+                            {f.status === 'delivered' ? 'Entregue' : 'Postado'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><ExternalLink className="h-3 w-3" /></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center text-xs text-muted-foreground">
+                        Nenhum envio registrado. Conecte o Melhor Envio para começar.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ===== FISCAL ===== */}
+        <TabsContent value="tax" className="space-y-4 mt-4">
+          <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm overflow-hidden">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-semibold">Emissão de Notas Fiscais (eNotas)</CardTitle>
+                  {!data.activeIntegrations.some(i => i.type === 'enotas') && (
+                    <p className="text-[10px] text-muted-foreground mt-1">Integração com eNotas desativada.</p>
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />Sincronizar</Button>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[10px]">NF-e / NFS-e</TableHead>
+                    <TableHead className="text-[10px]">Pedido</TableHead>
+                    <TableHead className="text-[10px]">Data de Emissão</TableHead>
+                    <TableHead className="text-[10px]">Status</TableHead>
+                    <TableHead className="text-[10px] text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.fiscalInvoices.length > 0 ? (
+                    data.fiscalInvoices.map((f: any) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="text-[11px] font-mono text-muted-foreground">{f.id}</TableCell>
+                        <TableCell className="text-xs font-medium text-foreground">{f.orderId}</TableCell>
+                        <TableCell className="text-[11px] text-muted-foreground">{f.date}</TableCell>
+                        <TableCell>
+                          <Badge variant="default" className="text-[9px] bg-emerald-500/10 text-emerald-600 border-0">
+                            Emitida
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-7 gap-1 text-[10px]"><Download className="h-3 w-3" /> PDF</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center text-xs text-muted-foreground">
+                        Nenhuma nota fiscal emitida. Conecte o eNotas para automação fiscal.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </motion.div>
+        </TabsContent>
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
             <Card className="border border-border shadow-sm">
               <CardHeader className="pb-2 flex-row items-center justify-between">
