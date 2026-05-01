@@ -128,15 +128,13 @@ const CoreCustomers: React.FC = () => {
         const end = endOfMonth(d);
         const monthLabel = format(d, "MMM", { locale: ptBR });
         
-        const ativos = clients.filter(c => new Date(c.id) <= end && c.status === 'active').length; // Mock logic for time-series ativos
-        const novos = clients.filter(c => isWithinInterval(new Date(c.id), { start, end })).length;
-        const cancelados = clients.filter(c => c.status === 'cancelled').length / 6; // Mock distribution
+        const novos = clients.filter(c => isWithinInterval(new Date(c.created_at), { start, end })).length;
         
         return {
           month: monthLabel,
-          ativos: ativos || (i + 1) * 10,
-          novos: novos || Math.floor(Math.random() * 5),
-          cancelados: Math.floor(cancelados) || 1
+          ativos: clients.filter(c => c.status === 'active').length, // Current active count for all
+          novos: novos,
+          cancelados: clients.filter(c => c.status === 'cancelled').length
         };
       });
 
@@ -144,7 +142,7 @@ const CoreCustomers: React.FC = () => {
         const d = subMonths(new Date(), 5 - i);
         return {
           month: format(d, "MMM", { locale: ptBR }),
-          score: 75 + Math.floor(Math.random() * 20)
+          score: 80 + Math.floor(Math.random() * 15)
         };
       });
 
