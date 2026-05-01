@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import InputMask from "react-input-mask";
 import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
+import { useCEPLookup } from "@/hooks/use-cep-lookup";
 import iconVisionLift from "@/assets/icon-vision-lift.png";
 import partnerHeroImg from "@/assets/partner-onboarding-hero.png";
 import { OnboardingHeader, OnboardingFooter } from "@/components/onboarding/OnboardingLayout";
@@ -104,6 +105,7 @@ const PartnerOnboarding: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { lookupCNPJ, loading: loadingCNPJ } = useCNPJLookup();
+  const { lookupCEP, loading: loadingCEP } = useCEPLookup();
 
   const handleCNPJLookup = async () => {
     if (!data.cnpj) return;
@@ -121,6 +123,22 @@ const PartnerOnboarding: React.FC = () => {
         state: result.uf,
       });
       toast.success("Dados do CNPJ carregados com sucesso!");
+    }
+  };
+
+  const handleCEPLookup = async (cepValue: string) => {
+    const cleanCEP = cepValue.replace(/\D/g, "");
+    if (cleanCEP.length === 8) {
+      const result = await lookupCEP(cleanCEP);
+      if (result) {
+        update({
+          street: result.logradouro,
+          district: result.bairro,
+          city: result.localidade,
+          state: result.uf,
+        });
+        toast.success("Endereço preenchido automaticamente!");
+      }
     }
   };
 
@@ -563,19 +581,12 @@ const PartnerOnboarding: React.FC = () => {
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Telefone (WhatsApp)</FieldLabel>
-                    <InputMask
-                      mask="+55 (99) 99999-9999"
+                    <Input
                       value={data.phone}
                       onChange={(e) => update({ phone: e.target.value })}
-                    >
-                      {(inputProps: any) => (
-                        <Input
-                          {...inputProps}
-                          placeholder="+55 (00) 00000-0000"
-                          className={inputClass}
-                        />
-                      )}
-                    </InputMask>
+                      placeholder="Ex: +55 (11) 99999-9999"
+                      className={inputClass}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Senha</FieldLabel>
@@ -866,7 +877,11 @@ const PartnerOnboarding: React.FC = () => {
                       <InputMask
                         mask="99999-999"
                         value={data.cep}
-                        onChange={(e) => update({ cep: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          update({ cep: val });
+                          handleCEPLookup(val);
+                        }}
                       >
                         {(inputProps: any) => (
                           <Input
