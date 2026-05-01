@@ -679,6 +679,9 @@ const CoreFinance: React.FC = () => {
             </Card>
           </motion.div>
         </TabsContent>
+
+        {/* ===== FLUXO DE CAIXA ===== */}
+        <TabsContent value="cashflow" className="space-y-4 mt-4">
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
             <Card className="border border-border shadow-sm">
               <CardHeader className="pb-2 flex-row items-center justify-between">
