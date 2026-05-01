@@ -45,42 +45,92 @@ const CoreCustomers: React.FC = () => {
   const [filter, setFilter] = useState<"all" | "active" | "paused" | "cancelled">("all");
   const { currentTenant } = useTenant();
 
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: clientData, isLoading } = useQuery({
     queryKey: ["core-customers", currentTenant?.id],
     queryFn: async () => {
-      if (!currentTenant?.id) return [];
-      const { data, error } = await supabase
-        .from("clients")
-        .select(`
-          id,
-          full_name,
-          phone,
-          created_at,
-          metadata,
-          profiles:user_id (email)
-        `)
-        .eq("tenant_id", currentTenant.id);
+      if (!currentTenant?.id) return null;
       
-      if (error) throw error;
+      const [clientsRes, ordersRes] = await Promise.all([
+        supabase
+          .from("clients")
+          .select(`
+            id,
+            full_name,
+            phone,
+            created_at,
+            metadata,
+            profiles:user_id (email)
+          `)
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("orders")
+          .select("client_id, amount, payment_status")
+          .eq("tenant_id", currentTenant.id)
+      ]);
       
-      return (data || []).map(c => ({
-        id: c.id,
-        name: c.full_name || "Sem nome",
-        email: (c.profiles as any)?.email || "Sem email",
-        status: (c.metadata as any)?.status || "active",
-        months: Math.floor((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30)),
-        engagement: (c.metadata as any)?.engagement || 0,
-        consistency: (c.metadata as any)?.consistency || 0,
-        risk: (c.metadata as any)?.risk || "low",
-        level: (c.metadata as any)?.level || "Início",
-        plan: (c.metadata as any)?.plan || "N/A",
-        ltv: (c.metadata as any)?.ltv || 0,
-        lastLogin: (c.metadata as any)?.lastLogin || "N/A",
-        partner: (c.metadata as any)?.partner || "Direto"
+      if (clientsRes.error) throw clientsRes.error;
+      if (ordersRes.error) throw ordersRes.error;
+      
+      const orders = ordersRes.data || [];
+      const clientLtvMap = new Map();
+      orders.filter(o => o.payment_status === 'paid').forEach(o => {
+        if (o.client_id) {
+          clientLtvMap.set(o.client_id, (clientLtvMap.get(o.client_id) || 0) + Number(o.amount));
+        }
+      });
+
+      const clients = (clientsRes.data || []).map(c => {
+        const metadata = c.metadata as any || {};
+        const monthsActive = Math.floor((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30));
+        
+        return {
+          id: c.id,
+          name: c.full_name || "Sem nome",
+          email: (c.profiles as any)?.email || "Sem email",
+          status: metadata.status || "active",
+          months: monthsActive,
+          engagement: metadata.engagement || 85, // Default for now
+          consistency: metadata.consistency || 90,
+          risk: metadata.risk || "low",
+          level: monthsActive >= 12 ? "Elite" : monthsActive >= 6 ? "6M+" : monthsActive >= 3 ? "3M+" : "Início",
+          plan: metadata.plan || "Original",
+          ltv: clientLtvMap.get(c.id) || 0,
+          lastLogin: metadata.lastLogin || format(new Date(c.created_at), "dd/MM/yyyy"),
+          partner: metadata.partner || "Direto"
+        };
+      });
+
+      // Distributions
+      const levels = { "Início": 0, "3M+": 0, "6M+": 0, "Elite": 0 };
+      const risks = { "low": 0, "medium": 0, "high": 0 };
+      
+      clients.forEach(c => {
+        (levels as any)[c.level]++;
+        (risks as any)[c.risk]++;
+      });
+
+      const levelDistribution = Object.entries(levels).map(([name, value]) => ({
+        name, value, fill: name === "Elite" ? "hsl(var(--destructive))" : name === "6M+" ? "hsl(var(--accent-foreground))" : name === "3M+" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"
       }));
+
+      const riskDistribution = [
+        { name: "Baixo", value: risks.low, fill: "hsl(var(--primary))" },
+        { name: "Médio", value: risks.medium, fill: "hsl(var(--accent-foreground))" },
+        { name: "Alto", value: risks.high, fill: "hsl(var(--destructive))" },
+      ];
+
+      return {
+        clients,
+        levelDistribution,
+        riskDistribution
+      };
     },
     enabled: !!currentTenant?.id
   });
+
+  const clients = clientData?.clients || [];
+  const levelDistribution = clientData?.levelDistribution || LEVEL_DISTRIBUTION;
+  const riskDistribution = clientData?.riskDistribution || RISK_DISTRIBUTION;
 
   const filtered = clients.filter(
     (c) =>
