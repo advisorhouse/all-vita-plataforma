@@ -15,9 +15,10 @@ import {
 const BASE_DOMAINS = [
   "allvita.com.br",
   "lovable.app",
+  "lovableproject.com",
 ];
 
-const RESERVED_SUBDOMAINS = ["www", "app", "api", "admin", "all-vita-plataforma", "id-preview", "preview"];
+const RESERVED_SUBDOMAINS = ["www", "app", "api", "admin", "all-vita-plataforma", "id-preview", "preview", "87c785b3-f659-4f24-9560-f5b6d213074e"];
 
 type DetectedTenant =
   | { mode: "path"; slug: string }
@@ -41,6 +42,7 @@ const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
   const isActuallyPathBased = hostname === "app.allvita.com.br" || 
                              hostname === "all-vita-plataforma.lovable.app" ||
                              hostname.includes(".lovable.app") || 
+                             hostname.includes(".lovableproject.com") ||
                              hostname === "localhost";
                              
   if (isActuallyPathBased) {
@@ -66,6 +68,7 @@ const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
     !/^\d+\.\d+\.\d+\.\d+$/.test(hostname) &&
     !hostname.endsWith(".allvita.com.br") &&
     !hostname.endsWith(".lovable.app") &&
+    !hostname.endsWith(".lovableproject.com") &&
     hostname !== "allvita.com.br" &&
     hostname !== "app.allvita.com.br"
   ) {
