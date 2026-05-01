@@ -224,12 +224,20 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Telefone / WhatsApp *</FieldLabel>
-                    <Input
+                    <InputMask
+                      mask="+55 (99) 99999-9999"
                       value={data.phone}
                       onChange={(e) => update({ phone: e.target.value })}
-                      placeholder="(11) 99999-9999"
-                      className={inputClass}
-                    />
+                    >
+                      {/* @ts-ignore */}
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          placeholder="+55 (11) 99999-9999"
+                          className={inputClass}
+                        />
+                      )}
+                    </InputMask>
                   </div>
                 </>
               )}
