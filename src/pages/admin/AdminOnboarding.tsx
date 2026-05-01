@@ -75,7 +75,7 @@ const AdminOnboarding: React.FC = () => {
       const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
       const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
-      const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && window.location.hostname.endsWith("allvita.com.br");
+      const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && (window.location.hostname.endsWith(".allvita.com.br") || window.location.hostname.endsWith(".lovable.app"));
 
       let destination = "/auth/login";
       if (isSuperAdmin || platformRole) {
@@ -169,7 +169,7 @@ const AdminOnboarding: React.FC = () => {
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
     const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
-    const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && window.location.hostname.endsWith("allvita.com.br");
+    const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && (window.location.hostname.endsWith(".allvita.com.br") || window.location.hostname.endsWith(".lovable.app"));
 
     let destination = "/";
     if (isSuperAdmin || platformRole) {
@@ -295,7 +295,7 @@ const AdminOnboarding: React.FC = () => {
             const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
             const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
             
-            const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && window.location.hostname.endsWith("allvita.com.br");
+            const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && (window.location.hostname.endsWith(".allvita.com.br") || window.location.hostname.endsWith(".lovable.app"));
 
             let destination = "/";
             if (isSuperAdmin || platformRole) {
