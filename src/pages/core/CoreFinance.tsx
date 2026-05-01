@@ -295,11 +295,54 @@ const CoreFinance: React.FC = () => {
         ))}
       </motion.div>
 
+      {/* Active Integrations */}
+      <div className="flex flex-wrap gap-2">
+        {['shopify', 'pagarme', 'melhorenvio', 'enotas'].map(type => {
+          const integration = data.activeIntegrations.find(i => i.type === type);
+          const labels: Record<string, string> = { 
+            shopify: 'Shopify', 
+            pagarme: 'Pagar.me', 
+            melhorenvio: 'Melhor Envio', 
+            enotas: 'eNotas' 
+          };
+          const Icons: Record<string, any> = { 
+            shopify: ShoppingCart, 
+            pagarme: CreditCard, 
+            melhorenvio: Truck, 
+            enotas: ScrollText 
+          };
+          const Icon = Icons[type];
+          
+          return (
+            <Badge 
+              key={type} 
+              variant={integration ? "default" : "outline"}
+              className={cn(
+                "gap-1.5 py-1 px-3 text-[10px] font-medium transition-all",
+                integration 
+                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20" 
+                  : "text-muted-foreground/60 opacity-60"
+              )}
+            >
+              <Icon className="h-3 w-3" />
+              {labels[type]}
+              {integration ? (
+                <CheckCircle className="h-2.5 w-2.5 ml-0.5" />
+              ) : (
+                <XCircle className="h-2.5 w-2.5 ml-0.5" />
+              )}
+            </Badge>
+          );
+        })}
+      </div>
+
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="overview" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Visão Geral</TabsTrigger>
           <TabsTrigger value="payouts" className="gap-1.5 text-xs"><Banknote className="h-3.5 w-3.5" />Repasses</TabsTrigger>
           <TabsTrigger value="invoices" className="gap-1.5 text-xs"><Receipt className="h-3.5 w-3.5" />Faturamento</TabsTrigger>
+          <TabsTrigger value="freights" className="gap-1.5 text-xs"><Truck className="h-3.5 w-3.5" />Logística</TabsTrigger>
+          <TabsTrigger value="tax" className="gap-1.5 text-xs"><ScrollText className="h-3.5 w-3.5" />Fiscal</TabsTrigger>
           <TabsTrigger value="cashflow" className="gap-1.5 text-xs"><Wallet className="h-3.5 w-3.5" />Fluxo de Caixa</TabsTrigger>
         </TabsList>
 
