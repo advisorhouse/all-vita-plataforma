@@ -14,7 +14,17 @@ serve(async (req) => {
     const payload = await req.json();
     console.log("Auth Email Hook received payload:", JSON.stringify(payload, null, 2));
 
-    const { event, user, redirect_to } = payload;
+    const { user, email_data } = payload;
+    const event = email_data?.email_action_type || payload.event || payload.type;
+    const redirect_to = email_data?.redirect_to || payload.redirect_to;
+
+    if (!user) {
+      console.error("Missing user in payload");
+      return new Response(JSON.stringify({ error: "Usuário não encontrado no payload" }), { 
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
 
     // Detect tenant from redirect_to or user metadata
     let tenantSlug = user.user_metadata?.tenant_slug;
