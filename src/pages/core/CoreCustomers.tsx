@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Users, Search, AlertTriangle, Activity,
   CheckCircle2, TrendingUp,
-  BarChart3, Shield,
+  BarChart3, Shield, RefreshCw
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
