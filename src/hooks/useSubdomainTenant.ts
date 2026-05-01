@@ -48,6 +48,12 @@ const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
     if (cached) return { mode: "path", slug: cached };
     const slug = extractSlugFromPath(pathname);
     if (slug) return { mode: "path", slug };
+    
+    // Explicit check for /lumyss style paths on app.allvita.com.br
+    const firstSegment = pathname.split("/").filter(Boolean)[0];
+    if (firstSegment && !RESERVED_PATH_SEGMENTS.has(firstSegment)) {
+      return { mode: "path", slug: firstSegment };
+    }
   }
 
   // Fallback: ?tenant= query param

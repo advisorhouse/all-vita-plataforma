@@ -100,16 +100,7 @@ const Index = () => {
   }
 
   // Fallback if user is logged in but has no access
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4 text-center">
-      <div className="space-y-4">
-        <h1 className="text-xl font-semibold">Sem acesso</h1>
-        <p className="text-sm text-muted-foreground">
-          Você está logado mas não possui acesso a nenhuma empresa.
-        </p>
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export default Index;
