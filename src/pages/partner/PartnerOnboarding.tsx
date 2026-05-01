@@ -934,7 +934,7 @@ const PartnerOnboarding: React.FC = () => {
                     Cadastro recebido!
                   </h2>
                   <p className="text-muted-foreground text-[15px] font-light">
-                    Seu CRM será validado pela equipe. Você receberá a confirmação por e-mail e WhatsApp em até 48h.
+                    Seus dados serão validados pela equipe do tenant. Você receberá a confirmação por e-mail e WhatsApp em até 48h.
                   </p>
                 </div>
 
@@ -943,15 +943,15 @@ const PartnerOnboarding: React.FC = () => {
                   <ul className="space-y-1.5 text-[12px] text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Validação do CRM (até 48h)
+                      Validação do registro (até 48h)
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Acesso ao painel e quiz personalizado
+                      Acesso ao painel e ferramentas de parceiro
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Início do acúmulo de Vitacoins
+                      Início da gestão de suas vendas e rede
                     </li>
                   </ul>
                 </div>
