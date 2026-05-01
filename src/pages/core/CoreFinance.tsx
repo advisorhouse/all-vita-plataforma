@@ -249,11 +249,22 @@ const CoreFinance: React.FC = () => {
     fiscalInvoices: []
   };
 
-  const totalRevenue = data.totalRevenue;
-  const netProfit = data.netProfit;
+  const currentMonthData = data.revenueMonthly[5];
+  const previousMonthData = data.revenueMonthly[4];
+
+  const totalRevenue = currentMonthData.receita;
+  const prevRevenue = previousMonthData.receita;
+  const revenueChange = prevRevenue > 0 ? (((totalRevenue - prevRevenue) / prevRevenue) * 100).toFixed(1) : "0";
+
+  const netProfit = currentMonthData.lucro;
+  const prevProfit = previousMonthData.lucro;
+  const profitChange = prevProfit > 0 ? (((netProfit - prevProfit) / prevProfit) * 100).toFixed(1) : "0";
+
   const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : "0";
   const pendingTotal = data.pendingTotal;
   const paidThisMonth = data.paidThisMonth;
+  const prevPaid = previousMonthData.comissoes;
+  const paidChange = prevPaid > 0 ? (((paidThisMonth - prevPaid) / prevPaid) * 100).toFixed(1) : "0";
 
   return (
     <TooltipProvider delayDuration={200}>
