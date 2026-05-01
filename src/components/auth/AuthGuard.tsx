@@ -46,7 +46,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
     const checkOnboarding = async () => {
       // If we are currently loading tenant info, wait for it
-      if (tenantLoading) return;
+      if (!isInitialized) return;
 
       try {
         const { data: profile } = await supabase
@@ -67,7 +67,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     };
 
     checkOnboarding();
-  }, [user, location.pathname, tenantLoading]);
+  }, [user, location.pathname, isInitialized]);
 
   // user && tenantLoading logic: 
   // If we HAVE a user, we MUST wait for the tenant info to be loaded (memberships/bootstrap) 
