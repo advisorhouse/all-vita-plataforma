@@ -232,6 +232,11 @@ const CoreSubscriptions: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+          <RefreshCw className="h-8 w-8 animate-spin text-accent" />
+        </div>
+      )}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="overview" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Visão Geral</TabsTrigger>
