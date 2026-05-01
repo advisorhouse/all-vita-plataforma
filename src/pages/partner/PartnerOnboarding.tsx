@@ -27,6 +27,7 @@ interface PartnerFormData {
   fullName: string;
   email: string;
   phone: string;
+  phoneDdi: string;
   password: string;
   
   // Documents
