@@ -132,7 +132,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // 1. Super admin protection for /admin
   if (location.pathname.startsWith("/admin")) {
-    if (isSuperAdmin || platformRole) {
+    if (isSuperAdmin || platformRole === 'super_admin' || platformRole === 'admin') {
       return <>{children}</>;
     }
     const fallback = isSubdomainAccess ? "/core" : (activeSlug ? `/${activeSlug}/core` : "/core");
@@ -140,7 +140,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   }
 
   // 2. Prevent staff from entering /core if they have no tenant context
-  if (location.pathname.includes("/core") && isSuperAdmin && !currentTenant && !activeSlug) {
+  if (location.pathname.includes("/core") && (isSuperAdmin || platformRole) && !currentTenant && !activeSlug) {
     return <Navigate to="/admin" replace />;
   }
 
