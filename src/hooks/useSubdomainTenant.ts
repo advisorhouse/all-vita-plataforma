@@ -102,6 +102,7 @@ export function useSubdomainTenant() {
     }
 
     setIsSubdomainAccess(detected.mode === "subdomain" || detected.mode === "custom-domain");
+    console.log("[useSubdomainTenant] Detected:", detected);
 
     // Custom-domain lookup needs to query by `domain` field
     if (detected.mode === "custom-domain") {
