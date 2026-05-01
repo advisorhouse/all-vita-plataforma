@@ -237,6 +237,11 @@ const CoreFinance: React.FC = () => {
   return (
     <TooltipProvider delayDuration={200}>
     <div className="space-y-6 pb-12">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+          <RefreshCw className="h-8 w-8 animate-spin text-accent" />
+        </div>
+      )}
       {/* KPIs */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
