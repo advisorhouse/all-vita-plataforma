@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Package, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, XCircle,
-  Search, Filter, Eye, MoreHorizontal, Calendar, Users, DollarSign,
-  AlertTriangle, CheckCircle, Clock, ChevronRight, Download, Pause,
-  BarChart3, Activity, Zap,
+  Package, TrendingUp, RefreshCw, XCircle, Search, 
+  Calendar, Users, DollarSign, Activity, Zap, ShoppingCart, 
+  Download, Pause, CheckCircle, ChevronRight, Filter
 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
