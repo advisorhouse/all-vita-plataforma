@@ -100,7 +100,7 @@ const CoreFinance: React.FC = () => {
     queryFn: async () => {
       if (!currentTenant?.id) return null;
 
-      const [ordersRes, commissionsRes, partnersRes] = await Promise.all([
+      const [ordersRes, commissionsRes, partnersRes, integrationsRes] = await Promise.all([
         supabase
           .from("orders")
           .select("*, clients(full_name)")
@@ -112,15 +112,22 @@ const CoreFinance: React.FC = () => {
         supabase
           .from("partners")
           .select("id, full_name")
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("integrations")
+          .select("*")
           .eq("tenant_id", currentTenant.id)
+          .eq("active", true)
       ]);
 
       if (ordersRes.error) throw ordersRes.error;
       if (commissionsRes.error) throw commissionsRes.error;
       if (partnersRes.error) throw partnersRes.error;
+      if (integrationsRes.error) throw integrationsRes.error;
 
       const orders = ordersRes.data || [];
       const commissions = commissionsRes.data || [];
+      const activeIntegrations = integrationsRes.data || [];
       
       const last6Months = Array.from({ length: 6 }, (_, i) => {
         const d = subMonths(new Date(), 5 - i);
