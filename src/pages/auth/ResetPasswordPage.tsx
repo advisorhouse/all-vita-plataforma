@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Lock, Eye, EyeOff } from "lucide-react";
+import { isColorLight } from "@/lib/utils";
 import logoAllVita from "@/assets/logo-allvita.png";
 
 const ResetPasswordPage: React.FC = () => {
@@ -108,7 +109,9 @@ const ResetPasswordPage: React.FC = () => {
           <h1 
             className="text-2xl font-semibold tracking-tight transition-colors duration-500"
             style={{ 
-              color: currentTenant?.primary_color ? 'white' : 'var(--foreground)'
+              color: currentTenant?.primary_color 
+                ? (isColorLight(currentTenant.primary_color) ? '#1A1A1A' : 'white') 
+                : 'var(--foreground)'
             }}
           >
             Nova senha
@@ -116,7 +119,9 @@ const ResetPasswordPage: React.FC = () => {
           <p 
             className="text-sm mt-1 transition-colors duration-500"
             style={{ 
-              color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
+              color: currentTenant?.primary_color 
+                ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)') 
+                : 'var(--muted-foreground)'
             }}
           >
             Defina sua nova senha de acesso
@@ -175,7 +180,9 @@ const ResetPasswordPage: React.FC = () => {
         <p 
           className="text-center text-[11px] mt-6 transition-colors duration-500"
           style={{ 
-            color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.7)' : 'var(--muted-foreground)'
+            color: currentTenant?.primary_color 
+              ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.7)') 
+              : 'var(--muted-foreground)'
           }}
         >
           Powered by <span className="font-medium">All Vita</span>
