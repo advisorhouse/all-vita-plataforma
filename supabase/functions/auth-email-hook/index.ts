@@ -10,14 +10,25 @@ const supabaseAdmin = createClient(
 );
 
 serve(async (req) => {
+  console.log("=== AUTH EMAIL HOOK CALLED ===");
   try {
     const payload = await req.json();
-    console.log("Auth Email Hook received payload:", JSON.stringify(payload, null, 2));
+    console.log("Payload:", JSON.stringify(payload, null, 2));
 
-    const { user, email_data } = payload;
+    // Supabase Auth Hooks can have user nested in data or at top level
+    const user = payload.user || payload.data?.user;
+    const email_data = payload.email_data || payload.data?.email_data;
     
     if (!user) {
-      console.error("Missing user in payload");
+      console.error("Missing user in payload structure");
+      // Fallback: if it's just a type/event without user, it might be a health check
+      if (payload.type || payload.event) {
+        return new Response(JSON.stringify({ status: "ok", message: "Health check received" }), { 
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      
       return new Response(JSON.stringify({ error: "Usuário não encontrado no payload" }), { 
         status: 400,
         headers: { "Content-Type": "application/json" }
