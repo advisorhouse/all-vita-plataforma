@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import InputMask from "react-input-mask";
 import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
+import { useCEPLookup } from "@/hooks/use-cep-lookup";
 
 interface RegisterPartnerModalProps {
   open: boolean;
@@ -104,6 +105,7 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
   const [data, setData] = useState<PartnerFormData>(defaultData);
   const [done, setDone] = useState(false);
   const { lookupCNPJ, loading: loadingCNPJ } = useCNPJLookup();
+  const { lookupCEP, loading: loadingCEP } = useCEPLookup();
 
   const update = (partial: Partial<PartnerFormData>) => setData((d) => ({ ...d, ...partial }));
 
@@ -123,6 +125,22 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
         state: result.uf,
       });
       toast.success("Dados do CNPJ carregados com sucesso!");
+    }
+  };
+
+  const handleCEPLookup = async (cepValue: string) => {
+    const cleanCEP = cepValue.replace(/\D/g, "");
+    if (cleanCEP.length === 8) {
+      const result = await lookupCEP(cleanCEP);
+      if (result) {
+        update({
+          street: result.logradouro,
+          district: result.bairro,
+          city: result.localidade,
+          state: result.uf,
+        });
+        toast.success("Endereço preenchido automaticamente!");
+      }
     }
   };
 
@@ -298,19 +316,12 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                     </div>
                     <div className="space-y-1.5">
                       <FieldLabel>Telefone / WhatsApp *</FieldLabel>
-                      <InputMask
-                        mask="+55 (99) 99999-9999"
+                      <Input
                         value={data.phone}
                         onChange={(e) => update({ phone: e.target.value })}
-                      >
-                        {(inputProps: any) => (
-                          <Input
-                            {...inputProps}
-                            placeholder="+55 (00) 00000-0000"
-                            className={inputClass}
-                          />
-                        )}
-                      </InputMask>
+                        placeholder="Ex: +55 (11) 99999-9999"
+                        className={inputClass}
+                      />
                     </div>
                   </div>
                 </>
@@ -476,7 +487,11 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                       <InputMask
                         mask="99999-999"
                         value={data.cep}
-                        onChange={(e) => update({ cep: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          update({ cep: val });
+                          handleCEPLookup(val);
+                        }}
                       >
                         {(inputProps: any) => (
                           <Input
