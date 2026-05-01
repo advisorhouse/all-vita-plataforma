@@ -1,6 +1,6 @@
 import React from "react";
 import AppShell from "@/components/layout/AppShell";
-import { Home, Building2, Users, FileText, ShieldCheck, Settings, DollarSign, Coins, Plug, BarChart3, UserCog, KeyRound } from "lucide-react";
+import { Home, Building2, Users, FileText, ShieldCheck, Settings, DollarSign, Coins, Plug, BarChart3, UserCog, KeyRound, Globe } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 const adminLinks = [
@@ -17,6 +17,7 @@ const adminLinks = [
   { label: "Auditoria", href: "/admin/audit", icon: FileText },
   { label: "Segurança", href: "/admin/security", icon: ShieldCheck },
   { label: "Configurações", href: "/admin/settings", icon: Settings },
+  { label: "Setup Subdomínio", href: "/admin/cloudflare", icon: Globe },
 ];
 
 const AdminLayout: React.FC = () => {
