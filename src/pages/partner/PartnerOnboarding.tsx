@@ -231,6 +231,7 @@ const PartnerOnboarding: React.FC = () => {
               ...data,
               phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
               source: "partner_onboarding",
+              parent_partner_id: referrerParam,
             },
           },
         });
