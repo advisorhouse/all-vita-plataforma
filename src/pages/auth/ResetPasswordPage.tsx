@@ -45,7 +45,13 @@ const ResetPasswordPage: React.FC = () => {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
-        toast.error(error.message);
+        let message = "Erro ao atualizar senha";
+        if (error.message.includes("New password should be different")) {
+          message = "A nova senha deve ser diferente da atual";
+        } else if (error.message.includes("Token has expired")) {
+          message = "O link de recuperação expirou. Solicite um novo.";
+        }
+        toast.error(message);
       } else {
         toast.success("Senha atualizada com sucesso!");
         navigate("/auth/login");

@@ -14,7 +14,17 @@ serve(async (req) => {
     const payload = await req.json();
     console.log("Auth Email Hook received payload:", JSON.stringify(payload, null, 2));
 
-    const { event, user, redirect_to } = payload;
+    const { user, email_data } = payload;
+    const event = email_data?.email_action_type || payload.event || payload.type;
+    const redirect_to = email_data?.redirect_to || payload.redirect_to;
+
+    if (!user) {
+      console.error("Missing user in payload");
+      return new Response(JSON.stringify({ error: "Usuário não encontrado no payload" }), { 
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
 
     // Detect tenant from redirect_to or user metadata
     let tenantSlug = user.user_metadata?.tenant_slug;
@@ -68,28 +78,42 @@ serve(async (req) => {
 
     let subject = "";
     let html = "";
-    const name = user.user_metadata?.full_name || user.email.split('@')[0];
+    const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Usuário";
+    const userEmail = user?.email;
 
-    switch (event) {
+    if (!userEmail) {
+      return new Response(JSON.stringify({ error: "E-mail do usuário não encontrado" }), { status: 400 });
+    }
+
+    // Normalização do evento
+    const normalizedEvent = (event || "").toUpperCase();
+
+    switch (normalizedEvent) {
       case "PASSWORD_RECOVERY":
+      case "RECOVERY":
         subject = `Recuperação de Senha - ${tenantBranding.name}`;
         html = getTemplate(tenantBranding, `
-          <h2>Olá, ${name}</h2>
-          <p>Recebemos uma solicitação para redefinir sua senha na plataforma ${tenantBranding.name}.</p>
+          <h2 style="color: ${tenantBranding.primaryColor};">Olá, ${name}</h2>
+          <p>Recebemos uma solicitação para redefinir sua senha na plataforma <strong>${tenantBranding.name}</strong>.</p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Redefinir Minha Senha
             </a>
           </div>
           <p>Se você não solicitou isso, pode ignorar este e-mail com segurança. Sua senha permanecerá a mesma.</p>
+          <p style="font-size: 14px; color: #666; margin-top: 20px;">
+            Este link expira em breve. Caso tenha problemas com o botão, copie e cole o link abaixo no seu navegador:<br>
+            <span style="word-break: break-all; font-size: 12px; color: ${tenantBranding.primaryColor};">${redirect_to}</span>
+          </p>
         `);
         break;
 
       case "EMAIL_CHANGE":
         subject = `Confirme seu novo e-mail - ${tenantBranding.name}`;
         html = getTemplate(tenantBranding, `
-          <h2>Confirmação de Alteração</h2>
-          <p>Você solicitou a alteração do seu e-mail na plataforma ${tenantBranding.name}.</p>
+          <h2 style="color: ${tenantBranding.primaryColor};">Confirmação de Alteração</h2>
+          <p>Você solicitou a alteração do seu e-mail na plataforma <strong>${tenantBranding.name}</strong>.</p>
+          <p>Para concluir o processo, clique no botão abaixo:</p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Confirmar Novo E-mail
@@ -101,8 +125,9 @@ serve(async (req) => {
       case "INVITE":
         subject = `Você foi convidado para ${tenantBranding.name}`;
         html = getTemplate(tenantBranding, `
-          <h2>Bem-vindo(a)!</h2>
-          <p>Você foi convidado para participar da plataforma ${tenantBranding.name}.</p>
+          <h2 style="color: ${tenantBranding.primaryColor};">Bem-vindo(a)!</h2>
+          <p>Você foi convidado para participar da plataforma <strong>${tenantBranding.name}</strong>.</p>
+          <p>Clique no botão abaixo para aceitar o convite e configurar sua conta:</p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Aceitar Convite
@@ -114,8 +139,9 @@ serve(async (req) => {
       case "SIGNUP":
         subject = `Confirme seu cadastro - ${tenantBranding.name}`;
         html = getTemplate(tenantBranding, `
-          <h2>Quase lá!</h2>
-          <p>Obrigado por se cadastrar na ${tenantBranding.name}. Por favor, confirme seu e-mail para começar.</p>
+          <h2 style="color: ${tenantBranding.primaryColor};">Quase lá!</h2>
+          <p>Obrigado por se cadastrar na <strong>${tenantBranding.name}</strong>.</p>
+          <p>Por favor, confirme seu e-mail para ativar sua conta:</p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Confirmar E-mail
@@ -125,14 +151,14 @@ serve(async (req) => {
         break;
 
       default:
-        console.log("Unhandled auth event:", event);
-        return new Response(JSON.stringify({ error: "Unhandled event" }), { status: 400 });
+        console.log("Unhandled auth event:", normalizedEvent, "Payload:", JSON.stringify(payload));
+        return new Response(JSON.stringify({ error: `Evento não suportado: ${normalizedEvent}` }), { status: 400 });
     }
 
     if (subject && html) {
       const { data, error } = await resend.emails.send({
         from: `${tenantBranding.name} <no-reply@allvita.com.br>`,
-        to: [user.email],
+        to: [userEmail],
         subject: subject,
         html: html,
       });
