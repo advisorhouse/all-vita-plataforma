@@ -597,12 +597,42 @@ const PartnerOnboarding: React.FC = () => {
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Telefone (WhatsApp)</FieldLabel>
-                    <Input
-                      value={data.phone}
-                      onChange={(e) => update({ phone: e.target.value })}
-                      placeholder="Ex: +55 (11) 99999-9999"
-                      className={inputClass}
-                    />
+                    <div className="flex gap-2">
+                      <Select
+                        value={data.phoneDdi}
+                        onValueChange={(v) => update({ phoneDdi: v, phone: "" })}
+                      >
+                        <SelectTrigger className={cn(inputClass, "w-[100px] shrink-0 px-3")}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DDI_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              <span className="flex items-center gap-2">
+                                <span>{opt.flag}</span>
+                                <span>{opt.value}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex-1">
+                        <InputMask
+                          mask={DDI_OPTIONS.find(o => o.value === data.phoneDdi)?.mask || "999999999999999"}
+                          maskChar={null}
+                          value={data.phone}
+                          onChange={(e) => update({ phone: e.target.value })}
+                        >
+                          {(inputProps: any) => (
+                            <Input
+                              {...inputProps}
+                              placeholder="99999-9999"
+                              className={inputClass}
+                            />
+                          )}
+                        </InputMask>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Senha</FieldLabel>
