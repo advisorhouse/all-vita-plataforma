@@ -22,8 +22,7 @@ const ROLE_LABELS: Record<string, string> = {
 const ROLE_COLORS: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   admin: "default",
   manager: "secondary",
-  partner: "outline",
-  client: "outline",
+  staff: "outline",
 };
 
 const CoreUsers: React.FC = () => {
