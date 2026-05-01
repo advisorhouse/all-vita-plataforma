@@ -84,6 +84,18 @@ const STATES = [
   "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
 ];
 
+const DDI_OPTIONS = [
+  { value: "+55", label: "BR +55", flag: "🇧🇷", mask: "(99) 99999-9999" },
+  { value: "+1", label: "US +1", flag: "🇺🇸", mask: "(999) 999-9999" },
+  { value: "+351", label: "PT +351", flag: "🇵🇹", mask: "999 999 999" },
+  { value: "+44", label: "UK +44", flag: "🇬🇧", mask: "9999 999999" },
+  { value: "+34", label: "ES +34", flag: "🇪🇸", mask: "999 999 999" },
+  { value: "+33", label: "FR +33", flag: "🇫🇷", mask: "9 99 99 99 99" },
+  { value: "+49", label: "DE +49", flag: "🇩🇪", mask: "9999 9999999" },
+  { value: "+54", label: "AR +54", flag: "🇦🇷", mask: "99 9999-9999" },
+  { value: "+598", label: "UY +598", flag: "🇺🇾", mask: "9 999 9999" },
+];
+
 type Step = 1 | 2 | 3 | 4 | 5;
 
 const STEP_LABELS: Record<Step, { title: string; desc: string; icon: React.ElementType }> = {
