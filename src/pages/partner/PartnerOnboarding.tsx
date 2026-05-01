@@ -1061,13 +1061,17 @@ const PartnerOnboarding: React.FC = () => {
                         value={data.pixKey}
                         onChange={(e) => update({ pixKey: e.target.value })}
                       >
-                        {(inputProps: any) => (
-                          <Input
-                            {...inputProps}
-                            placeholder={data.pixType === "Phone" ? "(00) 00000-0000" : "000.000.000-00"}
-                            className={inputClass}
-                          />
-                        )}
+                          {(inputProps: any) => (
+                            <Input
+                              {...inputProps}
+                              placeholder={
+                                data.pixType === "Phone" ? "(00) 00000-0000" : 
+                                data.pixType === "CNPJ" ? "00.000.000/0000-00" : 
+                                "000.000.000-00"
+                              }
+                              className={inputClass}
+                            />
+                          )}
                       </InputMask>
                     ) : (
                       <Input
