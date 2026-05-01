@@ -75,10 +75,18 @@ const defaultData: PartnerFormData = {
   crm: "", specialty: "",
   cnpj: "", socialName: "", tradingName: "", responsibleName: "",
   cep: "", street: "", number: "", complement: "", district: "", city: "", state: "",
-  pixKey: "", bank: "", agency: "", account: "",
+  pixType: "CPF", pixKey: "", bank: "", agency: "", account: "",
   hasProfessionalRegister: false,
   hasSpecialty: false,
 };
+
+const PIX_TYPES = [
+  { id: "CPF", label: "CPF", mask: "999.999.999-99" },
+  { id: "CNPJ", label: "CNPJ", mask: "99.999.999/9999-99" },
+  { id: "Email", label: "E-mail", mask: null },
+  { id: "Phone", label: "Telefone", mask: "(99) 99999-9999" },
+  { id: "Random", label: "Chave Aleatória", mask: null },
+];
 
 const STATES = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
