@@ -659,7 +659,7 @@ const PartnerOnboarding: React.FC = () => {
 
                 <ContinueButton
                   onClick={goNext}
-                  disabled={!data.fullName || !data.email || !data.password}
+                  disabled={!data.fullName || !data.email || !data.password || !data.phone}
                 />
                 <SecurityFooter />
               </div>
