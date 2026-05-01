@@ -30,6 +30,7 @@ interface PartnerFormData {
   fullName: string;
   email: string;
   phone: string;
+  phoneDdi: string;
   
   // Documents
   cpf: string;
@@ -67,7 +68,7 @@ interface PartnerFormData {
 }
 
 const defaultData: PartnerFormData = {
-  fullName: "", email: "", phone: "",
+  fullName: "", email: "", phone: "", phoneDdi: "+55",
   cpf: "", rg: "",
   type: "PF",
   crm: "", specialty: "",
@@ -81,6 +82,18 @@ const defaultData: PartnerFormData = {
 const STATES = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
   "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
+];
+
+const DDI_OPTIONS = [
+  { value: "+55", label: "BR +55", flag: "🇧🇷", mask: "(99) 99999-9999" },
+  { value: "+1", label: "US +1", flag: "🇺🇸", mask: "(999) 999-9999" },
+  { value: "+351", label: "PT +351", flag: "🇵🇹", mask: "999 999 999" },
+  { value: "+44", label: "UK +44", flag: "🇬🇧", mask: "9999 999999" },
+  { value: "+34", label: "ES +34", flag: "🇪🇸", mask: "999 999 999" },
+  { value: "+33", label: "FR +33", flag: "🇫🇷", mask: "9 99 99 99 99" },
+  { value: "+49", label: "DE +49", flag: "🇩🇪", mask: "9999 9999999" },
+  { value: "+54", label: "AR +54", flag: "🇦🇷", mask: "99 9999-9999" },
+  { value: "+598", label: "UY +598", flag: "🇺🇾", mask: "9 999 9999" },
 ];
 
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -316,12 +329,42 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                     </div>
                     <div className="space-y-1.5">
                       <FieldLabel>Telefone / WhatsApp *</FieldLabel>
-                      <Input
-                        value={data.phone}
-                        onChange={(e) => update({ phone: e.target.value })}
-                        placeholder="Ex: +55 (11) 99999-9999"
-                        className={inputClass}
-                      />
+                      <div className="flex gap-2">
+                        <Select
+                          value={data.phoneDdi}
+                          onValueChange={(v) => update({ phoneDdi: v, phone: "" })}
+                        >
+                          <SelectTrigger className={cn(inputClass, "w-[100px] shrink-0 px-3")}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DDI_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <span className="flex items-center gap-2">
+                                  <span>{opt.flag}</span>
+                                  <span>{opt.value}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex-1">
+                          <InputMask
+                            mask={DDI_OPTIONS.find(o => o.value === data.phoneDdi)?.mask || "999999999999999"}
+                            maskChar={null}
+                            value={data.phone}
+                            onChange={(e) => update({ phone: e.target.value })}
+                          >
+                            {(inputProps: any) => (
+                              <Input
+                                {...inputProps}
+                                placeholder="99999-9999"
+                                className={inputClass}
+                              />
+                            )}
+                          </InputMask>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </>

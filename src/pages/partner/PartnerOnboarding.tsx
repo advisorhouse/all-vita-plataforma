@@ -13,6 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import InputMask from "react-input-mask";
 import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
@@ -27,6 +30,7 @@ interface PartnerFormData {
   fullName: string;
   email: string;
   phone: string;
+  phoneDdi: string;
   password: string;
   
   // Documents
@@ -65,7 +69,7 @@ interface PartnerFormData {
 }
 
 const defaultData: PartnerFormData = {
-  fullName: "", email: "", phone: "", password: "",
+  fullName: "", email: "", phone: "", phoneDdi: "+55", password: "",
   cpf: "", rg: "",
   type: "PF",
   crm: "", specialty: "",
@@ -84,6 +88,18 @@ const FORM_STEPS: Screen[] = ["s1", "s2", "s3", "s4", "s5", "s6"];
 const STATES = [
   "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
   "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
+];
+
+const DDI_OPTIONS = [
+  { value: "+55", label: "BR +55", flag: "🇧🇷", mask: "(99) 99999-9999" },
+  { value: "+1", label: "US +1", flag: "🇺🇸", mask: "(999) 999-9999" },
+  { value: "+351", label: "PT +351", flag: "🇵🇹", mask: "999 999 999" },
+  { value: "+44", label: "UK +44", flag: "🇬🇧", mask: "9999 999999" },
+  { value: "+34", label: "ES +34", flag: "🇪🇸", mask: "999 999 999" },
+  { value: "+33", label: "FR +33", flag: "🇫🇷", mask: "9 99 99 99 99" },
+  { value: "+49", label: "DE +49", flag: "🇩🇪", mask: "9999 9999999" },
+  { value: "+54", label: "AR +54", flag: "🇦🇷", mask: "99 9999-9999" },
+  { value: "+598", label: "UY +598", flag: "🇺🇾", mask: "9 999 9999" },
 ];
 
 
@@ -197,6 +213,7 @@ const PartnerOnboarding: React.FC = () => {
             role: "partner",
             metadata: {
               ...data,
+              phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
               source: "partner_onboarding",
             },
           },
@@ -581,12 +598,42 @@ const PartnerOnboarding: React.FC = () => {
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Telefone (WhatsApp)</FieldLabel>
-                    <Input
-                      value={data.phone}
-                      onChange={(e) => update({ phone: e.target.value })}
-                      placeholder="Ex: +55 (11) 99999-9999"
-                      className={inputClass}
-                    />
+                    <div className="flex gap-2">
+                      <Select
+                        value={data.phoneDdi}
+                        onValueChange={(v) => update({ phoneDdi: v, phone: "" })}
+                      >
+                        <SelectTrigger className={cn(inputClass, "w-[100px] shrink-0 px-3")}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DDI_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              <span className="flex items-center gap-2">
+                                <span>{opt.flag}</span>
+                                <span>{opt.value}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex-1">
+                        <InputMask
+                          mask={DDI_OPTIONS.find(o => o.value === data.phoneDdi)?.mask || "999999999999999"}
+                          maskChar={null}
+                          value={data.phone}
+                          onChange={(e) => update({ phone: e.target.value })}
+                        >
+                          {(inputProps: any) => (
+                            <Input
+                              {...inputProps}
+                              placeholder="99999-9999"
+                              className={inputClass}
+                            />
+                          )}
+                        </InputMask>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Senha</FieldLabel>
@@ -612,7 +659,7 @@ const PartnerOnboarding: React.FC = () => {
 
                 <ContinueButton
                   onClick={goNext}
-                  disabled={!data.fullName || !data.email || !data.password}
+                  disabled={!data.fullName || !data.email || !data.password || !data.phone}
                 />
                 <SecurityFooter />
               </div>
