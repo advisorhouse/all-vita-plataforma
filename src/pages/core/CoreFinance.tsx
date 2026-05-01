@@ -479,7 +479,7 @@ const CoreFinance: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {INVOICES.map((inv) => (
+                  {data.invoices.map((inv: any) => (
                     <TableRow key={inv.id}>
                       <TableCell className="text-[11px] font-mono text-muted-foreground">{inv.id}</TableCell>
                       <TableCell className="text-xs font-medium text-foreground">{inv.client}</TableCell>
