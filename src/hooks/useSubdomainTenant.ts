@@ -146,7 +146,10 @@ export function useSubdomainTenant() {
       }
 
       if (data) {
+        console.log("[useSubdomainTenant] Tenant loaded:", data.slug);
         setCurrentTenant(data as Tenant);
+      } else {
+        console.log("[useSubdomainTenant] No tenant found for slug:", slug);
       }
       setChecked(true);
       setIsLoading(false);
