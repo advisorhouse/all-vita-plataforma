@@ -22,36 +22,53 @@ interface RegisterPartnerModalProps {
 }
 
 interface PartnerFormData {
+  // Account
   fullName: string;
   email: string;
   phone: string;
-  crm: string;
-  crmState: string;
+  
+  // Documents
+  cpf: string;
+  rg: string;
+  
+  // Partner Type
+  type: "PF" | "PJ";
+  
+  // Professional (Open text)
+  crm: string; // Or Register
   specialty: string;
-  clinicName: string;
-  clinicCity: string;
-  clinicState: string;
-  cpfCnpj: string;
+  
+  // PJ Data
+  cnpj?: string;
+  socialName?: string;
+  tradingName?: string;
+  responsibleName?: string;
+  
+  // Address
+  cep: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  city: string;
+  state: string;
+  
+  // Financial
   pixKey: string;
-  paymentName: string;
+  bank: string;
+  agency: string;
+  account: string;
 }
 
 const defaultData: PartnerFormData = {
   fullName: "", email: "", phone: "",
-  crm: "", crmState: "", specialty: "",
-  clinicName: "", clinicCity: "", clinicState: "",
-  cpfCnpj: "", pixKey: "", paymentName: "",
+  cpf: "", rg: "",
+  type: "PF",
+  crm: "", specialty: "",
+  cnpj: "", socialName: "", tradingName: "", responsibleName: "",
+  cep: "", street: "", number: "", complement: "", district: "", city: "", state: "",
+  pixKey: "", bank: "", agency: "", account: "",
 };
-
-const STATES = [
-  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
-  "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
-];
-
-const SPECIALTIES = [
-  "Oftalmologia", "Clínica Geral", "Geriatria", "Neurologia",
-  "Endocrinologia", "Nutrologia", "Medicina do Esporte", "Outra",
-];
 
 type Step = 1 | 2 | 3 | 4;
 
