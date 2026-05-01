@@ -20,52 +20,50 @@ serve(async (req) => {
     const email_data = payload.email_data || payload.data?.email_data;
     
     if (!user) {
-      console.error("Missing user in payload structure");
-      // Fallback: if it's just a type/event without user, it might be a health check
-      if (payload.type || payload.event) {
-        return new Response(JSON.stringify({ status: "ok", message: "Health check received" }), { 
+      console.warn("Missing user in payload structure, checking for health check");
+      if (payload.type || payload.event || payload.email_action_type) {
+        return new Response(JSON.stringify({ status: "ok", message: "Event received but no user to send to" }), { 
           status: 200,
           headers: { "Content-Type": "application/json" }
         });
       }
-      
       return new Response(JSON.stringify({ error: "Usuário não encontrado no payload" }), { 
         status: 400,
         headers: { "Content-Type": "application/json" }
       });
     }
 
-    const event = email_data?.email_action_type || payload.event || payload.type;
-    const redirect_to = email_data?.redirect_to || payload.redirect_to;
+    const event = email_data?.email_action_type || payload.event || payload.type || payload.email_data?.email_action_type;
+    const redirect_to = email_data?.redirect_to || payload.redirect_to || payload.email_data?.redirect_to;
 
     // Detect tenant from redirect_to or user metadata
     let tenantSlug = user?.user_metadata?.tenant_slug;
     
     if (!tenantSlug && redirect_to) {
-      const url = new URL(redirect_to);
-      const hostname = url.hostname;
-      
-      // Try to find tenant by domain first
-      const { data: tenantByDomain } = await supabaseAdmin
-        .from("tenants")
-        .select("slug")
-        .eq("domain", hostname)
-        .maybeSingle();
-      
-      if (tenantByDomain) {
-        tenantSlug = tenantByDomain.slug;
-      } else {
-        // Fallback to subdomain or path segment if on base domains
-        if (hostname.endsWith("allvita.com.br") || hostname.endsWith("lovable.app")) {
+      try {
+        const url = new URL(redirect_to);
+        const hostname = url.hostname;
+        
+        const { data: tenantByDomain } = await supabaseAdmin
+          .from("tenants")
+          .select("slug")
+          .eq("domain", hostname)
+          .maybeSingle();
+        
+        if (tenantByDomain) {
+          tenantSlug = tenantByDomain.slug;
+        } else if (hostname.endsWith("allvita.com.br") || hostname.endsWith("lovable.app")) {
           const parts = hostname.split('.');
           if (parts.length > 2 && parts[0] !== 'app' && parts[0] !== 'www') {
             tenantSlug = parts[0];
           }
         }
+      } catch (e) {
+        console.error("Error parsing redirect_to URL:", e);
       }
     }
 
-    // Default branding (All Vita)
+    // Default branding
     let tenantBranding = {
       name: "All Vita",
       logo: "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/tenant-logos/allvita-logo.png",
@@ -91,14 +89,15 @@ serve(async (req) => {
     let subject = "";
     let html = "";
     const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Usuário";
-    const userEmail = user?.email;
+    const userEmail = user?.email || user?.new_email;
 
     if (!userEmail) {
+      console.error("User email not found in payload");
       return new Response(JSON.stringify({ error: "E-mail do usuário não encontrado" }), { status: 400 });
     }
 
-    // Normalização do evento
     const normalizedEvent = (event || "").toUpperCase();
+    console.log(`Processing event: ${normalizedEvent} for ${userEmail}`);
 
     switch (normalizedEvent) {
       case "PASSWORD_RECOVERY":
@@ -113,14 +112,11 @@ serve(async (req) => {
             </a>
           </div>
           <p>Se você não solicitou isso, pode ignorar este e-mail com segurança. Sua senha permanecerá a mesma.</p>
-          <p style="font-size: 14px; color: #666; margin-top: 20px;">
-            Este link expira em breve. Caso tenha problemas com o botão, copie e cole o link abaixo no seu navegador:<br>
-            <span style="word-break: break-all; font-size: 12px; color: ${tenantBranding.primaryColor};">${redirect_to}</span>
-          </p>
         `);
         break;
 
       case "EMAIL_CHANGE":
+      case "EMAIL_CHANGE_CONFIRM":
         subject = `Confirme seu novo e-mail - ${tenantBranding.name}`;
         html = getTemplate(tenantBranding, `
           <h2 style="color: ${tenantBranding.primaryColor};">Confirmação de Alteração</h2>
@@ -149,6 +145,7 @@ serve(async (req) => {
         break;
 
       case "SIGNUP":
+      case "CONFIRMATION":
         subject = `Confirme seu cadastro - ${tenantBranding.name}`;
         html = getTemplate(tenantBranding, `
           <h2 style="color: ${tenantBranding.primaryColor};">Quase lá!</h2>
@@ -162,12 +159,28 @@ serve(async (req) => {
         `);
         break;
 
+      case "MAGICLINK":
+        subject = `Seu link de acesso - ${tenantBranding.name}`;
+        html = getTemplate(tenantBranding, `
+          <h2 style="color: ${tenantBranding.primaryColor};">Acesso Rápido</h2>
+          <p>Use o botão abaixo para entrar em sua conta na <strong>${tenantBranding.name}</strong>.</p>
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              Entrar Agora
+            </a>
+          </div>
+        `);
+        break;
+
       default:
-        console.log("Unhandled auth event:", normalizedEvent, "Payload:", JSON.stringify(payload));
+        console.log("Unhandled auth event:", normalizedEvent);
+        // If it's an unhandled event but we have subject/html (from a previous version or something), we could proceed
+        // but for now let's just return a generic error or handle it.
         return new Response(JSON.stringify({ error: `Evento não suportado: ${normalizedEvent}` }), { status: 400 });
     }
 
     if (subject && html) {
+      console.log(`Sending email to ${userEmail} via Resend...`);
       const { data, error } = await resend.emails.send({
         from: `${tenantBranding.name} <no-reply@allvita.com.br>`,
         to: [userEmail],
@@ -176,16 +189,20 @@ serve(async (req) => {
       });
 
       if (error) {
-        console.error("Resend error:", error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        console.error("Resend API error:", JSON.stringify(error, null, 2));
+        return new Response(JSON.stringify({ error: error.message }), { 
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        });
       }
 
       console.log("Email sent successfully:", data);
+      return new Response(JSON.stringify({ status: "ok", id: data?.id }), {
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(JSON.stringify({ status: "ok" }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: "Erro ao gerar template de e-mail" }), { status: 500 });
   } catch (err) {
     console.error("Unexpected error in hook:", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
@@ -202,10 +219,10 @@ function getTemplate(branding: any, content: string) {
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.5; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
         .header { text-align: center; margin-bottom: 40px; }
-        .logo { max-height: 60px; max-width: 200px; }
+        .logo { max-height: 60px; max-width: 200px; object-fit: contain; }
         .content { background: #ffffff; border-radius: 8px; padding: 30px; border: 1px solid #f0f0f0; }
         .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; }
-        h2 { color: #1a1a1a; margin-top: 0; }
+        h2 { margin-top: 0; }
         p { margin-bottom: 20px; }
       </style>
     </head>
