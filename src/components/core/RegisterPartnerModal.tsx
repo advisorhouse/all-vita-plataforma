@@ -755,11 +755,17 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
             <Button
               size="sm"
               onClick={handleSubmit}
-              disabled={!canAdvance()}
-              className="gap-1 rounded-xl bg-foreground text-background hover:bg-foreground/90"
+              disabled={!canAdvance() || loading}
+              className="gap-2 rounded-xl bg-foreground text-background hover:bg-foreground/90 h-11 px-6 min-w-[120px]"
             >
-              Finalizar
-              <Check className="h-3.5 w-3.5 ml-1" />
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  Finalizar
+                  <Check className="h-3.5 w-3.5" />
+                </>
+              )}
             </Button>
           )}
         </div>
