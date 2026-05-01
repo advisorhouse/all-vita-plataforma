@@ -142,11 +142,22 @@ export function useTenantBranding() {
 }
 
 function setFavicon(url: string) {
-  let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
-  if (!link) {
-    link = document.createElement("link");
+  // Update all possible favicon links to be sure
+  const selectors = ["link[rel='icon']", "link[rel='shortcut icon']", "link[rel='apple-touch-icon']"];
+  let found = false;
+  
+  selectors.forEach(selector => {
+    const link = document.querySelector<HTMLLinkElement>(selector);
+    if (link) {
+      link.href = url;
+      found = true;
+    }
+  });
+
+  if (!found) {
+    const link = document.createElement("link");
     link.rel = "icon";
+    link.href = url;
     document.head.appendChild(link);
   }
-  link.href = url;
 }
