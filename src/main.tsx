@@ -13,6 +13,12 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
  */
 (function rewriteTenantPath() {
   if (typeof window === "undefined") return;
+
+  // DEBUG: Let's log if there was a previous redirect
+  const navigationEntry = window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+  if (navigationEntry?.type === "back_forward") {
+    console.log("[rewriteTenantPath] Back/Forward navigation detected");
+  }
   
   const hostname = window.location.hostname;
   const isPathBased = isPathBasedHost(hostname);
