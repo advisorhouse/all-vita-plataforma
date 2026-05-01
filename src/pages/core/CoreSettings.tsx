@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Settings, Globe, Bell, Shield, Palette, Mail, Database,
@@ -18,6 +18,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import CorePermissions from "./CorePermissions";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
