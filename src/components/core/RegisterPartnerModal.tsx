@@ -202,7 +202,7 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
             </div>
           </DialogHeader>
           <div className="flex items-center gap-1.5">
-            {([1, 2, 3, 4] as Step[]).map((s) => (
+            {([1, 2, 3, 4, 5, 6] as Step[]).map((s) => (
               <div
                 key={s}
                 className={cn(
