@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Users, Search, AlertTriangle, Activity,
   CheckCircle2, TrendingUp,
-  BarChart3, Shield,
+  BarChart3, Shield, RefreshCw
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
+import { format } from "date-fns";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -45,42 +46,92 @@ const CoreCustomers: React.FC = () => {
   const [filter, setFilter] = useState<"all" | "active" | "paused" | "cancelled">("all");
   const { currentTenant } = useTenant();
 
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: clientData, isLoading } = useQuery({
     queryKey: ["core-customers", currentTenant?.id],
     queryFn: async () => {
-      if (!currentTenant?.id) return [];
-      const { data, error } = await supabase
-        .from("clients")
-        .select(`
-          id,
-          full_name,
-          phone,
-          created_at,
-          metadata,
-          profiles:user_id (email)
-        `)
-        .eq("tenant_id", currentTenant.id);
+      if (!currentTenant?.id) return null;
       
-      if (error) throw error;
+      const [clientsRes, ordersRes] = await Promise.all([
+        supabase
+          .from("clients")
+          .select(`
+            id,
+            full_name,
+            phone,
+            created_at,
+            metadata,
+            profiles:user_id (email)
+          `)
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("orders")
+          .select("client_id, amount, payment_status")
+          .eq("tenant_id", currentTenant.id)
+      ]);
       
-      return (data || []).map(c => ({
-        id: c.id,
-        name: c.full_name || "Sem nome",
-        email: (c.profiles as any)?.email || "Sem email",
-        status: (c.metadata as any)?.status || "active",
-        months: Math.floor((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30)),
-        engagement: (c.metadata as any)?.engagement || 0,
-        consistency: (c.metadata as any)?.consistency || 0,
-        risk: (c.metadata as any)?.risk || "low",
-        level: (c.metadata as any)?.level || "Início",
-        plan: (c.metadata as any)?.plan || "N/A",
-        ltv: (c.metadata as any)?.ltv || 0,
-        lastLogin: (c.metadata as any)?.lastLogin || "N/A",
-        partner: (c.metadata as any)?.partner || "Direto"
+      if (clientsRes.error) throw clientsRes.error;
+      if (ordersRes.error) throw ordersRes.error;
+      
+      const orders = ordersRes.data || [];
+      const clientLtvMap = new Map();
+      orders.filter(o => o.payment_status === 'paid').forEach(o => {
+        if (o.client_id) {
+          clientLtvMap.set(o.client_id, (clientLtvMap.get(o.client_id) || 0) + Number(o.amount));
+        }
+      });
+
+      const clients = (clientsRes.data || []).map(c => {
+        const metadata = c.metadata as any || {};
+        const monthsActive = Math.floor((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30));
+        
+        return {
+          id: c.id,
+          name: c.full_name || "Sem nome",
+          email: (c.profiles as any)?.email || "Sem email",
+          status: metadata.status || "active",
+          months: monthsActive,
+          engagement: metadata.engagement || 85, // Default for now
+          consistency: metadata.consistency || 90,
+          risk: metadata.risk || "low",
+          level: monthsActive >= 12 ? "Elite" : monthsActive >= 6 ? "6M+" : monthsActive >= 3 ? "3M+" : "Início",
+          plan: metadata.plan || "Original",
+          ltv: clientLtvMap.get(c.id) || 0,
+          lastLogin: metadata.lastLogin || format(new Date(c.created_at), "dd/MM/yyyy"),
+          partner: metadata.partner || "Direto"
+        };
+      });
+
+      // Distributions
+      const levels = { "Início": 0, "3M+": 0, "6M+": 0, "Elite": 0 };
+      const risks = { "low": 0, "medium": 0, "high": 0 };
+      
+      clients.forEach(c => {
+        (levels as any)[c.level]++;
+        (risks as any)[c.risk]++;
+      });
+
+      const levelDistribution = Object.entries(levels).map(([name, value]) => ({
+        name, value, fill: name === "Elite" ? "hsl(var(--destructive))" : name === "6M+" ? "hsl(var(--accent-foreground))" : name === "3M+" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"
       }));
+
+      const riskDistribution = [
+        { name: "Baixo", value: risks.low, fill: "hsl(var(--primary))" },
+        { name: "Médio", value: risks.medium, fill: "hsl(var(--accent-foreground))" },
+        { name: "Alto", value: risks.high, fill: "hsl(var(--destructive))" },
+      ];
+
+      return {
+        clients,
+        levelDistribution,
+        riskDistribution
+      };
     },
     enabled: !!currentTenant?.id
   });
+
+  const clients = clientData?.clients || [];
+  const levelDistribution = clientData?.levelDistribution || LEVEL_DISTRIBUTION;
+  const riskDistribution = clientData?.riskDistribution || RISK_DISTRIBUTION;
 
   const filtered = clients.filter(
     (c) =>
@@ -98,6 +149,11 @@ const CoreCustomers: React.FC = () => {
   return (
     <TooltipProvider delayDuration={200}>
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+          <RefreshCw className="h-8 w-8 animate-spin text-accent" />
+        </div>
+      )}
       {/* KPIs */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
@@ -278,8 +334,8 @@ const CoreCustomers: React.FC = () => {
               <CardContent className="flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
-                    <Pie data={LEVEL_DISTRIBUTION} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
-                      {LEVEL_DISTRIBUTION.map((entry, i) => (
+                    <Pie data={levelDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                      {levelDistribution.map((entry: any, i: number) => (
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
@@ -287,7 +343,7 @@ const CoreCustomers: React.FC = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-1.5">
-                  {LEVEL_DISTRIBUTION.map(l => (
+                  {levelDistribution.map((l: any) => (
                     <div key={l.name} className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: l.fill }} />
                       <span className="text-[10px] text-muted-foreground">{l.name}: {l.value}</span>
@@ -304,8 +360,8 @@ const CoreCustomers: React.FC = () => {
               <CardContent className="flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
-                    <Pie data={RISK_DISTRIBUTION} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
-                      {RISK_DISTRIBUTION.map((entry, i) => (
+                    <Pie data={riskDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                      {riskDistribution.map((entry: any, i: number) => (
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
@@ -313,7 +369,7 @@ const CoreCustomers: React.FC = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-1.5">
-                  {RISK_DISTRIBUTION.map(r => (
+                  {riskDistribution.map((r: any) => (
                     <div key={r.name} className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: r.fill }} />
                       <span className="text-[10px] text-muted-foreground">{r.name}: {r.value}</span>

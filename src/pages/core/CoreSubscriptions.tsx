@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Package, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, XCircle,
@@ -24,6 +24,11 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer,
   CartesianGrid, AreaChart, Area, Legend, PieChart, Pie, Cell,
 } from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -89,20 +94,149 @@ const COHORT_DATA = [
 ];
 
 const CoreSubscriptions: React.FC = () => {
+  const { currentTenant } = useTenant();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "paused" | "cancelled">("all");
 
-  const filteredSubs = SUBSCRIPTIONS.filter(
+  const { data: subscriptionData, isLoading } = useQuery({
+    queryKey: ["core-subscriptions", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return null;
+
+      const [subsRes, productsRes] = await Promise.all([
+        supabase
+          .from("subscriptions")
+          .select(`
+            *,
+            clients (id, full_name),
+            products (id, name, price)
+          `)
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("products")
+          .select("*")
+          .eq("tenant_id", currentTenant.id)
+      ]);
+
+      if (subsRes.error) throw subsRes.error;
+      if (productsRes.error) throw productsRes.error;
+
+      const subs = subsRes.data || [];
+      const products = productsRes.data || [];
+
+      // Calculate MRR Data for last 6 months
+      const last6Months = Array.from({ length: 6 }, (_, i) => {
+        const d = subMonths(new Date(), 5 - i);
+        return {
+          month: format(d, "MMM", { locale: ptBR }),
+          start: startOfMonth(d),
+          end: endOfMonth(d),
+          mrr: 0,
+          newMrr: 0,
+          churnMrr: 0,
+          expansion: 0
+        };
+      });
+
+      last6Months.forEach(month => {
+        subs.forEach(s => {
+          const createdAt = new Date(s.created_at);
+          const price = (s as any).products?.price || 0;
+          
+          if (isWithinInterval(createdAt, { start: month.start, end: month.end })) {
+            month.newMrr += price;
+          }
+          
+          if (s.status === 'active' && createdAt <= month.end) {
+            month.mrr += price;
+          }
+
+          if (s.status === 'cancelled' && s.cancelled_at) {
+            const cancelledAt = new Date(s.cancelled_at);
+            if (isWithinInterval(cancelledAt, { start: month.start, end: month.end })) {
+              month.churnMrr += price;
+            }
+          }
+        });
+      });
+
+      // Plan Distribution
+      const distributionMap = new Map();
+      subs.filter(s => s.status === 'active').forEach(s => {
+        const name = (s as any).products?.name || "Outros";
+        distributionMap.set(name, (distributionMap.get(name) || 0) + 1);
+      });
+
+      const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--success))", "hsl(var(--warning))"];
+      const planDistribution = Array.from(distributionMap.entries()).map(([name, value], i) => ({
+        name,
+        value,
+        color: colors[i % colors.length]
+      }));
+
+      // Product Stats
+      const productStats = products.map(p => {
+        const pSubs = subs.filter(s => s.product_id === p.id);
+        const activeCount = pSubs.filter(s => s.status === 'active').length;
+        const newThisMonth = pSubs.filter(s => {
+          const d = new Date(s.created_at);
+          const now = new Date();
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }).length;
+        
+        return {
+          name: p.name,
+          active: activeCount,
+          new: newThisMonth,
+          churn: activeCount > 0 ? (pSubs.filter(s => s.status === 'cancelled').length / pSubs.length * 100).toFixed(1) : 0,
+          revenue: activeCount * p.price,
+          avgCycle: 0, // Mock for now
+          icon: "🟢"
+        };
+      });
+
+      return {
+        subs: subs.map(s => ({
+          id: s.id.slice(0, 8).toUpperCase(),
+          client: (s as any).clients?.full_name || "Desconhecido",
+          plan: (s as any).products?.name || "Plano",
+          status: s.status,
+          cycle: 1, // Mock
+          mrr: (s as any).products?.price || 0,
+          nextRenewal: s.renewal_date ? format(new Date(s.renewal_date), "dd/MM/yyyy") : "—",
+          risk: "low", // Mock
+          partner: "—" // Need referral join for this
+        })),
+        mrrData: last6Months,
+        planDistribution,
+        productStats
+      };
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const mrrData = subscriptionData?.mrrData || MRR_DATA;
+  const planDistribution = subscriptionData?.planDistribution || PLAN_DISTRIBUTION;
+  const productStats = subscriptionData?.productStats || PRODUCTS;
+  const subs = subscriptionData?.subs || [];
+
+  const filteredSubs = subs.filter(
     (s) =>
       (statusFilter === "all" || s.status === statusFilter) &&
       (s.client.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const totalActive = SUBSCRIPTIONS.filter(s => s.status === "active").length;
-  const totalMRR = SUBSCRIPTIONS.filter(s => s.status === "active").reduce((sum, s) => sum + s.mrr, 0);
+  const currentMonthData = mrrData[mrrData.length - 1];
+  const activeSubs = subs.filter(s => s.status === "active");
+  const totalMRR = activeSubs.reduce((sum, s) => sum + s.mrr, 0);
 
   return (
     <div className="space-y-6 pb-12">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+          <RefreshCw className="h-8 w-8 animate-spin text-accent" />
+        </div>
+      )}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="overview" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Visão Geral</TabsTrigger>
@@ -116,10 +250,10 @@ const CoreSubscriptions: React.FC = () => {
           {/* KPIs */}
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: "MRR", value: "R$ 52.1k", change: "+15.3%", up: true, icon: DollarSign, sparkData: MRR_DATA.map(d => d.mrr), tip: "Monthly Recurring Revenue: receita mensal recorrente de todas as assinaturas ativas." },
-              { label: "Assinaturas Ativas", value: "890", change: "+12.4%", up: true, icon: Package, sparkData: [680, 720, 760, 810, 850, 890], tip: "Total de assinaturas com status ativo e pagamento em dia." },
-              { label: "Renovações/mês", value: "842", change: "+8.2%", up: true, icon: RefreshCw, sparkData: [710, 740, 760, 790, 820, 842], tip: "Quantidade de renovações bem-sucedidas no mês corrente." },
-              { label: "Churn Rate", value: "7.4%", change: "-0.5pp", up: false, icon: XCircle, sparkData: CHURN_DATA.map(d => d.rate), tip: "Taxa de cancelamento mensal. Abaixo de 5% é considerado saudável para o segmento." },
+              { label: "MRR", value: `R$ ${(totalMRR / 1000).toFixed(1)}k`, change: "+0%", up: true, icon: DollarSign, sparkData: mrrData.map(d => d.mrr), tip: "Monthly Recurring Revenue: receita mensal recorrente de todas as assinaturas ativas." },
+              { label: "Assinaturas Ativas", value: activeSubs.length.toString(), change: "+0%", up: true, icon: Package, sparkData: mrrData.map(d => d.mrr), tip: "Total de assinaturas com status ativo e pagamento em dia." },
+              { label: "Renovações/mês", value: activeSubs.length.toString(), change: "+0%", up: true, icon: RefreshCw, sparkData: mrrData.map(d => d.mrr), tip: "Quantidade de renovações bem-sucedidas no mês corrente." },
+              { label: "Churn Rate", value: "0%", change: "0pp", up: false, icon: XCircle, sparkData: mrrData.map(d => d.churnMrr), tip: "Taxa de cancelamento mensal. Abaixo de 5% é considerado saudável para o segmento." },
             ].map(({ label, value, change, up, icon: Icon, sparkData, tip }) => (
               <Card key={label} className="border border-border shadow-sm">
                 <CardContent className="p-4 space-y-2">
@@ -171,7 +305,7 @@ const CoreSubscriptions: React.FC = () => {
               <CardContent>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={MRR_DATA}>
+                    <BarChart data={mrrData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
@@ -197,13 +331,13 @@ const CoreSubscriptions: React.FC = () => {
               <CardContent>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={CHURN_DATA}>
+                    <AreaChart data={mrrData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} domain={[0, 12]} tickFormatter={(v) => `${v}%`} />
+                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickFormatter={(v) => `${v}%`} />
                       <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }}
                         formatter={(v: number) => [`${v}%`, "Churn"]} />
-                      <Area type="monotone" dataKey="rate" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.08} strokeWidth={2} />
+                      <Area type="monotone" dataKey="churnMrr" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.08} strokeWidth={2} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -218,15 +352,15 @@ const CoreSubscriptions: React.FC = () => {
                 <div className="h-40 flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={PLAN_DISTRIBUTION} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={2} dataKey="value">
-                        {PLAN_DISTRIBUTION.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      <Pie data={planDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={2} dataKey="value">
+                        {planDistribution.map((entry: any, i: number) => <Cell key={i} fill={entry.color} />)}
                       </Pie>
                       <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {PLAN_DISTRIBUTION.map((p) => (
+                  {planDistribution.map((p: any) => (
                     <div key={p.name} className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
                       <span className="text-[10px] text-muted-foreground">{p.name}</span>
@@ -336,7 +470,7 @@ const CoreSubscriptions: React.FC = () => {
         {/* ===== POR PRODUTO ===== */}
         <TabsContent value="products" className="space-y-4 mt-4">
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 sm:grid-cols-2">
-            {PRODUCTS.map((p) => (
+            {productStats.map((p: any) => (
               <Card key={p.name} className="border border-border shadow-sm">
                 <CardContent className="p-5 space-y-4">
                   <div className="flex items-center justify-between">
@@ -367,9 +501,9 @@ const CoreSubscriptions: React.FC = () => {
                   <div>
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                       <span>Share do MRR</span>
-                      <span className="font-medium text-foreground">{((p.revenue / 217150) * 100).toFixed(1)}%</span>
+                      <span className="font-medium text-foreground">{totalMRR > 0 ? ((p.revenue / totalMRR) * 100).toFixed(1) : 0}%</span>
                     </div>
-                    <Progress value={(p.revenue / 217150) * 100} className="h-1.5" />
+                    <Progress value={totalMRR > 0 ? (p.revenue / totalMRR) * 100 : 0} className="h-1.5" />
                   </div>
                 </CardContent>
               </Card>

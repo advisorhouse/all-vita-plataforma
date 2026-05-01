@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
   CreditCard, Wallet, Receipt, Download, Calendar, FileText,
   BarChart3, PieChart as PieChartIcon, Landmark, CircleDollarSign,
-  CheckCircle, Clock, XCircle, Users, Banknote,
+  CheckCircle, Clock, XCircle, Users, Banknote, RefreshCw
 } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -22,6 +22,11 @@ import {
   ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell,
   ComposedChart, Line,
 } from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -87,16 +92,156 @@ const INVOICES = [
 ];
 
 const CoreFinance: React.FC = () => {
-  const totalRevenue = 78200;
-  const totalExpenses = 37150;
-  const netProfit = 41050;
-  const profitMargin = ((netProfit / totalRevenue) * 100).toFixed(1);
-  const pendingTotal = PENDING_PAYOUTS.reduce((s, p) => s + p.amount, 0);
-  const paidThisMonth = PAYOUTS.filter(p => p.date.includes("02/2026")).reduce((s, p) => s + p.amount, 0);
+  const { currentTenant } = useTenant();
+
+  const { data: financeData, isLoading } = useQuery({
+    queryKey: ["core-finance", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return null;
+
+      const [ordersRes, commissionsRes, partnersRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("*, clients(full_name)")
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("commissions")
+          .select("*, partners(full_name)")
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("partners")
+          .select("id, full_name")
+          .eq("tenant_id", currentTenant.id)
+      ]);
+
+      if (ordersRes.error) throw ordersRes.error;
+      if (commissionsRes.error) throw commissionsRes.error;
+      if (partnersRes.error) throw partnersRes.error;
+
+      const orders = ordersRes.data || [];
+      const commissions = commissionsRes.data || [];
+      
+      const last6Months = Array.from({ length: 6 }, (_, i) => {
+        const d = subMonths(new Date(), 5 - i);
+        return {
+          month: format(d, "MMM", { locale: ptBR }),
+          start: startOfMonth(d),
+          end: endOfMonth(d),
+          receita: 0,
+          custos: 0,
+          comissoes: 0,
+          lucro: 0,
+          entradas: 0,
+          saidas: 0,
+          saldo: 0
+        };
+      });
+
+      last6Months.forEach(m => {
+        orders.forEach(o => {
+          const createdAt = new Date(o.created_at);
+          if (isWithinInterval(createdAt, { start: m.start, end: m.end })) {
+            if (o.payment_status === 'paid') {
+              m.receita += Number(o.amount) || 0;
+              m.entradas += Number(o.amount) || 0;
+            }
+          }
+        });
+
+        commissions.forEach(c => {
+          const createdAt = new Date(c.created_at);
+          if (isWithinInterval(createdAt, { start: m.start, end: m.end })) {
+            m.comissoes += Number(c.amount) || 0;
+            if (c.paid_status === 'paid') {
+              m.saidas += Number(c.amount) || 0;
+            }
+          }
+        });
+
+        m.custos = m.receita * 0.35 + m.comissoes; // Estimate 35% base cost + commissions
+        m.lucro = m.receita - m.custos;
+        m.saldo = m.entradas - m.saidas;
+      });
+
+      const currentMonth = last6Months[5];
+      const paidCommissionsThisMonth = commissions
+        .filter(c => c.paid_status === 'paid')
+        .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+      
+      const pendingCommissions = commissions
+        .filter(c => c.paid_status === 'pending')
+        .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+
+      const expenseBreakdown = [
+        { name: "Comissões", value: currentMonth.comissoes, color: "hsl(var(--accent))" },
+        { name: "Operacional (Est.)", value: currentMonth.receita * 0.35, color: "hsl(var(--primary))" },
+      ];
+
+      return {
+        revenueMonthly: last6Months,
+        cashflowData: last6Months,
+        expenseBreakdown,
+        totalRevenue: currentMonth.receita,
+        totalExpenses: currentMonth.custos,
+        netProfit: currentMonth.lucro,
+        paidThisMonth: paidCommissionsThisMonth,
+        pendingTotal: pendingCommissions,
+        invoices: orders.map(o => ({
+          id: o.id.slice(0, 8).toUpperCase(),
+          client: (o as any).clients?.full_name || "Cliente",
+          amount: Number(o.amount) || 0,
+          status: o.payment_status,
+          date: format(new Date(o.created_at), "dd/MM/yyyy"),
+          partner: "—"
+        })),
+        payouts: commissions.filter(c => c.paid_status === 'paid').map(c => ({
+          id: c.id.slice(0, 8).toUpperCase(),
+          partner: (c as any).partners?.full_name || "Partner",
+          amount: Number(c.amount) || 0,
+          status: "paid",
+          date: format(new Date(c.created_at), "dd/MM/yyyy"),
+          method: "PIX",
+          clients: 1
+        })),
+        pendingPayouts: commissions.filter(c => c.paid_status === 'pending').slice(0, 5).map(c => ({
+          partner: (c as any).partners?.full_name || "Partner",
+          amount: Number(c.amount) || 0,
+          clients: 1,
+          dueDate: "—"
+        }))
+      };
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const data = financeData || {
+    revenueMonthly: REVENUE_MONTHLY,
+    cashflowData: CASHFLOW_DATA,
+    expenseBreakdown: EXPENSE_BREAKDOWN,
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    paidThisMonth: 0,
+    pendingTotal: 0,
+    invoices: INVOICES,
+    payouts: PAYOUTS,
+    pendingPayouts: PENDING_PAYOUTS
+  };
+
+  const totalRevenue = data.totalRevenue;
+  const netProfit = data.netProfit;
+  const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : "0";
+  const pendingTotal = data.pendingTotal;
+  const paidThisMonth = data.paidThisMonth;
 
   return (
     <TooltipProvider delayDuration={200}>
     <div className="space-y-6 pb-12">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+          <RefreshCw className="h-8 w-8 animate-spin text-accent" />
+        </div>
+      )}
       {/* KPIs */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
@@ -149,7 +294,7 @@ const CoreFinance: React.FC = () => {
               <CardContent>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={REVENUE_MONTHLY}>
+                    <ComposedChart data={data.revenueMonthly}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
@@ -175,8 +320,8 @@ const CoreFinance: React.FC = () => {
                 <div className="h-40 flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={EXPENSE_BREAKDOWN} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={2} dataKey="value">
-                        {EXPENSE_BREAKDOWN.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      <Pie data={data.expenseBreakdown} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={2} dataKey="value">
+                        {data.expenseBreakdown.map((entry: any, i: number) => <Cell key={i} fill={entry.color} />)}
                       </Pie>
                       <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }}
                         formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]} />
@@ -184,7 +329,7 @@ const CoreFinance: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
                 <div className="space-y-1.5 mt-2">
-                  {EXPENSE_BREAKDOWN.map((e) => (
+                  {data.expenseBreakdown.map((e: any) => (
                     <div key={e.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: e.color }} />
@@ -241,7 +386,7 @@ const CoreFinance: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {PENDING_PAYOUTS.map((p) => (
+                  {data.pendingPayouts.map((p: any) => (
                     <div key={p.partner} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-foreground">
@@ -280,7 +425,7 @@ const CoreFinance: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {PAYOUTS.map((p) => (
+                  {data.payouts.map((p: any) => (
                     <TableRow key={p.id}>
                       <TableCell className="text-[11px] font-mono text-muted-foreground">{p.id}</TableCell>
                       <TableCell className="text-xs font-medium text-foreground">{p.partner}</TableCell>
@@ -305,9 +450,9 @@ const CoreFinance: React.FC = () => {
         <TabsContent value="invoices" className="space-y-4 mt-4">
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 sm:grid-cols-3">
             {[
-              { label: "Pagas", count: INVOICES.filter(i => i.status === "paid").length, total: INVOICES.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0), icon: CheckCircle, color: "text-primary" },
-              { label: "Pendentes", count: INVOICES.filter(i => i.status === "pending").length, total: INVOICES.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0), icon: Clock, color: "text-accent-foreground" },
-              { label: "Vencidas", count: INVOICES.filter(i => i.status === "overdue").length, total: INVOICES.filter(i => i.status === "overdue").reduce((s, i) => s + i.amount, 0), icon: XCircle, color: "text-destructive" },
+              { label: "Pagas", count: data.invoices.filter((i: any) => i.status === "paid").length, total: data.invoices.filter((i: any) => i.status === "paid").reduce((s: number, i: any) => s + i.amount, 0), icon: CheckCircle, color: "text-primary" },
+              { label: "Pendentes", count: data.invoices.filter((i: any) => i.status === "pending").length, total: data.invoices.filter((i: any) => i.status === "pending").reduce((s: number, i: any) => s + i.amount, 0), icon: Clock, color: "text-accent-foreground" },
+              { label: "Vencidas", count: data.invoices.filter((i: any) => i.status === "overdue").length, total: data.invoices.filter((i: any) => i.status === "overdue").reduce((s: number, i: any) => s + i.amount, 0), icon: XCircle, color: "text-destructive" },
             ].map((g) => (
               <Card key={g.label} className="border border-border shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
@@ -339,7 +484,7 @@ const CoreFinance: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {INVOICES.map((inv) => (
+                  {data.invoices.map((inv: any) => (
                     <TableRow key={inv.id}>
                       <TableCell className="text-[11px] font-mono text-muted-foreground">{inv.id}</TableCell>
                       <TableCell className="text-xs font-medium text-foreground">{inv.client}</TableCell>
@@ -372,7 +517,7 @@ const CoreFinance: React.FC = () => {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={CASHFLOW_DATA}>
+                    <ComposedChart data={data.cashflowData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
@@ -406,7 +551,7 @@ const CoreFinance: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {CASHFLOW_DATA.map((row) => {
+                  {data.cashflowData.map((row: any) => {
                     const margin = ((row.saldo / row.entradas) * 100).toFixed(1);
                     return (
                       <TableRow key={row.month}>
