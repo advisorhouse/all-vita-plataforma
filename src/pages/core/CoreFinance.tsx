@@ -92,12 +92,147 @@ const INVOICES = [
 ];
 
 const CoreFinance: React.FC = () => {
-  const totalRevenue = 78200;
-  const totalExpenses = 37150;
-  const netProfit = 41050;
-  const profitMargin = ((netProfit / totalRevenue) * 100).toFixed(1);
-  const pendingTotal = PENDING_PAYOUTS.reduce((s, p) => s + p.amount, 0);
-  const paidThisMonth = PAYOUTS.filter(p => p.date.includes("02/2026")).reduce((s, p) => s + p.amount, 0);
+  const { currentTenant } = useTenant();
+
+  const { data: financeData, isLoading } = useQuery({
+    queryKey: ["core-finance", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return null;
+
+      const [ordersRes, commissionsRes, partnersRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("*, clients(full_name)")
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("commissions")
+          .select("*, partners(full_name)")
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("partners")
+          .select("id, full_name")
+          .eq("tenant_id", currentTenant.id)
+      ]);
+
+      if (ordersRes.error) throw ordersRes.error;
+      if (commissionsRes.error) throw commissionsRes.error;
+      if (partnersRes.error) throw partnersRes.error;
+
+      const orders = ordersRes.data || [];
+      const commissions = commissionsRes.data || [];
+      
+      const last6Months = Array.from({ length: 6 }, (_, i) => {
+        const d = subMonths(new Date(), 5 - i);
+        return {
+          month: format(d, "MMM", { locale: ptBR }),
+          start: startOfMonth(d),
+          end: endOfMonth(d),
+          receita: 0,
+          custos: 0,
+          comissoes: 0,
+          lucro: 0,
+          entradas: 0,
+          saidas: 0,
+          saldo: 0
+        };
+      });
+
+      last6Months.forEach(m => {
+        orders.forEach(o => {
+          const createdAt = new Date(o.created_at);
+          if (isWithinInterval(createdAt, { start: m.start, end: m.end })) {
+            if (o.payment_status === 'paid') {
+              m.receita += Number(o.amount) || 0;
+              m.entradas += Number(o.amount) || 0;
+            }
+          }
+        });
+
+        commissions.forEach(c => {
+          const createdAt = new Date(c.created_at);
+          if (isWithinInterval(createdAt, { start: m.start, end: m.end })) {
+            m.comissoes += Number(c.amount) || 0;
+            if (c.paid_status === 'paid') {
+              m.saidas += Number(c.amount) || 0;
+            }
+          }
+        });
+
+        m.custos = m.receita * 0.35 + m.comissoes; // Estimate 35% base cost + commissions
+        m.lucro = m.receita - m.custos;
+        m.saldo = m.entradas - m.saidas;
+      });
+
+      const currentMonth = last6Months[5];
+      const paidCommissionsThisMonth = commissions
+        .filter(c => c.paid_status === 'paid')
+        .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+      
+      const pendingCommissions = commissions
+        .filter(c => c.paid_status === 'pending')
+        .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+
+      const expenseBreakdown = [
+        { name: "Comissões", value: currentMonth.comissoes, color: "hsl(var(--accent))" },
+        { name: "Operacional (Est.)", value: currentMonth.receita * 0.35, color: "hsl(var(--primary))" },
+      ];
+
+      return {
+        revenueMonthly: last6Months,
+        cashflowData: last6Months,
+        expenseBreakdown,
+        totalRevenue: currentMonth.receita,
+        totalExpenses: currentMonth.custos,
+        netProfit: currentMonth.lucro,
+        paidThisMonth: paidCommissionsThisMonth,
+        pendingTotal: pendingCommissions,
+        invoices: orders.map(o => ({
+          id: o.id.slice(0, 8).toUpperCase(),
+          client: (o as any).clients?.full_name || "Cliente",
+          amount: Number(o.amount) || 0,
+          status: o.payment_status,
+          date: format(new Date(o.created_at), "dd/MM/yyyy"),
+          partner: "—"
+        })),
+        payouts: commissions.filter(c => c.paid_status === 'paid').map(c => ({
+          id: c.id.slice(0, 8).toUpperCase(),
+          partner: (c as any).partners?.full_name || "Partner",
+          amount: Number(c.amount) || 0,
+          status: "paid",
+          date: format(new Date(c.created_at), "dd/MM/yyyy"),
+          method: "PIX",
+          clients: 1
+        })),
+        pendingPayouts: commissions.filter(c => c.paid_status === 'pending').slice(0, 5).map(c => ({
+          partner: (c as any).partners?.full_name || "Partner",
+          amount: Number(c.amount) || 0,
+          clients: 1,
+          dueDate: "—"
+        }))
+      };
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const data = financeData || {
+    revenueMonthly: REVENUE_MONTHLY,
+    cashflowData: CASHFLOW_DATA,
+    expenseBreakdown: EXPENSE_BREAKDOWN,
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    paidThisMonth: 0,
+    pendingTotal: 0,
+    invoices: INVOICES,
+    payouts: PAYOUTS,
+    pendingPayouts: PENDING_PAYOUTS
+  };
+
+  const totalRevenue = data.totalRevenue;
+  const netProfit = data.netProfit;
+  const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : "0";
+  const pendingTotal = data.pendingTotal;
+  const paidThisMonth = data.paidThisMonth;
 
   return (
     <TooltipProvider delayDuration={200}>
