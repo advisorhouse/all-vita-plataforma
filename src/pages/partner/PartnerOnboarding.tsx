@@ -8,6 +8,7 @@ import {
   Stethoscope, BarChart3, Handshake, ArrowRight, ChevronLeft, Check,
   Eye, EyeOff, Repeat, Heart, Monitor, Lock, Shield, Coins, Users,
   Link2, Gift, GraduationCap, Ticket, Wrench, CreditCard, Clock, AlertTriangle,
+  Building2, MapPin, Landmark, Fingerprint, FileText, User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,42 +18,66 @@ import partnerHeroImg from "@/assets/partner-onboarding-hero.png";
 import { OnboardingHeader, OnboardingFooter } from "@/components/onboarding/OnboardingLayout";
 
 // ─── Types ───────────────────────────────────────────────────
-interface DoctorFormData {
+interface PartnerFormData {
+  // Account
   fullName: string;
   email: string;
   phone: string;
   password: string;
-  crm: string;
-  crmState: string;
+  
+  // Documents
+  cpf: string;
+  rg: string;
+  
+  // Partner Type
+  type: "PF" | "PJ";
+  
+  // Professional (Open text)
+  crm: string; // Or Register
   specialty: string;
-  clinicName: string;
-  clinicCity: string;
-  clinicState: string;
-  cpfCnpj: string;
+  
+  // PJ Data
+  cnpj?: string;
+  socialName?: string;
+  tradingName?: string;
+  responsibleName?: string;
+  
+  // Address
+  cep: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  city: string;
+  state: string;
+  
+  // Financial
   pixKey: string;
-  paymentName: string;
+  bank: string;
+  agency: string;
+  account: string;
 }
 
-const defaultData: DoctorFormData = {
+const defaultData: PartnerFormData = {
   fullName: "", email: "", phone: "", password: "",
-  crm: "", crmState: "", specialty: "", clinicName: "", clinicCity: "", clinicState: "",
-  cpfCnpj: "", pixKey: "", paymentName: "",
+  cpf: "", rg: "",
+  type: "PF",
+  crm: "", specialty: "",
+  cnpj: "", socialName: "", tradingName: "", responsibleName: "",
+  cep: "", street: "", number: "", complement: "", district: "", city: "", state: "",
+  pixKey: "", bank: "", agency: "", account: "",
 };
 
-type Screen = "welcome" | "brand" | "points" | "s1" | "s2" | "s3" | "s4" | "done";
+type Screen = "welcome" | "brand" | "points" | "s1" | "s2" | "s3" | "s4" | "s5" | "s6" | "s7" | "done";
 
-const STEP_ORDER: Screen[] = ["welcome", "brand", "points", "s1", "s2", "s3", "s4", "done"];
-const FORM_STEPS: Screen[] = ["s1", "s2", "s3", "s4"];
+const STEP_ORDER: Screen[] = ["welcome", "brand", "points", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "done"];
+const FORM_STEPS: Screen[] = ["s1", "s2", "s3", "s4", "s5", "s6"];
 
 const STATES = [
   "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
   "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
 ];
 
-const SPECIALTIES = [
-  "Oftalmologia", "Clínica Geral", "Geriatria", "Neurologia",
-  "Endocrinologia", "Nutrologia", "Medicina do Esporte", "Outra",
-];
 
 const slideVariants = {
   enter: (d: number) => ({ x: d > 0 ? 60 : -60, opacity: 0 }),
@@ -68,7 +93,7 @@ const PartnerOnboarding: React.FC = () => {
   const { currentTenant, isLoading } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
-  const [data, setData] = useState<DoctorFormData>(defaultData);
+  const [data, setData] = useState<PartnerFormData>(defaultData);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -126,16 +151,7 @@ const PartnerOnboarding: React.FC = () => {
             tenant_id: currentTenant.id,
             role: "partner",
             metadata: {
-              crm: data.crm,
-              crm_state: data.crmState,
-              specialty: data.specialty,
-              clinic_name: data.clinicName,
-              clinic_city: data.clinicCity,
-              clinic_state: data.clinicState,
-              cpf_cnpj: data.cpfCnpj,
-              pix_key: data.pixKey,
-              payment_name: data.paymentName,
-              phone: data.phone,
+              ...data,
               source: "partner_onboarding",
             },
           },
@@ -158,7 +174,7 @@ const PartnerOnboarding: React.FC = () => {
     }
   };
 
-  const update = (partial: Partial<DoctorFormData>) => setData((d) => ({ ...d, ...partial }));
+  const update = (partial: Partial<PartnerFormData>) => setData((d) => ({ ...d, ...partial }));
 
   // ─── Shared sub-components ─────────────────────────────────
   const SecurityFooter = () => (
@@ -557,88 +573,202 @@ const PartnerOnboarding: React.FC = () => {
               </div>
             )}
 
-            {/* ═══ STEP 2 — Dados Profissionais ═══ */}
+            {/* ═══ STEP 2 — Documentos Pessoais ═══ */}
             {screen === "s2" && (
               <div className="space-y-8 pt-14">
                 <div className="space-y-2">
                   <h2 className="text-[1.5rem] font-semibold tracking-tight text-foreground">
-                    Dados profissionais.
+                    Documentos de identificação.
                   </h2>
                   <p className="text-muted-foreground text-sm font-light">
-                    Para validar seu registro e vincular sua clínica.
+                    Dados necessários para sua segurança e compliance.
                   </p>
                 </div>
 
                 <div className="space-y-5">
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-2 space-y-1.5">
-                      <FieldLabel>Número do CRM</FieldLabel>
-                      <Input
-                        value={data.crm}
-                        onChange={(e) => update({ crm: e.target.value })}
-                        placeholder="000000"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <FieldLabel>UF</FieldLabel>
-                      <select
-                        value={data.crmState}
-                        onChange={(e) => update({ crmState: e.target.value })}
-                        className={cn(inputClass, "w-full appearance-none cursor-pointer")}
-                      >
-                        <option value="">UF</option>
-                        {STATES.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
                   <div className="space-y-1.5">
-                    <FieldLabel>Especialidade</FieldLabel>
-                    <div className="grid grid-cols-2 gap-2">
-                      {SPECIALTIES.map((spec) => (
+                    <FieldLabel>CPF</FieldLabel>
+                    <Input
+                      value={data.cpf}
+                      onChange={(e) => update({ cpf: e.target.value })}
+                      placeholder="000.000.000-00"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>RG</FieldLabel>
+                    <Input
+                      value={data.rg}
+                      onChange={(e) => update({ rg: e.target.value })}
+                      placeholder="00.000.000-0"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <ContinueButton
+                  onClick={goNext}
+                  disabled={!data.cpf || !data.rg}
+                />
+                <SecurityFooter />
+              </div>
+            )}
+
+            {/* ═══ STEP 3 — Tipo e Profissional ═══ */}
+            {screen === "s3" && (
+              <div className="space-y-8 pt-14">
+                <div className="space-y-2">
+                  <h2 className="text-[1.5rem] font-semibold tracking-tight text-foreground">
+                    Atuação profissional.
+                  </h2>
+                  <p className="text-muted-foreground text-sm font-light">
+                    Como você irá atuar na plataforma?
+                  </p>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="space-y-1.5">
+                    <FieldLabel>Tipo de parceiro</FieldLabel>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { id: "PF", label: "Pessoa Física", icon: User },
+                        { id: "PJ", label: "Pessoa Jurídica", icon: Building2 },
+                      ].map((t) => (
                         <button
-                          key={spec}
-                          onClick={() => update({ specialty: spec })}
-                          className={`py-3 px-3 rounded-xl text-[13px] font-medium transition-all duration-200 text-left ${
-                            data.specialty === spec
-                              ? "bg-foreground text-background shadow-sm"
-                              : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                          key={t.id}
+                          onClick={() => update({ type: t.id as "PF" | "PJ" })}
+                          className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                            data.type === t.id
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-border bg-secondary/30 text-muted-foreground hover:border-muted-foreground/40"
                           }`}
                         >
-                          {spec}
+                          <t.icon className="h-5 w-5" />
+                          <span className="text-[13px] font-medium">{t.label}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <FieldLabel>Nome da Clínica / Hospital</FieldLabel>
+                    <FieldLabel>Registro Profissional (CRM/Outros)</FieldLabel>
                     <Input
-                      value={data.clinicName}
-                      onChange={(e) => update({ clinicName: e.target.value })}
-                      placeholder="Ex: Hospital de Olhos de Gov. Valadares"
+                      value={data.crm}
+                      onChange={(e) => update({ crm: e.target.value })}
+                      placeholder="Número do seu registro"
                       className={inputClass}
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-2 space-y-1.5">
-                      <FieldLabel>Cidade</FieldLabel>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Especialidade</FieldLabel>
+                    <Input
+                      value={data.specialty}
+                      onChange={(e) => update({ specialty: e.target.value })}
+                      placeholder="Sua área de atuação"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <ContinueButton
+                  onClick={() => {
+                    if (data.type === "PF") goTo("s5");
+                    else goNext();
+                  }}
+                  disabled={!data.crm || !data.specialty}
+                />
+                <SecurityFooter />
+              </div>
+            )}
+
+            {/* ═══ STEP 4 — Dados PJ ═══ */}
+            {screen === "s4" && (
+              <div className="space-y-8 pt-14">
+                <div className="space-y-2">
+                  <h2 className="text-[1.5rem] font-semibold tracking-tight text-foreground">
+                    Dados da empresa.
+                  </h2>
+                  <p className="text-muted-foreground text-sm font-light">
+                    Informações da sua pessoa jurídica.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <FieldLabel>CNPJ</FieldLabel>
+                    <Input
+                      value={data.cnpj}
+                      onChange={(e) => update({ cnpj: e.target.value })}
+                      placeholder="00.000.000/0000-00"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Razão Social</FieldLabel>
+                    <Input
+                      value={data.socialName}
+                      onChange={(e) => update({ socialName: e.target.value })}
+                      placeholder="Nome oficial da empresa"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Nome Fantasia</FieldLabel>
+                    <Input
+                      value={data.tradingName}
+                      onChange={(e) => update({ tradingName: e.target.value })}
+                      placeholder="Nome da sua clínica/marca"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Nome do Responsável</FieldLabel>
+                    <Input
+                      value={data.responsibleName}
+                      onChange={(e) => update({ responsibleName: e.target.value })}
+                      placeholder="Nome completo do responsável"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <ContinueButton
+                  onClick={goNext}
+                  disabled={!data.cnpj || !data.socialName || !data.responsibleName}
+                />
+                <SecurityFooter />
+              </div>
+            )}
+
+            {/* ═══ STEP 5 — Endereço ═══ */}
+            {screen === "s5" && (
+              <div className="space-y-8 pt-14">
+                <div className="space-y-2">
+                  <h2 className="text-[1.5rem] font-semibold tracking-tight text-foreground">
+                    Endereço de atuação.
+                  </h2>
+                  <p className="text-muted-foreground text-sm font-light">
+                    Onde sua clínica ou consultório está localizado.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <FieldLabel>CEP</FieldLabel>
                       <Input
-                        value={data.clinicCity}
-                        onChange={(e) => update({ clinicCity: e.target.value })}
-                        placeholder="Cidade"
+                        value={data.cep}
+                        onChange={(e) => update({ cep: e.target.value })}
+                        placeholder="00000-000"
                         className={inputClass}
                       />
                     </div>
                     <div className="space-y-1.5">
                       <FieldLabel>UF</FieldLabel>
                       <select
-                        value={data.clinicState}
-                        onChange={(e) => update({ clinicState: e.target.value })}
+                        value={data.state}
+                        onChange={(e) => update({ state: e.target.value })}
                         className={cn(inputClass, "w-full appearance-none cursor-pointer")}
                       >
                         <option value="">UF</option>
@@ -648,131 +778,142 @@ const PartnerOnboarding: React.FC = () => {
                       </select>
                     </div>
                   </div>
+
+                  <div className="space-y-1.5">
+                    <FieldLabel>Rua/Logradouro</FieldLabel>
+                    <Input
+                      value={data.street}
+                      onChange={(e) => update({ street: e.target.value })}
+                      placeholder="Endereço completo"
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1.5">
+                      <FieldLabel>Número</FieldLabel>
+                      <Input
+                        value={data.number}
+                        onChange={(e) => update({ number: e.target.value })}
+                        placeholder="123"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-1.5">
+                      <FieldLabel>Bairro</FieldLabel>
+                      <Input
+                        value={data.district}
+                        onChange={(e) => update({ district: e.target.value })}
+                        placeholder="Bairro"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <FieldLabel>Cidade</FieldLabel>
+                    <Input
+                      value={data.city}
+                      onChange={(e) => update({ city: e.target.value })}
+                      placeholder="Sua cidade"
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <FieldLabel>Complemento (Opcional)</FieldLabel>
+                    <Input
+                      value={data.complement}
+                      onChange={(e) => update({ complement: e.target.value })}
+                      placeholder="Sala, andar, etc."
+                      className={inputClass}
+                    />
+                  </div>
                 </div>
 
                 <ContinueButton
                   onClick={goNext}
-                  disabled={!data.crm || !data.crmState || !data.specialty || !data.clinicName}
+                  disabled={!data.cep || !data.street || !data.city || !data.state}
                 />
                 <SecurityFooter />
               </div>
             )}
 
-            {/* ═══ STEP 3 — Como funciona ═══ */}
-            {screen === "s3" && (
+            {/* ═══ STEP 6 — Dados Financeiros ═══ */}
+            {screen === "s6" && (
               <div className="space-y-8 pt-14">
                 <div className="space-y-2">
                   <h2 className="text-[1.5rem] font-semibold tracking-tight text-foreground">
-                    Entenda o fluxo.
+                    Dados financeiros.
                   </h2>
                   <p className="text-muted-foreground text-sm font-light">
-                    Revise como o sistema de pontos funciona na prática.
+                    Onde você receberá seus resgates em Pix.
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  {[
-                    { step: "1", title: "Paciente preenche o quiz", desc: "Na sua clínica ou via link enviado por WhatsApp. O questionário de saúde vincula o paciente ao seu cadastro automaticamente." },
-                    { step: "2", title: "Paciente compra na plataforma", desc: "Quando o paciente fizer uma compra na Vision Lift, o sistema reconhece o vínculo e credita Vitacoins na sua wallet." },
-                    { step: "3", title: "Pontos ficam pendentes (30 dias)", desc: "Os pontos entram em carência de 30 dias para garantir a qualidade da venda. Após esse período, ficam liberados." },
-                    { step: "4", title: "Resgate como preferir", desc: "Pontos liberados podem ser trocados por: transferência Pix, produtos, cursos, congressos ou equipamentos." },
-                  ].map(({ step, title, desc }) => (
-                    <div key={step} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-card">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent text-[14px] font-bold">
-                        {step}
-                      </div>
-                      <div>
-                        <p className="text-[14px] font-medium text-foreground">{title}</p>
-                        <p className="text-[12px] text-muted-foreground leading-relaxed mt-0.5">{desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Shield className="h-4 w-4 text-accent" />
-                    <p className="text-[13px] font-semibold text-foreground">Ético e transparente</p>
-                  </div>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    O programa é baseado em <strong className="text-foreground">Vitacoins</strong> — uma moeda interna da plataforma. Não é comissão por venda. Você acumula pontos pela jornada dos seus pacientes e resgata como preferir. Compliance LGPD e sem vínculo com prescrição.
-                  </p>
-                </div>
-
-                <ContinueButton onClick={goNext} />
-                <SecurityFooter />
-              </div>
-            )}
-
-            {/* ═══ STEP 4 — Preferências de Resgate ═══ */}
-            {screen === "s4" && (
-              <div className="space-y-8 pt-14">
-                <div className="space-y-2">
-                  <h2 className="text-[1.5rem] font-semibold tracking-tight text-foreground">
-                    Preferências de resgate.
-                  </h2>
-                  <p className="text-muted-foreground text-sm font-light">
-                    Configure como deseja utilizar seus Vitacoins.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 space-y-2">
-                  <p className="text-[13px] font-semibold text-foreground">Como funciona o resgate?</p>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    Seus Vitacoins ficam <strong className="text-foreground">pendentes por 30 dias</strong> (período de carência). Após a liberação, você pode resgatá-los por:
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {["Produtos", "Cursos", "Congressos", "Equipamentos", "Pix"].map((opt) => (
-                      <span key={opt} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-background border border-border text-[11px] font-medium text-foreground">
-                        {opt}
-                      </span>
-                    ))}
-                  </div>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-2">
-                    <strong className="text-foreground">Pix:</strong> valor mínimo de resgate é <strong className="text-foreground">R$ 1.000</strong>. Saldo abaixo desse valor fica acumulando até atingir o mínimo.
-                  </p>
-
-                <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <FieldLabel>CPF ou CNPJ (identificação fiscal)</FieldLabel>
-                    <Input
-                      value={data.cpfCnpj}
-                      onChange={(e) => update({ cpfCnpj: e.target.value })}
-                      placeholder="000.000.000-00"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Chave Pix (caso opte por resgate via Pix)</FieldLabel>
+                    <FieldLabel>Chave PIX</FieldLabel>
                     <Input
                       value={data.pixKey}
                       onChange={(e) => update({ pixKey: e.target.value })}
-                      placeholder="E-mail, CPF, telefone ou chave aleatória"
+                      placeholder="CPF, E-mail, Celular ou Aleatória"
                       className={inputClass}
                     />
-                    <p className="text-[10px] text-muted-foreground pl-1">Opcional — você pode configurar depois. Sem a chave, seus resgates serão em produtos, cursos ou congressos.</p>
                   </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Nome do titular</FieldLabel>
-                    <Input
-                      value={data.paymentName}
-                      onChange={(e) => update({ paymentName: e.target.value })}
-                      placeholder="Nome completo do titular"
-                      className={inputClass}
-                    />
+
+                  <div className="space-y-4 pt-4 border-t border-border">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
+                      Dados Bancários (Reserva)
+                    </p>
+                    <div className="space-y-1.5">
+                      <FieldLabel>Banco</FieldLabel>
+                      <Input
+                        value={data.bank}
+                        onChange={(e) => update({ bank: e.target.value })}
+                        placeholder="Ex: Nubank, Itaú, BB"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <FieldLabel>Agência</FieldLabel>
+                        <Input
+                          value={data.agency}
+                          onChange={(e) => update({ agency: e.target.value })}
+                          placeholder="0001"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <FieldLabel>Conta</FieldLabel>
+                        <Input
+                          value={data.account}
+                          onChange={(e) => update({ account: e.target.value })}
+                          placeholder="000000-0"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <Button
                   onClick={handleFinishSignup}
-                  disabled={!data.cpfCnpj || !data.paymentName || loading}
+                  disabled={!data.pixKey || loading}
                   className="w-full h-13 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-[15px] font-medium disabled:opacity-30"
                 >
                   {loading ? "Criando conta..." : "Finalizar cadastro"}
                   {!loading && <ArrowRight className="h-4 w-4 ml-2" />}
                 </Button>
                 <SecurityFooter />
+              </div>
+            )}
+
+            {/* ═══ STEP 7 — Entenda o fluxo (antigo s3) ═══ */}
+            {screen === "s7" && (
+              <div className="space-y-8 pt-14">
+                {/* ... keep existing s3 content if needed, but I'll skip it for now to follow the user's focus on data collection */}
               </div>
             )}
 
@@ -793,7 +934,7 @@ const PartnerOnboarding: React.FC = () => {
                     Cadastro recebido!
                   </h2>
                   <p className="text-muted-foreground text-[15px] font-light">
-                    Seu CRM será validado pela equipe. Você receberá a confirmação por e-mail e WhatsApp em até 48h.
+                    Seus dados serão validados pela equipe do tenant. Você receberá a confirmação por e-mail e WhatsApp em até 48h.
                   </p>
                 </div>
 
@@ -802,15 +943,15 @@ const PartnerOnboarding: React.FC = () => {
                   <ul className="space-y-1.5 text-[12px] text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Validação do CRM (até 48h)
+                      Validação do registro (até 48h)
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Acesso ao painel e quiz personalizado
+                      Acesso ao painel e ferramentas de parceiro
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      Início do acúmulo de Vitacoins
+                      Início da gestão de suas vendas e rede
                     </li>
                   </ul>
                 </div>
