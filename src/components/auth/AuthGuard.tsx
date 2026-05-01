@@ -130,7 +130,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // 1. Super admin protection for /admin
   if (location.pathname.startsWith("/admin") && !isSuperAdmin && !platformRole) {
-    const fallback = activeSlug && !isSubdomainAccess ? `/${activeSlug}/core` : "/core";
+    const fallback = isSubdomainAccess ? "/core" : (activeSlug ? `/${activeSlug}/core` : "/core");
     return <Navigate to={fallback} replace />;
   }
 
