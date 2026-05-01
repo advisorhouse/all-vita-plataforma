@@ -18,32 +18,27 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
   const isPathBased = isPathBasedHost(hostname);
   const pathname = window.location.pathname;
 
-  // CRITICAL FIX: If we are on a subdomain like lumyss.allvita.com.br, 
-  // and the browser is trying to go to app.allvita.com.br, something in our
-  // logic is triggering a full-page redirect. 
-  // Let's check if we are on a subdomain and if the pathname is / or /auth/login
-  const isSubdomain = hostname !== "app.allvita.com.br" && 
-                     (hostname.endsWith("allvita.com.br") || hostname.endsWith("lovable.app"));
+  // Se o hostname for app.allvita.com.br, mantemos a lógica de path-based para compatibilidade/legado
+  // Mas se for qualquer outro subdomínio de allvita.com.br (incluindo lumyss.allvita.com.br),
+  // desativamos QUALQUER reescrita ou extração de slug da URL.
+  const isAllVitaBase = hostname === "allvita.com.br" || hostname === "app.allvita.com.br";
+  const isSubdomain = !isAllVitaBase && (hostname.endsWith(".allvita.com.br") || hostname.endsWith(".lovable.app"));
 
   console.log("[rewriteTenantPath] Hostname:", hostname, "isSubdomain:", isSubdomain, "isPathBased:", isPathBased);
-  
-  const slug = extractSlugFromPath(pathname);
-  console.log("[rewriteTenantPath] Slug from path:", slug);
 
   if (isSubdomain) {
-    console.log("[rewriteTenantPath] Subdomain detected. Ensuring no cross-domain redirects.");
-    // No-op for path rewrite on subdomains
+    console.log("[rewriteTenantPath] Subdomain detected. Disabling all path-based logic.");
     return;
   }
 
-  if (!slug) return;
-
-  if (!isPathBased) {
-    console.log("[rewriteTenantPath] Skipping path rewrite on non-path host, but found slug:", slug);
-    return;
+  // Apenas extraímos slug se estivermos no host principal que suporta path-based
+  if (isPathBased) {
+    const slug = extractSlugFromPath(pathname);
+    console.log("[rewriteTenantPath] Slug from path:", slug);
+    if (slug) {
+      (window as any).__tenantSlug = slug;
+    }
   }
-
-  (window as any).__tenantSlug = slug;
 })();
 
 createRoot(document.getElementById("root")!).render(<App />);
