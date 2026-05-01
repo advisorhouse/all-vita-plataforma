@@ -61,6 +61,7 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
 
+      // CRITICAL: NEVER include the slug in the path if we are on a subdomain
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
@@ -72,7 +73,7 @@ export function useTenantNavigation() {
       const qs = params.toString();
       return `${finalBasePath}${qs ? `?${qs}` : ""}`;
     },
-    [activeSlug, tenantQueryParam]
+    [activeSlug, tenantQueryParam, isSubdomainAccess]
   );
 
   return { 
