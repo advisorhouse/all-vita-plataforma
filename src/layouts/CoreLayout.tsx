@@ -7,6 +7,7 @@ import TenantSwitcher from "@/components/tenant/TenantSwitcher";
 
 const coreLinks = [
   { label: "Dashboard", href: "/core", icon: Home },
+  { label: "Colaboradores", href: "/core/users", icon: Users },
   { label: "Assinaturas", href: "/core/subscriptions", icon: Package },
   { label: "Clientes", href: "/core/customers", icon: Users },
   { label: "Partners", href: "/core/partners", icon: Handshake },

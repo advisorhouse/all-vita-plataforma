@@ -103,6 +103,16 @@ const CoreDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { currentTenant } = useTenant();
 
+  const { data: profile } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
+      return data;
+    }
+  });
+
   const { data: metrics } = useQuery({
     queryKey: ["core-dashboard-metrics", currentTenant?.id],
     queryFn: async () => {
@@ -164,7 +174,12 @@ const CoreDashboard: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-foreground">
-                  {(() => { const h = new Date().getHours(); return h < 12 ? "Bom dia, Admin" : h < 18 ? "Boa tarde, Admin" : "Boa noite, Admin"; })()}
+                  {(() => { 
+                    const h = new Date().getHours(); 
+                    const greeting = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+                    const firstName = profile?.first_name ? profile.first_name.charAt(0).toUpperCase() + profile.first_name.slice(1).toLowerCase() : "Admin";
+                    return `${greeting}, ${firstName}`;
+                  })()}
                 </h1>
                 <GreetingIcon />
                 <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent">Master</span>

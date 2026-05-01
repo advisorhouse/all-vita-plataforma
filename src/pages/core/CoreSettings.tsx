@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Settings, Globe, Bell, Shield, Palette, Mail, Database,
   Save, ToggleLeft, ChevronRight, Clock, Webhook, Key,
   FileText, Users, Zap, AlertTriangle, CheckCircle,
-  DollarSign, BarChart3, CreditCard, ExternalLink, Copy, Eye, EyeOff,
+  DollarSign, BarChart3, CreditCard, ExternalLink, Copy, Webhook as WebhookIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import CorePermissions from "./CorePermissions";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -72,8 +76,11 @@ const ToggleRow: React.FC<{
 );
 
 const CoreSettings: React.FC = () => {
+  const { currentTenant, setCurrentTenant } = useTenant();
+  
   // General
   const [platformName, setPlatformName] = useState("Vision Lift");
+  const [tradeName, setTradeName] = useState("");
   const [timezone, setTimezone] = useState("America/Sao_Paulo");
   const [currency, setCurrency] = useState("BRL");
   const [locale, setLocale] = useState("pt-BR");
@@ -84,6 +91,7 @@ const CoreSettings: React.FC = () => {
   const [commissionAlerts, setCommissionAlerts] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(true);
   const [realtimeAlerts, setRealtimeAlerts] = useState(false);
+  const [alertEmails, setAlertEmails] = useState("admin@visionlift.com.br");
 
   // Security
   const [twoFactor, setTwoFactor] = useState(false);
@@ -110,10 +118,108 @@ const CoreSettings: React.FC = () => {
   const [compactMode, setCompactMode] = useState(false);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+
+  // Load settings
+  useEffect(() => {
+    if (currentTenant) {
+      setPlatformName(currentTenant.name || "Vision Lift");
+      setTradeName(currentTenant.trade_name || "");
+      
+      const s = currentTenant.settings as any || {};
+      setTimezone(s.timezone || "America/Sao_Paulo");
+      setCurrency(s.currency || "BRL");
+      setLocale(s.locale || "pt-BR");
+      
+      const n = s.notifications || {};
+      setEmailAlerts(n.emailAlerts ?? true);
+      setChurnAlerts(n.churnAlerts ?? true);
+      setCommissionAlerts(n.commissionAlerts ?? true);
+      setWeeklyDigest(n.weeklyDigest ?? true);
+      setRealtimeAlerts(n.realtimeAlerts ?? false);
+      setAlertEmails(n.alertEmails || "admin@visionlift.com.br");
+      
+      const sec = s.security || {};
+      setTwoFactor(sec.twoFactor ?? false);
+      setSessionTimeout(sec.sessionTimeout || "60");
+      setIpWhitelist(sec.ipWhitelist ?? false);
+      setAuditLog(sec.auditLog ?? true);
+      
+      const integ = s.integrations || {};
+      setWebhookUrl(integ.webhookUrl || "");
+      setWebhookActive(integ.webhookActive ?? false);
+      
+      const p = s.pagarme || {};
+      setPagarmeEnv(p.env || "sandbox");
+      setPagarmeApiKey(p.apiKey || "");
+      setPagarmeEncKey(p.encKey || "");
+      setPagarmeOrderPaid(p.orderPaid ?? true);
+      setPagarmeOrderRefunded(p.orderRefunded ?? true);
+      setPagarmeSubscriptionCreated(p.subscriptionCreated ?? true);
+      setPagarmeSubscriptionCanceled(p.subscriptionCanceled ?? true);
+      setPagarmeChargebackCreated(p.chargebackCreated ?? true);
+      
+      const a = s.appearance || {};
+      setDarkMode(a.darkMode ?? false);
+      setCompactMode(a.compactMode ?? false);
+      setAnimationsEnabled(a.animationsEnabled ?? true);
+    }
+  }, [currentTenant?.id]);
+
+  const handleSave = async () => {
+    if (!currentTenant?.id) return;
+    
+    setSaving(true);
+    try {
+      const settings = {
+        timezone, currency, locale,
+        notifications: {
+          emailAlerts, churnAlerts, commissionAlerts, weeklyDigest, realtimeAlerts, alertEmails
+        },
+        security: {
+          twoFactor, sessionTimeout, ipWhitelist, auditLog
+        },
+        integrations: {
+          webhookUrl, webhookActive
+        },
+        pagarme: {
+          env: pagarmeEnv, apiKey: pagarmeApiKey, encKey: pagarmeEncKey,
+          orderPaid: pagarmeOrderPaid, orderRefunded: pagarmeOrderRefunded,
+          subscriptionCreated: pagarmeSubscriptionCreated,
+          subscriptionCanceled: pagarmeSubscriptionCanceled,
+          chargebackCreated: pagarmeChargebackCreated
+        },
+        appearance: {
+          darkMode, compactMode, animationsEnabled
+        }
+      };
+
+      const { data: updatedTenant, error } = await supabase
+        .from('tenants')
+        .update({ 
+          name: platformName,
+          trade_name: tradeName,
+          settings 
+        })
+        .eq('id', currentTenant.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSaved(true);
+      toast.success("Configurações salvas com sucesso!");
+      if (updatedTenant) {
+        setCurrentTenant(updatedTenant as any);
+      }
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error: any) {
+      console.error("Error saving settings:", error);
+      toast.error("Erro ao salvar configurações: " + error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -124,11 +230,17 @@ const CoreSettings: React.FC = () => {
       >
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Configurações</h2>
-          <p className="text-sm text-muted-foreground">Configurações gerais da plataforma Vision Lift</p>
+          <p className="text-sm text-muted-foreground">Configurações gerais da plataforma {platformName}</p>
         </div>
-        <Button onClick={handleSave} className="gap-2">
-          {saved ? <CheckCircle className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-          {saved ? "Salvo!" : "Salvar Alterações"}
+        <Button onClick={handleSave} disabled={saving} className="gap-2 min-w-[140px]">
+          {saving ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+          ) : saved ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          {saving ? "Salvando..." : saved ? "Salvo!" : "Salvar Alterações"}
         </Button>
       </motion.div>
 
@@ -137,8 +249,9 @@ const CoreSettings: React.FC = () => {
           <TabsTrigger value="general" className="gap-1.5 text-xs"><Globe className="h-3.5 w-3.5" />Geral</TabsTrigger>
           <TabsTrigger value="notifications" className="gap-1.5 text-xs"><Bell className="h-3.5 w-3.5" />Notificações</TabsTrigger>
           <TabsTrigger value="security" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Segurança</TabsTrigger>
-          <TabsTrigger value="integrations" className="gap-1.5 text-xs"><Webhook className="h-3.5 w-3.5" />Integrações</TabsTrigger>
+          <TabsTrigger value="integrations" className="gap-1.5 text-xs"><WebhookIcon className="h-3.5 w-3.5" />Integrações</TabsTrigger>
           <TabsTrigger value="appearance" className="gap-1.5 text-xs"><Palette className="h-3.5 w-3.5" />Aparência</TabsTrigger>
+          <TabsTrigger value="permissions" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Permissões</TabsTrigger>
         </TabsList>
 
         {/* ===== GERAL ===== */}
@@ -148,6 +261,10 @@ const CoreSettings: React.FC = () => {
               <div className="space-y-1.5">
                 <Label className="text-[11px] text-muted-foreground">Nome da Plataforma</Label>
                 <Input value={platformName} onChange={(e) => setPlatformName(e.target.value)} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[11px] text-muted-foreground">Nome Fantasia</Label>
+                <Input value={tradeName} onChange={(e) => setTradeName(e.target.value)} className="h-9" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[11px] text-muted-foreground">Fuso Horário</Label>
@@ -233,7 +350,8 @@ const CoreSettings: React.FC = () => {
             <div className="space-y-1.5">
               <Label className="text-[11px] text-muted-foreground">E-mails (separados por vírgula)</Label>
               <Textarea
-                defaultValue="admin@visionlift.com.br"
+                value={alertEmails}
+                onChange={(e) => setAlertEmails(e.target.value)}
                 placeholder="admin@visionlift.com.br, operacao@visionlift.com.br"
                 className="min-h-[60px] text-sm"
               />
@@ -271,39 +389,6 @@ const CoreSettings: React.FC = () => {
               checked={ipWhitelist} onChange={setIpWhitelist} icon={Globe} />
             <ToggleRow label="Log de auditoria" description="Registrar todas as ações administrativas"
               checked={auditLog} onChange={setAuditLog} icon={Database} />
-          </SettingsSection>
-
-          <SettingsSection title="Chaves de API" description="Gerencie as chaves de acesso à API" delay={2}>
-            <div className="space-y-3">
-              {[
-                { name: "Webhook Principal", prefix: "vl_wh_***8a3f", status: "active", lastUsed: "2h atrás" },
-                { name: "Analytics Export", prefix: "vl_ax_***2c1e", status: "active", lastUsed: "1d atrás" },
-                { name: "Legacy Integration", prefix: "vl_lg_***9f4b", status: "expired", lastUsed: "30d atrás" },
-              ].map((key) => (
-                <div key={key.name} className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <Key className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{key.name}</p>
-                      <p className="text-[11px] text-muted-foreground font-mono">{key.prefix}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] text-muted-foreground">{key.lastUsed}</span>
-                    <Badge variant={key.status === "active" ? "default" : "secondary"}
-                      className={cn("text-[9px]",
-                        key.status === "active" ? "bg-primary/10 text-primary border-0" : "bg-destructive/10 text-destructive border-0"
-                      )}>
-                      {key.status === "active" ? "Ativa" : "Expirada"}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="outline" size="sm" className="gap-2 mt-2">
-              <Key className="h-3.5 w-3.5" />
-              Gerar Nova Chave
-            </Button>
           </SettingsSection>
         </TabsContent>
 
@@ -392,7 +477,10 @@ const CoreSettings: React.FC = () => {
                   value={`https://gzcuuxqjblyyucgwlfmw.supabase.co/functions/v1/payment-webhook`}
                   className="h-9 font-mono text-xs flex-1 bg-muted/50"
                 />
-                <Button variant="outline" size="sm" className="h-9 gap-1.5 shrink-0" onClick={() => navigator.clipboard.writeText(`https://gzcuuxqjblyyucgwlfmw.supabase.co/functions/v1/payment-webhook`)}>
+                <Button variant="outline" size="sm" className="h-9 gap-1.5 shrink-0" onClick={() => {
+                  navigator.clipboard.writeText(`https://gzcuuxqjblyyucgwlfmw.supabase.co/functions/v1/payment-webhook`);
+                  toast.info("Copiado!");
+                }}>
                   <Copy className="h-3.5 w-3.5" />Copiar
                 </Button>
               </div>
@@ -416,41 +504,12 @@ const CoreSettings: React.FC = () => {
           {/* Outros Webhooks */}
           <SettingsSection title="Webhook Customizado" description="Endpoint adicional para integrações externas" delay={3}>
             <ToggleRow label="Webhook ativo" description="Processar eventos de pagamento automaticamente"
-              checked={webhookActive} onChange={setWebhookActive} icon={Webhook} />
+              checked={webhookActive} onChange={setWebhookActive} icon={WebhookIcon} />
             <div className="space-y-1.5">
               <Label className="text-[11px] text-muted-foreground">URL do Webhook</Label>
               <Input value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)}
                 placeholder="https://api.visionlift.com.br/webhooks/custom"
                 className="h-9 font-mono text-xs" />
-            </div>
-          </SettingsSection>
-
-          {/* Serviços */}
-          <SettingsSection title="Serviços Conectados" description="Status das integrações ativas" delay={4}>
-            <div className="space-y-3">
-              {[
-                { name: "Pagar.me (Gateway)", status: "connected", icon: CreditCard },
-                { name: "Engine de Comissões", status: "connected", icon: Zap },
-                { name: "Gamification Engine", status: "connected", icon: Settings },
-                { name: "Retention Engine", status: "connected", icon: Users },
-                { name: "Analytics API", status: "connected", icon: BarChart3 },
-              ].map((svc) => {
-                const SvcIcon = svc.icon;
-                return (
-                  <div key={svc.name} className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                        <SvcIcon className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-sm font-medium text-foreground">{svc.name}</p>
-                    </div>
-                    <Badge className="text-[9px] bg-primary/10 text-primary border-0">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Conectado
-                    </Badge>
-                  </div>
-                );
-              })}
             </div>
           </SettingsSection>
         </TabsContent>
@@ -465,25 +524,11 @@ const CoreSettings: React.FC = () => {
             <ToggleRow label="Animações" description="Ativar animações e transições na interface"
               checked={animationsEnabled} onChange={setAnimationsEnabled} icon={Zap} />
           </SettingsSection>
+        </TabsContent>
 
-          <SettingsSection title="Marca" description="Identidade visual da plataforma" delay={2}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label className="text-[11px] text-muted-foreground">Cor Primária</Label>
-                <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-lg bg-primary border border-border" />
-                  <Input defaultValue="#0A0B0D" className="h-9 font-mono text-xs flex-1" />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] text-muted-foreground">Cor de Destaque</Label>
-                <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-lg bg-accent border border-border" />
-                  <Input defaultValue="#3B82F6" className="h-9 font-mono text-xs flex-1" />
-                </div>
-              </div>
-            </div>
-          </SettingsSection>
+        {/* ===== PERMISSÕES ===== */}
+        <TabsContent value="permissions" className="mt-4">
+          <CorePermissions />
         </TabsContent>
       </Tabs>
     </div>
