@@ -44,37 +44,40 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     }
 
     const checkOnboarding = async () => {
-      // Small delay to let TenantContext/Memberships settle if we just logged in
+      // If we are currently loading tenant info, wait for it
       if (tenantLoading) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("must_change_password, onboarding_completed")
-        .eq("id", user.id)
-        .single();
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("must_change_password, onboarding_completed")
+          .eq("id", user.id)
+          .single();
 
-      if (profile) {
-        const hasNonComplete = profile.must_change_password || !profile.onboarding_completed;
-        
-        // If they need onboarding, double check if they are actually a tenant user or just a super admin
-        // Super admins might not need onboarding if they don't have tenant-specific duties, 
-        // but typically all users created via tenant-onboarding get these flags.
-        if (hasNonComplete) {
-          setNeedsOnboarding(true);
-        } else {
-          setNeedsOnboarding(false);
+        if (profile) {
+          const hasNonComplete = profile.must_change_password || !profile.onboarding_completed;
+          setNeedsOnboarding(!!hasNonComplete);
         }
+      } catch (err) {
+        console.error("[AuthGuard] Error checking profile:", err);
+      } finally {
+        setOnboardingChecked(true);
       }
-      setOnboardingChecked(true);
     };
 
     checkOnboarding();
   }, [user, location.pathname, tenantLoading]);
 
-  if (authLoading || tenantLoading || !onboardingChecked) {
+  // user && tenantLoading logic: 
+  // If we HAVE a user, we MUST wait for the tenant info to be loaded (memberships/bootstrap) 
+  // to avoid flashing empty states or incorrect redirects.
+  if (authLoading || (user && tenantLoading) || !onboardingChecked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground" />
+        <div className="text-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground mx-auto" />
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest animate-pulse">Sincronizando ambiente</p>
+        </div>
       </div>
     );
   }
