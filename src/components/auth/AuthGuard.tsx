@@ -87,7 +87,13 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     }
 
     const search = location.search || window.location.search;
+    
+    // If we are on a subdomain, the login page is just /auth/login ON THIS DOMAIN
     const loginPath = activeSlug && !isSubdomainAccess ? `/${activeSlug}/auth/login` : "/auth/login";
+    
+    // CRITICAL: If we are on a subdomain (lumyss.allvita.com.br) and NOT logged in, 
+    // we must NOT redirect to app.allvita.com.br. 
+    // We should stay on the current domain's /auth/login.
     return <Navigate to={`${loginPath}${search}`} state={{ from: location }} replace />;
   }
 
