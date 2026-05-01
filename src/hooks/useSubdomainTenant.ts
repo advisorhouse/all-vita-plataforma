@@ -108,14 +108,20 @@ export function useSubdomainTenant() {
     if (detected.mode === "custom-domain") {
       (async () => {
         setIsLoading(true);
-        const { data } = await (supabase.from as any)("tenants")
+        console.log("[useSubdomainTenant] Querying DB for custom domain:", detected.hostname);
+        const { data, error } = await supabase
+          .from("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
           .eq("domain", detected.hostname)
           .eq("active", true)
-          .single();
+          .maybeSingle();
+        
         if (data) {
+          console.log("[useSubdomainTenant] Custom domain tenant found:", data.slug);
           setTenantSlug(data.slug);
           setCurrentTenant(data as Tenant);
+        } else if (error) {
+          console.error("[useSubdomainTenant] Error fetching custom domain tenant:", error);
         }
         setChecked(true);
         setIsLoading(false);
@@ -130,18 +136,22 @@ export function useSubdomainTenant() {
 
     (async () => {
       setIsLoading(true);
-      let { data } = await (supabase.from as any)("tenants")
+      console.log("[useSubdomainTenant] Querying DB for slug:", slug);
+      let { data, error } = await supabase
+        .from("tenants")
         .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
         .eq("slug", slug)
         .eq("active", true)
-        .single();
+        .maybeSingle();
 
       if (!data && normalizedSlug !== slug) {
-        const res = await (supabase.from as any)("tenants")
+        console.log("[useSubdomainTenant] Slug not found, trying normalized:", normalizedSlug);
+        const res = await supabase
+          .from("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
           .eq("slug", normalizedSlug)
           .eq("active", true)
-          .single();
+          .maybeSingle();
         data = res.data;
       }
 
@@ -149,7 +159,8 @@ export function useSubdomainTenant() {
         console.log("[useSubdomainTenant] Tenant loaded:", data.slug);
         setCurrentTenant(data as Tenant);
       } else {
-        console.log("[useSubdomainTenant] No tenant found for slug:", slug);
+        console.log("[useSubdomainTenant] No tenant found for slug in DB:", slug);
+        if (error) console.error("[useSubdomainTenant] DB Error:", error);
       }
       setChecked(true);
       setIsLoading(false);
@@ -159,8 +170,17 @@ export function useSubdomainTenant() {
   // Auto-select from memberships when they load
   useEffect(() => {
     if (!tenantSlug || availableTenants.length === 0 || currentTenant) return;
-    const match = availableTenants.find((t) => t.slug === tenantSlug);
-    if (match) setCurrentTenant(match);
+    
+    // Normalize slug comparison
+    const match = availableTenants.find((t) => 
+      t.slug.toLowerCase() === tenantSlug.toLowerCase() || 
+      t.slug.replace(/-/g, "").toLowerCase() === tenantSlug.replace(/-/g, "").toLowerCase()
+    );
+    
+    if (match) {
+      console.log("[useSubdomainTenant] Auto-selected from memberships:", match.slug);
+      setCurrentTenant(match);
+    }
   }, [tenantSlug, availableTenants, currentTenant, setCurrentTenant]);
 
   return { subdomainSlug: tenantSlug, checked };
