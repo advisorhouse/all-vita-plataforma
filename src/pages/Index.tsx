@@ -29,13 +29,19 @@ const Index = () => {
   }
 
   if (!user) {
-    // If we're on a subdomain, we should stay here and just go to login
-    // If no tenant parameter, redirect to login
+    const isSubdomain = window.location.hostname !== "app.allvita.com.br" && 
+                       (window.location.hostname.endsWith("allvita.com.br") || 
+                        window.location.hostname.endsWith("lovable.app"));
+
+    if (isSubdomain) {
+      console.log("[Index] Subdomain access, staying on /auth/login");
+      return <Navigate to="/auth/login" replace />;
+    }
+
     if (!tenantParam) {
       return <Navigate to="/auth/login" replace />;
     }
 
-    // If there is a tenant parameter, redirect to login with that tenant
     return <Navigate to={`/auth/login?tenant=${tenantParam}`} replace />;
   }
 
