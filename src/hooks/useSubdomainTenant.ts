@@ -159,8 +159,17 @@ export function useSubdomainTenant() {
   // Auto-select from memberships when they load
   useEffect(() => {
     if (!tenantSlug || availableTenants.length === 0 || currentTenant) return;
-    const match = availableTenants.find((t) => t.slug === tenantSlug);
-    if (match) setCurrentTenant(match);
+    
+    // Normalize slug comparison
+    const match = availableTenants.find((t) => 
+      t.slug.toLowerCase() === tenantSlug.toLowerCase() || 
+      t.slug.replace(/-/g, "").toLowerCase() === tenantSlug.replace(/-/g, "").toLowerCase()
+    );
+    
+    if (match) {
+      console.log("[useSubdomainTenant] Auto-selected from memberships:", match.slug);
+      setCurrentTenant(match);
+    }
   }, [tenantSlug, availableTenants, currentTenant, setCurrentTenant]);
 
   return { subdomainSlug: tenantSlug, checked };
