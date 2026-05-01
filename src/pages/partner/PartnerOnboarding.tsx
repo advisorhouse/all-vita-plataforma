@@ -78,10 +78,6 @@ const STATES = [
   "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
 ];
 
-const SPECIALTIES = [
-  "Oftalmologia", "Clínica Geral", "Geriatria", "Neurologia",
-  "Endocrinologia", "Nutrologia", "Medicina do Esporte", "Outra",
-];
 
 const slideVariants = {
   enter: (d: number) => ({ x: d > 0 ? 60 : -60, opacity: 0 }),
