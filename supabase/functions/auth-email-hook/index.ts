@@ -172,7 +172,7 @@ serve(async (req) => {
           <h2 style="color: ${tenantBranding.primaryColor};">Acesso Rápido</h2>
           <p>Use o botão abaixo para entrar em sua conta na <strong>${tenantBranding.name}</strong>.</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Entrar Agora
             </a>
           </div>
