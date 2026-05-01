@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   UserPlus, Stethoscope, Building2, CreditCard, Check,
   ChevronLeft, ChevronRight, Lock, ArrowRight,
+  FileText, MapPin, User, Fingerprint,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
