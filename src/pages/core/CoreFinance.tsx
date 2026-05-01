@@ -324,7 +324,7 @@ const CoreFinance: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
                 <div className="space-y-1.5 mt-2">
-                  {EXPENSE_BREAKDOWN.map((e) => (
+                  {data.expenseBreakdown.map((e: any) => (
                     <div key={e.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: e.color }} />
