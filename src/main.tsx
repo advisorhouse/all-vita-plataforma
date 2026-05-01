@@ -25,7 +25,7 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
   const pathname = window.location.pathname;
 
   // CRITICAL: Precise detection of subdomain mode
-  const isAllVitaBase = hostname === "allvita.com.br" || hostname === "app.allvita.com.br";
+  const isAllVitaBase = hostname === "allvita.com.br" || hostname === "app.allvita.com.br" || hostname === "lovable.app" || hostname === "all-vita-plataforma.lovable.app";
   const isSubdomain = !isAllVitaBase && (hostname.endsWith(".allvita.com.br") || hostname.endsWith(".lovable.app") || hostname.endsWith(".lovable.dev"));
 
   console.log("[rewriteTenantPath] Hostname:", hostname, "isSubdomain:", isSubdomain, "isPathBased:", isPathBased);
