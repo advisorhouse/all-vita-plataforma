@@ -14,7 +14,7 @@ export function useTenantNavigation() {
   const tenantQueryParam = searchParams.get("tenant");
   
   // CRITICAL: If we are in subdomain mode, NEVER use routeSlug or currentTenant.slug as a path prefix
-  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain" || window.location.hostname !== "app.allvita.com.br") ? null : (routeSlug || currentTenant?.slug);
+  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain" || (typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && window.location.hostname.endsWith("allvita.com.br"))) ? null : (routeSlug || currentTenant?.slug);
 
   const tenantNavigate = useCallback(
     (path: string, options?: { replace?: boolean }) => {
@@ -42,10 +42,14 @@ export function useTenantNavigation() {
       if (isSubdomainAccess && finalUrl.startsWith("http") && !finalUrl.includes(window.location.hostname)) {
         console.warn("[useTenantNavigation] Preventing cross-domain redirect to:", finalUrl);
         // Force relative path if it belongs to the app
-        const urlObj = new URL(finalUrl);
-        if (urlObj.hostname === "app.allvita.com.br") {
-           navigate(urlObj.pathname + urlObj.search, options);
-           return;
+        try {
+          const urlObj = new URL(finalUrl);
+          if (urlObj.hostname === "app.allvita.com.br") {
+             navigate(urlObj.pathname + urlObj.search, options);
+             return;
+          }
+        } catch (e) {
+          console.error("[useTenantNavigation] Invalid URL in redirect check:", finalUrl);
         }
         return;
       }

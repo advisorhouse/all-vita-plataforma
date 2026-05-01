@@ -89,7 +89,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     const search = location.search || window.location.search;
     
     // If we are on a subdomain, we stay on /auth/login ON THIS DOMAIN
-    const isActuallySubdomain = window.location.hostname !== "app.allvita.com.br" && 
+    const isActuallySubdomain = typeof window !== "undefined" && 
+                               window.location.hostname !== "app.allvita.com.br" && 
                                (window.location.hostname.endsWith(".allvita.com.br") || 
                                 window.location.hostname.endsWith(".lovable.app"));
     
