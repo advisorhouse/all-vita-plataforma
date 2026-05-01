@@ -331,7 +331,7 @@ const CoreCustomers: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={MONTHLY_EVOLUTION}>
+                  <BarChart data={monthlyEvolution}>
                     <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                     <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }} />
