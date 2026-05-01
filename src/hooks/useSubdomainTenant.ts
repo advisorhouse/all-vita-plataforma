@@ -40,7 +40,7 @@ const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
   // 2) Path-based detection (for app.allvita.com.br and previews)
   const isActuallyPathBased = hostname === "app.allvita.com.br" || 
                              hostname === "all-vita-plataforma.lovable.app" ||
-                             hostname.includes("lovable.app") || 
+                             hostname.includes(".lovable.app") || 
                              hostname === "localhost";
                              
   if (isActuallyPathBased) {
