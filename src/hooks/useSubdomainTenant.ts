@@ -32,24 +32,20 @@ function detectTenant(): DetectedTenant {
   const pathname = window.location.pathname;
 
   // 1) Path-based detection (primary strategy on app.allvita.com.br).
-  //    The slug was stripped from the URL in main.tsx and saved on
-  //    window.__tenantSlug — read it from there.
   if (isPathBasedHost(hostname)) {
     const cached = (window as any).__tenantSlug as string | undefined;
     if (cached) return { mode: "path", slug: cached };
-    // Fallback: re-extract in case main.tsx didn't run (SSR/tests)
     const slug = extractSlugFromPath(pathname);
     if (slug) return { mode: "path", slug };
   }
 
-  // 2) Subdomain fallback (only if any tenant ever gets a custom subdomain
-  //    cadastrado manualmente em Lovable).
+  // 2) Subdomain detection
   if (hostname !== "localhost" && !/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
     for (const base of BASE_DOMAINS) {
       if (hostname.endsWith(`.${base}`)) {
         const sub = hostname.slice(0, hostname.length - base.length - 1);
-        if (!sub || sub.includes("--") || sub.includes(".")) break;
-        if (RESERVED_SUBDOMAINS.some((r) => sub.startsWith(r))) break;
+        if (!sub || sub.includes("--") || sub.includes(".")) continue;
+        if (RESERVED_SUBDOMAINS.some((r) => sub === r)) continue;
         return { mode: "subdomain", slug: sub };
       }
     }
@@ -59,7 +55,7 @@ function detectTenant(): DetectedTenant {
   const tenantParam = new URLSearchParams(window.location.search).get("tenant");
   if (tenantParam) return { mode: "query", slug: tenantParam };
 
-  // 4) Custom domain (lookup tenants.domain in DB)
+  // 4) Custom domain
   if (
     hostname !== "localhost" &&
     !/^\d+\.\d+\.\d+\.\d+$/.test(hostname) &&
