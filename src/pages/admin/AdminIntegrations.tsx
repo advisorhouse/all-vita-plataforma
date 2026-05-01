@@ -73,6 +73,7 @@ const AdminIntegrations: React.FC = () => {
       provider: pi.provider,
       active: pi.active,
       updated_at: pi.updated_at,
+      recipient_id: pi.recipient_id,
     })),
   [paymentIntegrations, tenantMap]);
 
@@ -119,11 +120,12 @@ const AdminIntegrations: React.FC = () => {
   const refetchAll = () => { refetchPi(); refetchInt(); };
 
   // Handlers
-  const handleConnectGateway = async (data: { tenant_id: string; provider: string; api_key: string; webhook_secret: string }) => {
+  const handleConnectGateway = async (data: { tenant_id: string; provider: string; api_key: string; webhook_secret: string; recipient_id?: string }) => {
     const payload: any = {
       provider: data.provider,
       api_key_encrypted: data.api_key,
       webhook_secret: data.webhook_secret,
+      recipient_id: data.recipient_id,
       active: true,
     };
     
