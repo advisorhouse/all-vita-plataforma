@@ -8,7 +8,7 @@ import TenantSwitcher from "@/components/tenant/TenantSwitcher";
 const coreLinks = [
   { label: "Dashboard", href: "/core", icon: Home },
   { label: "Colaboradores", href: "/core/users", icon: Users },
-  { label: "Assinaturas", href: "/core/subscriptions", icon: Package },
+  { label: "Vendas & Assinaturas", href: "/core/subscriptions", icon: ShoppingBag },
   { label: "Clientes", href: "/core/customers", icon: Users },
   { label: "Partners", href: "/core/partners", icon: Handshake },
   { label: "Financeiro", href: "/core/finance", icon: DollarSign },
@@ -26,7 +26,7 @@ const pageTitles: Record<string, string> = {
   "/core": "Dashboard",
   "/core/customers": "Clientes",
   "/core/partners": "Gestão de Partners",
-  "/core/subscriptions": "Assinaturas",
+  "/core/subscriptions": "Vendas & Assinaturas",
   "/core/commissions": "Comissões",
   "/core/finance": "Financeiro",
   "/core/reports": "Insights & BI",
