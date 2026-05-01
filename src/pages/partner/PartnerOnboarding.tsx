@@ -66,7 +66,7 @@ interface PartnerFormData {
 }
 
 const defaultData: PartnerFormData = {
-  fullName: "", email: "", phone: "", password: "",
+  fullName: "", email: "", phone: "", phoneDdi: "+55", password: "",
   cpf: "", rg: "",
   type: "PF",
   crm: "", specialty: "",
