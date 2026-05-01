@@ -115,14 +115,6 @@ export function useSubdomainTenant() {
       (async () => {
         setIsLoading(true);
         console.log("[useSubdomainTenant] Querying DB for custom domain:", detected.hostname);
-        
-        // CRITICAL: We need to make sure supabase is available and configured
-        if (!supabase) {
-           console.error("[useSubdomainTenant] Supabase client not initialized");
-           setIsLoading(false);
-           setChecked(true);
-           return;
-        }
         const { data, error } = await supabase
           .from("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
