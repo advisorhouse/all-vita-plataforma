@@ -94,17 +94,141 @@ const COHORT_DATA = [
 ];
 
 const CoreSubscriptions: React.FC = () => {
+  const { currentTenant } = useTenant();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "paused" | "cancelled">("all");
 
-  const filteredSubs = SUBSCRIPTIONS.filter(
+  const { data: subscriptionData, isLoading } = useQuery({
+    queryKey: ["core-subscriptions", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return null;
+
+      const [subsRes, productsRes] = await Promise.all([
+        supabase
+          .from("subscriptions")
+          .select(`
+            *,
+            clients (id, full_name),
+            products (id, name, price)
+          `)
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("products")
+          .select("*")
+          .eq("tenant_id", currentTenant.id)
+      ]);
+
+      if (subsRes.error) throw subsRes.error;
+      if (productsRes.error) throw productsRes.error;
+
+      const subs = subsRes.data || [];
+      const products = productsRes.data || [];
+
+      // Calculate MRR Data for last 6 months
+      const last6Months = Array.from({ length: 6 }, (_, i) => {
+        const d = subMonths(new Date(), 5 - i);
+        return {
+          month: format(d, "MMM", { locale: ptBR }),
+          start: startOfMonth(d),
+          end: endOfMonth(d),
+          mrr: 0,
+          newMrr: 0,
+          churnMrr: 0,
+          expansion: 0
+        };
+      });
+
+      last6Months.forEach(month => {
+        subs.forEach(s => {
+          const createdAt = new Date(s.created_at);
+          const price = (s as any).products?.price || 0;
+          
+          if (isWithinInterval(createdAt, { start: month.start, end: month.end })) {
+            month.newMrr += price;
+          }
+          
+          if (s.status === 'active' && createdAt <= month.end) {
+            month.mrr += price;
+          }
+
+          if (s.status === 'cancelled' && s.cancelled_at) {
+            const cancelledAt = new Date(s.cancelled_at);
+            if (isWithinInterval(cancelledAt, { start: month.start, end: month.end })) {
+              month.churnMrr += price;
+            }
+          }
+        });
+      });
+
+      // Plan Distribution
+      const distributionMap = new Map();
+      subs.filter(s => s.status === 'active').forEach(s => {
+        const name = (s as any).products?.name || "Outros";
+        distributionMap.set(name, (distributionMap.get(name) || 0) + 1);
+      });
+
+      const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--success))", "hsl(var(--warning))"];
+      const planDistribution = Array.from(distributionMap.entries()).map(([name, value], i) => ({
+        name,
+        value,
+        color: colors[i % colors.length]
+      }));
+
+      // Product Stats
+      const productStats = products.map(p => {
+        const pSubs = subs.filter(s => s.product_id === p.id);
+        const activeCount = pSubs.filter(s => s.status === 'active').length;
+        const newThisMonth = pSubs.filter(s => {
+          const d = new Date(s.created_at);
+          const now = new Date();
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }).length;
+        
+        return {
+          name: p.name,
+          active: activeCount,
+          new: newThisMonth,
+          churn: activeCount > 0 ? (pSubs.filter(s => s.status === 'cancelled').length / pSubs.length * 100).toFixed(1) : 0,
+          revenue: activeCount * p.price,
+          avgCycle: 0, // Mock for now
+          icon: "🟢"
+        };
+      });
+
+      return {
+        subs: subs.map(s => ({
+          id: s.id.slice(0, 8).toUpperCase(),
+          client: (s as any).clients?.full_name || "Desconhecido",
+          plan: (s as any).products?.name || "Plano",
+          status: s.status,
+          cycle: 1, // Mock
+          mrr: (s as any).products?.price || 0,
+          nextRenewal: s.renewal_date ? format(new Date(s.renewal_date), "dd/MM/yyyy") : "—",
+          risk: "low", // Mock
+          partner: "—" // Need referral join for this
+        })),
+        mrrData: last6Months,
+        planDistribution,
+        productStats
+      };
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const mrrData = subscriptionData?.mrrData || MRR_DATA;
+  const planDistribution = subscriptionData?.planDistribution || PLAN_DISTRIBUTION;
+  const productStats = subscriptionData?.productStats || PRODUCTS;
+  const subs = subscriptionData?.subs || [];
+
+  const filteredSubs = subs.filter(
     (s) =>
       (statusFilter === "all" || s.status === statusFilter) &&
       (s.client.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const totalActive = SUBSCRIPTIONS.filter(s => s.status === "active").length;
-  const totalMRR = SUBSCRIPTIONS.filter(s => s.status === "active").reduce((sum, s) => sum + s.mrr, 0);
+  const currentMonthData = mrrData[mrrData.length - 1];
+  const activeSubs = subs.filter(s => s.status === "active");
+  const totalMRR = activeSubs.reduce((sum, s) => sum + s.mrr, 0);
 
   return (
     <div className="space-y-6 pb-12">
