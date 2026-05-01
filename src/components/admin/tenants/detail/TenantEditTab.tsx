@@ -68,6 +68,7 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
     domain: tenant.domain || "",
     primary_color: tenant.primary_color || "#6366f1",
     secondary_color: tenant.secondary_color || "#818cf8",
+    custom_transaction_fee: tenant.custom_transaction_fee || "",
   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -120,6 +121,7 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
           logo_url,
           isotipo_url,
           favicon_url,
+          custom_transaction_fee: form.custom_transaction_fee ? Number(form.custom_transaction_fee) : null,
         })
         .eq("id", tenant.id);
 
@@ -156,8 +158,15 @@ const TenantEditTab: React.FC<TenantEditTabProps> = ({ tenant }) => {
               <Input value={form.cnpj} onChange={(e) => handleChange("cnpj", e.target.value)} placeholder="00.000.000/0000-00" />
             </div>
             <div className="space-y-1.5">
-              <Label>Slug / Subdomínio *</Label>
-              <Input value={form.slug} onChange={(e) => handleChange("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} />
+              <Label>Taxa All Vita (% sobre transação)</Label>
+              <Input 
+                type="number" 
+                step="0.1"
+                value={form.custom_transaction_fee} 
+                onChange={(e) => handleChange("custom_transaction_fee", e.target.value)} 
+                placeholder="Ex: 3.5"
+              />
+              <p className="text-[10px] text-muted-foreground">Se vazio, utiliza a taxa padrão do plano SaaS.</p>
             </div>
           </div>
 
