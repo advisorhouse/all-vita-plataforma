@@ -30,23 +30,19 @@ function detectTenant(): DetectedTenant {
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
 
-  // Se estivermos em um subdomínio (lumyss.allvita.com.br), extraímos o slug
-  // ignorando completamente qualquer lógica de path-based.
-  const isAllVitaBase = hostname === "allvita.com.br" || hostname === "app.allvita.com.br";
-  const isSubdomain = !isAllVitaBase && (hostname.endsWith(".allvita.com.br") || hostname.endsWith(".lovable.app") || hostname.endsWith(".lovable.dev"));
-
-  if (isSubdomain) {
-    // Extrai o primeiro segmento do hostname (o slug)
-    const parts = hostname.split(".");
-    const slug = parts[0];
-    
-    if (slug && !RESERVED_SUBDOMAINS.includes(slug)) {
-      console.log("[useSubdomainTenant] Pure Subdomain detected:", slug);
-      return { mode: "subdomain", slug };
+  // 1) Explicit Subdomain detection (high priority)
+  // If we are on lumyss.allvita.com.br
+  for (const base of BASE_DOMAINS) {
+    if (hostname.endsWith(`.${base}`) && hostname !== `app.${base}`) {
+      const sub = hostname.slice(0, hostname.length - base.length - 1);
+      if (sub && !sub.includes(".") && !RESERVED_SUBDOMAINS.includes(sub)) {
+        console.log("[useSubdomainTenant] Pure Subdomain detected:", sub);
+        return { mode: "subdomain", slug: sub };
+      }
     }
   }
 
-  // Fallback: Path-based detection (apenas em hosts permitidos)
+  // 2) Path-based detection (legacy/compat for app.allvita.com.br)
   if (isPathBasedHost(hostname)) {
     const cached = (window as any).__tenantSlug as string | undefined;
     if (cached) return { mode: "path", slug: cached };
