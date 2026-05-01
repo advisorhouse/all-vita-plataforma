@@ -16,15 +16,13 @@ import { Plus, UserPlus, UserX, Loader2, Users, Shield, Mail } from "lucide-reac
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   manager: "Gerente",
-  partner: "Parceiro",
-  client: "Cliente",
+  staff: "Funcionário",
 };
 
 const ROLE_COLORS: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   admin: "default",
   manager: "secondary",
-  partner: "outline",
-  client: "outline",
+  staff: "outline",
 };
 
 const CoreUsers: React.FC = () => {
@@ -123,8 +121,7 @@ const CoreUsers: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="admin">Administrador</SelectItem>
                     <SelectItem value="manager">Gerente</SelectItem>
-                    <SelectItem value="partner">Parceiro</SelectItem>
-                    <SelectItem value="client">Cliente</SelectItem>
+                    <SelectItem value="staff">Funcionário</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
