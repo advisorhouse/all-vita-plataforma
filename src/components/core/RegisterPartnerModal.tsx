@@ -15,6 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import InputMask from "react-input-mask";
 import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
 
@@ -137,7 +138,6 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
       case 3: return true; // Switches are optional
       case 4: return !!(data.cep && data.street && data.city && data.state);
       case 5: return !!data.pixKey;
-      default: return false;
       default: return false;
     }
   };
@@ -591,43 +591,6 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                 </div>
               )}
 
-              {/* Step 6 - Financeiro */}
-              {step === 6 && (
-                <>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Chave PIX *</FieldLabel>
-                    <Input
-                      value={data.pixKey}
-                      onChange={(e) => update({ pixKey: e.target.value })}
-                      placeholder="Chave Pix"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-1.5 pt-2">
-                    <FieldLabel>Dados Bancários (Reserva)</FieldLabel>
-                    <div className="grid grid-cols-2 gap-3 mt-1.5">
-                      <Input
-                        value={data.bank}
-                        onChange={(e) => update({ bank: e.target.value })}
-                        placeholder="Banco"
-                        className={inputClass}
-                      />
-                      <Input
-                        value={data.agency}
-                        onChange={(e) => update({ agency: e.target.value })}
-                        placeholder="Agência"
-                        className={inputClass}
-                      />
-                    </div>
-                    <Input
-                      value={data.account}
-                      onChange={(e) => update({ account: e.target.value })}
-                      placeholder="Conta com dígito"
-                      className={cn(inputClass, "mt-1.5")}
-                    />
-                  </div>
-                </>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -644,10 +607,28 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
             {step > 1 ? "Voltar" : "Cancelar"}
           </Button>
 
-          {step < 6 ? (
+          {step < 5 ? (
             <Button
               size="sm"
               onClick={() => goTo((step + 1) as Step)}
+              disabled={!canAdvance()}
+              className="gap-1 rounded-xl"
+            >
+              Próximo
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              onClick={handleSubmit}
+              disabled={!canAdvance()}
+              className="gap-1 rounded-xl bg-foreground text-background hover:bg-foreground/90"
+            >
+              Finalizar
+              <Check className="h-3.5 w-3.5 ml-1" />
+            </Button>
+          )}
+        </div>
               disabled={!canAdvance()}
               className="gap-1.5 text-xs"
             >
