@@ -70,6 +70,32 @@ const integrations: IntegrationConfig[] = [
     features: ["Processamento de pagamentos", "Assinaturas recorrentes", "Split de pagamento", "Webhooks automáticos"],
   },
   {
+    id: "melhorenvio",
+    name: "Melhor Envio",
+    description: "Gestão de fretes e logística. Calcule fretes, gere etiquetas e rastreie envios.",
+    icon: Truck,
+    color: "bg-blue-600/10 text-blue-700",
+    docsUrl: "https://docs.melhorenvio.com.br",
+    fields: [
+      { key: "api_token", label: "API Token", placeholder: "Bearer ...", secret: true },
+      { key: "sandbox", label: "Ambiente Sandbox", placeholder: "true/false" },
+    ],
+    features: ["Cálculo de frete", "Geração de etiquetas", "Rastreamento", "Logística reversa"],
+  },
+  {
+    id: "enotas",
+    name: "eNotas",
+    description: "Emissão automatizada de notas fiscais de serviço (NFS-e) e produto (NF-e).",
+    icon: ScrollText,
+    color: "bg-orange-500/10 text-orange-600",
+    docsUrl: "https://docs.enotas.com.br",
+    fields: [
+      { key: "api_key", label: "API Key", placeholder: "..." },
+      { key: "company_id", label: "ID da Empresa", placeholder: "..." },
+    ],
+    features: ["Emissão de NFS-e", "Emissão de NF-e", "Cancelamento automático", "Envio por e-mail"],
+  },
+  {
     id: "openai",
     name: "OpenAI",
     description: "Inteligência artificial para predição de churn, projeções financeiras e assistentes inteligentes.",
@@ -101,8 +127,10 @@ const CoreIntegrations: React.FC = () => {
   const { currentTenant } = useTenant();
   const [configDialog, setConfigDialog] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [isIntegrationActive, setIsIntegrationActive] = useState(true);
 
-  const { data: dbIntegrations = [], isLoading } = useQuery({
+  const { data: dbIntegrations = [], isLoading, refetch } = useQuery({
     queryKey: ["integrations", currentTenant?.id],
     enabled: !!currentTenant?.id,
     queryFn: async () => {
@@ -124,13 +152,56 @@ const CoreIntegrations: React.FC = () => {
   };
 
   const openConfig = (id: string) => {
-    setFormValues({});
+    const status = getStatus(id);
+    if (status.connected && status.record?.config) {
+      setFormValues(status.record.config as Record<string, string>);
+      setIsIntegrationActive(status.active);
+    } else {
+      setFormValues({});
+      setIsIntegrationActive(true);
+    }
     setConfigDialog(id);
   };
 
-  const handleSave = () => {
-    toast.success("Configuração salva com sucesso");
-    setConfigDialog(null);
+  const handleSave = async () => {
+    if (!currentTenant?.id || !configDialog) return;
+    
+    setIsSaving(true);
+    try {
+      const selected = integrations.find(i => i.id === configDialog);
+      const status = getStatus(configDialog);
+      
+      const integrationData = {
+        tenant_id: currentTenant.id,
+        type: configDialog,
+        name: selected?.name || configDialog,
+        config: formValues,
+        active: isIntegrationActive,
+      };
+
+      let error;
+      if (status.connected && status.record) {
+        ({ error } = await supabase
+          .from("integrations")
+          .update(integrationData)
+          .eq("id", status.record.id));
+      } else {
+        ({ error } = await supabase
+          .from("integrations")
+          .insert([integrationData]));
+      }
+
+      if (error) throw error;
+
+      toast.success(`${selected?.name || "Integração"} configurada com sucesso`);
+      await refetch();
+      setConfigDialog(null);
+    } catch (error: any) {
+      console.error("Error saving integration:", error);
+      toast.error("Erro ao salvar configuração: " + error.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const selectedIntegration = integrations.find((i) => i.id === configDialog);
