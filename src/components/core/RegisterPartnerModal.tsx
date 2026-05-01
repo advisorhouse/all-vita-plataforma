@@ -109,9 +109,11 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
   const canAdvance = (): boolean => {
     switch (step) {
       case 1: return !!(data.fullName.trim() && data.email.trim() && data.phone.trim());
-      case 2: return !!(data.crm.trim() && data.crmState && data.specialty);
-      case 3: return !!(data.clinicName.trim() && data.clinicCity.trim() && data.clinicState);
-      case 4: return !!(data.cpfCnpj.trim() && data.pixKey.trim());
+      case 2: return !!(data.cpf && data.rg);
+      case 3: return !!(data.crm && data.specialty);
+      case 4: return data.type === "PF" ? true : !!(data.cnpj && data.socialName && data.responsibleName);
+      case 5: return !!(data.cep && data.street && data.city && data.state);
+      case 6: return !!data.pixKey;
       default: return false;
     }
   };
