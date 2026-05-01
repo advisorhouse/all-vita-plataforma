@@ -364,7 +364,7 @@ const CoreCustomers: React.FC = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-1.5">
-                  {RISK_DISTRIBUTION.map(r => (
+                  {riskDistribution.map((r: any) => (
                     <div key={r.name} className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: r.fill }} />
                       <span className="text-[10px] text-muted-foreground">{r.name}: {r.value}</span>
