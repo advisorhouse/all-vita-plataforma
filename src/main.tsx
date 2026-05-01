@@ -16,12 +16,26 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
   
   const hostname = window.location.hostname;
   const isPathBased = isPathBasedHost(hostname);
-  
-  console.log("[rewriteTenantPath] Hostname:", hostname, "isPathBased:", isPathBased);
-  
   const pathname = window.location.pathname;
+
+  // CRITICAL FIX: If we are on a subdomain like lumyss.allvita.com.br, 
+  // and the browser is trying to go to app.allvita.com.br, something in our
+  // logic is triggering a full-page redirect. 
+  // Let's check if we are on a subdomain and if the pathname is / or /auth/login
+  const isSubdomain = hostname !== "app.allvita.com.br" && 
+                     (hostname.endsWith("allvita.com.br") || hostname.endsWith("lovable.app"));
+
+  console.log("[rewriteTenantPath] Hostname:", hostname, "isSubdomain:", isSubdomain, "isPathBased:", isPathBased);
+  
   const slug = extractSlugFromPath(pathname);
   console.log("[rewriteTenantPath] Slug from path:", slug);
+
+  if (isSubdomain) {
+    console.log("[rewriteTenantPath] Subdomain detected. Ensuring no cross-domain redirects.");
+    // No-op for path rewrite on subdomains
+    return;
+  }
+
   if (!slug) return;
 
   if (!isPathBased) {
@@ -30,12 +44,6 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
   }
 
   (window as any).__tenantSlug = slug;
-  
-  // NOTE: We used to use window.history.replaceState here to strip the slug from the URL.
-  // This caused the URL in the browser to appear as just /core instead of /lumyss/core.
-  // We've disabled this rewrite to ensure the URL accurately reflects the tenant path.
-  // The useSubdomainTenant hook and React Router are being adjusted to handle the slug
-  // as part of the routing structure where necessary.
 })();
 
 createRoot(document.getElementById("root")!).render(<App />);
