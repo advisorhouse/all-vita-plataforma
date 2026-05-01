@@ -17,6 +17,7 @@ const adminLinks = [
   { label: "Auditoria", href: "/admin/audit", icon: FileText },
   { label: "Segurança", href: "/admin/security", icon: ShieldCheck },
   { label: "Configurações", href: "/admin/settings", icon: Settings },
+  { label: "Setup Subdomínio", href: "/admin/cloudflare", icon: Globe },
 ];
 
 const AdminLayout: React.FC = () => {
