@@ -445,9 +445,9 @@ const CoreFinance: React.FC = () => {
         <TabsContent value="invoices" className="space-y-4 mt-4">
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 sm:grid-cols-3">
             {[
-              { label: "Pagas", count: INVOICES.filter(i => i.status === "paid").length, total: INVOICES.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0), icon: CheckCircle, color: "text-primary" },
-              { label: "Pendentes", count: INVOICES.filter(i => i.status === "pending").length, total: INVOICES.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0), icon: Clock, color: "text-accent-foreground" },
-              { label: "Vencidas", count: INVOICES.filter(i => i.status === "overdue").length, total: INVOICES.filter(i => i.status === "overdue").reduce((s, i) => s + i.amount, 0), icon: XCircle, color: "text-destructive" },
+              { label: "Pagas", count: data.invoices.filter((i: any) => i.status === "paid").length, total: data.invoices.filter((i: any) => i.status === "paid").reduce((s: number, i: any) => s + i.amount, 0), icon: CheckCircle, color: "text-primary" },
+              { label: "Pendentes", count: data.invoices.filter((i: any) => i.status === "pending").length, total: data.invoices.filter((i: any) => i.status === "pending").reduce((s: number, i: any) => s + i.amount, 0), icon: Clock, color: "text-accent-foreground" },
+              { label: "Vencidas", count: data.invoices.filter((i: any) => i.status === "overdue").length, total: data.invoices.filter((i: any) => i.status === "overdue").reduce((s: number, i: any) => s + i.amount, 0), icon: XCircle, color: "text-destructive" },
             ].map((g) => (
               <Card key={g.label} className="border border-border shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
