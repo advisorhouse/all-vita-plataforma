@@ -123,7 +123,7 @@ export function useSubdomainTenant() {
         if (detected.mode === "custom-domain") {
           const { data, error } = await supabase
             .from("tenants")
-            .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
+            .select("id, name, trade_name, slug, logo_url, isotipo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
             .eq("domain", detected.hostname)
             .eq("active", true)
             .maybeSingle();
@@ -139,7 +139,7 @@ export function useSubdomainTenant() {
           
           let { data } = await supabase
             .from("tenants")
-            .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
+            .select("id, name, trade_name, slug, logo_url, isotipo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
             .eq("slug", slug)
             .eq("active", true)
             .maybeSingle();
@@ -147,7 +147,7 @@ export function useSubdomainTenant() {
           if (!data && normalizedSlug !== slug) {
             const res = await supabase
               .from("tenants")
-              .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
+              .select("id, name, trade_name, slug, logo_url, isotipo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
               .eq("slug", normalizedSlug)
               .eq("active", true)
               .maybeSingle();

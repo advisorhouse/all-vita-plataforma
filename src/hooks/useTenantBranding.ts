@@ -98,8 +98,8 @@ export function useTenantBranding() {
       const displayName = currentTenant.trade_name || currentTenant.name;
       document.title = `${displayName} | Plataforma`;
 
-      // Dynamic favicon (fall back to default if tenant has none)
-      setFavicon(currentTenant.favicon_url || DEFAULT_FAVICON);
+      // Dynamic favicon (fall back to isotipo then default if tenant has none)
+      setFavicon(currentTenant.favicon_url || currentTenant.isotipo_url || DEFAULT_FAVICON);
     } else {
       root.style.removeProperty("--tenant-primary");
       root.style.removeProperty("--tenant-secondary");

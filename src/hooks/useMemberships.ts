@@ -30,7 +30,7 @@ export function useMemberships() {
       const [membershipsRes, platformStaffRes] = await Promise.all([
         supabase
           .from("memberships")
-          .select("id, user_id, tenant_id, role, active, tenants:tenant_id (id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings)")
+          .select("id, user_id, tenant_id, role, active, tenants:tenant_id (id, name, trade_name, slug, logo_url, isotipo_url, favicon_url, primary_color, secondary_color, domain, active, settings)")
           .eq("user_id", user.id)
           .eq("active", true),
         supabase
