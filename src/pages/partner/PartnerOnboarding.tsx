@@ -178,7 +178,7 @@ const PartnerOnboarding: React.FC = () => {
     }
   };
 
-  const update = (partial: Partial<DoctorFormData>) => setData((d) => ({ ...d, ...partial }));
+  const update = (partial: Partial<PartnerFormData>) => setData((d) => ({ ...d, ...partial }));
 
   // ─── Shared sub-components ─────────────────────────────────
   const SecurityFooter = () => (
