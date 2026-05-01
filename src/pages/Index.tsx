@@ -29,15 +29,14 @@ const Index = () => {
   }
 
   if (!user) {
-    const isSubdomain = window.location.hostname !== "app.allvita.com.br" && 
-                       (window.location.hostname.endsWith("allvita.com.br") || 
-                        window.location.hostname.endsWith("lovable.app"));
+    const hostname = window.location.hostname;
+    const isAllVitaBase = hostname === "allvita.com.br" || hostname === "app.allvita.com.br";
+    const isSubdomain = !isAllVitaBase && (hostname.endsWith(".allvita.com.br") || hostname.endsWith(".lovable.app"));
 
-    console.log("[Index] Auth check. User:", !!user, "isSubdomain:", isSubdomain, "Hostname:", window.location.hostname);
+    console.log("[Index] Auth check. User:", !!user, "isSubdomain:", isSubdomain, "Hostname:", hostname);
 
     if (isSubdomain) {
       console.log("[Index] Subdomain access, STAYING on current domain at /auth/login");
-      // Use Navigate but ensure it's a relative path to stay on the same domain
       return <Navigate to="/auth/login" replace />;
     }
 
