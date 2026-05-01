@@ -108,14 +108,20 @@ export function useSubdomainTenant() {
     if (detected.mode === "custom-domain") {
       (async () => {
         setIsLoading(true);
-        const { data } = await (supabase.from as any)("tenants")
+        console.log("[useSubdomainTenant] Querying DB for custom domain:", detected.hostname);
+        const { data, error } = await supabase
+          .from("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
           .eq("domain", detected.hostname)
           .eq("active", true)
-          .single();
+          .maybeSingle();
+        
         if (data) {
+          console.log("[useSubdomainTenant] Custom domain tenant found:", data.slug);
           setTenantSlug(data.slug);
           setCurrentTenant(data as Tenant);
+        } else if (error) {
+          console.error("[useSubdomainTenant] Error fetching custom domain tenant:", error);
         }
         setChecked(true);
         setIsLoading(false);
