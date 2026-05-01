@@ -30,6 +30,7 @@ interface PartnerFormData {
   fullName: string;
   email: string;
   phone: string;
+  phoneDdi: string;
   
   // Documents
   cpf: string;
