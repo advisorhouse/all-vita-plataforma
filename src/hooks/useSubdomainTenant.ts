@@ -37,8 +37,12 @@ const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
     }
   }
 
-  // 2) Path-based detection (legacy/compat for app.allvita.com.br)
-  const isActuallyPathBased = hostname === "app.allvita.com.br" || hostname === "all-vita-plataforma.lovable.app";
+  // 2) Path-based detection (for app.allvita.com.br and previews)
+  const isActuallyPathBased = hostname === "app.allvita.com.br" || 
+                             hostname === "all-vita-plataforma.lovable.app" ||
+                             hostname.includes("lovable.app") || 
+                             hostname === "localhost";
+                             
   if (isActuallyPathBased) {
     const cached = (window as any).__tenantSlug as string | undefined;
     if (cached) return { mode: "path", slug: cached };
