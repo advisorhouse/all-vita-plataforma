@@ -128,6 +128,8 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<PartnerFormData>(defaultData);
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { currentTenant } = useTenant();
   const { lookupCNPJ, loading: loadingCNPJ } = useCNPJLookup();
   const { lookupCEP, loading: loadingCEP } = useCEPLookup();
 
