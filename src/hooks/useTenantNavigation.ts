@@ -25,12 +25,10 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
       
-      // CRITICAL: NEVER include the slug in the path if we are on a subdomain
+      // CRITICAL: NEVER include the slug in the path if we are on a subdomain (checked via isSubdomainAccess)
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
         console.log("[useTenantNavigation] Path rewrite applied (PATH MODE):", finalBasePath);
-      } else if (isSubdomainAccess) {
-        console.log("[useTenantNavigation] Subdomain access, skipping path slug rewrite");
       }
 
       if (tenantQueryParam && !params.has("tenant")) {
