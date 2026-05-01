@@ -363,7 +363,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
         
         <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
           <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Link do Painel Administrativo (Core):</span>
-          <a href="https://app.allvita.com.br/${slug}/core" style="font-size: 16px; color: #2563eb; text-decoration: none; font-weight: 700;">app.allvita.com.br/${slug}/core</a>
+          <a href="https://${slug}.allvita.com.br/core" style="font-size: 16px; color: #2563eb; text-decoration: none; font-weight: 700;">${slug}.allvita.com.br/core</a>
         </div>
         
         <div style="display: flex; gap: 40px;">
