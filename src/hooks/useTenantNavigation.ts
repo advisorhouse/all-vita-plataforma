@@ -14,7 +14,7 @@ export function useTenantNavigation() {
   const tenantQueryParam = searchParams.get("tenant");
   
   // CRITICAL: If we are in subdomain mode, NEVER use routeSlug or currentTenant.slug as a path prefix
-  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain" || (typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && window.location.hostname !== "lovable.app" && (window.location.hostname.endsWith("allvita.com.br") || window.location.hostname.endsWith("lovable.app")))) ? null : (routeSlug || currentTenant?.slug);
+  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain" || (typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && window.location.hostname !== "lovable.app" && (window.location.hostname.endsWith(".allvita.com.br") || window.location.hostname.endsWith(".lovable.app")))) ? null : (routeSlug || currentTenant?.slug);
 
   const tenantNavigate = useCallback(
     (path: string, options?: { replace?: boolean }) => {
@@ -28,7 +28,6 @@ export function useTenantNavigation() {
       // CRITICAL: NEVER include the slug in the path if we are on a subdomain (checked via isSubdomainAccess)
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
-        console.log("[useTenantNavigation] Path rewrite applied (PATH MODE):", finalBasePath);
       }
 
       if (tenantQueryParam && !params.has("tenant")) {
