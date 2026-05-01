@@ -17,19 +17,20 @@ export interface PaymentGateway {
   provider: string;
   active: boolean;
   updated_at: string;
+  recipient_id?: string;
 }
 
 interface GatewaysPanelProps {
   gateways: PaymentGateway[];
   tenants: { id: string; name: string }[];
-  onConnect: (data: { tenant_id: string; provider: string; api_key: string; webhook_secret: string }) => void;
+  onConnect: (data: { tenant_id: string; provider: string; api_key: string; webhook_secret: string; recipient_id?: string }) => void;
   onDisconnect: (id: string) => void;
   onTest: (id: string) => void;
 }
 
 const GatewaysPanel: React.FC<GatewaysPanelProps> = ({ gateways, tenants, onConnect, onDisconnect, onTest }) => {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ tenant_id: "global", provider: "pagarme", api_key: "", webhook_secret: "" });
+  const [form, setForm] = useState({ tenant_id: "global", provider: "pagarme", api_key: "", webhook_secret: "", recipient_id: "" });
 
   const handleSubmit = () => {
     if (!form.api_key) { 
@@ -38,7 +39,7 @@ const GatewaysPanel: React.FC<GatewaysPanelProps> = ({ gateways, tenants, onConn
     }
     onConnect(form);
     setOpen(false);
-    setForm({ tenant_id: "global", provider: "pagarme", api_key: "", webhook_secret: "" });
+    setForm({ tenant_id: "global", provider: "pagarme", api_key: "", webhook_secret: "", recipient_id: "" });
   };
 
   const webhookUrl = `${window.location.origin.replace(".lovable.app", ".supabase.co")}/functions/v1/pagarme-webhook`;
@@ -107,6 +108,19 @@ const GatewaysPanel: React.FC<GatewaysPanelProps> = ({ gateways, tenants, onConn
                     onChange={(e) => setForm((p) => ({ ...p, webhook_secret: e.target.value }))} 
                   />
                 </div>
+                {form.provider === "pagarme" && (
+                  <div className="space-y-1.5">
+                    <Label>Recipient ID (Pagar.me Split)</Label>
+                    <Input 
+                      placeholder="re_..."
+                      value={form.recipient_id} 
+                      onChange={(e) => setForm((p) => ({ ...p, recipient_id: e.target.value }))} 
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      ID do recebedor no Pagar.me para realizar o split de transações.
+                    </p>
+                  </div>
+                )}
                 
                 <div className="p-3 bg-muted rounded-md space-y-2">
                   <Label className="text-xs">URL de Webhook para configurar no Pagar.me:</Label>
@@ -131,6 +145,7 @@ const GatewaysPanel: React.FC<GatewaysPanelProps> = ({ gateways, tenants, onConn
             <TableRow>
               <TableHead>Empresa</TableHead>
               <TableHead>Provedor</TableHead>
+              <TableHead>Recipient ID</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Última Sync</TableHead>
               <TableHead>Ações</TableHead>
@@ -142,6 +157,7 @@ const GatewaysPanel: React.FC<GatewaysPanelProps> = ({ gateways, tenants, onConn
               <TableRow key={g.id}>
                 <TableCell>{g.tenant_name}</TableCell>
                 <TableCell className="capitalize font-medium">{g.provider}</TableCell>
+                <TableCell className="text-xs font-mono">{g.recipient_id || "-"}</TableCell>
                 <TableCell><Badge variant={g.active ? "default" : "destructive"}>{g.active ? "Ativo" : "Inativo"}</Badge></TableCell>
                 <TableCell className="text-sm text-muted-foreground">{format(new Date(g.updated_at), "dd/MM/yy HH:mm")}</TableCell>
                 <TableCell>
