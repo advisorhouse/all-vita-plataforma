@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   UserPlus, Stethoscope, Building2, CreditCard, Check,
   ChevronLeft, ChevronRight, Lock, ArrowRight,
-  FileText, MapPin, User, Fingerprint, Search,
+  FileText, MapPin, User, Fingerprint, Search, Loader2,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import InputMask from "react-input-mask";
 import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
 import { useCEPLookup } from "@/hooks/use-cep-lookup";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface RegisterPartnerModalProps {
   open: boolean;
@@ -126,6 +128,8 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<PartnerFormData>(defaultData);
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { currentTenant } = useTenant();
   const { lookupCNPJ, loading: loadingCNPJ } = useCNPJLookup();
   const { lookupCEP, loading: loadingCEP } = useCEPLookup();
 
@@ -182,9 +186,34 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: integrate with Supabase to create affiliate + profile
-    setDone(true);
+  const handleSubmit = async () => {
+    if (!currentTenant) {
+      toast.error("Empresa não identificada.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("manage-users/create", {
+        headers: { "X-Tenant-Id": currentTenant.id },
+        body: {
+          email: data.email,
+          full_name: data.fullName,
+          phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
+          role: "partner",
+        },
+      });
+
+      if (error) throw error;
+      if (res?.error) throw new Error(res.error);
+
+      setDone(true);
+    } catch (err: any) {
+      console.error("Error creating partner:", err);
+      toast.error("Erro ao cadastrar parceiro", { description: err.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -726,11 +755,17 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
             <Button
               size="sm"
               onClick={handleSubmit}
-              disabled={!canAdvance()}
-              className="gap-1 rounded-xl bg-foreground text-background hover:bg-foreground/90"
+              disabled={!canAdvance() || loading}
+              className="gap-2 rounded-xl bg-foreground text-background hover:bg-foreground/90 h-11 px-6 min-w-[120px]"
             >
-              Finalizar
-              <Check className="h-3.5 w-3.5 ml-1" />
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  Finalizar
+                  <Check className="h-3.5 w-3.5" />
+                </>
+              )}
             </Button>
           )}
         </div>

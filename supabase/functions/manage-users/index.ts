@@ -334,13 +334,24 @@ serve(async (req) => {
 
           let title = "Bem-vindo!";
           let welcomeContent = `
-            <p>Você foi convidado para a plataforma <strong>${tenantName}</strong>.</p>
-            <p>Estamos muito felizes em ter você conosco! Sua conta já foi criada e você pode começar a explorar todas as funcionalidades agora mesmo.</p>
-            <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
-              <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
-              <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+            <p>Você foi convidado para a plataforma <strong>${tenantName}</strong> como um <strong>Parceiro Nível 1</strong>.</p>
+            <p>Estamos muito felizes em ter você conosco! Sua conta já foi criada e você agora faz parte de uma rede exclusiva de performance e bem-estar.</p>
+            
+            <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0">
+              <h3 style="margin-top:0;color:${accentColor};font-size:18px">O que você pode fazer agora:</h3>
+              <ul style="padding-left:20px;color:#475569;margin-bottom:0">
+                <li style="margin-bottom:12px"><strong>Vínculo Médico-Paciente:</strong> Utilize nosso Quiz Pré-Consulta para vincular pacientes automaticamente e acompanhar suas jornadas.</li>
+                <li style="margin-bottom:12px"><strong>Ganhe Vitacoins:</strong> Acumule pontos por cada venda realizada, quizzes preenchidos e novos parceiros indicados por você.</li>
+                <li style="margin-bottom:12px"><strong>Rede de Parceiros:</strong> Como Nível 1, você pode convidar outros profissionais e construir sua própria rede, ganhando benefícios sobre o desempenho deles (Nível 2 em diante).</li>
+                <li style="margin-bottom:0"><strong>Resgate de Prêmios:</strong> Troque suas Vitacoins por Pix direto na conta, produtos exclusivos, cursos e muito mais.</li>
+              </ul>
             </div>
-            <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
+
+            <div style="background:#f0f7e6;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid ${accentColor}">
+              <p style="margin:0;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px">Sua senha provisória:</p>
+              <p style="margin:8px 0 0;font-size:24px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
+            </div>
+            <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Por segurança, você deverá trocar esta senha no seu primeiro acesso.</p>
           `;
           let subject = `Você foi convidado para ${tenantName}`;
 

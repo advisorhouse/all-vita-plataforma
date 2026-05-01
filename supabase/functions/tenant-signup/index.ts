@@ -154,6 +154,7 @@ Deno.serve(async (req) => {
           user_id: user.id,
           tenant_id,
           referral_code: referralCode,
+          parent_partner_id: metadata?.parent_partner_id || user.user_metadata?.parent_partner_id || null,
           level: "bronze",
           active: true,
           metadata: metadata || {},

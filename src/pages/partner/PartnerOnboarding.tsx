@@ -123,6 +123,7 @@ const PartnerOnboarding: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tenantParam = searchParams.get("tenant");
+  const referrerParam = searchParams.get("ref");
   const { currentTenant, isLoading } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
@@ -201,7 +202,13 @@ const PartnerOnboarding: React.FC = () => {
         password: data.password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: data.fullName, first_name: firstName, last_name: lastName },
+          data: { 
+            full_name: data.fullName, 
+            first_name: firstName, 
+            last_name: lastName,
+            parent_partner_id: referrerParam,
+            is_level_1: !referrerParam 
+          },
         },
       });
 
@@ -224,6 +231,7 @@ const PartnerOnboarding: React.FC = () => {
               ...data,
               phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
               source: "partner_onboarding",
+              parent_partner_id: referrerParam,
             },
           },
         });
