@@ -108,19 +108,30 @@ serve(async (req) => {
 
     switch (normalizedEvent) {
       case "PASSWORD_RECOVERY":
-      case "RECOVERY":
+      case "RECOVERY": {
         subject = `Recuperação de Senha - ${tenantBranding.name}`;
+        
+        // Construct the full confirmation URL with token_hash
+        let confirmationUrl = redirect_to;
+        if (email_data?.token_hash) {
+          const url = new URL(redirect_to);
+          url.searchParams.set("token_hash", email_data.token_hash);
+          url.searchParams.set("type", "recovery");
+          confirmationUrl = url.toString();
+        }
+
         html = getTemplate(tenantBranding, `
           <h2 style="color: ${tenantBranding.primaryColor};">Olá, ${name}</h2>
           <p>Recebemos uma solicitação para redefinir sua senha na plataforma <strong>${tenantBranding.name}</strong>.</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Redefinir Minha Senha
             </a>
           </div>
           <p>Se você não solicitou isso, pode ignorar este e-mail com segurança. Sua senha permanecerá a mesma.</p>
         `);
         break;
+      }
 
       case "EMAIL_CHANGE":
       case "EMAIL_CHANGE_CONFIRM":
