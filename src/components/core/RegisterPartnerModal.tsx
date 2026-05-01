@@ -629,24 +629,10 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
             </Button>
           )}
         </div>
-              disabled={!canAdvance()}
-              className="gap-1.5 text-xs"
-            >
-              Próximo
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              onClick={handleSubmit}
-              disabled={!canAdvance()}
-              className="gap-1.5 text-xs bg-success hover:bg-success/90"
-            >
-              <Check className="h-3.5 w-3.5" />
-              Cadastrar Partner
-            </Button>
-          )}
-        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
       </DialogContent>
     </Dialog>
   );
