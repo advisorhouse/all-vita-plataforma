@@ -102,8 +102,11 @@ export function useSubdomainTenant() {
   useEffect(() => {
     const detected = detectTenant(window.location.hostname, window.location.pathname);
     setTenantMode(detected ? detected.mode : null);
+    
+    console.log("[useSubdomainTenant] START. Host:", window.location.hostname, "Detected:", detected);
 
     if (!detected) {
+      console.log("[useSubdomainTenant] No tenant detected.");
       setChecked(true);
       setIsLoading(false);
       setIsSubdomainAccess(false);
@@ -123,6 +126,7 @@ export function useSubdomainTenant() {
 
     const loadTenant = async () => {
       setIsLoading(true);
+      console.log("[useSubdomainTenant] Loading tenant for:", detected);
       try {
         if (detected.mode === "custom-domain") {
           console.log("[useSubdomainTenant] Querying DB for custom domain:", detected.hostname);
@@ -175,6 +179,7 @@ export function useSubdomainTenant() {
       } catch (err) {
         console.error("[useSubdomainTenant] Unexpected error:", err);
       } finally {
+        console.log("[useSubdomainTenant] FINISHED loading.");
         setChecked(true);
         setIsLoading(false);
       }

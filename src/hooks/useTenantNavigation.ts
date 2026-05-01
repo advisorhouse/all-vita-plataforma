@@ -28,6 +28,9 @@ export function useTenantNavigation() {
       // CRITICAL: NEVER include the slug in the path if we are on a subdomain (checked via isSubdomainAccess)
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
+        console.log("[useTenantNavigation] Path rewrite applied (PATH MODE):", finalBasePath);
+      } else {
+        console.log("[useTenantNavigation] No rewrite. activeSlug:", activeSlug, "isSubdomainAccess:", isSubdomainAccess);
       }
 
       if (tenantQueryParam && !params.has("tenant")) {
