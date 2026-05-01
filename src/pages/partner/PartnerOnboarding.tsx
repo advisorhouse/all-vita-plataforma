@@ -202,7 +202,13 @@ const PartnerOnboarding: React.FC = () => {
         password: data.password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: data.fullName, first_name: firstName, last_name: lastName },
+          data: { 
+            full_name: data.fullName, 
+            first_name: firstName, 
+            last_name: lastName,
+            parent_partner_id: referrerParam,
+            is_level_1: !referrerParam 
+          },
         },
       });
 
