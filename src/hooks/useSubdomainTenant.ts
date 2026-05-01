@@ -58,9 +58,10 @@ function detectTenant(): DetectedTenant {
   if (
     hostname !== "localhost" &&
     !/^\d+\.\d+\.\d+\.\d+$/.test(hostname) &&
-    !isAllVitaBase &&
     !hostname.endsWith(".allvita.com.br") &&
-    !hostname.endsWith(".lovable.app")
+    !hostname.endsWith(".lovable.app") &&
+    hostname !== "allvita.com.br" &&
+    hostname !== "app.allvita.com.br"
   ) {
     return { mode: "custom-domain", hostname };
   }
