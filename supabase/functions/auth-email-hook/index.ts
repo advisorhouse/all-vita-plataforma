@@ -15,9 +15,7 @@ serve(async (req) => {
     console.log("Auth Email Hook received payload:", JSON.stringify(payload, null, 2));
 
     const { user, email_data } = payload;
-    const event = email_data?.email_action_type || payload.event || payload.type;
-    const redirect_to = email_data?.redirect_to || payload.redirect_to;
-
+    
     if (!user) {
       console.error("Missing user in payload");
       return new Response(JSON.stringify({ error: "Usuário não encontrado no payload" }), { 
@@ -26,8 +24,11 @@ serve(async (req) => {
       });
     }
 
+    const event = email_data?.email_action_type || payload.event || payload.type;
+    const redirect_to = email_data?.redirect_to || payload.redirect_to;
+
     // Detect tenant from redirect_to or user metadata
-    let tenantSlug = user.user_metadata?.tenant_slug;
+    let tenantSlug = user?.user_metadata?.tenant_slug;
     
     if (!tenantSlug && redirect_to) {
       const url = new URL(redirect_to);
