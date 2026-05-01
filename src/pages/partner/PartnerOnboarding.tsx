@@ -213,6 +213,7 @@ const PartnerOnboarding: React.FC = () => {
             role: "partner",
             metadata: {
               ...data,
+              phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
               source: "partner_onboarding",
             },
           },
