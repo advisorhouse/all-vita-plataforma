@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Package, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, XCircle,
@@ -24,6 +24,11 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer,
   CartesianGrid, AreaChart, Area, Legend, PieChart, Pie, Cell,
 } from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
