@@ -149,7 +149,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     );
 
     if (!hasRole && !isSuperAdmin && !(location.pathname.startsWith("/admin") && platformRole)) {
-      const onboardingPath = activeSlug && !isSubdomainAccess ? `/${activeSlug}/onboarding` : "/onboarding";
+      const onboardingPath = isSubdomainAccess ? "/onboarding" : (activeSlug ? `/${activeSlug}/onboarding` : "/onboarding");
       return <Navigate to={onboardingPath} replace />;
     }
   }
