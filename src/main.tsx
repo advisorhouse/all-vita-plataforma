@@ -21,7 +21,13 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
   
   const pathname = window.location.pathname;
   const slug = extractSlugFromPath(pathname);
+  console.log("[rewriteTenantPath] Slug from path:", slug);
   if (!slug) return;
+
+  if (!isPathBased) {
+    console.log("[rewriteTenantPath] Skipping path rewrite on non-path host, but found slug:", slug);
+    return;
+  }
 
   (window as any).__tenantSlug = slug;
   
