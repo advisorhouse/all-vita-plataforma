@@ -121,9 +121,10 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="text-center space-y-4">
-          <h1 className="text-xl font-semibold">Sem acesso</h1>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground mx-auto" />
+          <h1 className="text-xl font-semibold">Validando acesso...</h1>
           <p className="text-sm text-muted-foreground">
-            Você ainda não foi vinculado a nenhuma empresa. Contate o administrador.
+            Aguarde enquanto verificamos suas permissões.
           </p>
         </div>
       </div>
