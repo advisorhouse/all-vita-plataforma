@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant, type Tenant } from "@/contexts/TenantContext";
@@ -26,17 +26,12 @@ type DetectedTenant =
   | { mode: "query"; slug: string }
   | null;
 
-function detectTenant(): DetectedTenant {
-  const hostname = window.location.hostname;
-  const pathname = window.location.pathname;
-
+const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
   // 1) Explicit Subdomain detection (high priority)
-  // If we are on lumyss.allvita.com.br
   for (const base of BASE_DOMAINS) {
     if (hostname.endsWith(`.${base}`) && hostname !== `app.${base}`) {
       const sub = hostname.slice(0, hostname.length - base.length - 1);
       if (sub && !sub.includes(".") && !RESERVED_SUBDOMAINS.includes(sub)) {
-        console.log("[useSubdomainTenant] Pure Subdomain detected:", sub);
         return { mode: "subdomain", slug: sub };
       }
     }
@@ -54,7 +49,7 @@ function detectTenant(): DetectedTenant {
   const tenantParam = new URLSearchParams(window.location.search).get("tenant");
   if (tenantParam) return { mode: "query", slug: tenantParam };
 
-  // Fallback: Custom domain (totalmente fora de allvita.com.br)
+  // Fallback: Custom domain
   if (
     hostname !== "localhost" &&
     !/^\d+\.\d+\.\d+\.\d+$/.test(hostname) &&
@@ -67,7 +62,7 @@ function detectTenant(): DetectedTenant {
   }
 
   return null;
-}
+};
 
 /**
  * Detects tenant slug from URL (path / subdomain / custom domain / query)
@@ -94,7 +89,7 @@ export function useSubdomainTenant() {
   const fetchingRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const detected = detectTenant();
+    const detected = detectTenant(window.location.hostname, window.location.pathname);
     setTenantMode(detected ? detected.mode : null);
 
     if (!detected) {
@@ -109,76 +104,73 @@ export function useSubdomainTenant() {
 
     // Prevent duplicate fetches for the same target
     const fetchKey = detected.mode === "custom-domain" ? detected.hostname : (detected as any).slug;
-    if (fetchingRef.current === fetchKey) {
-      console.log("[useSubdomainTenant] Already fetching/fetched for:", fetchKey);
+    if (fetchingRef.current === fetchKey && currentTenant) {
+      console.log("[useSubdomainTenant] Already fetched for:", fetchKey);
       return;
     }
     fetchingRef.current = fetchKey;
 
-    // Custom-domain lookup needs to query by `domain` field
-    if (detected.mode === "custom-domain") {
-      (async () => {
-        setIsLoading(true);
-        console.log("[useSubdomainTenant] Querying DB for custom domain:", detected.hostname);
-        const { data, error } = await supabase
-          .from("tenants")
-          .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
-          .eq("domain", detected.hostname)
-          .eq("active", true)
-          .maybeSingle();
-        
-        if (data) {
-          console.log("[useSubdomainTenant] Custom domain tenant found:", data.slug);
-          setTenantSlug(data.slug);
-          setCurrentTenant(data as Tenant);
-        } else if (error) {
-          console.error("[useSubdomainTenant] Error fetching custom domain tenant:", error);
+    const loadTenant = async () => {
+      setIsLoading(true);
+      try {
+        if (detected.mode === "custom-domain") {
+          console.log("[useSubdomainTenant] Querying DB for custom domain:", detected.hostname);
+          const { data, error } = await supabase
+            .from("tenants")
+            .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
+            .eq("domain", detected.hostname)
+            .eq("active", true)
+            .maybeSingle();
+          
+          if (data) {
+            console.log("[useSubdomainTenant] Custom domain tenant found:", data.slug);
+            setTenantSlug(data.slug);
+            setCurrentTenant(data as Tenant);
+          } else if (error) {
+            console.error("[useSubdomainTenant] Error fetching custom domain tenant:", error);
+          }
+        } else {
+          const slug = (detected as any).slug;
+          setTenantSlug(slug);
+          const normalizedSlug = slug.replace(/-/g, "").toLowerCase();
+          
+          console.log("[useSubdomainTenant] Querying DB for slug:", slug);
+          let { data, error } = await supabase
+            .from("tenants")
+            .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
+            .eq("slug", slug)
+            .eq("active", true)
+            .maybeSingle();
+
+          if (!data && normalizedSlug !== slug) {
+            console.log("[useSubdomainTenant] Slug not found, trying normalized:", normalizedSlug);
+            const res = await supabase
+              .from("tenants")
+              .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
+              .eq("slug", normalizedSlug)
+              .eq("active", true)
+              .maybeSingle();
+            data = res.data;
+          }
+
+          if (data) {
+            console.log("[useSubdomainTenant] Tenant loaded from DB:", data.slug);
+            setCurrentTenant(data as Tenant);
+          } else {
+            console.log("[useSubdomainTenant] No tenant found for slug in DB:", slug);
+            if (error) console.error("[useSubdomainTenant] DB Error:", error);
+          }
         }
+      } catch (err) {
+        console.error("[useSubdomainTenant] Unexpected error:", err);
+      } finally {
         setChecked(true);
         setIsLoading(false);
-      })();
-      return;
-    }
-
-    // Slug-based modes (path / subdomain / query)
-    const slug = detected.slug;
-    setTenantSlug(slug);
-    const normalizedSlug = slug.replace(/-/g, "").toLowerCase();
-
-    (async () => {
-      setIsLoading(true);
-      console.log("[useSubdomainTenant] Querying DB for slug:", slug);
-      let { data, error } = await supabase
-        .from("tenants")
-        .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
-        .eq("slug", slug)
-        .eq("active", true)
-        .maybeSingle();
-
-      if (!data && normalizedSlug !== slug) {
-        console.log("[useSubdomainTenant] Slug not found, trying normalized:", normalizedSlug);
-        const res = await supabase
-          .from("tenants")
-          .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
-          .eq("slug", normalizedSlug)
-          .eq("active", true)
-          .maybeSingle();
-        data = res.data;
       }
+    };
 
-      if (data) {
-        console.log("[useSubdomainTenant] Tenant loaded from DB:", data.slug);
-        setCurrentTenant(data as Tenant);
-      } else {
-        console.log("[useSubdomainTenant] No tenant found for slug in DB:", slug);
-        // CRITICAL: If we are on a subdomain and the tenant doesn't exist, 
-        // we should probably NOT redirect, but let the app show "Not Found" or similar.
-        if (error) console.error("[useSubdomainTenant] DB Error:", error);
-      }
-      setChecked(true);
-      setIsLoading(false);
-    })();
-  }, [tenantQueryParam, setIsLoading, setCurrentTenant, setIsSubdomainAccess]);
+    loadTenant();
+  }, [tenantQueryParam, setIsLoading, setCurrentTenant, setIsSubdomainAccess, setTenantMode, currentTenant]);
 
   // Auto-select from memberships when they load
   useEffect(() => {
