@@ -123,8 +123,7 @@ const CoreUsers: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="admin">Administrador</SelectItem>
                     <SelectItem value="manager">Gerente</SelectItem>
-                    <SelectItem value="partner">Parceiro</SelectItem>
-                    <SelectItem value="client">Cliente</SelectItem>
+                    <SelectItem value="staff">Funcionário</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
