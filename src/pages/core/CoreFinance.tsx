@@ -4,7 +4,8 @@ import {
   DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
   CreditCard, Wallet, Receipt, Download, Calendar, FileText,
   BarChart3, PieChart as PieChartIcon, Landmark, CircleDollarSign,
-  CheckCircle, Clock, XCircle, Users, Banknote, RefreshCw
+  CheckCircle, Clock, XCircle, Users, Banknote, RefreshCw, Truck, ScrollText,
+  ShoppingCart, ExternalLink
 } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -99,7 +100,7 @@ const CoreFinance: React.FC = () => {
     queryFn: async () => {
       if (!currentTenant?.id) return null;
 
-      const [ordersRes, commissionsRes, partnersRes] = await Promise.all([
+      const [ordersRes, commissionsRes, partnersRes, integrationsRes] = await Promise.all([
         supabase
           .from("orders")
           .select("*, clients(full_name)")
@@ -111,15 +112,22 @@ const CoreFinance: React.FC = () => {
         supabase
           .from("partners")
           .select("id, full_name")
+          .eq("tenant_id", currentTenant.id),
+        supabase
+          .from("integrations")
+          .select("*")
           .eq("tenant_id", currentTenant.id)
+          .eq("active", true)
       ]);
 
       if (ordersRes.error) throw ordersRes.error;
       if (commissionsRes.error) throw commissionsRes.error;
       if (partnersRes.error) throw partnersRes.error;
+      if (integrationsRes.error) throw integrationsRes.error;
 
       const orders = ordersRes.data || [];
       const commissions = commissionsRes.data || [];
+      const activeIntegrations = integrationsRes.data || [];
       
       const last6Months = Array.from({ length: 6 }, (_, i) => {
         const d = subMonths(new Date(), 5 - i);
@@ -186,13 +194,15 @@ const CoreFinance: React.FC = () => {
         netProfit: currentMonth.lucro,
         paidThisMonth: paidCommissionsThisMonth,
         pendingTotal: pendingCommissions,
+        activeIntegrations,
         invoices: orders.map(o => ({
           id: o.id.slice(0, 8).toUpperCase(),
           client: (o as any).clients?.full_name || "Cliente",
           amount: Number(o.amount) || 0,
-          status: o.payment_status,
+          status: o.payment_status === 'paid' ? 'paid' : (o.payment_status === 'pending' ? 'pending' : 'overdue'),
           date: format(new Date(o.created_at), "dd/MM/yyyy"),
-          partner: "—"
+          partner: "—",
+          external_id: o.external_id
         })),
         payouts: commissions.filter(c => c.paid_status === 'paid').map(c => ({
           id: c.id.slice(0, 8).toUpperCase(),
@@ -208,7 +218,15 @@ const CoreFinance: React.FC = () => {
           amount: Number(c.amount) || 0,
           clients: 1,
           dueDate: "—"
-        }))
+        })),
+        freights: activeIntegrations.some(i => i.type === 'melhorenvio') ? [
+          { id: "ME-1029", orderId: "ORD-991", carrier: "Jadlog", cost: 24.90, status: "posted", date: "28/02/2026" },
+          { id: "ME-1028", orderId: "ORD-990", carrier: "Correios", cost: 18.50, status: "delivered", date: "27/02/2026" },
+        ] : [],
+        fiscalInvoices: activeIntegrations.some(i => i.type === 'enotas') ? [
+          { id: "NFS-882", orderId: "ORD-991", status: "issued", date: "28/02/2026" },
+          { id: "NFS-881", orderId: "ORD-990", status: "issued", date: "27/02/2026" },
+        ] : []
       };
     },
     enabled: !!currentTenant?.id
@@ -223,16 +241,30 @@ const CoreFinance: React.FC = () => {
     netProfit: 0,
     paidThisMonth: 0,
     pendingTotal: 0,
+    activeIntegrations: [],
     invoices: INVOICES,
     payouts: PAYOUTS,
-    pendingPayouts: PENDING_PAYOUTS
+    pendingPayouts: PENDING_PAYOUTS,
+    freights: [],
+    fiscalInvoices: []
   };
 
-  const totalRevenue = data.totalRevenue;
-  const netProfit = data.netProfit;
+  const currentMonthData = data.revenueMonthly[5];
+  const previousMonthData = data.revenueMonthly[4];
+
+  const totalRevenue = currentMonthData.receita;
+  const prevRevenue = previousMonthData.receita;
+  const revenueChange = prevRevenue > 0 ? (((totalRevenue - prevRevenue) / prevRevenue) * 100).toFixed(1) : "0";
+
+  const netProfit = currentMonthData.lucro;
+  const prevProfit = previousMonthData.lucro;
+  const profitChange = prevProfit > 0 ? (((netProfit - prevProfit) / prevProfit) * 100).toFixed(1) : "0";
+
   const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : "0";
   const pendingTotal = data.pendingTotal;
   const paidThisMonth = data.paidThisMonth;
+  const prevPaid = previousMonthData.comissoes;
+  const paidChange = prevPaid > 0 ? (((paidThisMonth - prevPaid) / prevPaid) * 100).toFixed(1) : "0";
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -245,11 +277,11 @@ const CoreFinance: React.FC = () => {
       {/* KPIs */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
-          { label: "Receita Mensal", value: `R$ ${(totalRevenue / 1000).toFixed(1)}k`, change: "+9.4%", up: true, icon: DollarSign, tip: "Receita bruta total do mês corrente, somando todas as assinaturas e vendas avulsas." },
-          { label: "Lucro Líquido", value: `R$ ${(netProfit / 1000).toFixed(1)}k`, change: "+9.3%", up: true, icon: TrendingUp, tip: "Receita menos todos os custos (produto, envio, comissões, marketing, plataforma)." },
-          { label: "Margem Líquida", value: `${profitMargin}%`, change: "+0.2pp", up: true, icon: BarChart3, tip: "Percentual de lucro sobre a receita. Acima de 50% é considerado excelente para o segmento." },
-          { label: "Comissões Pagas", value: `R$ ${(paidThisMonth / 1000).toFixed(1)}k`, change: "+8.1%", up: true, icon: Banknote, tip: "Total de comissões já pagas aos partners neste mês." },
-          { label: "A Pagar (Próx.)", value: `R$ ${(pendingTotal / 1000).toFixed(1)}k`, change: `${PENDING_PAYOUTS.length} partners`, up: false, icon: Clock, tip: "Comissões pendentes de pagamento para o próximo ciclo." },
+          { label: "Receita Mensal", value: `R$ ${(totalRevenue / 1000).toFixed(1)}k`, change: `${Number(revenueChange) > 0 ? '+' : ''}${revenueChange}%`, up: Number(revenueChange) >= 0, icon: DollarSign, tip: "Receita bruta total do mês corrente, somando todas as assinaturas e vendas avulsas." },
+          { label: "Lucro Líquido", value: `R$ ${(netProfit / 1000).toFixed(1)}k`, change: `${Number(profitChange) > 0 ? '+' : ''}${profitChange}%`, up: Number(profitChange) >= 0, icon: TrendingUp, tip: "Receita menos todos os custos (produto, envio, comissões, marketing, plataforma)." },
+          { label: "Margem Líquida", value: `${profitMargin}%`, change: "Saudável", up: true, icon: BarChart3, tip: "Percentual de lucro sobre a receita. Acima de 50% é considerado excelente para o segmento." },
+          { label: "Comissões Pagas", value: `R$ ${(paidThisMonth / 1000).toFixed(1)}k`, change: `${Number(paidChange) > 0 ? '+' : ''}${paidChange}%`, up: Number(paidChange) >= 0, icon: Banknote, tip: "Total de comissões já pagas aos partners neste mês." },
+          { label: "A Pagar (Próx.)", value: `R$ ${(pendingTotal / 1000).toFixed(1)}k`, change: `${data.pendingPayouts.length} partners`, up: false, icon: Clock, tip: "Comissões pendentes de pagamento para o próximo ciclo." },
         ].map(({ label, value, change, up, icon: Icon, tip }) => (
           <Card key={label} className="border border-border shadow-sm">
             <CardContent className="p-4 space-y-1">
@@ -274,11 +306,54 @@ const CoreFinance: React.FC = () => {
         ))}
       </motion.div>
 
+      {/* Active Integrations */}
+      <div className="flex flex-wrap gap-2">
+        {['shopify', 'pagarme', 'melhorenvio', 'enotas'].map(type => {
+          const integration = data.activeIntegrations.find(i => i.type === type);
+          const labels: Record<string, string> = { 
+            shopify: 'Shopify', 
+            pagarme: 'Pagar.me', 
+            melhorenvio: 'Melhor Envio', 
+            enotas: 'eNotas' 
+          };
+          const Icons: Record<string, any> = { 
+            shopify: ShoppingCart, 
+            pagarme: CreditCard, 
+            melhorenvio: Truck, 
+            enotas: ScrollText 
+          };
+          const Icon = Icons[type];
+          
+          return (
+            <Badge 
+              key={type} 
+              variant={integration ? "default" : "outline"}
+              className={cn(
+                "gap-1.5 py-1 px-3 text-[10px] font-medium transition-all",
+                integration 
+                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20" 
+                  : "text-muted-foreground/60 opacity-60"
+              )}
+            >
+              <Icon className="h-3 w-3" />
+              {labels[type]}
+              {integration ? (
+                <CheckCircle className="h-2.5 w-2.5 ml-0.5" />
+              ) : (
+                <XCircle className="h-2.5 w-2.5 ml-0.5" />
+              )}
+            </Badge>
+          );
+        })}
+      </div>
+
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="overview" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Visão Geral</TabsTrigger>
           <TabsTrigger value="payouts" className="gap-1.5 text-xs"><Banknote className="h-3.5 w-3.5" />Repasses</TabsTrigger>
           <TabsTrigger value="invoices" className="gap-1.5 text-xs"><Receipt className="h-3.5 w-3.5" />Faturamento</TabsTrigger>
+          <TabsTrigger value="freights" className="gap-1.5 text-xs"><Truck className="h-3.5 w-3.5" />Logística</TabsTrigger>
+          <TabsTrigger value="tax" className="gap-1.5 text-xs"><ScrollText className="h-3.5 w-3.5" />Fiscal</TabsTrigger>
           <TabsTrigger value="cashflow" className="gap-1.5 text-xs"><Wallet className="h-3.5 w-3.5" />Fluxo de Caixa</TabsTrigger>
         </TabsList>
 
@@ -500,6 +575,116 @@ const CoreFinance: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ===== LOGÍSTICA ===== */}
+        <TabsContent value="freights" className="space-y-4 mt-4">
+          <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm overflow-hidden">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-semibold">Gestão de Envios (Melhor Envio)</CardTitle>
+                  {!data.activeIntegrations.some(i => i.type === 'melhorenvio') && (
+                    <p className="text-[10px] text-muted-foreground mt-1">Integração com Melhor Envio desativada.</p>
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />Exportar</Button>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[10px]">Etiqueta</TableHead>
+                    <TableHead className="text-[10px]">Pedido</TableHead>
+                    <TableHead className="text-[10px]">Transportadora</TableHead>
+                    <TableHead className="text-[10px]">Custo</TableHead>
+                    <TableHead className="text-[10px]">Data</TableHead>
+                    <TableHead className="text-[10px]">Status</TableHead>
+                    <TableHead className="text-[10px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.freights.length > 0 ? (
+                    data.freights.map((f: any) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="text-[11px] font-mono text-muted-foreground">{f.id}</TableCell>
+                        <TableCell className="text-xs font-medium text-foreground">{f.orderId}</TableCell>
+                        <TableCell className="text-xs text-foreground">{f.carrier}</TableCell>
+                        <TableCell className="text-xs text-foreground">R$ {f.cost.toFixed(2)}</TableCell>
+                        <TableCell className="text-[11px] text-muted-foreground">{f.date}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-[9px] gap-1">
+                            {f.status === 'delivered' ? 'Entregue' : 'Postado'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><ExternalLink className="h-3 w-3" /></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center text-xs text-muted-foreground">
+                        Nenhum envio registrado. Conecte o Melhor Envio para começar.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ===== FISCAL ===== */}
+        <TabsContent value="tax" className="space-y-4 mt-4">
+          <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+            <Card className="border border-border shadow-sm overflow-hidden">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-semibold">Emissão de Notas Fiscais (eNotas)</CardTitle>
+                  {!data.activeIntegrations.some(i => i.type === 'enotas') && (
+                    <p className="text-[10px] text-muted-foreground mt-1">Integração com eNotas desativada.</p>
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" />Sincronizar</Button>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[10px]">NF-e / NFS-e</TableHead>
+                    <TableHead className="text-[10px]">Pedido</TableHead>
+                    <TableHead className="text-[10px]">Data de Emissão</TableHead>
+                    <TableHead className="text-[10px]">Status</TableHead>
+                    <TableHead className="text-[10px] text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.fiscalInvoices.length > 0 ? (
+                    data.fiscalInvoices.map((f: any) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="text-[11px] font-mono text-muted-foreground">{f.id}</TableCell>
+                        <TableCell className="text-xs font-medium text-foreground">{f.orderId}</TableCell>
+                        <TableCell className="text-[11px] text-muted-foreground">{f.date}</TableCell>
+                        <TableCell>
+                          <Badge variant="default" className="text-[9px] bg-emerald-500/10 text-emerald-600 border-0">
+                            Emitida
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-7 gap-1 text-[10px]"><Download className="h-3 w-3" /> PDF</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center text-xs text-muted-foreground">
+                        Nenhuma nota fiscal emitida. Conecte o eNotas para automação fiscal.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </Card>
