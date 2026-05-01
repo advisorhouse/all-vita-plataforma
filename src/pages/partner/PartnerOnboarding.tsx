@@ -97,7 +97,7 @@ const PartnerOnboarding: React.FC = () => {
   const { currentTenant, isLoading } = useTenant();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [direction, setDirection] = useState(1);
-  const [data, setData] = useState<DoctorFormData>(defaultData);
+  const [data, setData] = useState<PartnerFormData>(defaultData);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
