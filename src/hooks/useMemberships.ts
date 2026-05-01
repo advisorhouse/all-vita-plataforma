@@ -37,7 +37,6 @@ export function useMemberships() {
           .from("all_vita_staff")
           .select("role, is_active")
           .eq("user_id", user.id)
-          .eq("single_row_check:id") // dummy to avoid maybeSingle issues if needed, but single is fine
           .maybeSingle()
       ]);
 
