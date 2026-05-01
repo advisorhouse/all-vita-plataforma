@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import InputMask from "react-input-mask";
 
 interface RegisterPartnerModalProps {
   open: boolean;
@@ -223,12 +224,20 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Telefone / WhatsApp *</FieldLabel>
-                    <Input
+                    <InputMask
+                      mask="+55 (99) 99999-9999"
                       value={data.phone}
                       onChange={(e) => update({ phone: e.target.value })}
-                      placeholder="(11) 99999-9999"
-                      className={inputClass}
-                    />
+                    >
+                      {/* @ts-ignore */}
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          placeholder="+55 (11) 99999-9999"
+                          className={inputClass}
+                        />
+                      )}
+                    </InputMask>
                   </div>
                 </>
               )}
@@ -320,12 +329,21 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                 <>
                   <div className="space-y-1.5">
                     <FieldLabel>CPF ou CNPJ *</FieldLabel>
-                    <Input
+                    <InputMask
+                      mask={data.cpfCnpj.replace(/\D/g, "").length <= 11 ? "999.999.999-99" : "99.999.999/9999-99"}
+                      maskChar={null}
                       value={data.cpfCnpj}
                       onChange={(e) => update({ cpfCnpj: e.target.value })}
-                      placeholder="000.000.000-00"
-                      className={inputClass}
-                    />
+                    >
+                      {/* @ts-ignore */}
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                          className={inputClass}
+                        />
+                      )}
+                    </InputMask>
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Chave PIX *</FieldLabel>
