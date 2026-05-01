@@ -31,7 +31,23 @@ function detectTenant(): DetectedTenant {
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
 
-  // 1) Path-based detection (primary strategy on app.allvita.com.br).
+  // Se estivermos em um subdomínio (lumyss.allvita.com.br), extraímos o slug
+  // ignorando completamente qualquer lógica de path-based.
+  const isAllVitaBase = hostname === "allvita.com.br" || hostname === "app.allvita.com.br";
+  const isSubdomain = !isAllVitaBase && (hostname.endsWith(".allvita.com.br") || hostname.endsWith(".lovable.app") || hostname.endsWith(".lovable.dev"));
+
+  if (isSubdomain) {
+    // Extrai o primeiro segmento do hostname (o slug)
+    const parts = hostname.split(".");
+    const slug = parts[0];
+    
+    if (slug && !RESERVED_SUBDOMAINS.includes(slug)) {
+      console.log("[useSubdomainTenant] Pure Subdomain detected:", slug);
+      return { mode: "subdomain", slug };
+    }
+  }
+
+  // Fallback: Path-based detection (apenas em hosts permitidos)
   if (isPathBasedHost(hostname)) {
     const cached = (window as any).__tenantSlug as string | undefined;
     if (cached) return { mode: "path", slug: cached };
@@ -39,34 +55,17 @@ function detectTenant(): DetectedTenant {
     if (slug) return { mode: "path", slug };
   }
 
-  // 2) Subdomain detection
-  if (hostname !== "localhost" && !/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
-    for (const base of BASE_DOMAINS) {
-      if (hostname.endsWith(`.${base}`)) {
-        const sub = hostname.slice(0, hostname.length - base.length - 1);
-        if (!sub || sub.includes("--") || sub.includes(".")) continue;
-        
-        // Match exact reserved subdomains
-        if (RESERVED_SUBDOMAINS.includes(sub)) {
-          console.log("[useSubdomainTenant] Reserved subdomain detected:", sub);
-          continue;
-        }
-        
-        console.log("[useSubdomainTenant] Subdomain slug detected:", sub);
-        return { mode: "subdomain", slug: sub };
-      }
-    }
-  }
-
-  // 3) ?tenant= query param (dev/preview)
+  // Fallback: ?tenant= query param
   const tenantParam = new URLSearchParams(window.location.search).get("tenant");
   if (tenantParam) return { mode: "query", slug: tenantParam };
 
-  // 4) Custom domain
+  // Fallback: Custom domain (totalmente fora de allvita.com.br)
   if (
     hostname !== "localhost" &&
     !/^\d+\.\d+\.\d+\.\d+$/.test(hostname) &&
-    !BASE_DOMAINS.some((d) => hostname.endsWith(`.${d}`) || hostname === d)
+    !isAllVitaBase &&
+    !hostname.endsWith(".allvita.com.br") &&
+    !hostname.endsWith(".lovable.app")
   ) {
     return { mode: "custom-domain", hostname };
   }
