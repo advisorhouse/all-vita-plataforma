@@ -136,18 +136,22 @@ export function useSubdomainTenant() {
 
     (async () => {
       setIsLoading(true);
-      let { data } = await (supabase.from as any)("tenants")
+      console.log("[useSubdomainTenant] Querying DB for slug:", slug);
+      let { data, error } = await supabase
+        .from("tenants")
         .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
         .eq("slug", slug)
         .eq("active", true)
-        .single();
+        .maybeSingle();
 
       if (!data && normalizedSlug !== slug) {
-        const res = await (supabase.from as any)("tenants")
+        console.log("[useSubdomainTenant] Slug not found, trying normalized:", normalizedSlug);
+        const res = await supabase
+          .from("tenants")
           .select("id, name, trade_name, slug, logo_url, favicon_url, primary_color, secondary_color, domain, active, settings")
           .eq("slug", normalizedSlug)
           .eq("active", true)
-          .single();
+          .maybeSingle();
         data = res.data;
       }
 
@@ -155,7 +159,8 @@ export function useSubdomainTenant() {
         console.log("[useSubdomainTenant] Tenant loaded:", data.slug);
         setCurrentTenant(data as Tenant);
       } else {
-        console.log("[useSubdomainTenant] No tenant found for slug:", slug);
+        console.log("[useSubdomainTenant] No tenant found for slug in DB:", slug);
+        if (error) console.error("[useSubdomainTenant] DB Error:", error);
       }
       setChecked(true);
       setIsLoading(false);
