@@ -91,6 +91,7 @@ export function useSubdomainTenant() {
   const tenantQueryParam = searchParams.get("tenant");
   const [tenantSlug, setTenantSlug] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const fetchingRef = useRef<string | null>(null);
 
   useEffect(() => {
     const detected = detectTenant();
