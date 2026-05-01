@@ -45,7 +45,14 @@ function detectTenant(): DetectedTenant {
       if (hostname.endsWith(`.${base}`)) {
         const sub = hostname.slice(0, hostname.length - base.length - 1);
         if (!sub || sub.includes("--") || sub.includes(".")) continue;
-        if (RESERVED_SUBDOMAINS.some((r) => sub === r)) continue;
+        
+        // Match exact reserved subdomains
+        if (RESERVED_SUBDOMAINS.includes(sub)) {
+          console.log("[useSubdomainTenant] Reserved subdomain detected:", sub);
+          continue;
+        }
+        
+        console.log("[useSubdomainTenant] Subdomain slug detected:", sub);
         return { mode: "subdomain", slug: sub };
       }
     }
