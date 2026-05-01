@@ -16,7 +16,6 @@
  */
 export const PATH_BASED_HOSTS = [
   "app.allvita.com.br",
-  "all-vita-plataforma.lovable.app"
 ];
 
 /**
