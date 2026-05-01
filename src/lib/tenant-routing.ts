@@ -67,13 +67,25 @@ export function extractSlugFromPath(pathname: string): string | null {
  * referral links, share buttons, etc.).
  */
 export function buildTenantUrl(slug: string, path: string = "/", params?: Record<string, string>): string {
-  const base = "https://app.allvita.com.br";
+  // Use the subdomain if it's not a local/preview environment
+  const isProduction = typeof window !== "undefined" && 
+    (window.location.hostname.endsWith("allvita.com.br") || window.location.hostname === "allvita.com.br");
   
-  // Ensure path starts with /
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  let baseUrl: string;
+  let cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (isProduction) {
+    // Subdomain-based: slug.allvita.com.br/path
+    baseUrl = `https://${slug}.allvita.com.br`;
+  } else {
+    // Fallback for local/preview: app.allvita.com.br/slug/path
+    // Note: in preview environments, we might want to stay on the current origin
+    const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://app.allvita.com.br";
+    baseUrl = currentOrigin;
+    cleanPath = `/${slug}${cleanPath}`;
+  }
   
-  // For path-based routing, the slug must be the first segment of the path
-  const url = new URL(`/${slug}${cleanPath}`, base);
+  const url = new URL(cleanPath, baseUrl);
   
   if (params) {
     Object.entries(params).forEach(([key, value]) => {

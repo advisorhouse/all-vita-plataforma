@@ -363,7 +363,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
         
         <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
           <span style="font-size: 13px; color: #64748b; display: block; margin-bottom: 4px;">Link do Painel Administrativo (Core):</span>
-          <a href="https://app.allvita.com.br/${slug}/core" style="font-size: 16px; color: #2563eb; text-decoration: none; font-weight: 700;">app.allvita.com.br/${slug}/core</a>
+          <a href="https://${slug}.allvita.com.br/core" style="font-size: 16px; color: #2563eb; text-decoration: none; font-weight: 700;">${slug}.allvita.com.br/core</a>
         </div>
         
         <div style="display: flex; gap: 40px;">
@@ -383,19 +383,19 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
       <div style="margin-bottom: 16px; padding: 16px; border: 1px solid #f0f0f0; border-radius: 8px;">
         <h4 style="margin: 0 0 8px; color: #2563eb; font-size: 16px;">1. Portal CORE (Administrativo)</h4>
         <p style="margin: 0 0 12px; font-size: 14px; color: #666; line-height: 1.5;">Onde tudo acontece. É aqui que você, como admin, fará a gestão completa: cadastrar colaboradores, configurar produtos, gerenciar finanças e acompanhar métricas em tempo real.</p>
-        <a href="https://app.allvita.com.br/${slug}/core" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;">Acessar Core &rarr;</a>
+        <a href="https://${slug}.allvita.com.br/core" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;">Acessar Core &rarr;</a>
       </div>
 
       <div style="margin-bottom: 16px; padding: 16px; border: 1px solid #f0f0f0; border-radius: 8px;">
         <h4 style="margin: 0 0 8px; color: #10b981; font-size: 16px;">2. Portal PARTNER (Parceiros/Afiliados)</h4>
         <p style="margin: 0 0 12px; font-size: 14px; color: #666; line-height: 1.5;">Área dedicada aos seus parceiros de vendas. Eles terão acesso a materiais de apoio, links de indicação, acompanhamento de comissões e treinamentos.</p>
-        <a href="https://app.allvita.com.br/${slug}/partner" style="font-size: 13px; font-weight: 600; color: #10b981; text-decoration: none;">Acessar Partner &rarr;</a>
+        <a href="https://${slug}.allvita.com.br/partner" style="font-size: 13px; font-weight: 600; color: #10b981; text-decoration: none;">Acessar Partner &rarr;</a>
       </div>
 
       <div style="margin-bottom: 32px; padding: 16px; border: 1px solid #f0f0f0; border-radius: 8px;">
         <h4 style="margin: 0 0 8px; color: #6366f1; font-size: 16px;">3. Portal CLUB (Área do Cliente)</h4>
         <p style="margin: 0 0 12px; font-size: 14px; color: #666; line-height: 1.5;">A experiência do seu cliente final. Aqui ele gerencia sua assinatura, consome conteúdos exclusivos e participa da comunidade da sua marca.</p>
-        <a href="https://app.allvita.com.br/${slug}/club" style="font-size: 13px; font-weight: 600; color: #6366f1; text-decoration: none;">Acessar Club &rarr;</a>
+        <a href="https://${slug}.allvita.com.br/club" style="font-size: 13px; font-weight: 600; color: #6366f1; text-decoration: none;">Acessar Club &rarr;</a>
       </div>
 
       <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; margin-bottom: 32px;">
@@ -405,7 +405,7 @@ function buildWelcomeEmail(name: string, company: string, slug: string, tempPass
       </div>
 
       <div style="text-align: center; margin-bottom: 32px;">
-        <a href="https://app.allvita.com.br/${slug}/auth/login" style="background-color: #000; color: #ffffff; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 700; display: inline-block; transition: all 0.2s;">
+        <a href="https://${slug}.allvita.com.br/auth/login" style="background-color: #000; color: #ffffff; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 700; display: inline-block; transition: all 0.2s;">
           Começar Agora
         </a>
       </div>

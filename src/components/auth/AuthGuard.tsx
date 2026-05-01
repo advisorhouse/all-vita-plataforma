@@ -87,13 +87,13 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     }
 
     const search = location.search || window.location.search;
-    const loginPath = activeSlug ? `/${activeSlug}/auth/login` : "/auth/login";
+    const loginPath = activeSlug && !isSubdomainAccess ? `/${activeSlug}/auth/login` : "/auth/login";
     return <Navigate to={`${loginPath}${search}`} state={{ from: location }} replace />;
   }
 
   // Redirect to onboarding if needed (but not if already on onboarding page)
   if (needsOnboarding && !location.pathname.endsWith("/onboarding")) {
-    const onboardingPath = activeSlug ? `/${activeSlug}/onboarding` : "/onboarding";
+    const onboardingPath = activeSlug && !isSubdomainAccess ? `/${activeSlug}/onboarding` : "/onboarding";
     return <Navigate to={onboardingPath} replace />;
   }
 
@@ -123,7 +123,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // 1. Super admin protection for /admin
   if (location.pathname.startsWith("/admin") && !isSuperAdmin && !platformRole) {
-    const fallback = activeSlug ? `/${activeSlug}/core` : "/core";
+    const fallback = activeSlug && !isSubdomainAccess ? `/${activeSlug}/core` : "/core";
     return <Navigate to={fallback} replace />;
   }
 
@@ -142,7 +142,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     );
 
     if (!hasRole && !isSuperAdmin && !(location.pathname.startsWith("/admin") && platformRole)) {
-      const onboardingPath = activeSlug ? `/${activeSlug}/onboarding` : "/onboarding";
+      const onboardingPath = activeSlug && !isSubdomainAccess ? `/${activeSlug}/onboarding` : "/onboarding";
       return <Navigate to={onboardingPath} replace />;
     }
   }
