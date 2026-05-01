@@ -465,7 +465,7 @@ const CoreSubscriptions: React.FC = () => {
         {/* ===== POR PRODUTO ===== */}
         <TabsContent value="products" className="space-y-4 mt-4">
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 sm:grid-cols-2">
-            {PRODUCTS.map((p) => (
+            {productStats.map((p: any) => (
               <Card key={p.name} className="border border-border shadow-sm">
                 <CardContent className="p-5 space-y-4">
                   <div className="flex items-center justify-between">
@@ -496,9 +496,9 @@ const CoreSubscriptions: React.FC = () => {
                   <div>
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                       <span>Share do MRR</span>
-                      <span className="font-medium text-foreground">{((p.revenue / 217150) * 100).toFixed(1)}%</span>
+                      <span className="font-medium text-foreground">{totalMRR > 0 ? ((p.revenue / totalMRR) * 100).toFixed(1) : 0}%</span>
                     </div>
-                    <Progress value={(p.revenue / 217150) * 100} className="h-1.5" />
+                    <Progress value={totalMRR > 0 ? (p.revenue / totalMRR) * 100 : 0} className="h-1.5" />
                   </div>
                 </CardContent>
               </Card>
