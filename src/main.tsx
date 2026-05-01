@@ -18,20 +18,19 @@ import { isPathBasedHost, extractSlugFromPath } from "@/lib/tenant-routing";
   const isPathBased = isPathBasedHost(hostname);
   const pathname = window.location.pathname;
 
-  // Se o hostname for app.allvita.com.br, mantemos a lógica de path-based para compatibilidade/legado
-  // Mas se for qualquer outro subdomínio de allvita.com.br (incluindo lumyss.allvita.com.br),
-  // desativamos QUALQUER reescrita ou extração de slug da URL.
+  // CRITICAL: Precise detection of subdomain mode
   const isAllVitaBase = hostname === "allvita.com.br" || hostname === "app.allvita.com.br";
-  const isSubdomain = !isAllVitaBase && (hostname.endsWith(".allvita.com.br") || hostname.endsWith(".lovable.app"));
+  const isSubdomain = !isAllVitaBase && (hostname.endsWith(".allvita.com.br") || hostname.endsWith(".lovable.app") || hostname.endsWith(".lovable.dev"));
 
   console.log("[rewriteTenantPath] Hostname:", hostname, "isSubdomain:", isSubdomain, "isPathBased:", isPathBased);
 
   if (isSubdomain) {
-    console.log("[rewriteTenantPath] Subdomain detected. Disabling all path-based logic.");
+    console.log("[rewriteTenantPath] Subdomain detected. FORCING relative routing, no path slugs allowed.");
+    // In subdomain mode, we must NEVER have window.__tenantSlug set from the path
     return;
   }
 
-  // Apenas extraímos slug se estivermos no host principal que suporta path-based
+  // Path-based mode only on specific hosts
   if (isPathBased) {
     const slug = extractSlugFromPath(pathname);
     console.log("[rewriteTenantPath] Slug from path:", slug);

@@ -9,12 +9,12 @@ import { useTenant } from "@/contexts/TenantContext";
 export function useTenantNavigation() {
   const navigate = useNavigate();
   const { slug: routeSlug } = useParams();
-  const { currentTenant, isSubdomainAccess } = useTenant();
+  const { currentTenant, isSubdomainAccess, tenantMode } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantQueryParam = searchParams.get("tenant");
   
-  // Use slug from URL if present, otherwise from context
-  const activeSlug = routeSlug || currentTenant?.slug;
+  // CRITICAL: If we are in subdomain mode, NEVER use routeSlug or currentTenant.slug as a path prefix
+  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain") ? null : (routeSlug || currentTenant?.slug);
 
   const tenantNavigate = useCallback(
     (path: string, options?: { replace?: boolean }) => {
@@ -25,12 +25,10 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
       
-      // CRITICAL: NEVER include the slug in the path if we are on a subdomain
+      // CRITICAL: NEVER include the slug in the path if we are on a subdomain (checked via isSubdomainAccess)
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
         console.log("[useTenantNavigation] Path rewrite applied (PATH MODE):", finalBasePath);
-      } else if (isSubdomainAccess) {
-        console.log("[useTenantNavigation] Subdomain access, skipping path slug rewrite");
       }
 
       if (tenantQueryParam && !params.has("tenant")) {
@@ -61,7 +59,7 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
 
-      // CRITICAL: NEVER include the slug in the path if we are on a subdomain
+      // CRITICAL: NEVER include the slug in the path if we are on a subdomain (checked via isSubdomainAccess)
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
