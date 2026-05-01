@@ -1037,13 +1037,46 @@ const PartnerOnboarding: React.FC = () => {
 
                 <div className="space-y-4">
                   <div className="space-y-1.5">
+                    <FieldLabel>Tipo de Chave PIX</FieldLabel>
+                    <Select 
+                      value={data.pixType} 
+                      onValueChange={(v: any) => update({ pixType: v, pixKey: "" })}
+                    >
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PIX_TYPES.map((type) => (
+                          <SelectItem key={type.id} value={type.id}>{type.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
                     <FieldLabel>Chave PIX</FieldLabel>
-                    <Input
-                      value={data.pixKey}
-                      onChange={(e) => update({ pixKey: e.target.value })}
-                      placeholder="CPF, E-mail, Celular ou Aleatória"
-                      className={inputClass}
-                    />
+                    {PIX_TYPES.find(t => t.id === data.pixType)?.mask ? (
+                      <InputMask
+                        mask={PIX_TYPES.find(t => t.id === data.pixType)!.mask!}
+                        value={data.pixKey}
+                        onChange={(e) => update({ pixKey: e.target.value })}
+                      >
+                        {(inputProps: any) => (
+                          <Input
+                            {...inputProps}
+                            placeholder={data.pixType === "Phone" ? "(00) 00000-0000" : "000.000.000-00"}
+                            className={inputClass}
+                          />
+                        )}
+                      </InputMask>
+                    ) : (
+                      <Input
+                        value={data.pixKey}
+                        onChange={(e) => update({ pixKey: e.target.value })}
+                        placeholder={data.pixType === "Email" ? "exemplo@email.com" : "Sua chave aleatória"}
+                        className={inputClass}
+                      />
+                    )}
                   </div>
 
                   <div className="space-y-4 pt-4 border-t border-border">
