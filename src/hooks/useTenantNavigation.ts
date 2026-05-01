@@ -25,9 +25,10 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
       
+      // CRITICAL: NEVER include the slug in the path if we are on a subdomain
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
-        console.log("[useTenantNavigation] Path rewrite applied:", finalBasePath);
+        console.log("[useTenantNavigation] Path rewrite applied (PATH MODE):", finalBasePath);
       } else if (isSubdomainAccess) {
         console.log("[useTenantNavigation] Subdomain access, skipping path slug rewrite");
       }
@@ -37,9 +38,17 @@ export function useTenantNavigation() {
       }
 
       const qs = params.toString();
-      navigate(`${finalBasePath}${qs ? `?${qs}` : ""}`, options);
+      const finalUrl = `${finalBasePath}${qs ? `?${qs}` : ""}`;
+      
+      // Ensure we don't accidentally redirect to app.allvita.com.br
+      if (isSubdomainAccess && finalUrl.startsWith("http") && !finalUrl.includes(window.location.hostname)) {
+        console.warn("[useTenantNavigation] Preventing cross-domain redirect to:", finalUrl);
+        return;
+      }
+
+      navigate(finalUrl, options);
     },
-    [navigate, activeSlug, tenantQueryParam]
+    [navigate, activeSlug, tenantQueryParam, isSubdomainAccess]
   );
 
   /** Build a path string with tenant slug/param preserved (for Link `to` props) */
@@ -52,6 +61,7 @@ export function useTenantNavigation() {
       const tenantAwareRoots = ["/core", "/club", "/partner", "/auth", "/onboarding"];
       const needsSlug = tenantAwareRoots.some(p => basePath === p || basePath.startsWith(`${p}/`));
 
+      // CRITICAL: NEVER include the slug in the path if we are on a subdomain
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
       }
@@ -63,7 +73,7 @@ export function useTenantNavigation() {
       const qs = params.toString();
       return `${finalBasePath}${qs ? `?${qs}` : ""}`;
     },
-    [activeSlug, tenantQueryParam]
+    [activeSlug, tenantQueryParam, isSubdomainAccess]
   );
 
   return { 
