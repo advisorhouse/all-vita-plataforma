@@ -87,7 +87,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     }
 
     const search = location.search || window.location.search;
-    const loginPath = activeSlug ? `/${activeSlug}/auth/login` : "/auth/login";
+    const loginPath = activeSlug && !isSubdomainAccess ? `/${activeSlug}/auth/login` : "/auth/login";
     return <Navigate to={`${loginPath}${search}`} state={{ from: location }} replace />;
   }
 
