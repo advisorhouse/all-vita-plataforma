@@ -25,7 +25,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     platformRole, 
     memberships, 
     isSubdomainAccess,
-    isLoading: tenantLoading
+    isLoading: tenantLoading,
+    isInitialized
   } = useTenant();
   const location = useLocation();
   const params = useParams();
@@ -71,7 +72,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   // user && tenantLoading logic: 
   // If we HAVE a user, we MUST wait for the tenant info to be loaded (memberships/bootstrap) 
   // to avoid flashing empty states or incorrect redirects.
-  if (authLoading || (user && tenantLoading) || !onboardingChecked) {
+  if (authLoading || (user && !isInitialized) || !onboardingChecked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -96,7 +97,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
                                window.location.hostname !== "app.allvita.com.br" && 
                                window.location.hostname !== "all-vita-plataforma.lovable.app" &&
                                (window.location.hostname.endsWith(".allvita.com.br") || 
-                                window.location.hostname.endsWith(".lovable.app"));
+                                window.location.hostname.endsWith(".lovable.app") ||
+                                window.location.hostname.endsWith(".lovableproject.com"));
     
     const loginPath = isActuallySubdomain ? "/auth/login" : (activeSlug ? `/${activeSlug}/auth/login` : "/auth/login");
     
