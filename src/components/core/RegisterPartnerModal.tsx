@@ -70,13 +70,20 @@ const defaultData: PartnerFormData = {
   pixKey: "", bank: "", agency: "", account: "",
 };
 
-type Step = 1 | 2 | 3 | 4;
+const STATES = [
+  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
+  "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
+];
+
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 const STEP_LABELS: Record<Step, { title: string; desc: string; icon: React.ElementType }> = {
-  1: { title: "Dados Pessoais", desc: "Informações básicas do profissional", icon: UserPlus },
-  2: { title: "Dados Profissionais", desc: "CRM, especialidade e registro", icon: Stethoscope },
-  3: { title: "Clínica / Consultório", desc: "Local de atendimento principal", icon: Building2 },
-  4: { title: "Dados Financeiros", desc: "Informações para pagamento de comissões", icon: CreditCard },
+  1: { title: "Dados Básicos", desc: "Informações de contato", icon: UserPlus },
+  2: { title: "Documentos", desc: "CPF e RG", icon: FileText },
+  3: { title: "Profissional", desc: "Tipo e atuação", icon: Stethoscope },
+  4: { title: "Dados PJ", desc: "Informações da empresa", icon: Building2 },
+  5: { title: "Endereço", desc: "Local de atuação", icon: MapPin },
+  6: { title: "Financeiro", desc: "Dados para pagamento", icon: CreditCard },
 };
 
 const slideVariants = {
