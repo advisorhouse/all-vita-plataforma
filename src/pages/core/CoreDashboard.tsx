@@ -103,6 +103,16 @@ const CoreDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { currentTenant } = useTenant();
 
+  const { data: profile } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
+      return data;
+    }
+  });
+
   const { data: metrics } = useQuery({
     queryKey: ["core-dashboard-metrics", currentTenant?.id],
     queryFn: async () => {
