@@ -84,6 +84,7 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminMonetization from "./pages/admin/AdminMonetization";
 
 import AdminStaff from "./pages/admin/AdminStaff";
+import AdminCloudflareSetup from "./pages/admin/AdminCloudflareSetup";
 import UserProfile from "./pages/UserProfile";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
 
