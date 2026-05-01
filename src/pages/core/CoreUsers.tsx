@@ -16,8 +16,7 @@ import { Plus, UserPlus, UserX, Loader2, Users, Shield, Mail } from "lucide-reac
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   manager: "Gerente",
-  partner: "Parceiro",
-  client: "Cliente",
+  staff: "Funcionário",
 };
 
 const ROLE_COLORS: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
