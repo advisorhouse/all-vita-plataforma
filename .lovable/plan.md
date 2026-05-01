@@ -1,142 +1,164 @@
-# Análise: Arquitetura de Pagamento + Integração (All Vita)
+# Plano: Implementar subdomínios verdadeiros para tenants (`lumyss.allvita.com.br`)
 
-## Resumo executivo
+## O problema, em uma frase
 
-O prompt descreve uma arquitetura onde a All Vita é **orquestradora** (não processadora) de pagamentos, com Pagar.me cuidando do split financeiro e Shopify cuidando da logística. **Boa notícia: cerca de 60% disso já está implementado** na sua plataforma. O que falta é principalmente: **subcontas/split**, **integração Shopify de saída** (hoje só recebemos webhook de entrada), e **rastreabilidade financeira granular** (tabelas `payment_transactions` e `payment_splits`).
+O Lovable hospeda o app em **um único domínio primário** (`app.allvita.com.br`). Qualquer outro domínio/subdomínio adicionado em **Settings → Domains** é tratado como **alias com redirect 301 → primário**. Não existe configuração para desligar esse redirect, e o Lovable **não suporta wildcard** (`*.allvita.com.br`). Ou seja: a limitação é de infraestrutura, não de código.
+
+Portanto, para ter `lumyss.allvita.com.br` funcionando como portal isolado, precisamos de **uma camada externa** entre o usuário e o Lovable.
 
 ---
 
-## 1. O que JÁ ESTÁ FEITO (alinhado ao prompt)
+## As 4 opções analisadas
 
-### Arquitetura conceitual
-- All Vita já é orquestradora (não processa cartão) — confirmado em `mem://integration/ecommerce-and-payments`
-- Separação de responsabilidades já existe: edge functions atuam como API Gateway
-- Pagar.me já é o gateway escolhido (memória `pagarme-webhook` + tabela `payment_integrations`)
+### Opção A — Path-based (já implementado hoje)
+URLs ficam `app.allvita.com.br/lumyss/core`.
 
-### Tabelas existentes
-| Prompt pede | Já existe? | Tabela atual |
-|---|---|---|
-| `orders` | ✅ Sim | `orders` (id, tenant_id, client_id, product_id, amount, status, payment_status, external_id, subscription_cycle) |
-| `order_items` | ❌ Não | — (orders tem só `product_id` único) |
-| `payment_transactions` | ⚠️ Parcial | Dados ficam dentro de `orders.metadata.pagarme_data` |
-| `payment_splits` | ❌ Não | — |
-| `tenant_gateway_accounts` | ❌ Não | `payment_integrations` guarda só credencial, não subconta |
-| Comissões | ✅ Sim | `commissions`, `mt_commissions`, `commission_rules` |
-| Vitacoins | ✅ Sim | `vitacoins_wallet`, `vitacoin_transactions`, `commission_to_coin_rules` |
+- **Prós:** zero infra extra, custo zero, já funciona, SSL automático.
+- **Contras:** URL não é white-label de verdade (cliente vê "app.allvita"); cookies/localStorage compartilhados entre tenants.
+- **Quando faz sentido:** se o objetivo é apenas isolamento lógico e branding visual.
 
-### Edge functions existentes
-- `pagarme-api` — cria orders/customers via API Pagar.me
-- `pagarme-webhook` — recebe `order.paid`, `order.payment_failed`, `subscription.*`
-- `webhook-receiver` — receptor genérico (Stripe-like)
-- `process-commission` — calcula comissão pós-pagamento (lê afiliado, nível, ciclo)
-- `commission-engine-v2` + `commission-simulator`
-- `gamification-engine` — Vitacoins
-- `process-attribution` — vincula cliente↔parceiro
+### Opção B — Cloudflare Worker como reverse proxy (RECOMENDADO)
+Wildcard `*.allvita.com.br` aponta pro Cloudflare. Um Worker recebe `lumyss.allvita.com.br`, busca o HTML/assets de `app.allvita.com.br/lumyss/...` no Lovable e devolve pro navegador **sem redirect**, mantendo a barra do navegador em `lumyss.allvita.com.br`.
 
-### Fluxo já funcional
+- **Prós:**
+  - URL real white-label (`lumyss.allvita.com.br/core`).
+  - **Wildcard automático**: cada tenant novo funciona sem mexer em DNS nem no painel Lovable.
+  - Cookies/sessão isolados por subdomínio (segurança real entre tenants).
+  - SSL automático (Cloudflare Universal SSL no wildcard).
+  - Custo: Cloudflare Workers free tier cobre 100k req/dia; depois ~US$5/mês para 10M req.
+- **Contras:**
+  - Requer Cloudflare gerenciando o DNS de `allvita.com.br` (mover nameservers do Registro.br pro Cloudflare — operação de 10 min, sem downtime se feito direito).
+  - Precisamos escrever ~40 linhas de Worker.
+  - Latência extra de ~20-50 ms (Cloudflare é edge, costuma compensar com cache).
+
+### Opção C — Cloudflare "Proxy Mode" nativo do Lovable
+Lovable tem opção "Domain uses Cloudflare or a similar proxy" (CNAME-based).
+
+- **Prós:** suporte oficial.
+- **Contras:** **continua sendo 1 domínio por vez**, ainda sujeito ao redirect-to-primary. Não resolve wildcard nem o redirect. **Não serve pro nosso caso.**
+
+### Opção D — Self-hosting / sair do Lovable hosting
+Buildar e hospedar em Vercel/Netlify/Cloudflare Pages, que suportam wildcards nativamente.
+
+- **Prós:** controle total.
+- **Contras:** perde o ciclo de preview do Lovable, exige CI/CD próprio, deploys manuais.
+
+---
+
+## Recomendação: **Opção B (Cloudflare Worker)**
+
+É a única que entrega **subdomínio verdadeiro + wildcard + zero trabalho operacional por novo tenant**, mantendo o Lovable como hosting principal.
+
+---
+
+## Arquitetura proposta
+
 ```text
-Pagar.me webhook → pagarme-webhook → atualiza orders.payment_status='paid'
-                                  → chama process-commission
-                                  → calcula comissão por nível
-                                  → (gamification-engine gera Vitacoins)
+              ┌─────────────────────────────────┐
+              │  Usuário: lumyss.allvita.com.br │
+              └──────────────┬──────────────────┘
+                             │ DNS wildcard *.allvita.com.br → Cloudflare
+                             ▼
+              ┌─────────────────────────────────┐
+              │  Cloudflare Worker (proxy)      │
+              │  - extrai "lumyss" do hostname  │
+              │  - injeta header X-Tenant-Slug  │
+              │  - busca app.allvita.com.br/... │
+              │  - reescreve cookies p/ subdom. │
+              └──────────────┬──────────────────┘
+                             │ origin fetch
+                             ▼
+              ┌─────────────────────────────────┐
+              │  Lovable hosting                │
+              │  app.allvita.com.br (primário)  │
+              └─────────────────────────────────┘
 ```
 
----
-
-## 2. O que FALTA (gaps reais)
-
-### Gap A — Subcontas e Split (CRÍTICO)
-Hoje a plataforma assume **uma conta Pagar.me global ou uma por tenant** (toggle em `GatewaysPanel`), mas **não há split**: o dinheiro cai inteiro numa conta e a comissão é só registro contábil interno. O prompt pede que o split aconteça **no próprio Pagar.me**, ou seja:
-- Cada tenant precisa ter `recipient_id` (subconta) no Pagar.me
-- Cada transação precisa enviar array `split` com: tenant + All Vita (fee SaaS) + parceiro (se houver comissão paga via gateway)
-
-### Gap B — Tabelas de rastreabilidade financeira
-- `payment_transactions` — hoje só temos `orders` com metadata. Para auditoria fiscal e relatórios financeiros precisos, transação ≠ pedido (1 pedido pode ter N tentativas, refunds, chargebacks).
-- `payment_splits` — registro de quanto cada recebedor pegou em cada transação.
-- `tenant_gateway_accounts` — mapping tenant ↔ recipient_id Pagar.me, status KYC, dados bancários.
-
-### Gap C — Integração Shopify de SAÍDA
-Hoje a plataforma **recebe webhook do Shopify** (memória menciona ingestão read-only), mas o prompt pede o inverso: **All Vita cria pedido no Shopify** após pagamento aprovado. Não existe `/integrations/shopify` para criar order via Admin API.
-
-### Gap D — Order items
-`orders` atual tem `product_id` único (modelo de assinatura). Para e-commerce real (carrinho com múltiplos itens) precisa de `order_items`.
-
-### Gap E — Validação de assinatura de webhook
-`pagarme-webhook/index.ts` **não valida assinatura HMAC** do Pagar.me. Hoje qualquer um pode chamar o endpoint e marcar order como paga. Risco crítico.
-
-### Gap F — Criptografia de credenciais
-`payment_integrations.api_key_encrypted` — o nome diz "encrypted" mas o código de `pagarme-api` lê `config.api_key_encrypted` e usa direto como Bearer. Não está criptografado de fato.
-
-### Gap G — Onboarding de subconta (KYC)
-Não existe fluxo no portal `/core` para o tenant submeter dados bancários + documentos para criar a subconta no Pagar.me.
+O React detecta o tenant via `window.location.hostname` (código já existe em `useSubdomainTenant.ts`, branch "subdomain") — **nada precisa mudar no app**.
 
 ---
 
-## 3. O que o prompt MELHORA vs hoje
+## Etapas de implementação
 
-| Aspecto | Hoje | Com a proposta |
-|---|---|---|
-| Split financeiro | Manual/contábil | Automático no gateway (dinheiro vai direto pro tenant) |
-| Risco de inadimplência da All Vita | Alto (ela recebe tudo e repassa) | Zero (cada um recebe sua parte) |
-| Compliance fiscal | All Vita aparece como recebedora de tudo | Cada tenant emite NF do que recebe |
-| Auditoria | `orders.metadata` JSON | Tabelas estruturadas |
-| Logística | Cada tenant cuida manual | Centralizada via Shopify |
-| Multi-gateway futuro | Acoplado | `tenant_gateway_accounts` permite Stripe/MP/Asaas |
+### Fase 1 — Infra Cloudflare (manual, fora do código)
+1. Criar conta Cloudflare gratuita.
+2. Adicionar zona `allvita.com.br`.
+3. No Registro.br, trocar nameservers pelos da Cloudflare (sem downtime: TTL antigo ainda responde).
+4. No Cloudflare DNS, recriar registros existentes:
+   - `app.allvita.com.br` → A `185.158.133.1` (DNS only, **sem proxy**, p/ Lovable continuar emitindo SSL).
+   - MX/SPF/DKIM de e-mail (se houver).
+5. Adicionar wildcard: `*` → A `192.0.2.1` (IP placeholder) **com proxy laranja ON**. O IP é irrelevante pq o Worker intercepta.
 
-## 4. O que o prompt PIORA / RISCOS
+### Fase 2 — Cloudflare Worker
+1. Criar Worker `allvita-tenant-proxy`.
+2. Lógica (~40 linhas JS):
+   - Extrair slug do hostname (`lumyss.allvita.com.br` → `lumyss`).
+   - Reescrever URL para `https://app.allvita.com.br/${slug}${pathname}`.
+   - `fetch()` no origin com header `Host: app.allvita.com.br`.
+   - Reescrever `Set-Cookie` trocando `Domain=app.allvita.com.br` por `Domain=lumyss.allvita.com.br`.
+   - Devolver response intacta (HTML/JS/CSS — Lovable já serve SPA fallback).
+3. Route binding: `*.allvita.com.br/*` → Worker (excluindo `app.` e `www.`).
 
-- **Complexidade operacional**: KYC de subconta Pagar.me leva dias e exige CNPJ ativo de cada tenant. Tenants pequenos podem não conseguir abrir subconta.
-- **Dependência de Shopify**: o prompt diz "não depender de Shopify para pagamento" mas cria forte dependência para logística. Tenants sem produto físico (ex: serviços, assinatura digital) não precisam de Shopify — a arquitetura precisa tornar Shopify **opcional por tenant**.
-- **Ciclo de assinatura**: o modelo atual de `subscription_cycle` em `orders` é mais simples e funciona bem para Vision Lift/recorrência. Migrar para `orders` + `order_items` precisa preservar esse caso.
-- **Hardcode Vision Lift**: o prompt cita evitar isso, mas hoje boa parte da lógica de comissão (`commission-engine-v2`) já é genérica via `commission_rules` por tenant. Não é um problema real.
+### Fase 3 — Ajustes no código do app
+1. **`src/lib/tenant-routing.ts`**: atualizar `buildTenantUrl()` para gerar `https://${slug}.allvita.com.br${path}` quando estamos em produção (em vez de `/${slug}/${path}`). Manter fallback path-based para preview lovable.app e localhost.
+2. **`src/hooks/useSubdomainTenant.ts`**: já detecta subdomain corretamente. Apenas confirmar prioridade subdomain > path.
+3. **E-mails de onboarding/convite**: revisar templates de edge functions (`tenant-signup`, `send-invite`, etc.) para usar `buildTenantUrl()` atualizado.
+4. **Supabase Auth → URL Configuration**: adicionar `https://*.allvita.com.br/**` em "Redirect URLs" para que magic links e OAuth funcionem em qualquer subdomínio.
+5. **CORS de edge functions**: revisar se há whitelist de origin; trocar para regex `^https://[a-z0-9-]+\.allvita\.com\.br$`.
 
----
-
-## 5. Roadmap sugerido (fases)
-
-### Fase 1 — Segurança e fundação (1-2 dias)
-1. Implementar validação HMAC no `pagarme-webhook` (header `X-Hub-Signature`)
-2. Criptografar de fato `api_key_encrypted` (usar Supabase Vault ou pgcrypto)
-3. Criar tabela `payment_transactions` (separada de `orders`) e migrar metadata existente
-4. Criar tabela `payment_splits`
-
-### Fase 2 — Subcontas Pagar.me (3-5 dias)
-1. Criar tabela `tenant_gateway_accounts`
-2. Edge function `pagarme-create-recipient` (cria subconta via API)
-3. UI no `/core/settings/financeiro`: formulário KYC (CNPJ, dados bancários, sócios)
-4. Edge function `pagarme-recipient-status` (polling KYC)
-5. Notificação ao admin All Vita quando KYC aprovado/recusado
-
-### Fase 3 — Split em transações (2-3 dias)
-1. Atualizar `pagarme-api` para incluir `split` array em cada `create_order`
-2. Lógica de split: tenant (X%) + All Vita fee SaaS (Y%) + parceiro (Z% se aplicável e configurado)
-3. Configuração de fee All Vita por plano em `subscription_plans`
-4. Dashboard de splits no `/admin/finance`
-
-### Fase 4 — Shopify de saída (3-4 dias)
-1. Tabela `tenant_shopify_config` (loja URL + admin token por tenant, opcional)
-2. Edge function `shopify-create-order` (chamada após `payment.paid`)
-3. Tabela `order_items` + migração
-4. Sync de status (fulfilled, shipped) via webhook Shopify → `orders.fulfillment_status`
-5. Tornar Shopify **opt-in** por tenant (flag em `tenants`)
-
-### Fase 5 — Rastreabilidade e relatórios (2 dias)
-1. View `financial_traceability`: transação → split → recebedor → comissão → vitacoins
-2. Relatório de repasses por tenant
-3. Reconciliação automática Pagar.me ↔ All Vita
+### Fase 4 — Onboarding de tenant simplificado
+Hoje o fluxo de criar tenant exige passo manual no painel Lovable + DNS no Registro.br. Com wildcard, **isso desaparece**: criar o tenant no banco já libera `<slug>.allvita.com.br` automaticamente. Atualizar UI de criação de tenant removendo o passo "configurar DNS".
 
 ---
 
-## 6. Recomendação
+## Detalhes técnicos (para referência)
 
-**Aprovar Fase 1 imediatamente** (gaps de segurança são críticos — hoje qualquer pessoa pode forjar um webhook de pagamento aprovado). 
+**Worker — esqueleto:**
+```js
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    const sub = url.hostname.split('.')[0];
+    if (['app', 'www'].includes(sub)) return fetch(request);
 
-**Fases 2-3 (split)** são o coração do prompt e o maior diferencial — recomendo seguir.
+    const target = new URL(url.pathname + url.search, 'https://app.allvita.com.br');
+    target.pathname = `/${sub}${url.pathname}`;
 
-**Fase 4 (Shopify)** só faz sentido se você confirmar que tenants vão vender produtos físicos. Para Vision Lift hoje (assinatura), **não é prioridade**.
+    const proxied = new Request(target, request);
+    proxied.headers.set('Host', 'app.allvita.com.br');
+    proxied.headers.set('X-Tenant-Slug', sub);
 
-**Decisões que preciso de você antes de codar:**
-1. Todos os tenants vão obrigatoriamente abrir subconta Pagar.me, ou aceitamos modelo híbrido (subconta opcional + conta global da All Vita como fallback)?
-2. Shopify é obrigatório para todos os tenants ou opt-in?
-3. Fee SaaS da All Vita é fixo (%) por plano, ou configurável por tenant?
-4. Comissão de parceiro vai pelo split do Pagar.me (parceiro recebe direto) ou continua como hoje (registro interno + repasse manual)?
+    const res = await fetch(proxied);
+    const newRes = new Response(res.body, res);
+    // Rewrite Set-Cookie domain
+    const cookies = res.headers.getSetCookie?.() ?? [];
+    newRes.headers.delete('Set-Cookie');
+    cookies.forEach(c => newRes.headers.append('Set-Cookie',
+      c.replace(/Domain=[^;]+/i, `Domain=${url.hostname}`)));
+    return newRes;
+  }
+}
+```
+
+**Pontos de atenção:**
+- SSL: Cloudflare Universal SSL cobre wildcard de 1 nível (`*.allvita.com.br`) automaticamente. Não cobre `*.*.allvita.com.br`.
+- Lovable continuará emitindo cert para `app.allvita.com.br` (registro DNS-only, sem proxy CF).
+- Não use proxy do Cloudflare em `app.allvita.com.br` — isso quebraria a emissão de SSL pelo Lovable.
+- Reescrita de cookies é essencial pra sessão Supabase funcionar isolada por subdomínio.
+
+---
+
+## Custo & risco
+
+- **Cloudflare:** Free plan + Workers Free (100k req/dia). Para o estágio atual: **R$ 0/mês**.
+- **Risco operacional:** trocar nameservers no Registro.br tem janela de propagação de até 24h. Mitigação: copiar TODOS os registros DNS atuais antes de trocar, e manter ambos os NS válidos durante a transição.
+- **Reversibilidade:** total. Voltar pro path-based é só apontar DNS de volta pro Lovable.
+
+---
+
+## O que preciso de você antes de começar a implementação
+
+1. Confirmar que pode (e quer) mover os nameservers de `allvita.com.br` do Registro.br pro Cloudflare.
+2. Confirmar que a Opção B é o caminho (vs. ficar no path-based atual da Opção A, que não custa nada).
+
+Após aprovação, eu executo as **Fases 3 e 4** (código). As **Fases 1 e 2** (Cloudflare) eu te entrego um passo-a-passo + código pronto do Worker para você colar — não tenho acesso à conta Cloudflare nem ao Registro.br.

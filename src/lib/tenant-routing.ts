@@ -63,30 +63,41 @@ export function extractSlugFromPath(pathname: string): string | null {
 }
 
 /**
+ * Production root domain. Tenants are served as `<slug>.allvita.com.br`
+ * via the Cloudflare Worker proxy (see docs/CLOUDFLARE_WORKER_SETUP.md).
+ */
+const PRODUCTION_ROOT_DOMAIN = "allvita.com.br";
+
+/**
  * Builds the full external URL for a tenant page (used in invitations,
  * referral links, share buttons, etc.).
+ *
+ * Strategy:
+ *  - In production (`*.allvita.com.br`): returns subdomain URL
+ *    `https://<slug>.allvita.com.br<path>` — served by Cloudflare Worker.
+ *  - In Lovable preview / localhost: falls back to path-based
+ *    `<origin>/<slug><path>` so devs can still test without DNS setup.
  */
 export function buildTenantUrl(slug: string, path: string = "/", params?: Record<string, string>): string {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  
-  // ALWAYS use path-based URLs (app.allvita.com.br/slug/path) 
-  // because Lovable redirects all other subdomains to the primary domain.
-  const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://app.allvita.com.br";
-  
-  // If we are already on a tenant-specific URL or a custom domain that is NOT the primary app, 
-  // we might want to preserve that, but for now, path-based on primary is safest.
-  const baseUrl = currentOrigin.includes("lovable.app") || currentOrigin.includes("allvita.com.br") 
-    ? currentOrigin 
-    : "https://app.allvita.com.br";
+  const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+  const isProduction = hostname.endsWith(PRODUCTION_ROOT_DOMAIN) || hostname === "";
 
-  const finalPath = `/${slug}${cleanPath}`;
-  const url = new URL(finalPath, baseUrl);
-  
+  let url: URL;
+  if (isProduction) {
+    // Subdomain mode (Cloudflare Worker proxies *.allvita.com.br to Lovable origin)
+    url = new URL(cleanPath, `https://${slug}.${PRODUCTION_ROOT_DOMAIN}`);
+  } else {
+    // Path-based fallback for previews and localhost
+    const origin = window.location.origin;
+    url = new URL(`/${slug}${cleanPath}`, origin);
+  }
+
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       url.searchParams.set(key, value);
     });
   }
-  
+
   return url.toString();
 }
