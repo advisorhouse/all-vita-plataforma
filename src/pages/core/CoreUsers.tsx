@@ -87,9 +87,9 @@ const CoreUsers: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Usuários</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Colaboradores</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Gerenciar usuários e permissões da empresa
+            Gerenciar colaboradores e acessos administrativos da empresa
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
