@@ -355,7 +355,7 @@ const CoreSubscriptions: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {PLAN_DISTRIBUTION.map((p) => (
+                  {planDistribution.map((p: any) => (
                     <div key={p.name} className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
                       <span className="text-[10px] text-muted-foreground">{p.name}</span>
