@@ -173,19 +173,29 @@ serve(async (req) => {
         break;
 
       case "SIGNUP":
-      case "CONFIRMATION":
+      case "CONFIRMATION": {
         subject = `Confirme seu cadastro - ${tenantBranding.name}`;
+        
+        let confirmationUrl = redirect_to;
+        if (email_data?.token_hash) {
+          const url = new URL(redirect_to);
+          url.searchParams.set("token_hash", email_data.token_hash);
+          url.searchParams.set("type", "signup");
+          confirmationUrl = url.toString();
+        }
+
         html = getTemplate(tenantBranding, `
           <h2 style="color: ${tenantBranding.primaryColor};">Quase lá!</h2>
           <p>Obrigado por se cadastrar na <strong>${tenantBranding.name}</strong>.</p>
           <p>Por favor, confirme seu e-mail para ativar sua conta:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Confirmar E-mail
             </a>
           </div>
         `);
         break;
+      }
 
       case "MAGICLINK":
         subject = `Seu link de acesso - ${tenantBranding.name}`;
