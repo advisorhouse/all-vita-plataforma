@@ -59,6 +59,7 @@ interface PartnerFormData {
   state: string;
   
   // Financial
+  pixType: "CPF" | "CNPJ" | "Email" | "Phone" | "Random";
   pixKey: string;
   bank: string;
   agency: string;
