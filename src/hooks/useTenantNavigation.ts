@@ -9,12 +9,12 @@ import { useTenant } from "@/contexts/TenantContext";
 export function useTenantNavigation() {
   const navigate = useNavigate();
   const { slug: routeSlug } = useParams();
-  const { currentTenant, isSubdomainAccess } = useTenant();
+  const { currentTenant, isSubdomainAccess, tenantMode } = useTenant();
   const [searchParams] = useSearchParams();
   const tenantQueryParam = searchParams.get("tenant");
   
-  // Use slug from URL if present, otherwise from context
-  const activeSlug = routeSlug || currentTenant?.slug;
+  // CRITICAL: If we are in subdomain mode, NEVER use routeSlug or currentTenant.slug as a path prefix
+  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain") ? null : (routeSlug || currentTenant?.slug);
 
   const tenantNavigate = useCallback(
     (path: string, options?: { replace?: boolean }) => {
