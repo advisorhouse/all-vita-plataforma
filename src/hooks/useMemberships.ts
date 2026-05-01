@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant, type Membership, type Tenant } from "@/contexts/TenantContext";
@@ -10,6 +10,7 @@ import { useTenant, type Membership, type Tenant } from "@/contexts/TenantContex
 export function useMemberships() {
   const { user, loading: authLoading } = useAuth();
   const { setMemberships, setIsLoading, setIsSuperAdmin, setPlatformRole } = useTenant();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
@@ -17,10 +18,12 @@ export function useMemberships() {
     if (!user) {
       setMemberships([]);
       setIsLoading(false);
+      setLoading(false);
       return;
     }
 
     const fetchMemberships = async () => {
+      setLoading(true);
       setIsLoading(true);
       
       // Fetch both memberships and platform staff status in parallel
@@ -34,7 +37,7 @@ export function useMemberships() {
           .from("all_vita_staff")
           .select("role, is_active")
           .eq("user_id", user.id)
-          .single()
+          .maybeSingle()
       ]);
 
       if (membershipsRes.error) {
@@ -60,8 +63,11 @@ export function useMemberships() {
       }
 
       setIsLoading(false);
+      setLoading(false);
     };
 
     fetchMemberships();
-  }, [user, setMemberships, setIsLoading]);
+  }, [user, authLoading, setMemberships, setIsLoading, setIsSuperAdmin, setPlatformRole]);
+
+  return { loading };
 }
