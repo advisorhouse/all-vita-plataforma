@@ -633,9 +633,5 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
     </Dialog>
   );
 };
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 export default RegisterPartnerModal;
