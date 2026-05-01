@@ -162,10 +162,12 @@ export function useSubdomainTenant() {
       }
 
       if (data) {
-        console.log("[useSubdomainTenant] Tenant loaded:", data.slug);
+        console.log("[useSubdomainTenant] Tenant loaded from DB:", data.slug);
         setCurrentTenant(data as Tenant);
       } else {
         console.log("[useSubdomainTenant] No tenant found for slug in DB:", slug);
+        // CRITICAL: If we are on a subdomain and the tenant doesn't exist, 
+        // we should probably NOT redirect, but let the app show "Not Found" or similar.
         if (error) console.error("[useSubdomainTenant] DB Error:", error);
       }
       setChecked(true);
