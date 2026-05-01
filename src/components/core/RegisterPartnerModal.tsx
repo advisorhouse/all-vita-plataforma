@@ -139,6 +139,7 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
           city: result.localidade,
           state: result.uf,
         });
+        toast.success("Endereço preenchido automaticamente!");
       }
     }
   };
@@ -315,19 +316,12 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                     </div>
                     <div className="space-y-1.5">
                       <FieldLabel>Telefone / WhatsApp *</FieldLabel>
-                      <InputMask
-                        mask="+55 (99) 99999-9999"
+                      <Input
                         value={data.phone}
                         onChange={(e) => update({ phone: e.target.value })}
-                      >
-                        {(inputProps: any) => (
-                          <Input
-                            {...inputProps}
-                            placeholder="+55 (00) 00000-0000"
-                            className={inputClass}
-                          />
-                        )}
-                      </InputMask>
+                        placeholder="Ex: +55 (11) 99999-9999"
+                        className={inputClass}
+                      />
                     </div>
                   </div>
                 </>
@@ -493,7 +487,11 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                       <InputMask
                         mask="99999-999"
                         value={data.cep}
-                        onChange={(e) => update({ cep: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          update({ cep: val });
+                          handleCEPLookup(val);
+                        }}
                       >
                         {(inputProps: any) => (
                           <Input
