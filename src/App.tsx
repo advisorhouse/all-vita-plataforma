@@ -228,6 +228,7 @@ const App = () => (
                 <Route path="staff" element={<AuthGuard requireTenant={false} requiredRole="super_admin"><AdminStaff /></AuthGuard>} />
                 
                 <Route path="settings" element={<AdminSettingsPage />} />
+                <Route path="cloudflare" element={<AdminCloudflareSetup />} />
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="profile" element={<UserProfile />} />
               </Route>
