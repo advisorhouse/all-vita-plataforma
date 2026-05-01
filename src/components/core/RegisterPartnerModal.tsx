@@ -186,9 +186,34 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: integrate with Supabase to create affiliate + profile
-    setDone(true);
+  const handleSubmit = async () => {
+    if (!currentTenant) {
+      toast.error("Empresa não identificada.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("manage-users/create", {
+        headers: { "X-Tenant-Id": currentTenant.id },
+        body: {
+          email: data.email,
+          full_name: data.fullName,
+          phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
+          role: "partner",
+        },
+      });
+
+      if (error) throw error;
+      if (res?.error) throw new Error(res.error);
+
+      setDone(true);
+    } catch (err: any) {
+      console.error("Error creating partner:", err);
+      toast.error("Erro ao cadastrar parceiro", { description: err.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
