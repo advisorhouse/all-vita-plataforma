@@ -98,7 +98,8 @@ const CoreCustomers: React.FC = () => {
           plan: metadata.plan || "Original",
           ltv: clientLtvMap.get(c.id) || 0,
           lastLogin: metadata.lastLogin || format(new Date(c.created_at), "dd/MM/yyyy"),
-          partner: metadata.partner || "Direto"
+          partner: metadata.partner || "Direto",
+          created_at: c.created_at
         };
       });
 
