@@ -149,19 +149,41 @@ serve(async (req) => {
         break;
       }
 
-      case "INVITE":
+      case "INVITE": {
         subject = `Você foi convidado para ${tenantBranding.name}`;
+        const isPartner = user?.user_metadata?.role === "partner";
+        
+        let extraContent = "";
+        if (isPartner) {
+          extraContent = `
+            <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
+              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada como Parceiro Nível 1</h3>
+              <p style="font-size:14px;color:#475569">Ao aceitar este convite, você terá acesso imediato a:</p>
+              <ul style="padding-left:20px;color:#475569;font-size:14px">
+                <li style="margin-bottom:8px"><strong>Vitacoins:</strong> Sistema de pontos por performance e indicações.</li>
+                <li style="margin-bottom:8px"><strong>Vínculo Médico-Paciente:</strong> Conecte seus pacientes via Quiz digital.</li>
+                <li style="margin-bottom:8px"><strong>Rede Própria:</strong> Construa sua rede e ganhe benefícios sobre o desempenho dela.</li>
+                <li><strong>Resgate em Pix:</strong> Transforme pontos em dinheiro direto na sua conta.</li>
+              </ul>
+            </div>
+          `;
+        }
+
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">Bem-vindo(a)!</h2>
+          <h2 style="color: ${tenantBranding.primaryColor};">Bem-vindo(a), ${name}!</h2>
           <p>Você foi convidado para participar da plataforma <strong>${tenantBranding.name}</strong>.</p>
+          
+          ${extraContent}
+
           <p>Clique no botão abaixo para aceitar o convite e configurar sua conta:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Aceitar Convite
             </a>
           </div>
         `);
         break;
+      }
 
       case "SIGNUP":
       case "CONFIRMATION": {
