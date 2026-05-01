@@ -18,32 +18,60 @@ import partnerHeroImg from "@/assets/partner-onboarding-hero.png";
 import { OnboardingHeader, OnboardingFooter } from "@/components/onboarding/OnboardingLayout";
 
 // ─── Types ───────────────────────────────────────────────────
-interface DoctorFormData {
+interface PartnerFormData {
+  // Account
   fullName: string;
   email: string;
   phone: string;
   password: string;
-  crm: string;
-  crmState: string;
+  
+  // Documents
+  cpf: string;
+  rg: string;
+  
+  // Partner Type
+  type: "PF" | "PJ";
+  
+  // Professional (Open text)
+  crm: string; // Or Register
   specialty: string;
-  clinicName: string;
-  clinicCity: string;
-  clinicState: string;
-  cpfCnpj: string;
+  
+  // PJ Data
+  cnpj?: string;
+  socialName?: string;
+  tradingName?: string;
+  responsibleName?: string;
+  
+  // Address
+  cep: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  city: string;
+  state: string;
+  
+  // Financial
   pixKey: string;
-  paymentName: string;
+  bank: string;
+  agency: string;
+  account: string;
 }
 
-const defaultData: DoctorFormData = {
+const defaultData: PartnerFormData = {
   fullName: "", email: "", phone: "", password: "",
-  crm: "", crmState: "", specialty: "", clinicName: "", clinicCity: "", clinicState: "",
-  cpfCnpj: "", pixKey: "", paymentName: "",
+  cpf: "", rg: "",
+  type: "PF",
+  crm: "", specialty: "",
+  cnpj: "", socialName: "", tradingName: "", responsibleName: "",
+  cep: "", street: "", number: "", complement: "", district: "", city: "", state: "",
+  pixKey: "", bank: "", agency: "", account: "",
 };
 
-type Screen = "welcome" | "brand" | "points" | "s1" | "s2" | "s3" | "s4" | "done";
+type Screen = "welcome" | "brand" | "points" | "s1" | "s2" | "s3" | "s4" | "s5" | "s6" | "s7" | "done";
 
-const STEP_ORDER: Screen[] = ["welcome", "brand", "points", "s1", "s2", "s3", "s4", "done"];
-const FORM_STEPS: Screen[] = ["s1", "s2", "s3", "s4"];
+const STEP_ORDER: Screen[] = ["welcome", "brand", "points", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "done"];
+const FORM_STEPS: Screen[] = ["s1", "s2", "s3", "s4", "s5", "s6"];
 
 const STATES = [
   "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
