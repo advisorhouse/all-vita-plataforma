@@ -338,7 +338,7 @@ const CoreCustomers: React.FC = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-1.5">
-                  {LEVEL_DISTRIBUTION.map(l => (
+                  {levelDistribution.map((l: any) => (
                     <div key={l.name} className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: l.fill }} />
                       <span className="text-[10px] text-muted-foreground">{l.name}: {l.value}</span>
