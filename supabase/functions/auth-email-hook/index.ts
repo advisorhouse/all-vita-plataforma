@@ -169,14 +169,36 @@ serve(async (req) => {
         
         const authApiUrl = email_data?.site_url || "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=signup&redirect_to=${encodeURIComponent(redirect_to)}`;
+        const isPartner = user?.user_metadata?.source === "partner_onboarding" || user?.user_metadata?.role === "partner";
+        const isLevel2 = !!user?.user_metadata?.parent_partner_id;
+
+        let extraContent = "";
+        if (isPartner) {
+          const level = isLevel2 ? "Nível 2+" : "Nível 1";
+          extraContent = `
+            <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
+              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Bem-vindo à rede como ${level}!</h3>
+              <p style="font-size:14px;color:#475569">Ao confirmar seu e-mail, você terá acesso a:</p>
+              <ul style="padding-left:20px;color:#475569;font-size:14px">
+                <li style="margin-bottom:8px"><strong>Vitacoins:</strong> Ganhe pontos por vendas, quizzes e indicações.</li>
+                <li style="margin-bottom:8px"><strong>Vínculo Automático:</strong> Conecte-se aos seus pacientes via Quiz.</li>
+                <li style="margin-bottom:8px"><strong>Gestão de Rede:</strong> Acompanhe seu crescimento e de seus indicados.</li>
+                <li><strong>Resgate:</strong> Transforme pontos em Pix, produtos ou cursos.</li>
+              </ul>
+            </div>
+          `;
+        }
 
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">Quase lá!</h2>
+          <h2 style="color: ${tenantBranding.primaryColor};">Quase lá, ${name}!</h2>
           <p>Obrigado por se cadastrar na <strong>${tenantBranding.name}</strong>.</p>
-          <p>Por favor, confirme seu e-mail para ativar sua conta:</p>
+          
+          ${extraContent}
+
+          <p>Por favor, confirme seu e-mail para ativar sua conta e começar sua jornada:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-              Confirmar E-mail
+            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+              Confirmar Meu E-mail
             </a>
           </div>
         `);
