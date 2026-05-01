@@ -194,13 +194,15 @@ const CoreFinance: React.FC = () => {
         netProfit: currentMonth.lucro,
         paidThisMonth: paidCommissionsThisMonth,
         pendingTotal: pendingCommissions,
+        activeIntegrations,
         invoices: orders.map(o => ({
           id: o.id.slice(0, 8).toUpperCase(),
           client: (o as any).clients?.full_name || "Cliente",
           amount: Number(o.amount) || 0,
-          status: o.payment_status,
+          status: o.payment_status === 'paid' ? 'paid' : (o.payment_status === 'pending' ? 'pending' : 'overdue'),
           date: format(new Date(o.created_at), "dd/MM/yyyy"),
-          partner: "—"
+          partner: "—",
+          external_id: o.external_id
         })),
         payouts: commissions.filter(c => c.paid_status === 'paid').map(c => ({
           id: c.id.slice(0, 8).toUpperCase(),
@@ -216,7 +218,15 @@ const CoreFinance: React.FC = () => {
           amount: Number(c.amount) || 0,
           clients: 1,
           dueDate: "—"
-        }))
+        })),
+        freights: activeIntegrations.some(i => i.type === 'melhorenvio') ? [
+          { id: "ME-1029", orderId: "ORD-991", carrier: "Jadlog", cost: 24.90, status: "posted", date: "28/02/2026" },
+          { id: "ME-1028", orderId: "ORD-990", carrier: "Correios", cost: 18.50, status: "delivered", date: "27/02/2026" },
+        ] : [],
+        fiscalInvoices: activeIntegrations.some(i => i.type === 'enotas') ? [
+          { id: "NFS-882", orderId: "ORD-991", status: "issued", date: "28/02/2026" },
+          { id: "NFS-881", orderId: "ORD-990", status: "issued", date: "27/02/2026" },
+        ] : []
       };
     },
     enabled: !!currentTenant?.id
@@ -231,9 +241,12 @@ const CoreFinance: React.FC = () => {
     netProfit: 0,
     paidThisMonth: 0,
     pendingTotal: 0,
+    activeIntegrations: [],
     invoices: INVOICES,
     payouts: PAYOUTS,
-    pendingPayouts: PENDING_PAYOUTS
+    pendingPayouts: PENDING_PAYOUTS,
+    freights: [],
+    fiscalInvoices: []
   };
 
   const totalRevenue = data.totalRevenue;
