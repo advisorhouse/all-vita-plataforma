@@ -443,13 +443,35 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
           if (url) updates.logo_url = url;
         }
 
-        if (iconFile) {
-          const url = await uploadAsset(iconFile, "icon");
+        // ISOTIPO (Icon)
+        let finalIconFile = iconFile;
+        if (!finalIconFile && iconPreview && iconPreview.startsWith('http')) {
+          try {
+            const iconRes = await fetch(iconPreview);
+            const blob = await iconRes.blob();
+            finalIconFile = new File([blob], 'icon.png', { type: blob.type });
+          } catch (e) {
+            console.error("Failed to fetch remote icon", e);
+          }
+        }
+        if (finalIconFile) {
+          const url = await uploadAsset(finalIconFile, "icon");
           if (url) updates.isotipo_url = url;
         }
 
-        if (faviconFile) {
-          const url = await uploadAsset(faviconFile, "favicon");
+        // FAVICON
+        let finalFaviconFile = faviconFile;
+        if (!finalFaviconFile && faviconPreview && faviconPreview.startsWith('http')) {
+          try {
+            const favRes = await fetch(faviconPreview);
+            const blob = await favRes.blob();
+            finalFaviconFile = new File([blob], 'favicon.png', { type: blob.type });
+          } catch (e) {
+            console.error("Failed to fetch remote favicon", e);
+          }
+        }
+        if (finalFaviconFile) {
+          const url = await uploadAsset(finalFaviconFile, "favicon");
           if (url) updates.favicon_url = url;
         }
 
