@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   UserPlus, Stethoscope, Building2, CreditCard, Check,
   ChevronLeft, ChevronRight, Lock, ArrowRight,
-  FileText, MapPin, User, Fingerprint, Search,
+  FileText, MapPin, User, Fingerprint, Search, Loader2,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import InputMask from "react-input-mask";
 import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
 import { useCEPLookup } from "@/hooks/use-cep-lookup";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface RegisterPartnerModalProps {
   open: boolean;
