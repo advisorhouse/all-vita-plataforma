@@ -39,14 +39,27 @@ const ForgotPasswordPage: React.FC = () => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: resetUrl,
       });
+      
       if (error) {
-        toast.error(error.message);
+        console.error("Auth reset error:", error);
+        let message = "Erro ao enviar e-mail de recuperação";
+        
+        if (error.message.includes("Email rate limit exceeded")) {
+          message = "Limite de tentativas excedido. Tente novamente mais tarde.";
+        } else if (error.message.includes("User not found")) {
+          message = "Usuário não encontrado.";
+        } else if (error.status === 500 || error.message.includes("hook")) {
+          message = "Erro no serviço de e-mail. Por favor, contate o suporte.";
+        }
+        
+        toast.error(message);
       } else {
         setSent(true);
-        toast.success("Email de recuperação enviado!");
+        toast.success("E-mail de recuperação enviado com sucesso!");
       }
-    } catch {
-      toast.error("Erro ao enviar email");
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast.error("Ocorreu um erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -81,12 +94,12 @@ const ForgotPasswordPage: React.FC = () => {
             Recuperar senha
           </h1>
           <p 
-            className="text-sm mt-1 transition-colors duration-500"
+            className="text-sm mt-2 transition-colors duration-500 max-w-[280px] mx-auto"
             style={{ 
               color: currentTenant?.primary_color ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted-foreground)'
             }}
           >
-            Enviaremos um link para redefinir sua senha
+            Esqueceu sua senha? Não se preocupe. Informe seu e-mail abaixo e enviaremos as instruções para você criar uma nova.
           </p>
         </div>
 
