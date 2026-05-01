@@ -93,7 +93,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // Redirect to onboarding if needed (but not if already on onboarding page)
   if (needsOnboarding && !location.pathname.endsWith("/onboarding")) {
-    const onboardingPath = activeSlug ? `/${activeSlug}/onboarding` : "/onboarding";
+    const onboardingPath = activeSlug && !isSubdomainAccess ? `/${activeSlug}/onboarding` : "/onboarding";
     return <Navigate to={onboardingPath} replace />;
   }
 
