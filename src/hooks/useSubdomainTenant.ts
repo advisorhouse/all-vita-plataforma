@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant, type Tenant } from "@/contexts/TenantContext";
@@ -91,6 +91,7 @@ export function useSubdomainTenant() {
   const tenantQueryParam = searchParams.get("tenant");
   const [tenantSlug, setTenantSlug] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const fetchingRef = useRef<string | null>(null);
 
   useEffect(() => {
     const detected = detectTenant();
@@ -105,6 +106,14 @@ export function useSubdomainTenant() {
 
     setIsSubdomainAccess(detected.mode === "subdomain" || detected.mode === "custom-domain");
     console.log("[useSubdomainTenant] Detected:", detected);
+
+    // Prevent duplicate fetches for the same target
+    const fetchKey = detected.mode === "custom-domain" ? detected.hostname : (detected as any).slug;
+    if (fetchingRef.current === fetchKey) {
+      console.log("[useSubdomainTenant] Already fetching/fetched for:", fetchKey);
+      return;
+    }
+    fetchingRef.current = fetchKey;
 
     // Custom-domain lookup needs to query by `domain` field
     if (detected.mode === "custom-domain") {
