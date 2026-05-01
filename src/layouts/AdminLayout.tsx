@@ -1,6 +1,6 @@
 import React from "react";
 import AppShell from "@/components/layout/AppShell";
-import { Home, Building2, Users, FileText, ShieldCheck, Settings, DollarSign, Coins, Plug, BarChart3, UserCog, KeyRound } from "lucide-react";
+import { Home, Building2, Users, FileText, ShieldCheck, Settings, DollarSign, Coins, Plug, BarChart3, UserCog, KeyRound, Globe } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 const adminLinks = [
