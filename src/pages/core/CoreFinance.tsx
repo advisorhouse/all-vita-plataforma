@@ -381,7 +381,7 @@ const CoreFinance: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {PENDING_PAYOUTS.map((p) => (
+                  {data.pendingPayouts.map((p: any) => (
                     <div key={p.partner} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-foreground">
