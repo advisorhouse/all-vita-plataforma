@@ -33,15 +33,20 @@ const Index = () => {
                        (window.location.hostname.endsWith("allvita.com.br") || 
                         window.location.hostname.endsWith("lovable.app"));
 
+    console.log("[Index] Auth check. User:", !!user, "isSubdomain:", isSubdomain, "Hostname:", window.location.hostname);
+
     if (isSubdomain) {
-      console.log("[Index] Subdomain access, staying on /auth/login");
+      console.log("[Index] Subdomain access, STAYING on current domain at /auth/login");
+      // Use Navigate but ensure it's a relative path to stay on the same domain
       return <Navigate to="/auth/login" replace />;
     }
 
     if (!tenantParam) {
+      console.log("[Index] No tenant param on main app, going to global login");
       return <Navigate to="/auth/login" replace />;
     }
 
+    console.log("[Index] Redirecting to login with tenant param:", tenantParam);
     return <Navigate to={`/auth/login?tenant=${tenantParam}`} replace />;
   }
 
