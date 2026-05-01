@@ -13,28 +13,35 @@ serve(async (req) => {
   console.log("=== AUTH EMAIL HOOK CALLED ===");
   try {
     const payload = await req.json();
-    console.log("Payload:", JSON.stringify(payload, null, 2));
+    console.log("Payload Type:", payload.type || payload.event || payload.email_action_type || "unknown");
+    console.log("Full Payload:", JSON.stringify(payload));
 
-    // Supabase Auth Hooks can have user nested in data or at top level
-    const user = payload.user || payload.data?.user;
-    const email_data = payload.email_data || payload.data?.email_data;
+    // Supabase Auth Hooks can have data nested in various ways
+    // Try different paths to find the user and email data
+    const user = payload.user || payload.data?.user || payload.record;
+    const email_data = payload.email_data || payload.data?.email_data || payload.data;
+    const event = email_data?.email_action_type || payload.event || payload.type || payload.email_data?.email_action_type;
+    const redirect_to = email_data?.redirect_to || payload.redirect_to || payload.email_data?.redirect_to || payload.data?.redirect_to;
     
     if (!user) {
-      console.warn("Missing user in payload structure, checking for health check");
-      if (payload.type || payload.event || payload.email_action_type) {
-        return new Response(JSON.stringify({ status: "ok", message: "Event received but no user to send to" }), { 
+      console.warn("Missing user in payload structure, checking if it is a health check or different format");
+      // If we have an email but no user object, try to construct a minimal user
+      const email = payload.email || email_data?.email || payload.data?.email;
+      if (email) {
+        console.log("Found email in payload, continuing with minimal user data");
+        // We'll proceed with this minimal info
+      } else if (payload.type || payload.event || payload.email_action_type) {
+        return new Response(JSON.stringify({ status: "ok", message: "Event received but no user found" }), { 
           status: 200,
           headers: { "Content-Type": "application/json" }
         });
+      } else {
+        return new Response(JSON.stringify({ error: "Usuário não encontrado no payload" }), { 
+          status: 400,
+          headers: { "Content-Type": "application/json" }
+        });
       }
-      return new Response(JSON.stringify({ error: "Usuário não encontrado no payload" }), { 
-        status: 400,
-        headers: { "Content-Type": "application/json" }
-      });
     }
-
-    const event = email_data?.email_action_type || payload.event || payload.type || payload.email_data?.email_action_type;
-    const redirect_to = email_data?.redirect_to || payload.redirect_to || payload.email_data?.redirect_to;
 
     // Detect tenant from redirect_to or user metadata
     let tenantSlug = user?.user_metadata?.tenant_slug;
@@ -88,8 +95,8 @@ serve(async (req) => {
 
     let subject = "";
     let html = "";
-    const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Usuário";
-    const userEmail = user?.email || user?.new_email;
+    const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || email_data?.email?.split('@')[0] || "Usuário";
+    const userEmail = user?.email || user?.new_email || email_data?.email || payload.email;
 
     if (!userEmail) {
       console.error("User email not found in payload");
