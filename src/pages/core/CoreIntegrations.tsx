@@ -349,14 +349,24 @@ const CoreIntegrations: React.FC = () => {
                     <p className="text-sm font-medium">Ativar integração</p>
                     <p className="text-xs text-muted-foreground">Habilitar após salvar as credenciais</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={isIntegrationActive} 
+                    onCheckedChange={setIsIntegrationActive} 
+                  />
                 </div>
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setConfigDialog(null)}>Cancelar</Button>
-                <Button onClick={handleSave} className="gap-1.5">
-                  <CheckCircle2 className="h-4 w-4" /> Salvar e Conectar
+                <Button variant="outline" onClick={() => setConfigDialog(null)} disabled={isSaving}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSave} className="gap-1.5" disabled={isSaving}>
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+                  {isSaving ? "Salvando..." : "Salvar e Conectar"}
                 </Button>
               </DialogFooter>
             </>
