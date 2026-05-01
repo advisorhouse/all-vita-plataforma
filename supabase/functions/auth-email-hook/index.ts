@@ -182,7 +182,7 @@ serve(async (req) => {
     if (subject && html) {
       console.log(`Sending email to ${userEmail} via Resend...`);
       const { data, error } = await resend.emails.send({
-        from: `${tenantBranding.name} <no-reply@allvita.com.br>`,
+        from: `${tenantBranding.name} <no-reply@app.allvita.com.br>`,
         to: [userEmail],
         subject: subject,
         html: html,
