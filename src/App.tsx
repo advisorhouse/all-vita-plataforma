@@ -188,6 +188,9 @@ const App = () => (
               <Route path="/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
                 {clubChildren}
               </Route>
+              <Route path="/:slug/club" element={<AuthGuard requiredRole="client"><ClubLayout /></AuthGuard>}>
+                {clubChildren}
+              </Route>
 
               {/* Partner (Afiliado) - Protected */}
               <Route path="/partner/start" element={<AuthGuard><PartnerStart /></AuthGuard>} />
@@ -195,10 +198,16 @@ const App = () => (
               <Route path="/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
                 {partnerChildren}
               </Route>
+              <Route path="/:slug/partner" element={<AuthGuard requiredRole="partner"><PartnerLayout /></AuthGuard>}>
+                {partnerChildren}
+              </Route>
 
               {/* Core (Admin da empresa) - Protected */}
               <Route path="/core/select-role" element={<AuthGuard><CoreSelectRole /></AuthGuard>} />
               <Route path="/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
+                {coreChildren}
+              </Route>
+              <Route path="/:slug/core" element={<AuthGuard requiredRole="admin"><CoreLayout /></AuthGuard>}>
                 {coreChildren}
               </Route>
 
