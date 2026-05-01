@@ -164,14 +164,14 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
             </div>
             <div className="rounded-xl border border-border bg-secondary/20 p-4 text-left space-y-2">
               <div className="grid grid-cols-2 gap-y-2 text-[12px]">
-                <span className="text-muted-foreground">CRM</span>
-                <span className="text-foreground font-medium text-right">{data.crm}/{data.crmState}</span>
+                <span className="text-muted-foreground">Registro</span>
+                <span className="text-foreground font-medium text-right">{data.crm}</span>
                 <span className="text-muted-foreground">Especialidade</span>
                 <span className="text-foreground font-medium text-right">{data.specialty}</span>
-                <span className="text-muted-foreground">Clínica</span>
-                <span className="text-foreground font-medium text-right">{data.clinicName}</span>
+                <span className="text-muted-foreground">Tipo</span>
+                <span className="text-foreground font-medium text-right">{data.type}</span>
                 <span className="text-muted-foreground">Cidade</span>
-                <span className="text-foreground font-medium text-right">{data.clinicCity}/{data.clinicState}</span>
+                <span className="text-foreground font-medium text-right">{data.city}/{data.state}</span>
               </div>
             </div>
             <Button onClick={handleClose} className="w-full h-11 rounded-xl">
@@ -215,7 +215,7 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 min-h-[280px]">
+        <div className="px-6 py-5 min-h-[320px]">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}
@@ -227,7 +227,7 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
               transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="space-y-4"
             >
-              {/* Step 1 - Dados Pessoais */}
+              {/* Step 1 - Dados Básicos */}
               {step === 1 && (
                 <>
                   <div className="space-y-1.5">
@@ -251,92 +251,146 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                   </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Telefone / WhatsApp *</FieldLabel>
-                    <InputMask
-                      mask="+55 (99) 99999-9999"
+                    <Input
                       value={data.phone}
                       onChange={(e) => update({ phone: e.target.value })}
-                    >
-                      {/* @ts-ignore */}
-                      {(inputProps: any) => (
-                        <Input
-                          {...inputProps}
-                          placeholder="+55 (11) 99999-9999"
-                          className={inputClass}
-                        />
-                      )}
-                    </InputMask>
-                  </div>
-                </>
-              )}
-
-              {/* Step 2 - Dados Profissionais */}
-              {step === 2 && (
-                <>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-2 space-y-1.5">
-                      <FieldLabel>Número do CRM *</FieldLabel>
-                      <Input
-                        value={data.crm}
-                        onChange={(e) => update({ crm: e.target.value })}
-                        placeholder="123456"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <FieldLabel>UF *</FieldLabel>
-                      <Select value={data.crmState} onValueChange={(v) => update({ crmState: v })}>
-                        <SelectTrigger className={cn(inputClass, "w-full")}>
-                          <SelectValue placeholder="UF" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATES.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Especialidade principal *</FieldLabel>
-                    <Select value={data.specialty} onValueChange={(v) => update({ specialty: v })}>
-                      <SelectTrigger className={cn(inputClass, "w-full")}>
-                        <SelectValue placeholder="Selecione a especialidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SPECIALTIES.map((s) => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-
-              {/* Step 3 - Clínica */}
-              {step === 3 && (
-                <>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Nome da clínica / consultório *</FieldLabel>
-                    <Input
-                      value={data.clinicName}
-                      onChange={(e) => update({ clinicName: e.target.value })}
-                      placeholder="Clínica Vision Care"
+                      placeholder="(00) 00000-0000"
                       className={inputClass}
                     />
                   </div>
+                </>
+              )}
+
+              {/* Step 2 - Documentos */}
+              {step === 2 && (
+                <>
+                  <div className="space-y-1.5">
+                    <FieldLabel>CPF *</FieldLabel>
+                    <Input
+                      value={data.cpf}
+                      onChange={(e) => update({ cpf: e.target.value })}
+                      placeholder="000.000.000-00"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>RG *</FieldLabel>
+                    <Input
+                      value={data.rg}
+                      onChange={(e) => update({ rg: e.target.value })}
+                      placeholder="00.000.000-0"
+                      className={inputClass}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Step 3 - Profissional */}
+              {step === 3 && (
+                <>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Tipo de parceiro *</FieldLabel>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { id: "PF", label: "Pessoa Física", icon: User },
+                        { id: "PJ", label: "Pessoa Jurídica", icon: Building2 },
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => update({ type: t.id as "PF" | "PJ" })}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
+                            data.type === t.id
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-border bg-secondary/30 text-muted-foreground"
+                          }`}
+                        >
+                          <t.icon className="h-4 w-4" />
+                          <span className="text-[12px] font-medium">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Registro Profissional (CRM/Outros) *</FieldLabel>
+                    <Input
+                      value={data.crm}
+                      onChange={(e) => update({ crm: e.target.value })}
+                      placeholder="Número do registro"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Especialidade principal *</FieldLabel>
+                    <Input
+                      value={data.specialty}
+                      onChange={(e) => update({ specialty: e.target.value })}
+                      placeholder="Área de atuação"
+                      className={inputClass}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Step 4 - PJ Data */}
+              {step === 4 && (
+                <>
+                  {data.type === "PF" ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
+                      <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+                        <User className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">Pessoa Física selecionada. Clique em próximo para continuar.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-1.5">
+                        <FieldLabel>CNPJ *</FieldLabel>
+                        <Input
+                          value={data.cnpj}
+                          onChange={(e) => update({ cnpj: e.target.value })}
+                          placeholder="00.000.000/0000-00"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <FieldLabel>Razão Social *</FieldLabel>
+                        <Input
+                          value={data.socialName}
+                          onChange={(e) => update({ socialName: e.target.value })}
+                          placeholder="Nome oficial da empresa"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <FieldLabel>Nome do Responsável *</FieldLabel>
+                        <Input
+                          value={data.responsibleName}
+                          onChange={(e) => update({ responsibleName: e.target.value })}
+                          placeholder="Nome completo do responsável"
+                          className={inputClass}
+                        />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Step 5 - Endereço */}
+              {step === 5 && (
+                <>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="col-span-2 space-y-1.5">
-                      <FieldLabel>Cidade *</FieldLabel>
+                      <FieldLabel>CEP *</FieldLabel>
                       <Input
-                        value={data.clinicCity}
-                        onChange={(e) => update({ clinicCity: e.target.value })}
-                        placeholder="São Paulo"
+                        value={data.cep}
+                        onChange={(e) => update({ cep: e.target.value })}
+                        placeholder="00000-000"
                         className={inputClass}
                       />
                     </div>
                     <div className="space-y-1.5">
                       <FieldLabel>UF *</FieldLabel>
-                      <Select value={data.clinicState} onValueChange={(v) => update({ clinicState: v })}>
+                      <Select value={data.state} onValueChange={(v) => update({ state: v })}>
                         <SelectTrigger className={cn(inputClass, "w-full")}>
                           <SelectValue placeholder="UF" />
                         </SelectTrigger>
@@ -348,53 +402,72 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
                       </Select>
                     </div>
                   </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel>Rua / Logradouro *</FieldLabel>
+                    <Input
+                      value={data.street}
+                      onChange={(e) => update({ street: e.target.value })}
+                      placeholder="Endereço"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <FieldLabel>Cidade *</FieldLabel>
+                      <Input
+                        value={data.city}
+                        onChange={(e) => update({ city: e.target.value })}
+                        placeholder="Cidade"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <FieldLabel>Bairro *</FieldLabel>
+                      <Input
+                        value={data.district}
+                        onChange={(e) => update({ district: e.target.value })}
+                        placeholder="Bairro"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
                 </>
               )}
 
-              {/* Step 4 - Financeiro */}
-              {step === 4 && (
+              {/* Step 6 - Financeiro */}
+              {step === 6 && (
                 <>
-                  <div className="space-y-1.5">
-                    <FieldLabel>CPF ou CNPJ *</FieldLabel>
-                    <InputMask
-                      mask={data.cpfCnpj.replace(/\D/g, "").length <= 11 ? "999.999.999-99" : "99.999.999/9999-99"}
-                      maskChar={null}
-                      value={data.cpfCnpj}
-                      onChange={(e) => update({ cpfCnpj: e.target.value })}
-                    >
-                      {/* @ts-ignore */}
-                      {(inputProps: any) => (
-                        <Input
-                          {...inputProps}
-                          placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                          className={inputClass}
-                        />
-                      )}
-                    </InputMask>
-                  </div>
                   <div className="space-y-1.5">
                     <FieldLabel>Chave PIX *</FieldLabel>
                     <Input
                       value={data.pixKey}
                       onChange={(e) => update({ pixKey: e.target.value })}
-                      placeholder="CPF, e-mail, telefone ou chave aleatória"
+                      placeholder="Chave Pix"
                       className={inputClass}
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Nome do titular (opcional)</FieldLabel>
+                  <div className="space-y-1.5 pt-2">
+                    <FieldLabel>Dados Bancários (Reserva)</FieldLabel>
+                    <div className="grid grid-cols-2 gap-3 mt-1.5">
+                      <Input
+                        value={data.bank}
+                        onChange={(e) => update({ bank: e.target.value })}
+                        placeholder="Banco"
+                        className={inputClass}
+                      />
+                      <Input
+                        value={data.agency}
+                        onChange={(e) => update({ agency: e.target.value })}
+                        placeholder="Agência"
+                        className={inputClass}
+                      />
+                    </div>
                     <Input
-                      value={data.paymentName}
-                      onChange={(e) => update({ paymentName: e.target.value })}
-                      placeholder="Nome conforme conta bancária"
-                      className={inputClass}
+                      value={data.account}
+                      onChange={(e) => update({ account: e.target.value })}
+                      placeholder="Conta com dígito"
+                      className={cn(inputClass, "mt-1.5")}
                     />
-                  </div>
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <Lock className="h-3 w-3 text-muted-foreground/40" />
-                    <span className="text-[10px] text-muted-foreground/40">
-                      Dados financeiros protegidos com criptografia AES-256.
-                    </span>
                   </div>
                 </>
               )}
@@ -414,7 +487,7 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
             {step > 1 ? "Voltar" : "Cancelar"}
           </Button>
 
-          {step < 4 ? (
+          {step < 6 ? (
             <Button
               size="sm"
               onClick={() => goTo((step + 1) as Step)}
