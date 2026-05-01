@@ -245,10 +245,10 @@ const CoreSubscriptions: React.FC = () => {
           {/* KPIs */}
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: "MRR", value: "R$ 52.1k", change: "+15.3%", up: true, icon: DollarSign, sparkData: MRR_DATA.map(d => d.mrr), tip: "Monthly Recurring Revenue: receita mensal recorrente de todas as assinaturas ativas." },
-              { label: "Assinaturas Ativas", value: "890", change: "+12.4%", up: true, icon: Package, sparkData: [680, 720, 760, 810, 850, 890], tip: "Total de assinaturas com status ativo e pagamento em dia." },
-              { label: "Renovações/mês", value: "842", change: "+8.2%", up: true, icon: RefreshCw, sparkData: [710, 740, 760, 790, 820, 842], tip: "Quantidade de renovações bem-sucedidas no mês corrente." },
-              { label: "Churn Rate", value: "7.4%", change: "-0.5pp", up: false, icon: XCircle, sparkData: CHURN_DATA.map(d => d.rate), tip: "Taxa de cancelamento mensal. Abaixo de 5% é considerado saudável para o segmento." },
+              { label: "MRR", value: `R$ ${(totalMRR / 1000).toFixed(1)}k`, change: "+0%", up: true, icon: DollarSign, sparkData: mrrData.map(d => d.mrr), tip: "Monthly Recurring Revenue: receita mensal recorrente de todas as assinaturas ativas." },
+              { label: "Assinaturas Ativas", value: activeSubs.length.toString(), change: "+0%", up: true, icon: Package, sparkData: mrrData.map(d => d.mrr), tip: "Total de assinaturas com status ativo e pagamento em dia." },
+              { label: "Renovações/mês", value: activeSubs.length.toString(), change: "+0%", up: true, icon: RefreshCw, sparkData: mrrData.map(d => d.mrr), tip: "Quantidade de renovações bem-sucedidas no mês corrente." },
+              { label: "Churn Rate", value: "0%", change: "0pp", up: false, icon: XCircle, sparkData: mrrData.map(d => d.churnMrr), tip: "Taxa de cancelamento mensal. Abaixo de 5% é considerado saudável para o segmento." },
             ].map(({ label, value, change, up, icon: Icon, sparkData, tip }) => (
               <Card key={label} className="border border-border shadow-sm">
                 <CardContent className="p-4 space-y-2">
