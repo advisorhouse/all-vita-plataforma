@@ -8,6 +8,7 @@ import {
   Stethoscope, BarChart3, Handshake, ArrowRight, ChevronLeft, Check,
   Eye, EyeOff, Repeat, Heart, Monitor, Lock, Shield, Coins, Users,
   Link2, Gift, GraduationCap, Ticket, Wrench, CreditCard, Clock, AlertTriangle,
+  Building2, MapPin, Landmark, Fingerprint, FileText, User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
