@@ -109,7 +109,10 @@ export function useSubdomainTenant() {
 
     // Prevent duplicate fetches for the same target
     const fetchKey = detected.mode === "custom-domain" ? detected.hostname : (detected as any).slug;
-    if (fetchingRef.current === fetchKey) return;
+    if (fetchingRef.current === fetchKey) {
+      console.log("[useSubdomainTenant] Already fetching/fetched for:", fetchKey);
+      return;
+    }
     fetchingRef.current = fetchKey;
 
     // Custom-domain lookup needs to query by `domain` field
