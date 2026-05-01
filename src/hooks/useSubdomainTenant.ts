@@ -15,7 +15,7 @@ import {
 const BASE_DOMAINS = [
   "allvita.com.br",
   "lovable.app",
-  "lovable.dev"
+  "lovable.dev",
 ];
 
 const RESERVED_SUBDOMAINS = ["www", "app", "api", "admin", "all-vita-plataforma", "id-preview", "preview"];
