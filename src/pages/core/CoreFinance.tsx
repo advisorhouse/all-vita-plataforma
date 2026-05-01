@@ -277,11 +277,11 @@ const CoreFinance: React.FC = () => {
       {/* KPIs */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
-          { label: "Receita Mensal", value: `R$ ${(totalRevenue / 1000).toFixed(1)}k`, change: "+9.4%", up: true, icon: DollarSign, tip: "Receita bruta total do mês corrente, somando todas as assinaturas e vendas avulsas." },
-          { label: "Lucro Líquido", value: `R$ ${(netProfit / 1000).toFixed(1)}k`, change: "+9.3%", up: true, icon: TrendingUp, tip: "Receita menos todos os custos (produto, envio, comissões, marketing, plataforma)." },
-          { label: "Margem Líquida", value: `${profitMargin}%`, change: "+0.2pp", up: true, icon: BarChart3, tip: "Percentual de lucro sobre a receita. Acima de 50% é considerado excelente para o segmento." },
-          { label: "Comissões Pagas", value: `R$ ${(paidThisMonth / 1000).toFixed(1)}k`, change: "+8.1%", up: true, icon: Banknote, tip: "Total de comissões já pagas aos partners neste mês." },
-          { label: "A Pagar (Próx.)", value: `R$ ${(pendingTotal / 1000).toFixed(1)}k`, change: `${PENDING_PAYOUTS.length} partners`, up: false, icon: Clock, tip: "Comissões pendentes de pagamento para o próximo ciclo." },
+          { label: "Receita Mensal", value: `R$ ${(totalRevenue / 1000).toFixed(1)}k`, change: `${Number(revenueChange) > 0 ? '+' : ''}${revenueChange}%`, up: Number(revenueChange) >= 0, icon: DollarSign, tip: "Receita bruta total do mês corrente, somando todas as assinaturas e vendas avulsas." },
+          { label: "Lucro Líquido", value: `R$ ${(netProfit / 1000).toFixed(1)}k`, change: `${Number(profitChange) > 0 ? '+' : ''}${profitChange}%`, up: Number(profitChange) >= 0, icon: TrendingUp, tip: "Receita menos todos os custos (produto, envio, comissões, marketing, plataforma)." },
+          { label: "Margem Líquida", value: `${profitMargin}%`, change: "Saudável", up: true, icon: BarChart3, tip: "Percentual de lucro sobre a receita. Acima de 50% é considerado excelente para o segmento." },
+          { label: "Comissões Pagas", value: `R$ ${(paidThisMonth / 1000).toFixed(1)}k`, change: `${Number(paidChange) > 0 ? '+' : ''}${paidChange}%`, up: Number(paidChange) >= 0, icon: Banknote, tip: "Total de comissões já pagas aos partners neste mês." },
+          { label: "A Pagar (Próx.)", value: `R$ ${(pendingTotal / 1000).toFixed(1)}k`, change: `${data.pendingPayouts.length} partners`, up: false, icon: Clock, tip: "Comissões pendentes de pagamento para o próximo ciclo." },
         ].map(({ label, value, change, up, icon: Icon, tip }) => (
           <Card key={label} className="border border-border shadow-sm">
             <CardContent className="p-4 space-y-1">
