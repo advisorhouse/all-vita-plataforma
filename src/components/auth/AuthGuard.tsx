@@ -91,11 +91,13 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     // If we are on a subdomain, we stay on /auth/login ON THIS DOMAIN
     const loginPath = isSubdomainAccess ? "/auth/login" : (activeSlug ? `/${activeSlug}/auth/login` : "/auth/login");
     
-    // CRITICAL: Ensure we never prepend the slug if isSubdomainAccess is true
-    const finalLoginPath = isSubdomainAccess ? "/auth/login" : loginPath;
+    // CRITICAL: Prevent cross-domain redirect if already on a subdomain
+    if (isSubdomainAccess && window.location.hostname !== "app.allvita.com.br") {
+      console.log("[AuthGuard] Subdomain access confirmed. Staying local.");
+    }
 
-    console.log("[AuthGuard] Not logged in. isSubdomainAccess:", isSubdomainAccess, "Redirecting to:", finalLoginPath);
-    return <Navigate to={`${finalLoginPath}${search}`} state={{ from: location }} replace />;
+    console.log("[AuthGuard] Not logged in. isSubdomainAccess:", isSubdomainAccess, "Redirecting to:", loginPath);
+    return <Navigate to={`${loginPath}${search}`} state={{ from: location }} replace />;
   }
 
   // Redirect to onboarding if needed (but not if already on onboarding page)
