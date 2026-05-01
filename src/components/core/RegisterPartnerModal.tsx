@@ -59,6 +59,7 @@ interface PartnerFormData {
   state: string;
   
   // Financial
+  pixType: "CPF" | "CNPJ" | "Email" | "Phone" | "Random";
   pixKey: string;
   bank: string;
   agency: string;
@@ -74,10 +75,18 @@ const defaultData: PartnerFormData = {
   crm: "", specialty: "",
   cnpj: "", socialName: "", tradingName: "", responsibleName: "",
   cep: "", street: "", number: "", complement: "", district: "", city: "", state: "",
-  pixKey: "", bank: "", agency: "", account: "",
+  pixType: "CPF", pixKey: "", bank: "", agency: "", account: "",
   hasProfessionalRegister: false,
   hasSpecialty: false,
 };
+
+const PIX_TYPES = [
+  { id: "CPF", label: "CPF", mask: "999.999.999-99" },
+  { id: "CNPJ", label: "CNPJ", mask: "99.999.999/9999-99" },
+  { id: "Email", label: "E-mail", mask: null },
+  { id: "Phone", label: "Telefone", mask: "(99) 99999-9999" },
+  { id: "Random", label: "Chave Aleatória", mask: null },
+];
 
 const STATES = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
@@ -603,14 +612,52 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
               {/* Step 5 - Financeiro */}
               {step === 5 && (
                 <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <FieldLabel>Chave PIX *</FieldLabel>
-                    <Input
-                      value={data.pixKey}
-                      onChange={(e) => update({ pixKey: e.target.value })}
-                      placeholder="CPF, E-mail, Celular ou Aleatória"
-                      className={inputClass}
-                    />
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <FieldLabel>Tipo de Chave PIX *</FieldLabel>
+                      <Select 
+                        value={data.pixType} 
+                        onValueChange={(v: any) => update({ pixType: v, pixKey: "" })}
+                      >
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder="Selecione o tipo de chave" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PIX_TYPES.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>{type.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <FieldLabel>Chave PIX *</FieldLabel>
+                      {PIX_TYPES.find(t => t.id === data.pixType)?.mask ? (
+                        <InputMask
+                          mask={PIX_TYPES.find(t => t.id === data.pixType)!.mask!}
+                          value={data.pixKey}
+                          onChange={(e) => update({ pixKey: e.target.value })}
+                        >
+                          {(inputProps: any) => (
+                            <Input
+                              {...inputProps}
+                              placeholder={
+                                data.pixType === "Phone" ? "(00) 00000-0000" : 
+                                data.pixType === "CNPJ" ? "00.000.000/0000-00" : 
+                                "000.000.000-00"
+                              }
+                              className={inputClass}
+                            />
+                          )}
+                        </InputMask>
+                      ) : (
+                        <Input
+                          value={data.pixKey}
+                          onChange={(e) => update({ pixKey: e.target.value })}
+                          placeholder={data.pixType === "Email" ? "exemplo@email.com" : "Sua chave aleatória"}
+                          className={inputClass}
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-4 pt-4 border-t border-border">
                     <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
