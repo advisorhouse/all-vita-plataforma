@@ -329,8 +329,8 @@ const CoreCustomers: React.FC = () => {
               <CardContent className="flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
-                    <Pie data={LEVEL_DISTRIBUTION} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
-                      {LEVEL_DISTRIBUTION.map((entry, i) => (
+                    <Pie data={levelDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                      {levelDistribution.map((entry: any, i: number) => (
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
