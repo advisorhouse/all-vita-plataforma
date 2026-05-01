@@ -102,6 +102,8 @@ export function useSubdomainTenant() {
   const [checked, setChecked] = useState(false);
   const fetchingRef = useRef<string | null>(null);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const detected = detectTenant(window.location.hostname, window.location.pathname);
     setTenantMode(detected ? detected.mode : null);
@@ -112,6 +114,7 @@ export function useSubdomainTenant() {
       console.log("[useSubdomainTenant] No tenant detected.");
       setChecked(true);
       setIsLoading(false);
+      setLoading(false);
       setIsSubdomainAccess(false);
       return;
     }
@@ -129,6 +132,7 @@ export function useSubdomainTenant() {
 
     const loadTenant = async () => {
       setIsLoading(true);
+      setLoading(true);
       console.log("[useSubdomainTenant] Loading tenant for:", detected);
       try {
         if (detected.mode === "custom-domain") {
@@ -185,6 +189,7 @@ export function useSubdomainTenant() {
         console.log("[useSubdomainTenant] FINISHED loading.");
         setChecked(true);
         setIsLoading(false);
+        setLoading(false);
       }
     };
 
@@ -207,5 +212,5 @@ export function useSubdomainTenant() {
     }
   }, [tenantSlug, availableTenants, currentTenant, setCurrentTenant]);
 
-  return { subdomainSlug: tenantSlug, checked };
+  return { subdomainSlug: tenantSlug, checked, loading };
 }
