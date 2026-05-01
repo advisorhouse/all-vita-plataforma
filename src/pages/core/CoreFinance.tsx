@@ -546,7 +546,7 @@ const CoreFinance: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {CASHFLOW_DATA.map((row) => {
+                  {data.cashflowData.map((row: any) => {
                     const margin = ((row.saldo / row.entradas) * 100).toFixed(1);
                     return (
                       <TableRow key={row.month}>
