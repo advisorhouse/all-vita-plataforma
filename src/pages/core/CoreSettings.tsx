@@ -4,7 +4,7 @@ import {
   Settings, Globe, Bell, Shield, Palette, Mail, Database,
   Save, ToggleLeft, ChevronRight, Clock, Webhook, Key,
   FileText, Users, Zap, AlertTriangle, CheckCircle,
-  DollarSign, BarChart3, CreditCard, ExternalLink, Copy, Eye, EyeOff,
+  DollarSign, BarChart3, CreditCard, ExternalLink, Copy, Webhook as WebhookIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,7 +76,7 @@ const ToggleRow: React.FC<{
 );
 
 const CoreSettings: React.FC = () => {
-  const { currentTenant, refreshTenant } = useTenant();
+  const { currentTenant, setCurrentTenant } = useTenant();
   
   // General
   const [platformName, setPlatformName] = useState("Vision Lift");
@@ -165,7 +165,7 @@ const CoreSettings: React.FC = () => {
       setCompactMode(a.compactMode ?? false);
       setAnimationsEnabled(a.animationsEnabled ?? true);
     }
-  }, [currentTenant]);
+  }, [currentTenant?.id]);
 
   const handleSave = async () => {
     if (!currentTenant?.id) return;
@@ -195,20 +195,24 @@ const CoreSettings: React.FC = () => {
         }
       };
 
-      const { error } = await supabase
+      const { data: updatedTenant, error } = await supabase
         .from('tenants')
         .update({ 
           name: platformName,
           trade_name: tradeName,
           settings 
         })
-        .eq('id', currentTenant.id);
+        .eq('id', currentTenant.id)
+        .select()
+        .single();
 
       if (error) throw error;
 
       setSaved(true);
       toast.success("Configurações salvas com sucesso!");
-      refreshTenant();
+      if (updatedTenant) {
+        setCurrentTenant(updatedTenant as any);
+      }
       setTimeout(() => setSaved(false), 2000);
     } catch (error: any) {
       console.error("Error saving settings:", error);
@@ -245,8 +249,9 @@ const CoreSettings: React.FC = () => {
           <TabsTrigger value="general" className="gap-1.5 text-xs"><Globe className="h-3.5 w-3.5" />Geral</TabsTrigger>
           <TabsTrigger value="notifications" className="gap-1.5 text-xs"><Bell className="h-3.5 w-3.5" />Notificações</TabsTrigger>
           <TabsTrigger value="security" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Segurança</TabsTrigger>
-          <TabsTrigger value="integrations" className="gap-1.5 text-xs"><Webhook className="h-3.5 w-3.5" />Integrações</TabsTrigger>
+          <TabsTrigger value="integrations" className="gap-1.5 text-xs"><WebhookIcon className="h-3.5 w-3.5" />Integrações</TabsTrigger>
           <TabsTrigger value="appearance" className="gap-1.5 text-xs"><Palette className="h-3.5 w-3.5" />Aparência</TabsTrigger>
+          <TabsTrigger value="permissions" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Permissões</TabsTrigger>
         </TabsList>
 
         {/* ===== GERAL ===== */}
@@ -256,6 +261,10 @@ const CoreSettings: React.FC = () => {
               <div className="space-y-1.5">
                 <Label className="text-[11px] text-muted-foreground">Nome da Plataforma</Label>
                 <Input value={platformName} onChange={(e) => setPlatformName(e.target.value)} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[11px] text-muted-foreground">Nome Fantasia</Label>
+                <Input value={tradeName} onChange={(e) => setTradeName(e.target.value)} className="h-9" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[11px] text-muted-foreground">Fuso Horário</Label>
@@ -341,7 +350,8 @@ const CoreSettings: React.FC = () => {
             <div className="space-y-1.5">
               <Label className="text-[11px] text-muted-foreground">E-mails (separados por vírgula)</Label>
               <Textarea
-                defaultValue="admin@visionlift.com.br"
+                value={alertEmails}
+                onChange={(e) => setAlertEmails(e.target.value)}
                 placeholder="admin@visionlift.com.br, operacao@visionlift.com.br"
                 className="min-h-[60px] text-sm"
               />
@@ -379,39 +389,6 @@ const CoreSettings: React.FC = () => {
               checked={ipWhitelist} onChange={setIpWhitelist} icon={Globe} />
             <ToggleRow label="Log de auditoria" description="Registrar todas as ações administrativas"
               checked={auditLog} onChange={setAuditLog} icon={Database} />
-          </SettingsSection>
-
-          <SettingsSection title="Chaves de API" description="Gerencie as chaves de acesso à API" delay={2}>
-            <div className="space-y-3">
-              {[
-                { name: "Webhook Principal", prefix: "vl_wh_***8a3f", status: "active", lastUsed: "2h atrás" },
-                { name: "Analytics Export", prefix: "vl_ax_***2c1e", status: "active", lastUsed: "1d atrás" },
-                { name: "Legacy Integration", prefix: "vl_lg_***9f4b", status: "expired", lastUsed: "30d atrás" },
-              ].map((key) => (
-                <div key={key.name} className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <Key className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{key.name}</p>
-                      <p className="text-[11px] text-muted-foreground font-mono">{key.prefix}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] text-muted-foreground">{key.lastUsed}</span>
-                    <Badge variant={key.status === "active" ? "default" : "secondary"}
-                      className={cn("text-[9px]",
-                        key.status === "active" ? "bg-primary/10 text-primary border-0" : "bg-destructive/10 text-destructive border-0"
-                      )}>
-                      {key.status === "active" ? "Ativa" : "Expirada"}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="outline" size="sm" className="gap-2 mt-2">
-              <Key className="h-3.5 w-3.5" />
-              Gerar Nova Chave
-            </Button>
           </SettingsSection>
         </TabsContent>
 
@@ -500,7 +477,10 @@ const CoreSettings: React.FC = () => {
                   value={`https://gzcuuxqjblyyucgwlfmw.supabase.co/functions/v1/payment-webhook`}
                   className="h-9 font-mono text-xs flex-1 bg-muted/50"
                 />
-                <Button variant="outline" size="sm" className="h-9 gap-1.5 shrink-0" onClick={() => navigator.clipboard.writeText(`https://gzcuuxqjblyyucgwlfmw.supabase.co/functions/v1/payment-webhook`)}>
+                <Button variant="outline" size="sm" className="h-9 gap-1.5 shrink-0" onClick={() => {
+                  navigator.clipboard.writeText(`https://gzcuuxqjblyyucgwlfmw.supabase.co/functions/v1/payment-webhook`);
+                  toast.info("Copiado!");
+                }}>
                   <Copy className="h-3.5 w-3.5" />Copiar
                 </Button>
               </div>
@@ -524,41 +504,12 @@ const CoreSettings: React.FC = () => {
           {/* Outros Webhooks */}
           <SettingsSection title="Webhook Customizado" description="Endpoint adicional para integrações externas" delay={3}>
             <ToggleRow label="Webhook ativo" description="Processar eventos de pagamento automaticamente"
-              checked={webhookActive} onChange={setWebhookActive} icon={Webhook} />
+              checked={webhookActive} onChange={setWebhookActive} icon={WebhookIcon} />
             <div className="space-y-1.5">
               <Label className="text-[11px] text-muted-foreground">URL do Webhook</Label>
               <Input value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)}
                 placeholder="https://api.visionlift.com.br/webhooks/custom"
                 className="h-9 font-mono text-xs" />
-            </div>
-          </SettingsSection>
-
-          {/* Serviços */}
-          <SettingsSection title="Serviços Conectados" description="Status das integrações ativas" delay={4}>
-            <div className="space-y-3">
-              {[
-                { name: "Pagar.me (Gateway)", status: "connected", icon: CreditCard },
-                { name: "Engine de Comissões", status: "connected", icon: Zap },
-                { name: "Gamification Engine", status: "connected", icon: Settings },
-                { name: "Retention Engine", status: "connected", icon: Users },
-                { name: "Analytics API", status: "connected", icon: BarChart3 },
-              ].map((svc) => {
-                const SvcIcon = svc.icon;
-                return (
-                  <div key={svc.name} className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                        <SvcIcon className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-sm font-medium text-foreground">{svc.name}</p>
-                    </div>
-                    <Badge className="text-[9px] bg-primary/10 text-primary border-0">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Conectado
-                    </Badge>
-                  </div>
-                );
-              })}
             </div>
           </SettingsSection>
         </TabsContent>
@@ -573,25 +524,11 @@ const CoreSettings: React.FC = () => {
             <ToggleRow label="Animações" description="Ativar animações e transições na interface"
               checked={animationsEnabled} onChange={setAnimationsEnabled} icon={Zap} />
           </SettingsSection>
+        </TabsContent>
 
-          <SettingsSection title="Marca" description="Identidade visual da plataforma" delay={2}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label className="text-[11px] text-muted-foreground">Cor Primária</Label>
-                <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-lg bg-primary border border-border" />
-                  <Input defaultValue="#0A0B0D" className="h-9 font-mono text-xs flex-1" />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] text-muted-foreground">Cor de Destaque</Label>
-                <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-lg bg-accent border border-border" />
-                  <Input defaultValue="#3B82F6" className="h-9 font-mono text-xs flex-1" />
-                </div>
-              </div>
-            </div>
-          </SettingsSection>
+        {/* ===== PERMISSÕES ===== */}
+        <TabsContent value="permissions" className="mt-4">
+          <CorePermissions />
         </TabsContent>
       </Tabs>
     </div>
