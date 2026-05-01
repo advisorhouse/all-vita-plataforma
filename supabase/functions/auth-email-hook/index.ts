@@ -130,7 +130,7 @@ serve(async (req) => {
           <p>Você solicitou a alteração do seu e-mail na plataforma <strong>${tenantBranding.name}</strong>.</p>
           <p>Para concluir o processo, clique no botão abaixo:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Confirmar Novo E-mail
             </a>
           </div>
