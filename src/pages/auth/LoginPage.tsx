@@ -36,9 +36,11 @@ const LoginPage: React.FC = () => {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         if (error.message.includes("Invalid login")) {
-          toast.error("Email ou senha inválidos");
+          toast.error("E-mail ou senha inválidos");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("Por favor, confirme seu e-mail antes de acessar.");
         } else {
-          toast.error(error.message);
+          toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
         }
         return;
       }
