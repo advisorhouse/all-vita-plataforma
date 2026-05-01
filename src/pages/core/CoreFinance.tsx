@@ -420,7 +420,7 @@ const CoreFinance: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {PAYOUTS.map((p) => (
+                  {data.payouts.map((p: any) => (
                     <TableRow key={p.id}>
                       <TableCell className="text-[11px] font-mono text-muted-foreground">{p.id}</TableCell>
                       <TableCell className="text-xs font-medium text-foreground">{p.partner}</TableCell>
