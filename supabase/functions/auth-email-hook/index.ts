@@ -133,13 +133,8 @@ serve(async (req) => {
       case "EMAIL_CHANGE_CONFIRM": {
         subject = `Confirme seu novo e-mail - ${tenantBranding.name}`;
         
-        let confirmationUrl = redirect_to;
-        if (email_data?.token_hash) {
-          const url = new URL(redirect_to);
-          url.searchParams.set("token_hash", email_data.token_hash);
-          url.searchParams.set("type", "email_change");
-          confirmationUrl = url.toString();
-        }
+        const authApiUrl = email_data?.site_url || "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
+        const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=email_change&redirect_to=${encodeURIComponent(redirect_to)}`;
 
         html = getTemplate(tenantBranding, `
           <h2 style="color: ${tenantBranding.primaryColor};">Confirmação de Alteração</h2>
