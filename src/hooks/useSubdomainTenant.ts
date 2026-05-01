@@ -26,17 +26,12 @@ type DetectedTenant =
   | { mode: "query"; slug: string }
   | null;
 
-function detectTenant(): DetectedTenant {
-  const hostname = window.location.hostname;
-  const pathname = window.location.pathname;
-
+const detectTenant = (hostname: string, pathname: string): DetectedTenant => {
   // 1) Explicit Subdomain detection (high priority)
-  // If we are on lumyss.allvita.com.br
   for (const base of BASE_DOMAINS) {
     if (hostname.endsWith(`.${base}`) && hostname !== `app.${base}`) {
       const sub = hostname.slice(0, hostname.length - base.length - 1);
       if (sub && !sub.includes(".") && !RESERVED_SUBDOMAINS.includes(sub)) {
-        console.log("[useSubdomainTenant] Pure Subdomain detected:", sub);
         return { mode: "subdomain", slug: sub };
       }
     }
@@ -54,7 +49,7 @@ function detectTenant(): DetectedTenant {
   const tenantParam = new URLSearchParams(window.location.search).get("tenant");
   if (tenantParam) return { mode: "query", slug: tenantParam };
 
-  // Fallback: Custom domain (totalmente fora de allvita.com.br)
+  // Fallback: Custom domain
   if (
     hostname !== "localhost" &&
     !/^\d+\.\d+\.\d+\.\d+$/.test(hostname) &&
@@ -67,7 +62,7 @@ function detectTenant(): DetectedTenant {
   }
 
   return null;
-}
+};
 
 /**
  * Detects tenant slug from URL (path / subdomain / custom domain / query)
