@@ -14,7 +14,7 @@ export function useTenantNavigation() {
   const tenantQueryParam = searchParams.get("tenant");
   
   // CRITICAL: If we are in subdomain mode, NEVER use routeSlug or currentTenant.slug as a path prefix
-  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain") ? null : (routeSlug || currentTenant?.slug);
+  const activeSlug = (isSubdomainAccess || tenantMode === "subdomain" || window.location.hostname !== "app.allvita.com.br") ? null : (routeSlug || currentTenant?.slug);
 
   const tenantNavigate = useCallback(
     (path: string, options?: { replace?: boolean }) => {
