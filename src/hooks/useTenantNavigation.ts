@@ -27,6 +27,9 @@ export function useTenantNavigation() {
       
       if (activeSlug && needsSlug && !isSubdomainAccess && !basePath.startsWith(`/${activeSlug}/`) && basePath !== `/${activeSlug}`) {
         finalBasePath = `/${activeSlug}${basePath}`;
+        console.log("[useTenantNavigation] Path rewrite applied:", finalBasePath);
+      } else if (isSubdomainAccess) {
+        console.log("[useTenantNavigation] Subdomain access, skipping path slug rewrite");
       }
 
       if (tenantQueryParam && !params.has("tenant")) {
