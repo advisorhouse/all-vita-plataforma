@@ -326,7 +326,7 @@ const CoreSubscriptions: React.FC = () => {
               <CardContent>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={CHURN_DATA}>
+                    <AreaChart data={mrrData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} />
                       <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} domain={[0, 12]} tickFormatter={(v) => `${v}%`} />
