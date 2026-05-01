@@ -67,25 +67,20 @@ export function extractSlugFromPath(pathname: string): string | null {
  * referral links, share buttons, etc.).
  */
 export function buildTenantUrl(slug: string, path: string = "/", params?: Record<string, string>): string {
-  // Use the subdomain if it's not a local/preview environment
-  const isProduction = typeof window !== "undefined" && 
-    (window.location.hostname.endsWith("allvita.com.br") || window.location.hostname === "allvita.com.br");
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
   
-  let baseUrl: string;
-  let cleanPath = path.startsWith("/") ? path : `/${path}`;
+  // ALWAYS use path-based URLs (app.allvita.com.br/slug/path) 
+  // because Lovable redirects all other subdomains to the primary domain.
+  const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://app.allvita.com.br";
+  
+  // If we are already on a tenant-specific URL or a custom domain that is NOT the primary app, 
+  // we might want to preserve that, but for now, path-based on primary is safest.
+  const baseUrl = currentOrigin.includes("lovable.app") || currentOrigin.includes("allvita.com.br") 
+    ? currentOrigin 
+    : "https://app.allvita.com.br";
 
-  if (isProduction) {
-    // Subdomain-based: slug.allvita.com.br/path
-    baseUrl = `https://${slug}.allvita.com.br`;
-  } else {
-    // Fallback for local/preview: app.allvita.com.br/slug/path
-    // Note: in preview environments, we might want to stay on the current origin
-    const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://app.allvita.com.br";
-    baseUrl = currentOrigin;
-    cleanPath = `/${slug}${cleanPath}`;
-  }
-  
-  const url = new URL(cleanPath, baseUrl);
+  const finalPath = `/${slug}${cleanPath}`;
+  const url = new URL(finalPath, baseUrl);
   
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
