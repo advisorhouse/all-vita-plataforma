@@ -41,6 +41,12 @@ export function useTenantNavigation() {
       // Ensure we don't accidentally redirect to app.allvita.com.br
       if (isSubdomainAccess && finalUrl.startsWith("http") && !finalUrl.includes(window.location.hostname)) {
         console.warn("[useTenantNavigation] Preventing cross-domain redirect to:", finalUrl);
+        // If it was meant to be a local path, force it to be relative
+        if (finalUrl.includes("/auth/login") || finalUrl.includes("/core")) {
+           const relativeUrl = finalUrl.split(window.location.host).pop() || finalUrl;
+           navigate(relativeUrl, options);
+           return;
+        }
         return;
       }
 
