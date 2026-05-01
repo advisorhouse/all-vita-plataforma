@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,11 +8,14 @@ import {
   Stethoscope, BarChart3, Handshake, ArrowRight, ChevronLeft, Check,
   Eye, EyeOff, Repeat, Heart, Monitor, Lock, Shield, Coins, Users,
   Link2, Gift, GraduationCap, Ticket, Wrench, CreditCard, Clock, AlertTriangle,
-  Building2, MapPin, Landmark, Fingerprint, FileText, User,
+  Building2, MapPin, Landmark, Fingerprint, FileText, User, Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import InputMask from "react-input-mask";
+import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
 import iconVisionLift from "@/assets/icon-vision-lift.png";
 import partnerHeroImg from "@/assets/partner-onboarding-hero.png";
 import { OnboardingHeader, OnboardingFooter } from "@/components/onboarding/OnboardingLayout";
@@ -56,6 +59,8 @@ interface PartnerFormData {
   bank: string;
   agency: string;
   account: string;
+  hasProfessionalRegister: boolean;
+  hasSpecialty: boolean;
 }
 
 const defaultData: PartnerFormData = {
@@ -66,6 +71,8 @@ const defaultData: PartnerFormData = {
   cnpj: "", socialName: "", tradingName: "", responsibleName: "",
   cep: "", street: "", number: "", complement: "", district: "", city: "", state: "",
   pixKey: "", bank: "", agency: "", account: "",
+  hasProfessionalRegister: false,
+  hasSpecialty: false,
 };
 
 type Screen = "welcome" | "brand" | "points" | "s1" | "s2" | "s3" | "s4" | "s5" | "s6" | "s7" | "done";
@@ -96,6 +103,26 @@ const PartnerOnboarding: React.FC = () => {
   const [data, setData] = useState<PartnerFormData>(defaultData);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { lookupCNPJ, loading: loadingCNPJ } = useCNPJLookup();
+
+  const handleCNPJLookup = async () => {
+    if (!data.cnpj) return;
+    const result = await lookupCNPJ(data.cnpj);
+    if (result) {
+      update({
+        socialName: result.razao_social,
+        tradingName: result.nome_fantasia || result.razao_social,
+        responsibleName: result.qsa?.[0]?.nome || "",
+        cep: result.cep,
+        street: result.logradouro,
+        number: result.numero,
+        district: result.bairro,
+        city: result.municipio,
+        state: result.uf,
+      });
+      toast.success("Dados do CNPJ carregados com sucesso!");
+    }
+  };
 
   const currentIndex = STEP_ORDER.indexOf(screen);
   const formStepIndex = FORM_STEPS.indexOf(screen) + 1;
@@ -682,46 +709,30 @@ const PartnerOnboarding: React.FC = () => {
               </div>
             )}
 
-            {/* ═══ STEP 4 — Dados PJ ═══ */}
+            {/* ═══ STEP 4 — Dados Adicionais / PJ ═══ */}
             {screen === "s4" && (
               <div className="space-y-8 pt-14">
                 <div className="space-y-2">
                   <h2 className="text-[1.5rem] font-semibold tracking-tight text-foreground">
-                    Dados da empresa.
+                    {data.type === "PF" ? "Responsável." : "Dados da empresa."}
                   </h2>
                   <p className="text-muted-foreground text-sm font-light">
-                    Informações da sua pessoa jurídica.
+                    {data.type === "PF" ? "Informação adicional de identificação." : "Informações da sua pessoa jurídica."}
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <FieldLabel>CNPJ</FieldLabel>
-                    <Input
-                      value={data.cnpj}
-                      onChange={(e) => update({ cnpj: e.target.value })}
-                      placeholder="00.000.000/0000-00"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Razão Social</FieldLabel>
-                    <Input
-                      value={data.socialName}
-                      onChange={(e) => update({ socialName: e.target.value })}
-                      placeholder="Nome oficial da empresa"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel>Nome Fantasia</FieldLabel>
-                    <Input
-                      value={data.tradingName}
-                      onChange={(e) => update({ tradingName: e.target.value })}
-                      placeholder="Nome da sua clínica/marca"
-                      className={inputClass}
-                    />
-                  </div>
+                  {data.type === "PJ" && (
+                    <div className="space-y-1.5">
+                      <FieldLabel>Nome Fantasia</FieldLabel>
+                      <Input
+                        value={data.tradingName}
+                        onChange={(e) => update({ tradingName: e.target.value })}
+                        placeholder="Nome da sua clínica/marca"
+                        className={inputClass}
+                      />
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     <FieldLabel>Nome do Responsável</FieldLabel>
                     <Input
@@ -735,7 +746,7 @@ const PartnerOnboarding: React.FC = () => {
 
                 <ContinueButton
                   onClick={goNext}
-                  disabled={!data.cnpj || !data.socialName || !data.responsibleName}
+                  disabled={!data.responsibleName}
                 />
                 <SecurityFooter />
               </div>
@@ -757,12 +768,19 @@ const PartnerOnboarding: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <FieldLabel>CEP</FieldLabel>
-                      <Input
+                      <InputMask
+                        mask="99999-999"
                         value={data.cep}
                         onChange={(e) => update({ cep: e.target.value })}
-                        placeholder="00000-000"
-                        className={inputClass}
-                      />
+                      >
+                        {(inputProps: any) => (
+                          <Input
+                            {...inputProps}
+                            placeholder="00000-000"
+                            className={inputClass}
+                          />
+                        )}
+                      </InputMask>
                     </div>
                     <div className="space-y-1.5">
                       <FieldLabel>UF</FieldLabel>
