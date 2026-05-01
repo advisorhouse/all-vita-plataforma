@@ -76,8 +76,11 @@ const ToggleRow: React.FC<{
 );
 
 const CoreSettings: React.FC = () => {
+  const { currentTenant, refreshTenant } = useTenant();
+  
   // General
   const [platformName, setPlatformName] = useState("Vision Lift");
+  const [tradeName, setTradeName] = useState("");
   const [timezone, setTimezone] = useState("America/Sao_Paulo");
   const [currency, setCurrency] = useState("BRL");
   const [locale, setLocale] = useState("pt-BR");
@@ -88,6 +91,7 @@ const CoreSettings: React.FC = () => {
   const [commissionAlerts, setCommissionAlerts] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(true);
   const [realtimeAlerts, setRealtimeAlerts] = useState(false);
+  const [alertEmails, setAlertEmails] = useState("admin@visionlift.com.br");
 
   // Security
   const [twoFactor, setTwoFactor] = useState(false);
@@ -114,10 +118,104 @@ const CoreSettings: React.FC = () => {
   const [compactMode, setCompactMode] = useState(false);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+
+  // Load settings
+  useEffect(() => {
+    if (currentTenant) {
+      setPlatformName(currentTenant.name || "Vision Lift");
+      setTradeName(currentTenant.trade_name || "");
+      
+      const s = currentTenant.settings as any || {};
+      setTimezone(s.timezone || "America/Sao_Paulo");
+      setCurrency(s.currency || "BRL");
+      setLocale(s.locale || "pt-BR");
+      
+      const n = s.notifications || {};
+      setEmailAlerts(n.emailAlerts ?? true);
+      setChurnAlerts(n.churnAlerts ?? true);
+      setCommissionAlerts(n.commissionAlerts ?? true);
+      setWeeklyDigest(n.weeklyDigest ?? true);
+      setRealtimeAlerts(n.realtimeAlerts ?? false);
+      setAlertEmails(n.alertEmails || "admin@visionlift.com.br");
+      
+      const sec = s.security || {};
+      setTwoFactor(sec.twoFactor ?? false);
+      setSessionTimeout(sec.sessionTimeout || "60");
+      setIpWhitelist(sec.ipWhitelist ?? false);
+      setAuditLog(sec.auditLog ?? true);
+      
+      const integ = s.integrations || {};
+      setWebhookUrl(integ.webhookUrl || "");
+      setWebhookActive(integ.webhookActive ?? false);
+      
+      const p = s.pagarme || {};
+      setPagarmeEnv(p.env || "sandbox");
+      setPagarmeApiKey(p.apiKey || "");
+      setPagarmeEncKey(p.encKey || "");
+      setPagarmeOrderPaid(p.orderPaid ?? true);
+      setPagarmeOrderRefunded(p.orderRefunded ?? true);
+      setPagarmeSubscriptionCreated(p.subscriptionCreated ?? true);
+      setPagarmeSubscriptionCanceled(p.subscriptionCanceled ?? true);
+      setPagarmeChargebackCreated(p.chargebackCreated ?? true);
+      
+      const a = s.appearance || {};
+      setDarkMode(a.darkMode ?? false);
+      setCompactMode(a.compactMode ?? false);
+      setAnimationsEnabled(a.animationsEnabled ?? true);
+    }
+  }, [currentTenant]);
+
+  const handleSave = async () => {
+    if (!currentTenant?.id) return;
+    
+    setSaving(true);
+    try {
+      const settings = {
+        timezone, currency, locale,
+        notifications: {
+          emailAlerts, churnAlerts, commissionAlerts, weeklyDigest, realtimeAlerts, alertEmails
+        },
+        security: {
+          twoFactor, sessionTimeout, ipWhitelist, auditLog
+        },
+        integrations: {
+          webhookUrl, webhookActive
+        },
+        pagarme: {
+          env: pagarmeEnv, apiKey: pagarmeApiKey, encKey: pagarmeEncKey,
+          orderPaid: pagarmeOrderPaid, orderRefunded: pagarmeOrderRefunded,
+          subscriptionCreated: pagarmeSubscriptionCreated,
+          subscriptionCanceled: pagarmeSubscriptionCanceled,
+          chargebackCreated: pagarmeChargebackCreated
+        },
+        appearance: {
+          darkMode, compactMode, animationsEnabled
+        }
+      };
+
+      const { error } = await supabase
+        .from('tenants')
+        .update({ 
+          name: platformName,
+          trade_name: tradeName,
+          settings 
+        })
+        .eq('id', currentTenant.id);
+
+      if (error) throw error;
+
+      setSaved(true);
+      toast.success("Configurações salvas com sucesso!");
+      refreshTenant();
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error: any) {
+      console.error("Error saving settings:", error);
+      toast.error("Erro ao salvar configurações: " + error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -128,11 +226,17 @@ const CoreSettings: React.FC = () => {
       >
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Configurações</h2>
-          <p className="text-sm text-muted-foreground">Configurações gerais da plataforma Vision Lift</p>
+          <p className="text-sm text-muted-foreground">Configurações gerais da plataforma {platformName}</p>
         </div>
-        <Button onClick={handleSave} className="gap-2">
-          {saved ? <CheckCircle className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-          {saved ? "Salvo!" : "Salvar Alterações"}
+        <Button onClick={handleSave} disabled={saving} className="gap-2 min-w-[140px]">
+          {saving ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+          ) : saved ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          {saving ? "Salvando..." : saved ? "Salvo!" : "Salvar Alterações"}
         </Button>
       </motion.div>
 
