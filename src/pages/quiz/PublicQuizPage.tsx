@@ -193,7 +193,7 @@ const PublicQuizPage: React.FC = () => {
         cpf: data.cpf,
         phone: data.phone,
         email: data.email,
-        age: data.age ? parseInt(data.age) : null,
+        age: data.age ? (parseInt((data.age.match(/\d+/) || [])[0] || "") || null) : null,
         sex: data.sex || null,
         health_conditions: data.healthConditions,
         other_conditions: data.otherConditions || null,
