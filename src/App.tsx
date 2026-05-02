@@ -56,6 +56,7 @@ import PartnerClients from "./pages/partner/PartnerClients";
 import PartnerRevenue from "./pages/partner/PartnerRevenue";
 import PartnerMaterials from "./pages/partner/PartnerMaterials";
 import PartnerLinksPage from "./pages/partner/PartnerLinksPage";
+import PartnerCampaignsPage from "./pages/partner/PartnerCampaignsPage";
 import PartnerLevels from "./pages/partner/PartnerLevels";
 import PartnerSettings from "./pages/partner/PartnerSettings";
 import PartnerOnboarding from "./pages/partner/PartnerOnboarding";
@@ -118,6 +119,7 @@ const partnerChildren = (
     <Route path="revenue" element={<PartnerRevenue />} />
     <Route path="materials" element={<PartnerMaterials />} />
     <Route path="links" element={<PartnerLinksPage />} />
+    <Route path="campaigns" element={<PartnerCampaignsPage />} />
     <Route path="levels" element={<PartnerLevels />} />
     <Route path="ranking" element={<PartnerRanking />} />
     <Route path="referred-partners" element={<PartnerReferredPartners />} />
