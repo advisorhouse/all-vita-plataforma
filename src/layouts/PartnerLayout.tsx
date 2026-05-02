@@ -31,6 +31,7 @@ const SidebarFooterContent: React.FC = () => {
   return (
     <div className="space-y-3">
       <button
+        id="sidebar-partner-levels"
         onClick={() => navigate("/partner/levels")}
         className="w-full rounded-xl border border-warning/30 bg-gradient-to-br from-warning/10 via-warning/5 to-transparent p-3 space-y-2 text-left hover:from-warning/20 hover:via-warning/10 transition-all cursor-pointer"
       >
