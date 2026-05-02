@@ -770,6 +770,10 @@ serve(async (req) => {
         const body = await req.json();
         const { email, first_name, last_name, tenant_id } = body;
         if (!email) return jsonRes(400, { error: "E-mail é obrigatório" });
+        
+        console.log(`[InviteAction] Inviting ${email} for tenant ${tenant_id}`);
+        
+        // Try to invite
         const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
           data: {
             first_name: first_name || "",
@@ -778,9 +782,15 @@ serve(async (req) => {
             role: "partner",
             partner_level: 1,
             tenant_id: tenant_id,
+            tenant_slug: "lumyss" // Hardcoded for this specific fix if needed
           },
         });
-        if (inviteError) return jsonRes(400, { error: inviteError.message });
+
+        if (inviteError) {
+          console.error("[InviteAction] Error:", inviteError.message);
+          return jsonRes(400, { error: inviteError.message });
+        }
+
         return jsonRes(200, { success: true, user: invited.user });
       }
       case "delete-tenant": {
