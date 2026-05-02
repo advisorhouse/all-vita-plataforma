@@ -23,6 +23,7 @@ import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStep
 import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
 import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
 import QuizStepAgeRange, { AgeOption } from "@/components/quiz/QuizStepAgeRange";
+import QuizStepSupplements, { SupplementOption } from "@/components/quiz/QuizStepSupplements";
 
 export interface QuizFormData {
   fullName: string;
@@ -32,6 +33,7 @@ export interface QuizFormData {
   age: string;
   ageRange: string;
   lastVisit: string;
+  supplements: string;
   sex: string;
   screenTime: string;
   symptoms: string[];
