@@ -99,6 +99,13 @@ const DEFAULT_LASTVISIT: LastVisitOption[] = [
   { icon: "AlertTriangle", title: "Não lembro", description: "Acontece — mas vamos resolver" },
 ];
 
+const DEFAULT_SUPPLEMENTS: SupplementOption[] = [
+  { icon: "Sparkles", title: "Sim, com astaxantina", description: "Excelente escolha" },
+  { icon: "Shield", title: "Sim, luteína ou zeaxantina", description: "Um bom começo" },
+  { icon: "Activity", title: "Outro suplemento", description: "Pode não ser suficiente" },
+  { icon: "AlertTriangle", title: "Não tomo nenhum", description: "Sem proteção ativa no momento" },
+];
+
 const DEFAULT_SYMPTOMS: SymptomOption[] = [
   { icon: "Droplet", title: "Olhos secos ou ardendo", description: "Sensação de areia ou ressecamento" },
   { icon: "Eye", title: "Visão embaçada às vezes", description: "Dificuldade de foco em algum momento" },
