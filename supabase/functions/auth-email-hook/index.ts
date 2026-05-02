@@ -75,12 +75,13 @@ serve(async (req) => {
       name: "All Vita",
       logo: "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/tenant-logos/allvita-logo.png",
       primaryColor: "#6B8E23",
+      secondaryColor: "#6B8E23", // Default to same as primary
     };
 
     if (tenantSlug) {
       const { data: tenantData } = await supabaseAdmin
         .from("tenants")
-        .select("name, trade_name, logo_url, primary_color")
+        .select("name, trade_name, logo_url, primary_color, secondary_color")
         .eq("slug", tenantSlug)
         .maybeSingle();
 
@@ -89,6 +90,7 @@ serve(async (req) => {
           name: tenantData.trade_name || tenantData.name,
           logo: tenantData.logo_url || tenantBranding.logo,
           primaryColor: tenantData.primary_color || tenantBranding.primaryColor,
+          secondaryColor: tenantData.secondary_color || tenantData.primary_color || tenantBranding.secondaryColor,
         };
       }
     }
