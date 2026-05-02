@@ -20,6 +20,7 @@ import QuizStepConsent from "@/components/quiz/QuizStepConsent";
 import QuizStepCheckout from "@/components/quiz/QuizStepCheckout";
 import QuizSuccessView from "@/components/quiz/QuizSuccessView";
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
+import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
 
 export interface QuizFormData {
   fullName: string;
@@ -29,6 +30,7 @@ export interface QuizFormData {
   age: string;
   sex: string;
   screenTime: string;
+  symptoms: string[];
   healthConditions: string[];
   otherConditions: string;
   continuousMedications: boolean;
@@ -51,6 +53,7 @@ export interface QuizFormData {
 const INITIAL_DATA: QuizFormData = {
   fullName: "", cpf: "", phone: "", email: "", age: "", sex: "",
   screenTime: "",
+  symptoms: [],
   healthConditions: [], otherConditions: "",
   continuousMedications: false, medicationsDetail: "",
   usesEyeDrops: false, eyeDropsDetail: "",
@@ -63,6 +66,7 @@ const INITIAL_DATA: QuizFormData = {
 
 const STEPS_META = [
   { label: "Rotina" },
+  { label: "Sintomas" },
   { label: "Identificação" },
   { label: "Saúde" },
   { label: "Medicações" },
@@ -70,6 +74,13 @@ const STEPS_META = [
   { label: "Consulta" },
   { label: "Consentimento" },
   { label: "Produto" },
+];
+
+const DEFAULT_SYMPTOMS: SymptomOption[] = [
+  { icon: "Droplet", title: "Olhos secos ou ardendo", description: "Sensação de areia ou ressecamento" },
+  { icon: "Eye", title: "Visão embaçada às vezes", description: "Dificuldade de foco em algum momento" },
+  { icon: "Brain", title: "Dor de cabeça frequente", description: "Principalmente após uso de telas" },
+  { icon: "Sun", title: "Incômodo com luz forte", description: "Sensibilidade ao sair para a claridade" },
 ];
 
 const DEFAULT_OPTIONS: ScreenTimeOption[] = [
@@ -104,6 +115,9 @@ const PublicQuizPage: React.FC = () => {
     questionSubtitle: DEFAULT_HEADER.question_subtitle,
     options: DEFAULT_OPTIONS,
     badges: DEFAULT_HEADER.badges,
+    symptomsTitle: "Você tem sentido algum desses incômodos nos olhos?",
+    symptomsSubtitle: "Marque todos que se aplicam ao seu dia a dia — mesmo que pareçam leves.",
+    symptomsOptions: DEFAULT_SYMPTOMS,
   });
 
   // Resolve referral
