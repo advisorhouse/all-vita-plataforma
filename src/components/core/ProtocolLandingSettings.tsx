@@ -12,6 +12,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 
 const ICON_OPTIONS = ["Activity", "Sparkles", "ShieldCheck", "Stethoscope", "Eye"];
+const QUIZ_ICON_OPTIONS = ["Smartphone", "Monitor", "Tv", "AlertTriangle"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
@@ -38,6 +39,18 @@ const DEFAULTS = {
   cta_button_label: "Iniciar minha avaliação",
   cta_meta: "Menos de 2 minutos • Resultado personalizado",
   trust_badges: ["Dados criptografados", "Recomendado por profissionais", "Resultado individualizado"] as string[],
+  // Quiz screen (first question)
+  quiz_header_title: "Dr. {doctor} recomendou esta avaliação",
+  quiz_header_subtitle: "Complete este diagnóstico complementar para que seu protocolo de proteção seja personalizado ao seu perfil clínico",
+  quiz_question_title: "Vamos começar pelo dia a dia — quanto tempo você passa olhando para telas?",
+  quiz_question_subtitle: "Pode ser computador, celular, tablet ou TV. Soma tudo, sem culpa.",
+  quiz_question_options: [
+    { icon: "Smartphone", title: "Menos de 4h", description: "Uso tranquilo" },
+    { icon: "Monitor", title: "4 a 8 horas", description: "Bastante comum hoje em dia" },
+    { icon: "Tv", title: "8 a 12 horas", description: "Rotina intensa" },
+    { icon: "AlertTriangle", title: "Mais de 12h", description: "Seus olhos merecem atenção extra" },
+  ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_footer_badges: ["Dados criptografados", "LGPD compliant", "Validado por oftalmologistas"] as string[],
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
