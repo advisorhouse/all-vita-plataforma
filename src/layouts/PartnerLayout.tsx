@@ -53,17 +53,21 @@ const SidebarFooterContent: React.FC = () => {
 
 const PartnerLayout: React.FC = () => {
   const { currentTenant } = useTenant();
-  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Partner";
+  const { shouldShow, markAsSeen } = usePartnerOnboarding();
 
   return (
-    <AppShell
-      sidebarTitle={tenantName}
-      sidebarSubtitle="Partner"
-      sidebarLinks={partnerLinks}
-      sidebarFooter={<SidebarFooterContent />}
-    >
-      <Outlet />
-    </AppShell>
+    <>
+      <AppShell
+        sidebarTitle={tenantName}
+        sidebarSubtitle="Partner"
+        sidebarLinks={partnerLinks}
+        sidebarFooter={<SidebarFooterContent />}
+      >
+        <Outlet />
+      </AppShell>
+      {shouldShow && <PartnerOnboardingTour onClose={markAsSeen} />}
+    </>
   );
 };
 
