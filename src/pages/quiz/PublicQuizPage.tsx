@@ -426,7 +426,29 @@ const PublicQuizPage: React.FC = () => {
               {step === 9 && <QuizStepOphthalmology data={data} update={update} />}
               {step === 10 && <QuizStepReason data={data} update={update} />}
               {step === 11 && <QuizStepConsent data={data} update={update} />}
-              {step === 12 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+              {step === 12 && (
+                <QuizStepResult
+                  score={computeProtectionScore(data, config.scoreWeights, {
+                    screenTime: config.options,
+                    symptoms: config.symptomsOptions,
+                    ageRange: config.ageOptions,
+                    lastVisit: config.lastVisitOptions,
+                    supplements: config.supplementsOptions,
+                    uvExposure: config.uvOptions,
+                  })}
+                  tenantLogo={tenantLogo}
+                  tenantName={tenantName}
+                  title={config.resultTitle}
+                  subtitle={config.resultSubtitle}
+                  levels={config.resultLevels}
+                  productEyebrow={config.resultProductEyebrow}
+                  productName={config.resultProductName}
+                  productPoweredBy={config.resultProductPoweredBy}
+                  ctaLabel={config.resultCtaLabel}
+                  ctaUrl={config.resultCtaUrl}
+                  disclaimer={config.resultDisclaimer}
+                />
+              )}
             </motion.div>
           </AnimatePresence>
 
