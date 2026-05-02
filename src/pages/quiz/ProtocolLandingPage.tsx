@@ -191,7 +191,7 @@ const ProtocolLandingPage: React.FC = () => {
           <Button
             onClick={startQuiz}
             size="sm"
-            className="rounded-full px-5 text-primary-foreground transition-all"
+            className="rounded-xl px-5 text-primary-foreground transition-all"
             style={{ backgroundColor: currentTenant?.secondary_color || "var(--primary)" }}
           >
             Fazer avaliação
