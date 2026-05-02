@@ -49,18 +49,32 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
       if (!isInitialized) return;
 
       try {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from("profiles")
           .select("must_change_password, onboarding_completed")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
+
+        if (error) {
+          console.error("[AuthGuard] Error fetching profile:", error);
+          setOnboardingChecked(true);
+          return;
+        }
 
         if (profile) {
           const hasNonComplete = profile.must_change_password || !profile.onboarding_completed;
+          console.log("[AuthGuard] Profile check:", { 
+            id: user.id, 
+            must_change_password: profile.must_change_password, 
+            onboarding_completed: profile.onboarding_completed,
+            needsOnboarding: hasNonComplete
+          });
           setNeedsOnboarding(!!hasNonComplete);
+        } else {
+          console.warn("[AuthGuard] No profile found for user:", user.id);
         }
       } catch (err) {
-        console.error("[AuthGuard] Error checking profile:", err);
+        console.error("[AuthGuard] Unexpected error checking profile:", err);
       } finally {
         setOnboardingChecked(true);
       }
