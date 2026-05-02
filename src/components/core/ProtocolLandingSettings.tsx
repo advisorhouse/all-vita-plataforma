@@ -87,6 +87,8 @@ const ProtocolLandingSettings: React.FC = () => {
           reasons: Array.isArray(row.reasons) ? row.reasons : DEFAULTS.reasons,
           logic_benefits: Array.isArray(row.logic_benefits) ? row.logic_benefits : DEFAULTS.logic_benefits,
           trust_badges: Array.isArray(row.trust_badges) ? row.trust_badges : DEFAULTS.trust_badges,
+          quiz_question_options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULTS.quiz_question_options,
+          quiz_footer_badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULTS.quiz_footer_badges,
         });
       }
       setLoading(false);
