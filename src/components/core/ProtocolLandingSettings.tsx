@@ -407,7 +407,58 @@ const ProtocolLandingSettings: React.FC = () => {
         </div>
       </Section>
 
-      <div className="flex justify-end pt-2">
+      {/* QUIZ — second screen (symptoms) */}
+      <Section
+        title="Tela 2 do Quiz (sintomas)"
+        description="Pergunta de múltipla escolha sobre incômodos relatados."
+      >
+        <Field label="Pergunta" value={data.quiz_symptoms_title} onChange={(v) => set("quiz_symptoms_title", v)} textarea />
+        <Field label="Subtexto" value={data.quiz_symptoms_subtitle} onChange={(v) => set("quiz_symptoms_subtitle", v)} />
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Opções (multi-seleção)</Label>
+          {data.quiz_symptoms_options.map((opt, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Opção {i + 1}</span>
+                {data.quiz_symptoms_options.length > 2 && (
+                  <Button variant="ghost" size="icon" onClick={() =>
+                    set("quiz_symptoms_options", data.quiz_symptoms_options.filter((_, idx) => idx !== i))
+                  } className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Ícone</Label>
+                  <Select value={opt.icon} onValueChange={(v) => {
+                    const next = [...data.quiz_symptoms_options]; next[i] = { ...opt, icon: v }; set("quiz_symptoms_options", next);
+                  }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SYMPTOM_ICON_OPTIONS.map((ic) => <SelectItem key={ic} value={ic}>{ic}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Título" value={opt.title} onChange={(v) => {
+                    const next = [...data.quiz_symptoms_options]; next[i] = { ...opt, title: v }; set("quiz_symptoms_options", next);
+                  }} />
+                </div>
+              </div>
+              <Field label="Descrição" value={opt.description} onChange={(v) => {
+                const next = [...data.quiz_symptoms_options]; next[i] = { ...opt, description: v }; set("quiz_symptoms_options", next);
+              }} />
+            </div>
+          ))}
+          {data.quiz_symptoms_options.length < 8 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("quiz_symptoms_options", [...data.quiz_symptoms_options, { icon: "Sparkles", title: "Novo sintoma", description: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar opção
+            </Button>
+          )}
+        </div>
+      </Section>
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Salvar Configurações
