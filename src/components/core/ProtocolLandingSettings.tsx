@@ -118,6 +118,7 @@ const ProtocolLandingSettings: React.FC = () => {
           quiz_footer_badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULTS.quiz_footer_badges,
           quiz_symptoms_options: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : DEFAULTS.quiz_symptoms_options,
           quiz_age_options: Array.isArray(row.quiz_age_options) ? row.quiz_age_options : DEFAULTS.quiz_age_options,
+          quiz_lastvisit_options: Array.isArray(row.quiz_lastvisit_options) ? row.quiz_lastvisit_options : DEFAULTS.quiz_lastvisit_options,
         });
       }
       setLoading(false);
