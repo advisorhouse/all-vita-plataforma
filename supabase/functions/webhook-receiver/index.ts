@@ -61,23 +61,67 @@ serve(async (req) => {
     // Payment approved
     if (eventType === "payment.approved" || eventType === "payment_intent.succeeded" || eventType === "charge.succeeded") {
       const clientId = payload.client_id || payload.metadata?.client_id;
-      const amount = payload.amount || payload.data?.object?.amount;
+      const amountRaw = payload.amount || payload.data?.object?.amount;
       const cycle = payload.subscription_cycle || payload.metadata?.cycle || 1;
+      const referralCode: string | undefined =
+        payload.referral_code || payload.metadata?.referral_code || payload.metadata?.ref;
 
-      if (clientId && amount) {
-        // Create order
-        await supabase.from("orders").insert({
-          client_id: clientId,
-          amount: typeof amount === "number" && amount > 1000 ? amount / 100 : amount, // handle cents
-          payment_status: "paid",
-          status: "confirmed",
-          subscription_cycle: cycle,
-        });
+      if (clientId && amountRaw) {
+        const amount = typeof amountRaw === "number" && amountRaw > 1000 ? amountRaw / 100 : amountRaw;
 
-        // Ensure client is active
-        await supabase.from("client_profiles")
-          .update({ subscription_status: "active" })
-          .eq("id", clientId);
+        // Resolve tenant_id from client
+        const { data: clientRow } = await supabase
+          .from("clients")
+          .select("tenant_id")
+          .eq("id", clientId)
+          .maybeSingle();
+
+        const tenantId = clientRow?.tenant_id ?? payload.metadata?.tenant_id ?? null;
+
+        // Create order (only if tenant_id is known)
+        if (tenantId) {
+          const { data: orderRow, error: orderErr } = await supabase
+            .from("orders")
+            .insert({
+              client_id: clientId,
+              tenant_id: tenantId,
+              amount,
+              payment_status: "paid",
+              status: "confirmed",
+              subscription_cycle: cycle,
+              external_id: payload.id || payload.transaction_id || null,
+              metadata: { source, referral_code: referralCode || null },
+            })
+            .select("id")
+            .single();
+
+          if (orderErr) {
+            console.error("order insert error:", orderErr);
+          }
+
+          // Attribute sale to partner if referral code is present
+          if (orderRow?.id && referralCode) {
+            try {
+              const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-attribution`;
+              await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                },
+                body: JSON.stringify({
+                  tenant_id: tenantId,
+                  order_id: orderRow.id,
+                  referral_code: referralCode,
+                }),
+              });
+            } catch (e) {
+              console.error("process-attribution invoke error:", e);
+            }
+          }
+        } else {
+          console.warn("Skipping order creation: tenant_id could not be resolved");
+        }
 
         processed = true;
         responseMessage = "Payment processed, order created";

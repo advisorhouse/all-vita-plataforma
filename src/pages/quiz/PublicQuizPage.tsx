@@ -83,6 +83,7 @@ const PublicQuizPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [doctorValid, setDoctorValid] = useState<boolean | null>(null);
   const [doctorName, setDoctorName] = useState("");
+  const [referralCode, setReferralCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (doctorCode) {
@@ -91,6 +92,10 @@ const PublicQuizPage: React.FC = () => {
       setDoctorValid(true);
       setDoctorName(doctorCode);
     }
+    // Capture referral from URL or stored localStorage
+    const urlRef = new URLSearchParams(window.location.search).get("ref");
+    const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
+    setReferralCode((urlRef || stored || doctorCode || null)?.toUpperCase() ?? null);
   }, [doctorCode]);
 
   const update = (fields: Partial<QuizFormData>) => setData((d) => ({ ...d, ...fields }));
@@ -130,6 +135,7 @@ const PublicQuizPage: React.FC = () => {
         consent_contact_phone: data.consentPhone,
         consent_contact_social: data.consentSocial,
         doctor_code: doctorCode,
+        metadata: { referral_code: referralCode },
       });
 
       if (error) throw error;
