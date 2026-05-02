@@ -96,6 +96,28 @@ const DEFAULTS = {
     { icon: "Sun", title: "Com frequência", description: "Na maioria das vezes" },
     { icon: "AlertTriangle", title: "Quase sempre", description: "Sem proteção UV" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  // Result screen
+  result_title: "Seu Nível de Proteção Macular",
+  result_subtitle: "Baseado nas suas respostas, calculamos seu score de proteção visual",
+  result_levels: [
+    { max: 40, label: "Nível de risco: Alto", color: "#D9534F", message: "Sua proteção atual está abaixo do recomendado. É essencial iniciar um protocolo estruturado para fortalecer a barreira de proteção da retina." },
+    { max: 70, label: "Nível de risco: Moderado", color: "#D97757", message: "Você tem uma proteção parcial, mas existem lacunas importantes que merecem atenção. A exposição digital diária cria um desgaste cumulativo que sua proteção atual pode não cobrir totalmente.\n\nCom um protocolo baseado em astaxantina + luteína + zeaxantina, é possível fortalecer significativamente sua barreira de proteção macular." },
+    { max: 100, label: "Nível de risco: Baixo", color: "#5CB85C", message: "Excelente! Sua proteção atual está em bom nível. Manter um protocolo de suporte ajuda a preservar a saúde da retina ao longo do tempo." },
+  ] as Array<{ max: number; label: string; color: string; message: string }>,
+  result_product_eyebrow: "PROTOCOLO RECOMENDADO",
+  result_product_name: "Retina Shield System™",
+  result_product_powered_by: "powered by CAROTENOID CORE™",
+  result_cta_label: "Conhecer o protocolo",
+  result_cta_url: "",
+  result_disclaimer: "Este diagnóstico é uma ferramenta de triagem e não substitui uma consulta oftalmológica profissional. Recomendamos acompanhamento regular com um especialista.",
+  score_weights: {
+    screenTime: [80, 60, 35, 15],
+    symptoms:   [70, 60, 60, 65],
+    ageRange:   [85, 70, 55, 40],
+    lastVisit:  [90, 65, 35, 25],
+    supplements:[90, 70, 45, 20],
+    uvExposure: [90, 65, 40, 20],
+  } as Record<string, number[]>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
@@ -139,6 +161,10 @@ const ProtocolLandingSettings: React.FC = () => {
           quiz_lastvisit_options: Array.isArray(row.quiz_lastvisit_options) ? row.quiz_lastvisit_options : DEFAULTS.quiz_lastvisit_options,
           quiz_supplements_options: Array.isArray(row.quiz_supplements_options) ? row.quiz_supplements_options : DEFAULTS.quiz_supplements_options,
           quiz_uv_options: Array.isArray(row.quiz_uv_options) ? row.quiz_uv_options : DEFAULTS.quiz_uv_options,
+          result_levels: Array.isArray(row.result_levels) ? row.result_levels : DEFAULTS.result_levels,
+          score_weights: (row.score_weights && typeof row.score_weights === "object" && !Array.isArray(row.score_weights))
+            ? { ...DEFAULTS.score_weights, ...row.score_weights }
+            : DEFAULTS.score_weights,
         });
       }
       setLoading(false);
@@ -710,6 +736,135 @@ const ProtocolLandingSettings: React.FC = () => {
             </Button>
           )}
         </div>
+      </Section>
+
+      {/* RESULT SCREEN */}
+      <Section
+        title="Tela final do Quiz (Resultado)"
+        description="Score final, mensagem por nível de risco e CTA para a página de vendas."
+      >
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field label="Título do resultado" value={data.result_title} onChange={(v) => set("result_title", v)} />
+          <Field label="Subtítulo do resultado" value={data.result_subtitle} onChange={(v) => set("result_subtitle", v)} />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Faixas de score (do menor para o maior — `max` é o limite superior inclusivo)</Label>
+          {data.result_levels.map((lv, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Faixa {i + 1}</span>
+                {data.result_levels.length > 1 && (
+                  <Button variant="ghost" size="icon"
+                    onClick={() => set("result_levels", data.result_levels.filter((_, idx) => idx !== i))}
+                    className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Score máximo</Label>
+                  <Input type="number" min={0} max={100} value={lv.max}
+                    onChange={(e) => {
+                      const next = [...data.result_levels];
+                      next[i] = { ...lv, max: parseInt(e.target.value || "0") };
+                      set("result_levels", next);
+                    }}
+                    className="h-9 text-sm" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Rótulo" value={lv.label}
+                    onChange={(v) => {
+                      const next = [...data.result_levels]; next[i] = { ...lv, label: v }; set("result_levels", next);
+                    }} />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-4 gap-2 items-end">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Cor</Label>
+                  <div className="flex gap-1 items-center">
+                    <Input type="color" value={lv.color} className="h-9 w-12 p-1"
+                      onChange={(e) => {
+                        const next = [...data.result_levels]; next[i] = { ...lv, color: e.target.value }; set("result_levels", next);
+                      }} />
+                    <Input value={lv.color} className="h-9 text-sm font-mono"
+                      onChange={(e) => {
+                        const next = [...data.result_levels]; next[i] = { ...lv, color: e.target.value }; set("result_levels", next);
+                      }} />
+                  </div>
+                </div>
+                <div className="sm:col-span-3">
+                  <Field label="Mensagem" value={lv.message}
+                    onChange={(v) => {
+                      const next = [...data.result_levels]; next[i] = { ...lv, message: v }; set("result_levels", next);
+                    }}
+                    textarea />
+                </div>
+              </div>
+            </div>
+          ))}
+          {data.result_levels.length < 5 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("result_levels", [...data.result_levels, { max: 100, label: "Novo nível", color: "#D97757", message: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar faixa
+            </Button>
+          )}
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3 pt-2 border-t border-border">
+          <Field label="Pré-título do produto" value={data.result_product_eyebrow} onChange={(v) => set("result_product_eyebrow", v)} />
+          <Field label="Nome do produto" value={data.result_product_name} onChange={(v) => set("result_product_name", v)} />
+          <Field label="Selo / tecnologia" value={data.result_product_powered_by} onChange={(v) => set("result_product_powered_by", v)} />
+          <Field label="Texto do botão CTA" value={data.result_cta_label} onChange={(v) => set("result_cta_label", v)} />
+        </div>
+        <Field
+          label="URL da página de vendas (link direto de checkout)"
+          value={data.result_cta_url}
+          onChange={(v) => set("result_cta_url", v)}
+        />
+        <p className="text-[10px] text-muted-foreground">Cole aqui o link direto de compra do produto (ex: hotmart, kiwify, página de vendas externa).</p>
+        <Field label="Disclaimer (rodapé)" value={data.result_disclaimer} onChange={(v) => set("result_disclaimer", v)} textarea />
+      </Section>
+
+      {/* SCORE WEIGHTS */}
+      <Section
+        title="Algoritmo do Score (pesos por resposta)"
+        description="Cada valor (0–100) representa quantos pontos de proteção a opção contribui. A média dos blocos forma o score final do paciente."
+      >
+        {([
+          ["screenTime", "Rotina (telas)", data.quiz_question_options],
+          ["symptoms", "Sintomas", data.quiz_symptoms_options],
+          ["ageRange", "Faixa etária", data.quiz_age_options],
+          ["lastVisit", "Última visita", data.quiz_lastvisit_options],
+          ["supplements", "Suplementos", data.quiz_supplements_options],
+          ["uvExposure", "Exposição UV", data.quiz_uv_options],
+        ] as const).map(([key, label, opts]) => (
+          <div key={key} className="rounded-lg border border-border p-3 space-y-2">
+            <Label className="text-[12px] font-semibold text-foreground">{label}</Label>
+            <div className="grid sm:grid-cols-2 gap-2">
+              {opts.map((opt, i) => {
+                const current = (data.score_weights[key] || [])[i] ?? 50;
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground flex-1 truncate" title={opt.title}>{opt.title}</span>
+                    <Input
+                      type="number" min={0} max={100} value={current}
+                      className="h-8 w-20 text-sm"
+                      onChange={(e) => {
+                        const arr = [...(data.score_weights[key] || [])];
+                        while (arr.length < opts.length) arr.push(50);
+                        arr[i] = Math.max(0, Math.min(100, parseInt(e.target.value || "0")));
+                        set("score_weights", { ...data.score_weights, [key]: arr });
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <p className="text-[10px] text-muted-foreground">Dica: respostas saudáveis = pesos altos (80–100). Respostas de risco = pesos baixos (10–40).</p>
       </Section>
 
       <div className="flex justify-end pt-2">

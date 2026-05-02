@@ -2176,6 +2176,16 @@ export type Database = {
           quiz_uv_subtitle: string | null
           quiz_uv_title: string | null
           reasons: Json | null
+          result_cta_label: string | null
+          result_cta_url: string | null
+          result_disclaimer: string | null
+          result_levels: Json | null
+          result_product_eyebrow: string | null
+          result_product_name: string | null
+          result_product_powered_by: string | null
+          result_subtitle: string | null
+          result_title: string | null
+          score_weights: Json | null
           tenant_id: string
           trust_badges: Json | null
           updated_at: string
@@ -2224,6 +2234,16 @@ export type Database = {
           quiz_uv_subtitle?: string | null
           quiz_uv_title?: string | null
           reasons?: Json | null
+          result_cta_label?: string | null
+          result_cta_url?: string | null
+          result_disclaimer?: string | null
+          result_levels?: Json | null
+          result_product_eyebrow?: string | null
+          result_product_name?: string | null
+          result_product_powered_by?: string | null
+          result_subtitle?: string | null
+          result_title?: string | null
+          score_weights?: Json | null
           tenant_id: string
           trust_badges?: Json | null
           updated_at?: string
@@ -2272,6 +2292,16 @@ export type Database = {
           quiz_uv_subtitle?: string | null
           quiz_uv_title?: string | null
           reasons?: Json | null
+          result_cta_label?: string | null
+          result_cta_url?: string | null
+          result_disclaimer?: string | null
+          result_levels?: Json | null
+          result_product_eyebrow?: string | null
+          result_product_name?: string | null
+          result_product_powered_by?: string | null
+          result_subtitle?: string | null
+          result_title?: string | null
+          score_weights?: Json | null
           tenant_id?: string
           trust_badges?: Json | null
           updated_at?: string

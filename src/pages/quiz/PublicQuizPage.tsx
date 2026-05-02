@@ -17,14 +17,14 @@ import QuizStepMedications from "@/components/quiz/QuizStepMedications";
 import QuizStepOphthalmology from "@/components/quiz/QuizStepOphthalmology";
 import QuizStepReason from "@/components/quiz/QuizStepReason";
 import QuizStepConsent from "@/components/quiz/QuizStepConsent";
-import QuizStepCheckout from "@/components/quiz/QuizStepCheckout";
-import QuizSuccessView from "@/components/quiz/QuizSuccessView";
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
 import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
 import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
 import QuizStepAgeRange, { AgeOption } from "@/components/quiz/QuizStepAgeRange";
 import QuizStepSupplements, { SupplementOption } from "@/components/quiz/QuizStepSupplements";
 import QuizStepUV, { UVOption } from "@/components/quiz/QuizStepUV";
+import QuizStepResult, { ResultLevel } from "@/components/quiz/QuizStepResult";
+import { computeProtectionScore, ScoreWeights } from "@/lib/quizScore";
 
 export interface QuizFormData {
   fullName: string;
@@ -85,8 +85,23 @@ const STEPS_META = [
   { label: "Especializado" },
   { label: "Consulta" },
   { label: "Consentimento" },
-  { label: "Produto" },
+  { label: "Resultado" },
 ];
+
+const DEFAULT_LEVELS: ResultLevel[] = [
+  { max: 40, label: "Nível de risco: Alto", color: "#D9534F", message: "Sua proteção atual está abaixo do recomendado. É essencial iniciar um protocolo estruturado para fortalecer a barreira de proteção da retina." },
+  { max: 70, label: "Nível de risco: Moderado", color: "#D97757", message: "Você tem uma proteção parcial, mas existem lacunas importantes que merecem atenção. A exposição digital diária cria um desgaste cumulativo que sua proteção atual pode não cobrir totalmente.\n\nCom um protocolo baseado em astaxantina + luteína + zeaxantina, é possível fortalecer significativamente sua barreira de proteção macular." },
+  { max: 100, label: "Nível de risco: Baixo", color: "#5CB85C", message: "Excelente! Sua proteção atual está em bom nível. Manter um protocolo de suporte ajuda a preservar a saúde da retina ao longo do tempo." },
+];
+
+const DEFAULT_WEIGHTS: ScoreWeights = {
+  screenTime: [80, 60, 35, 15],
+  symptoms: [70, 60, 60, 65],
+  ageRange: [85, 70, 55, 40],
+  lastVisit: [90, 65, 35, 25],
+  supplements: [90, 70, 45, 20],
+  uvExposure: [90, 65, 40, 20],
+};
 
 const DEFAULT_AGES: AgeOption[] = [
   { icon: "Zap", title: "18 a 30 anos", description: "Proteção natural ainda alta" },
@@ -170,6 +185,16 @@ const PublicQuizPage: React.FC = () => {
     uvTitle: "Com que frequência você sai no sol sem óculos escuros?",
     uvSubtitle: "Os raios UV são um dos vilões silenciosos para a saúde da retina.",
     uvOptions: DEFAULT_UV,
+    resultTitle: "Seu Nível de Proteção Macular",
+    resultSubtitle: "Baseado nas suas respostas, calculamos seu score de proteção visual",
+    resultLevels: DEFAULT_LEVELS,
+    resultProductEyebrow: "PROTOCOLO RECOMENDADO",
+    resultProductName: "Retina Shield System™",
+    resultProductPoweredBy: "powered by CAROTENOID CORE™",
+    resultCtaLabel: "Conhecer o protocolo",
+    resultCtaUrl: "",
+    resultDisclaimer: "Este diagnóstico é uma ferramenta de triagem e não substitui uma consulta oftalmológica profissional. Recomendamos acompanhamento regular com um especialista.",
+    scoreWeights: DEFAULT_WEIGHTS,
   });
 
   // Resolve referral
@@ -187,7 +212,7 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options,quiz_supplements_title,quiz_supplements_subtitle,quiz_supplements_options,quiz_uv_title,quiz_uv_subtitle,quiz_uv_options")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options,quiz_supplements_title,quiz_supplements_subtitle,quiz_supplements_options,quiz_uv_title,quiz_uv_subtitle,quiz_uv_options,result_title,result_subtitle,result_levels,result_product_eyebrow,result_product_name,result_product_powered_by,result_cta_label,result_cta_url,result_disclaimer,score_weights")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
@@ -214,6 +239,16 @@ const PublicQuizPage: React.FC = () => {
           uvTitle: row.quiz_uv_title || prev.uvTitle,
           uvSubtitle: row.quiz_uv_subtitle || prev.uvSubtitle,
           uvOptions: Array.isArray(row.quiz_uv_options) ? row.quiz_uv_options : prev.uvOptions,
+          resultTitle: row.result_title || prev.resultTitle,
+          resultSubtitle: row.result_subtitle || prev.resultSubtitle,
+          resultLevels: Array.isArray(row.result_levels) ? row.result_levels : prev.resultLevels,
+          resultProductEyebrow: row.result_product_eyebrow || prev.resultProductEyebrow,
+          resultProductName: row.result_product_name || prev.resultProductName,
+          resultProductPoweredBy: row.result_product_powered_by ?? prev.resultProductPoweredBy,
+          resultCtaLabel: row.result_cta_label || prev.resultCtaLabel,
+          resultCtaUrl: row.result_cta_url ?? prev.resultCtaUrl,
+          resultDisclaimer: row.result_disclaimer || prev.resultDisclaimer,
+          scoreWeights: (row.score_weights && typeof row.score_weights === "object") ? row.score_weights : prev.scoreWeights,
         }));
       }
     })();
@@ -276,7 +311,15 @@ const PublicQuizPage: React.FC = () => {
     }
   };
 
-  if (submitted) return <QuizSuccessView patientName={data.fullName} />;
+  // Auto submit when reaching the result step
+  useEffect(() => {
+    if (step === 12 && !submitted && !submitting) {
+      handleSubmit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+
 
   const tenantLogo = currentTenant?.logo_url;
   const tenantName = currentTenant?.trade_name || currentTenant?.name || "";
@@ -389,7 +432,29 @@ const PublicQuizPage: React.FC = () => {
               {step === 9 && <QuizStepOphthalmology data={data} update={update} />}
               {step === 10 && <QuizStepReason data={data} update={update} />}
               {step === 11 && <QuizStepConsent data={data} update={update} />}
-              {step === 12 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+              {step === 12 && (
+                <QuizStepResult
+                  score={computeProtectionScore(data, config.scoreWeights, {
+                    screenTime: config.options,
+                    symptoms: config.symptomsOptions,
+                    ageRange: config.ageOptions,
+                    lastVisit: config.lastVisitOptions,
+                    supplements: config.supplementsOptions,
+                    uvExposure: config.uvOptions,
+                  })}
+                  tenantLogo={tenantLogo}
+                  tenantName={tenantName}
+                  title={config.resultTitle}
+                  subtitle={config.resultSubtitle}
+                  levels={config.resultLevels}
+                  productEyebrow={config.resultProductEyebrow}
+                  productName={config.resultProductName}
+                  productPoweredBy={config.resultProductPoweredBy}
+                  ctaLabel={config.resultCtaLabel}
+                  ctaUrl={config.resultCtaUrl}
+                  disclaimer={config.resultDisclaimer}
+                />
+              )}
             </motion.div>
           </AnimatePresence>
 
