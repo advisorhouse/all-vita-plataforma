@@ -854,7 +854,7 @@ const PartnerNetwork: React.FC = () => {
       if (!partner?.id) return [];
 
       const { data, error } = await supabase
-        .from("conversions")
+        .from("referrals")
         .select(`
           id,
           created_at,
