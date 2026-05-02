@@ -199,8 +199,40 @@ const PartnerRevenue: React.FC = () => {
     queryKey: ["partner-revenue-stats", partner?.id],
     queryFn: async () => {
       if (!partner?.id) return null;
-      // Get monthly totals for chart (simulated for now based on actual data if exists)
       return REVENUE_MONTHLY; 
+    },
+    enabled: !!partner?.id
+  });
+
+  const { data: clientStats } = useQuery({
+    queryKey: ["partner-client-revenue-stats", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return [];
+      const { data: conversions } = await supabase
+        .from("conversions")
+        .select(`
+          id,
+          created_at,
+          amount,
+          clients (
+            first_name,
+            last_name
+          )
+        `)
+        .eq("partner_id", partner.id)
+        .order("created_at", { ascending: false });
+        
+      if (!conversions?.length) return CLIENTS_LIST;
+
+      return conversions.map(c => ({
+        name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
+        plan: "Mensal",
+        months: 1,
+        consistency: 100,
+        risk: "low",
+        points: `${c.amount || 0} pts`,
+        nextPayment: format(new Date(), "dd/MM")
+      }));
     },
     enabled: !!partner?.id
   });
@@ -212,6 +244,7 @@ const PartnerRevenue: React.FC = () => {
   const avgTicket = 420;
   const commissionRate = 0.15;
   const retentionRate = 0.91;
+  const clientsList = clientStats || CLIENTS_LIST;
 
 
   const simulate = (months: number) => {
