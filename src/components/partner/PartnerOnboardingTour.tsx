@@ -14,8 +14,8 @@ interface PartnerOnboardingTourProps {
   onClose: () => void;
 }
 
-type Screen = "welcome" | "linkage" | "vitacoins";
-const ORDER: Screen[] = ["welcome", "linkage", "vitacoins"];
+type Screen = "welcome" | "linkage" | "flow" | "vitacoins";
+const ORDER: Screen[] = ["welcome", "linkage", "flow", "vitacoins"];
 
 const PILLARS = [
   {
@@ -45,6 +45,13 @@ const LINKAGE_STEPS = [
   { icon: Stethoscope, title: "Paciente preenche", body: "O paciente responde um questionário de saúde digital antes da consulta. Dados protegidos pela LGPD." },
   { icon: Shield, title: "Autorização LGPD", body: "O paciente autoriza o uso dos dados e o vínculo médico–paciente é criado automaticamente no sistema." },
   { icon: Coins, title: "Pontos automáticos", body: "Toda compra futura desse paciente na plataforma gera Vitacoins para você — de forma automática e recorrente." },
+];
+
+const FLOW_STEPS = [
+  { step: "1", title: "Paciente preenche o quiz", body: "Na sua clínica ou via link enviado por WhatsApp. O questionário de saúde vincula o paciente ao seu cadastro automaticamente." },
+  { step: "2", title: "Paciente compra na plataforma", body: "Quando o paciente fizer uma compra na plataforma, o sistema reconhece o vínculo e credita Vitacoins na sua wallet." },
+  { step: "3", title: "Pontos ficam pendentes (30 dias)", body: "Os pontos entram em carência de 30 dias para garantir a qualidade da venda. Após esse período, ficam liberados." },
+  { step: "4", title: "Resgate como preferir", body: "Pontos liberados podem ser trocados por: transferência Pix, produtos, cursos, congressos ou equipamentos." },
 ];
 
 const EARN_WAYS = [
@@ -207,8 +214,49 @@ const PartnerOnboardingTour: React.FC<PartnerOnboardingTourProps> = ({ onClose }
               </div>
             )}
 
-            {/* ═══ TELA 3 ═══ */}
-            {screen === "vitacoins" && (
+            {/* ═══ TELA 3 (FLUXO) ═══ */}
+            {screen === "flow" && (
+              <div className="text-center space-y-8">
+                <div className="space-y-3">
+                  <h2 className="text-[1.75rem] font-semibold tracking-tight text-foreground">
+                    Entenda o fluxo
+                  </h2>
+                  <p className="text-muted-foreground text-[15px] font-light">
+                    Revise como o sistema de pontos funciona na prática.
+                  </p>
+                </div>
+
+                <div className="space-y-4 text-left">
+                  {FLOW_STEPS.map(({ step, title, body }) => (
+                    <div key={step} className="relative flex items-start gap-4 p-4 rounded-xl border border-border bg-card">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm border border-primary/20">
+                        {step}
+                      </div>
+                      <div>
+                        <p className="text-[14px] font-semibold text-foreground">{title}</p>
+                        <p className="text-[12px] text-muted-foreground leading-relaxed mt-0.5">{body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-xl border border-primary/10 bg-primary/5 p-5 text-left space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    <p className="text-[13px] font-semibold text-foreground uppercase tracking-wider">Ético e transparente</p>
+                  </div>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed">
+                    O programa é baseado em <strong className="text-foreground font-semibold">Vitacoins</strong> — a moeda interna da Allvita. <span className="underline decoration-primary/30">Não é comissão por venda</span>. Você acumula pontos pela jornada dos seus pacientes e resgata como preferir. Compliance LGPD e sem vínculo com prescrição.
+                  </p>
+                </div>
+
+                <Button className="w-full gap-2" onClick={goNext}>
+                  Entendi o fluxo <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* ═══ TELA 4 (VITACOINS) ═══ */}
               <div className="text-center space-y-8">
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
@@ -242,7 +290,7 @@ const PartnerOnboardingTour: React.FC<PartnerOnboardingTourProps> = ({ onClose }
                   <div className="grid grid-cols-3 gap-2">
                     {WALLET_STATES.map(({ icon: Icon, label, desc }) => (
                       <div key={label} className="p-3 rounded-xl border border-border bg-card text-center">
-                        <Icon className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
+                        <Icon className="h-4 w-4 text-primary mx-auto mb-1" />
                         <p className="text-[12px] font-medium text-foreground">{label}</p>
                         <p className="text-[10px] text-muted-foreground">{desc}</p>
                       </div>
@@ -251,11 +299,16 @@ const PartnerOnboardingTour: React.FC<PartnerOnboardingTourProps> = ({ onClose }
                 </div>
 
                 <div className="text-left space-y-3">
-                  <p className="text-[13px] font-semibold text-foreground px-1">Opções de resgate:</p>
+                  <div className="px-1 space-y-1">
+                    <p className="text-[13px] font-semibold text-foreground">Como funciona o resgate?</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Seus Vitacoins ficam pendentes por 30 dias (carência). Após liberados, você pode resgatar por:
+                    </p>
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
                     {REDEEM_OPTIONS.map(({ icon: Icon, label }) => (
-                      <div key={label} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-card">
-                        <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                      <div key={label} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors">
+                        <Icon className="h-4 w-4 text-primary/70" strokeWidth={1.5} />
                         <span className="text-[11px] text-muted-foreground font-medium">{label}</span>
                       </div>
                     ))}
