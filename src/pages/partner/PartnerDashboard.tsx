@@ -196,7 +196,126 @@ const PartnerDashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* ═══ ROW 2 — Wallet Médica ═══ */}
+        {/* ═══ ROW 2 — Link & QR Code ═══ */}
+        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+          <Card className="border-border shadow-sm overflow-hidden bg-white">
+            <CardContent className="p-0">
+              <div className="flex flex-col md:flex-row">
+                {/* QR Code Section */}
+                <div className="p-6 flex flex-col items-center justify-center bg-secondary/30 border-b md:border-b-0 md:border-r border-border min-w-[240px]">
+                  <div className="bg-white p-3 rounded-xl shadow-sm mb-4">
+                    {partnerData?.referralCode ? (
+                      <QRCodeSVG 
+                        id="partner-qr-code"
+                        value={`${window.location.origin}/quiz/${partnerData.referralCode}`}
+                        size={160}
+                        level="H"
+                        includeMargin={false}
+                        imageSettings={{
+                          src: currentTenant?.logo_url || "",
+                          x: undefined,
+                          y: undefined,
+                          height: 30,
+                          width: 30,
+                          excavate: true,
+                        }}
+                      />
+                    ) : (
+                      <div className="h-[160px] w-[160px] flex items-center justify-center bg-muted rounded-lg">
+                        <QrCode className="h-10 w-10 text-muted-foreground/30" />
+                      </div>
+                    )}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full gap-2 text-xs font-semibold"
+                    onClick={() => {
+                      const svg = document.getElementById("partner-qr-code");
+                      if (svg) {
+                        const svgData = new XMLSerializer().serializeToString(svg);
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        const img = new Image();
+                        img.onload = () => {
+                          canvas.width = img.width + 40;
+                          canvas.height = img.height + 40;
+                          if (ctx) {
+                            ctx.fillStyle = "white";
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 20, 20);
+                            const pngFile = canvas.toDataURL("image/png");
+                            const downloadLink = document.createElement("a");
+                            downloadLink.download = `qrcode-${partnerData?.referralCode}.png`;
+                            downloadLink.href = pngFile;
+                            downloadLink.click();
+                          }
+                        };
+                        img.src = "data:image/svg+xml;base64," + btoa(svgData);
+                      }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download QR Code
+                  </Button>
+                </div>
+
+                {/* Link Section */}
+                <div className="flex-1 p-6 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                      <Share2 className="h-4 w-4 text-accent" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">Seu Link Personalizado</h3>
+                      <p className="text-[11px] text-muted-foreground">Compartilhe este link para vincular novos pacientes.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-secondary/50 rounded-lg border border-border overflow-hidden">
+                      <p className="text-xs font-medium text-foreground truncate flex-1">
+                        {window.location.origin}/quiz/{partnerData?.referralCode || "..."}
+                      </p>
+                    </div>
+                    <Button 
+                      className="gap-2 bg-accent hover:bg-accent/90 shrink-0"
+                      onClick={() => {
+                        const link = `${window.location.origin}/quiz/${partnerData?.referralCode}`;
+                        navigator.clipboard.writeText(link);
+                        toast.success("Link copiado com sucesso!");
+                      }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copiar Link
+                    </Button>
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg border border-border bg-card">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Rastreamento</p>
+                      <p className="text-xs font-bold text-foreground">Vínculo Direto</p>
+                    </div>
+                    <div className="p-3 rounded-lg border border-border bg-card">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Validade</p>
+                      <p className="text-xs font-bold text-foreground">Vitalício</p>
+                    </div>
+                    <div className="p-3 rounded-lg border border-border bg-card col-span-2 sm:col-span-1">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Status</p>
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <p className="text-xs font-bold text-foreground">Ativo</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* ═══ ROW 3 — Wallet Médica ═══ */}
+
         <div className="grid grid-cols-12 gap-4">
            <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-8">
             <Card className="border-border shadow-sm h-full">
