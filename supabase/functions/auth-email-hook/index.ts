@@ -150,11 +150,30 @@ serve(async (req) => {
       }
 
       case "INVITE": {
-        subject = `Seu convite de parceira para a ${tenantBranding.name} chegou!!`;
         const isPartner = user?.user_metadata?.role === "partner";
-        
+        const partnerLevel = Number(user?.user_metadata?.partner_level || 1);
+        const inviterName = user?.user_metadata?.inviter_name || null;
+        const isNetworkInvite = isPartner && partnerLevel >= 2 && inviterName;
+
+        subject = isNetworkInvite
+          ? `${inviterName} te convidou para a rede de parceiros da ${tenantBranding.name}`
+          : `Seu convite de parceria para a ${tenantBranding.name} chegou!!`;
+
         let extraContent = "";
-        if (isPartner) {
+        if (isNetworkInvite) {
+          extraContent = `
+            <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
+              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Você foi indicado por ${inviterName}</h3>
+              <p style="font-size:14px;color:#475569"><strong>${inviterName}</strong> faz parte da rede de parceiros da ${tenantBranding.name} e indicou você para entrar também. Como parceiro, você poderá:</p>
+              <ul style="padding-left:20px;color:#475569;font-size:14px">
+                <li style="margin-bottom:8px"><strong>Divulgar produtos da ${tenantBranding.name}:</strong> Compartilhe com sua rede e seja recompensado por cada indicação.</li>
+                <li style="margin-bottom:8px"><strong>Ganhar Vitacoins:</strong> Acumule pontos por cada venda realizada pela sua indicação.</li>
+                <li style="margin-bottom:8px"><strong>Trocar por premiações:</strong> Suas Vitacoins viram prêmios exclusivos, produtos e cursos.</li>
+                <li><strong>Resgate em Pix:</strong> Transforme seu saldo em dinheiro direto na sua conta.</li>
+              </ul>
+            </div>
+          `;
+        } else if (isPartner) {
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
               <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada com a ${tenantBranding.name} foi aprovada</h3>
@@ -169,16 +188,24 @@ serve(async (req) => {
           `;
         }
 
+        const heading = isNetworkInvite
+          ? `Bem-vindo(a), ${name}!`
+          : `Bem-vindo(a), ${name}!`;
+        const intro = isNetworkInvite
+          ? `<strong>${inviterName}</strong> te convidou para fazer parte da rede de parceiros da <strong>${tenantBranding.name}</strong>.`
+          : `Você foi convidado para participar da plataforma <strong>${tenantBranding.name}</strong>.`;
+        const ctaLabel = isNetworkInvite ? "Aceitar convite e criar conta" : "Aceitar Convite";
+
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">Bem-vindo(a), ${name}!</h2>
-          <p>Você foi convidado para participar da plataforma <strong>${tenantBranding.name}</strong>.</p>
+          <h2 style="color: ${tenantBranding.primaryColor};">${heading}</h2>
+          <p>${intro}</p>
           
           ${extraContent}
 
           <p>Clique no botão abaixo para aceitar o convite e configurar sua conta:</p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-              Aceitar Convite
+              ${ctaLabel}
             </a>
           </div>
         `);
