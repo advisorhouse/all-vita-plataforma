@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProductTour } from "./useProductTour";
 
 /**
  * Controla a exibição do onboarding educacional do partner.
@@ -8,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
  */
 export const usePartnerOnboarding = () => {
   const { user } = useAuth();
+  const { startTour } = useProductTour();
   const [seen, setSeen] = useState<boolean | null>(null);
   const [forceOpen, setForceOpen] = useState(false);
 
@@ -32,13 +34,23 @@ export const usePartnerOnboarding = () => {
 
   const markAsSeen = useCallback(async () => {
     if (!user) return;
-    await supabase
+    
+    // Atualiza no banco
+    const { error } = await supabase
       .from("profiles")
       .update({ partner_onboarding_seen: true })
       .eq("id", user.id);
-    setSeen(true);
-    setForceOpen(false);
-  }, [user]);
+    
+    if (!error) {
+      setSeen(true);
+      setForceOpen(false);
+      
+      // Dispara o tour explicativo (tooltips) IMEDIATAMENTE após o fechamento do onboarding
+      setTimeout(() => {
+        startTour();
+      }, 500);
+    }
+  }, [user, startTour]);
 
   const reopen = useCallback(() => setForceOpen(true), []);
 

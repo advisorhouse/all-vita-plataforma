@@ -259,7 +259,11 @@ export const useProductTour = () => {
       return location.pathname.endsWith(path);
     });
 
-    if (isDashboard && tourCompleted === false) {
+    const isPartner = location.pathname.includes('/partner');
+
+    // Se for partner, o tour só deve disparar via trigger manual após o onboarding
+    // Para outros papéis, mantém o comportamento automático
+    if (isDashboard && tourCompleted === false && !isPartner) {
       const timer = setTimeout(() => {
         startTour();
       }, 1000);
