@@ -201,6 +201,24 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
           full_name: data.fullName,
           phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
           role: "partner",
+          partner_data: {
+            type: data.type,
+            cpf: data.cpf,
+            rg: data.rg,
+            cnpj: data.cnpj,
+            social_name: data.socialName,
+            trading_name: data.tradingName,
+            responsible_name: data.responsibleName,
+            crm: data.crm,
+            specialty: data.specialty,
+            address: {
+              cep: data.cep, street: data.street, number: data.number,
+              complement: data.complement, district: data.district,
+              city: data.city, state: data.state,
+            },
+            pix: { type: data.pixType, key: data.pixKey },
+            bank: { bank: data.bank, agency: data.agency, account: data.account },
+          },
         },
       });
 
