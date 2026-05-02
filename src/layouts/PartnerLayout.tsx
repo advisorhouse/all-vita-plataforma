@@ -4,7 +4,7 @@ import AppShell from "@/components/layout/AppShell";
 import {
   Home, ShoppingBag, GraduationCap, Target,
   CheckSquare, HelpCircle, Star, UserPlus,
-  Users, ClipboardList, Trophy, Network, Link2,
+  Users, ClipboardList, Trophy, Network, Link2, Brain,
 } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
