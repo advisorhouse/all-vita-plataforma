@@ -204,7 +204,37 @@ const PublicQuizPage: React.FC = () => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
     const finalRef = (urlRef || stored || doctorCodeParam || null)?.toUpperCase() ?? null;
     setReferralCode(finalRef);
-    setDoctorName(finalRef || "Geral");
+    
+    if (finalRef) {
+      const loadPartnerName = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("partners")
+            .select(`
+              profiles (
+                first_name,
+                last_name
+              )
+            `)
+            .eq("referral_code", finalRef)
+            .maybeSingle();
+
+          if (data?.profiles) {
+            const profile = data.profiles as any;
+            const fullName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+            setDoctorName(toTitleCase(fullName));
+          } else {
+            setDoctorName(toTitleCase(finalRef));
+          }
+        } catch (e) {
+          console.error("Error loading partner name:", e);
+          setDoctorName(toTitleCase(finalRef));
+        }
+      };
+      loadPartnerName();
+    } else {
+      setDoctorName("Geral");
+    }
   }, [doctorCodeParam, searchParams]);
 
   // Load tenant-configured copy
