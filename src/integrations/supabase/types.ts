@@ -239,6 +239,92 @@ export type Database = {
           },
         ]
       }
+      chat_conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          partner_id: string | null
+          tenant_id: string
+          updated_at: string | null
+          user_email: string | null
+          user_name: string | null
+          user_phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          partner_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          user_email?: string | null
+          user_name?: string | null
+          user_phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          partner_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          user_email?: string | null
+          user_name?: string | null
+          user_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clicks: {
         Row: {
           created_at: string
