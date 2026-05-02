@@ -206,7 +206,7 @@ serve(async (req) => {
 
           <p>Clique no botão abaixo para aceitar o convite e configurar sua conta:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            <a href="${authApiUrl}/verify?token=${email_data?.token_hash}&type=invite&redirect_to=${encodeURIComponent(redirect_to)}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               ${ctaLabel}
             </a>
           </div>
