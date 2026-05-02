@@ -165,11 +165,11 @@ const PartnerReferrals: React.FC = () => {
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setQuizPreviewOpen(true)}>
                 <Eye className="h-3.5 w-3.5" />
-                Visualizar Quiz
+                Visualizar Protocolo
               </Button>
               <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
                 <Zap className="h-3 w-3 text-warning" />
-                <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Quiz</span></p>
+                <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Protocolo</span></p>
                 <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo quiz foi preenchido por último." />
               </div>
             </div>
@@ -361,7 +361,7 @@ const PartnerReferrals: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-[13px] font-medium text-foreground">{name}</p>
-                        <p className="text-[11px] text-muted-foreground">Quiz em {date}</p>
+                        <p className="text-[11px] text-muted-foreground">Protocolo em {date}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
