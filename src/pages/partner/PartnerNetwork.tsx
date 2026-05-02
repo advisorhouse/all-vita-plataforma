@@ -923,9 +923,14 @@ const PartnerNetwork: React.FC = () => {
             </div>
           </div>
         </motion.div>
+        
+        {/* ═══ Recruit Link ═══ */}
+        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+          <RecruitLinkCard partner={partner} tenant={currentTenant} />
+        </motion.div>
 
         {/* ═══ ROW 1 — KPI Cards (uniform 4-column) ═══ */}
-        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div custom={0.5} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {kpiCards.map(({ label, value, change, icon: Icon, tip, accent }) => (
               <Card key={label} className={accent ? "border-accent/20 shadow-sm bg-accent/5" : "border-border shadow-sm"}>
