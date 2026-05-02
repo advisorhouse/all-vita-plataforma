@@ -164,7 +164,8 @@ const ProtocolLandingPage: React.FC = () => {
           <Button
             onClick={startQuiz}
             size="sm"
-            className="rounded-full px-5 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="rounded-full px-5 text-primary-foreground transition-all"
+            style={{ backgroundColor: currentTenant?.secondary_color || "var(--primary)" }}
           >
             Fazer avaliação
           </Button>
@@ -205,7 +206,8 @@ const ProtocolLandingPage: React.FC = () => {
                 <Button
                   onClick={startQuiz}
                   size="lg"
-                  className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 px-7 h-12 text-sm font-semibold gap-2"
+                  className="rounded-xl text-primary-foreground px-7 h-12 text-sm font-semibold gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  style={{ backgroundColor: currentTenant?.secondary_color || "var(--primary)" }}
                 >
                   {config.hero_cta_label}
                   <ChevronRight className="h-4 w-4" />
