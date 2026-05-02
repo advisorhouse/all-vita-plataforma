@@ -123,6 +123,15 @@ export const useProductTour = () => {
         }
       });
       steps.push({
+        element: '#sidebar-link-referrals',
+        popover: {
+          title: '📝 O Motor de Vendas',
+          description: 'Use seu link exclusivo do Quiz. Quando um paciente preenche o quiz através do seu link, ele é vinculado a você "para sempre", e você ganha comissões em todas as compras dele.',
+          side: 'right',
+          align: 'start'
+        }
+      });
+      steps.push({
         element: '#sidebar-partner-levels',
         popover: {
           title: '📈 Sua Progressão',
