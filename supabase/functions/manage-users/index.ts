@@ -391,7 +391,43 @@ serve(async (req) => {
           }, { onConflict: "tenant_id,user_id" });
         }
 
-        // Send welcome email
+        // If role is partner, create the partners record (level 1 by default, level 2+ if invited by another partner)
+        if (usePartnerInvite && targetTenantId) {
+          const { data: existingPartner } = await adminClient
+            .from("partners")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("tenant_id", targetTenantId)
+            .maybeSingle();
+
+          if (!existingPartner) {
+            await adminClient.from("partners").insert({
+              user_id: userId,
+              tenant_id: targetTenantId,
+              parent_partner_id: inviterPartnerId,
+              level: String(partnerLevel),
+              active: true,
+              metadata: partner_data || {},
+            });
+          }
+        }
+
+        // Send welcome email — SKIP for partners (the invite email was already sent by the auth-email-hook
+        // via auth.admin.inviteUserByEmail, with the proper "set your password" link).
+        if (usePartnerInvite) {
+          // Audit and return early
+          await adminClient.from("audit_logs").insert({
+            user_id: callerUserId,
+            tenant_id: tenantId,
+            action: "user_invited",
+            resource: "memberships",
+            resource_id: userId,
+            details: { email, role, full_name, partner_level: partnerLevel, inviter_partner_id: inviterPartnerId },
+          });
+          return jsonRes(201, { user_id: userId, email, role, invited: true, partner_level: partnerLevel });
+        }
+
+        // Send welcome email (non-partner)
         try {
           let tenantName = "All Vita";
           let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
