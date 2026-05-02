@@ -113,22 +113,52 @@ serve(async (req) => {
     switch (normalizedEvent) {
       case "PASSWORD_RECOVERY":
       case "RECOVERY": {
-        subject = `Recuperação de Senha - ${tenantBranding.name}`;
+        const isFirstTime = !user?.last_sign_in_at;
+        const isPartner = user?.user_metadata?.role === "partner";
         
-        // Use site_url from email_data or fallback to a hardcoded one if necessary
-        // The verify link should point to the Supabase Auth API verify endpoint
+        if (isFirstTime && isPartner) {
+          subject = `Sua jornada como parceiro(a) na ${tenantBranding.name} foi aprovada!`;
+        } else {
+          subject = `Recuperação de Senha - ${tenantBranding.name}`;
+        }
+        
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=recovery&redirect_to=${encodeURIComponent(redirect_to)}`;
 
-        html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.secondaryColor};">Olá, ${name}</h2>
-          <p>Recebemos uma solicitação para redefinir sua senha na plataforma <strong>${tenantBranding.name}</strong>.</p>
-          <div style="margin: 30px 0; text-align: center;">
-            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-              Redefinir Minha Senha
-            </a>
-          </div>
-          <p>Se você não solicitou isso, pode ignorar este e-mail com segurança. Sua senha permanecerá a mesma.</p>
-        `);
+        if (isFirstTime && isPartner) {
+          html = getTemplate(tenantBranding, `
+            <h2 style="color: ${tenantBranding.secondaryColor};">Bem-vindo(a), ${name}!</h2>
+            <p>Sua nova jornada com a <strong>${tenantBranding.name}</strong> foi aprovada.</p>
+            
+            <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
+              <h3 style="margin-top:0;color:${tenantBranding.secondaryColor};font-size:18px">Tudo pronto para começar</h3>
+              <p style="font-size:14px;color:#475569">A partir de agora você poderá divulgar os produtos da ${tenantBranding.name} e ser recompensado por isso:</p>
+              <ul style="padding-left:20px;color:#475569;font-size:14px">
+                <li style="margin-bottom:8px"><strong>Indicação de Produtos:</strong> Divulgue os produtos para sua rede.</li>
+                <li style="margin-bottom:8px"><strong>Vitacoins:</strong> Ganhe Vitacoins a cada indicação realizada com sucesso.</li>
+                <li style="margin-bottom:8px"><strong>Premiações:</strong> Suas Vitacoins podem ser trocadas por premiações exclusivas e produtos.</li>
+                <li><strong>Resgate em Pix:</strong> Transforme seu saldo em dinheiro direto na sua conta.</li>
+              </ul>
+            </div>
+
+            <p>Clique no botão abaixo para definir sua senha e ativar sua conta:</p>
+            <div style="margin: 30px 0; text-align: center;">
+              <a href="${confirmationUrl}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Ativar minha conta de parceiro
+              </a>
+            </div>
+          `);
+        } else {
+          html = getTemplate(tenantBranding, `
+            <h2 style="color: ${tenantBranding.secondaryColor};">Olá, ${name}</h2>
+            <p>Recebemos uma solicitação para redefinir sua senha na plataforma <strong>${tenantBranding.name}</strong>.</p>
+            <div style="margin: 30px 0; text-align: center;">
+              <a href="${confirmationUrl}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                Redefinir Minha Senha
+              </a>
+            </div>
+            <p>Se você não solicitou isso, pode ignorar este e-mail com segurança. Sua senha permanecerá a mesma.</p>
+          `);
+        }
         break;
       }
 
