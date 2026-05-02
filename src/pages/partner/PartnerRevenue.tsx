@@ -6,7 +6,7 @@ import {
   Calendar, Zap, Award, Repeat, ChevronRight,
   Wallet, Target, Sparkles, Coins,
   ShieldCheck, BarChart3, Eye, Info, Gift,
-  ShoppingBag, GraduationCap, Smartphone, X, ArrowRight,
+  ShoppingBag, GraduationCap, Smartphone, X, ArrowRight, Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +22,11 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentPartner } from "@/hooks/useCurrentPartner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -151,16 +156,59 @@ const REDEMPTION_OPTIONS = [
 
 // ─── Component ───────────────────────────────────────────────
 const PartnerRevenue: React.FC = () => {
+  const { data: partner, isLoading: loadingPartner } = useCurrentPartner();
+  const { toast } = useToast();
   const [simNewClients, setSimNewClients] = useState([5]);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [redeemAmount, setRedeemAmount] = useState([1000]);
   const [redeemStep, setRedeemStep] = useState<"choose" | "confirm" | "success">("choose");
-  const { toast } = useToast();
 
-  const avgTicket = 420;
-  const commissionRate = 0.15;
-  const retentionRate = 0.91;
+  const { data: wallet } = useQuery({
+    queryKey: ["partner-wallet", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return null;
+      const { data } = await supabase
+        .from("vitacoins_wallet")
+        .select("*")
+        .eq("user_id", partner.user_id)
+        .eq("tenant_id", partner.tenant_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!partner?.id
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["partner-transactions", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return [];
+      const { data } = await supabase
+        .from("vitacoin_transactions")
+        .select("*")
+        .eq("user_id", partner.user_id)
+        .eq("tenant_id", partner.tenant_id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return data || [];
+    },
+    enabled: !!partner?.id
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ["partner-revenue-stats", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return null;
+      // Get monthly totals for chart (simulated for now based on actual data if exists)
+      return REVENUE_MONTHLY; 
+    },
+    enabled: !!partner?.id
+  });
+
+  const availablePoints = Number(wallet?.balance || 0);
+  const totalEarnedPoints = Number(wallet?.total_earned || 0);
+  const conversionRate = 0.03; // Should come from settings in real app
+
 
   const simulate = (months: number) => {
     let total = 48;
@@ -202,10 +250,10 @@ const PartnerRevenue: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-bold text-foreground">Meus Vitacoins</h1>
+                  <h1 className="text-xl font-bold text-foreground">Meus Vitacoins</h1>
                 <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent flex items-center gap-1">
                   <Coins className="h-3 w-3" />
-                  {WALLET.available.toLocaleString("pt-BR")} pts disponíveis
+                  {availablePoints.toLocaleString("pt-BR")} pts disponíveis
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
@@ -235,8 +283,8 @@ const PartnerRevenue: React.FC = () => {
                   </div>
                   <Tip text="Pontos em período de carência de 30 dias após a venda. Serão liberados automaticamente." />
                 </div>
-                <p className="text-2xl font-bold text-foreground">{WALLET.pending.toLocaleString("pt-BR")} pts</p>
-                <p className="text-[10px] text-muted-foreground">≈ R$ {(WALLET.pending * WALLET.conversionRate).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                <p className="text-2xl font-bold text-foreground">{(wallet?.total_earned || 0).toLocaleString("pt-BR")} pts</p>
+                <p className="text-[10px] text-muted-foreground">≈ R$ {(Number(wallet?.total_earned || 0) * conversionRate).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                 <Progress value={70} className="h-1 mt-1" />
                 <p className="text-[9px] text-muted-foreground">Liberação: ~15/Mar</p>
               </CardContent>
@@ -252,8 +300,8 @@ const PartnerRevenue: React.FC = () => {
                   </div>
                   <Tip text="Pontos disponíveis para resgate imediato via Pix, produtos, cursos ou equipamentos." />
                 </div>
-                <p className="text-2xl font-bold text-accent">{WALLET.available.toLocaleString("pt-BR")} pts</p>
-                <p className="text-[10px] text-muted-foreground">≈ R$ {(WALLET.available * WALLET.conversionRate).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                <p className="text-2xl font-bold text-accent">{availablePoints.toLocaleString("pt-BR")} pts</p>
+                <p className="text-[10px] text-muted-foreground">≈ R$ {(availablePoints * conversionRate).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                 <Button
                   size="sm"
                   className="w-full mt-2 text-[11px] h-8"
@@ -274,7 +322,7 @@ const PartnerRevenue: React.FC = () => {
                   </div>
                   <Tip text="Pontos que expiraram após 2 anos sem resgate. Resgate regularmente para evitar perda." />
                 </div>
-                <p className="text-2xl font-bold text-muted-foreground">{WALLET.expired.toLocaleString("pt-BR")} pts</p>
+                <p className="text-2xl font-bold text-muted-foreground">0 pts</p>
                 <p className="text-[10px] text-muted-foreground">Validade: 2 anos</p>
                 <p className="text-[9px] text-destructive mt-1">Dica: resgate antes de expirar!</p>
               </CardContent>
@@ -340,7 +388,7 @@ const PartnerRevenue: React.FC = () => {
                     </div>
                     <Tip text="Total de Vitacoins acumulados desde o início da sua parceria." />
                   </div>
-                  <p className="text-2xl font-bold">{WALLET.total.toLocaleString("pt-BR")} pts</p>
+                  <p className="text-2xl font-bold">{totalEarnedPoints.toLocaleString("pt-BR")} pts</p>
                   <div className="flex items-center gap-1 text-accent">
                     <ArrowUpRight className="h-3.5 w-3.5" />
                     <span className="text-[11px] font-semibold">6 meses de parceria</span>
