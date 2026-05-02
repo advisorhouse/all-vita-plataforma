@@ -20,16 +20,24 @@ serve(async (req) => {
     return jsonRes(401, { error: "Unauthorized" });
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
   const token = authHeader.replace("Bearer ", "");
-  const { data: userData, error: authError } = await userClient.auth.getUser(token);
-  if (authError || !userData?.user) {
-    return jsonRes(401, { error: "Invalid token" });
+  const isAdminToken = token === serviceKey;
+  let callerUserId = "";
+
+  if (isAdminToken) {
+    // If it's the service role, we use a system user ID or just proceed
+    callerUserId = "00000000-0000-0000-0000-000000000000";
+  } else {
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: authError } = await userClient.auth.getUser(token);
+    if (authError || !userData?.user) {
+      return jsonRes(401, { error: "Invalid token" });
+    }
+    callerUserId = userData.user.id;
   }
 
-  const callerUserId = userData.user.id;
   const tenantId = req.headers.get("X-Tenant-Id");
   const adminClient = createClient(supabaseUrl, serviceKey);
 
