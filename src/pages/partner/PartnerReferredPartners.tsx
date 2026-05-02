@@ -144,7 +144,8 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
 
 const PartnerReferredPartners: React.FC = () => {
   const navigate = useNavigate();
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const totalReferred = REFERRED_PARTNERS.length;
   const totalActive = REFERRED_PARTNERS.filter(p => p.status === "active").length;
