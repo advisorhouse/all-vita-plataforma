@@ -9,6 +9,8 @@ import {
 import { Outlet } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { useTenant } from "@/contexts/TenantContext";
+import PartnerOnboardingTour from "@/components/partner/PartnerOnboardingTour";
+import { usePartnerOnboarding } from "@/hooks/usePartnerOnboarding";
 
 const partnerLinks = [
   { label: "Dashboard", href: "/partner", icon: Home },
