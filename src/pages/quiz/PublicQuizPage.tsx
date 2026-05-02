@@ -88,7 +88,23 @@ const STEPS_META = [
   { label: "Consulta" },
   { label: "Consentimento" },
   { label: "Produto" },
+  { label: "Resultado" },
 ];
+
+const DEFAULT_LEVELS: ResultLevel[] = [
+  { max: 40, label: "Nível de risco: Alto", color: "#D9534F", message: "Sua proteção atual está abaixo do recomendado. É essencial iniciar um protocolo estruturado para fortalecer a barreira de proteção da retina." },
+  { max: 70, label: "Nível de risco: Moderado", color: "#D97757", message: "Você tem uma proteção parcial, mas existem lacunas importantes que merecem atenção. A exposição digital diária cria um desgaste cumulativo que sua proteção atual pode não cobrir totalmente.\n\nCom um protocolo baseado em astaxantina + luteína + zeaxantina, é possível fortalecer significativamente sua barreira de proteção macular." },
+  { max: 100, label: "Nível de risco: Baixo", color: "#5CB85C", message: "Excelente! Sua proteção atual está em bom nível. Manter um protocolo de suporte ajuda a preservar a saúde da retina ao longo do tempo." },
+];
+
+const DEFAULT_WEIGHTS: ScoreWeights = {
+  screenTime: [80, 60, 35, 15],
+  symptoms: [70, 60, 60, 65],
+  ageRange: [85, 70, 55, 40],
+  lastVisit: [90, 65, 35, 25],
+  supplements: [90, 70, 45, 20],
+  uvExposure: [90, 65, 40, 20],
+};
 
 const DEFAULT_AGES: AgeOption[] = [
   { icon: "Zap", title: "18 a 30 anos", description: "Proteção natural ainda alta" },
