@@ -242,6 +242,16 @@ const PublicQuizPage: React.FC = () => {
           uvTitle: row.quiz_uv_title || prev.uvTitle,
           uvSubtitle: row.quiz_uv_subtitle || prev.uvSubtitle,
           uvOptions: Array.isArray(row.quiz_uv_options) ? row.quiz_uv_options : prev.uvOptions,
+          resultTitle: row.result_title || prev.resultTitle,
+          resultSubtitle: row.result_subtitle || prev.resultSubtitle,
+          resultLevels: Array.isArray(row.result_levels) ? row.result_levels : prev.resultLevels,
+          resultProductEyebrow: row.result_product_eyebrow || prev.resultProductEyebrow,
+          resultProductName: row.result_product_name || prev.resultProductName,
+          resultProductPoweredBy: row.result_product_powered_by ?? prev.resultProductPoweredBy,
+          resultCtaLabel: row.result_cta_label || prev.resultCtaLabel,
+          resultCtaUrl: row.result_cta_url ?? prev.resultCtaUrl,
+          resultDisclaimer: row.result_disclaimer || prev.resultDisclaimer,
+          scoreWeights: (row.score_weights && typeof row.score_weights === "object") ? row.score_weights : prev.scoreWeights,
         }));
       }
     })();
