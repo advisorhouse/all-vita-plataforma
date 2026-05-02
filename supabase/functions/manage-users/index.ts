@@ -15,8 +15,26 @@ serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-  const isAdminToken = true;
-  let callerUserId = "00000000-0000-0000-0000-000000000000";
+  const authHeader = req.headers.get("Authorization");
+  const isAdminToken = authHeader?.replace("Bearer ", "") === serviceKey;
+  let callerUserId = "";
+
+  if (isAdminToken) {
+    callerUserId = "00000000-0000-0000-0000-000000000000";
+  } else {
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonRes(401, { error: "Unauthorized" });
+    }
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: authError } = await userClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (authError || !userData?.user) {
+      return jsonRes(401, { error: "Invalid token" });
+    }
+    callerUserId = userData.user.id;
+  }
+
 
 
 
