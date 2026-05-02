@@ -257,6 +257,7 @@ const PartnerOnboardingTour: React.FC<PartnerOnboardingTourProps> = ({ onClose }
             )}
 
             {/* ═══ TELA 4 (VITACOINS) ═══ */}
+            {screen === "vitacoins" && (
               <div className="text-center space-y-8">
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
