@@ -70,6 +70,14 @@ const DEFAULTS = {
     { icon: "Heart", title: "46 a 60 anos", description: "Momento importante de cuidar" },
     { icon: "ShieldCheck", title: "Acima de 60", description: "Proteção ativa é essencial" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_lastvisit_title: "Faz quanto tempo que você foi ao oftalmologista pela última vez?",
+  quiz_lastvisit_subtitle: "Sem julgamento — o importante é começar a cuidar a partir de agora.",
+  quiz_lastvisit_options: [
+    { icon: "Check", title: "Menos de 1 ano", description: "Ótimo, continue assim!" },
+    { icon: "Clock", title: "1 a 2 anos", description: "Talvez seja hora de agendar" },
+    { icon: "AlertTriangle", title: "Mais de 2 anos", description: "Vale a pena remarcar" },
+    { icon: "AlertTriangle", title: "Não lembro", description: "Acontece — mas vamos resolver" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
