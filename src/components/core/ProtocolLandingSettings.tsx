@@ -17,6 +17,7 @@ const SYMPTOM_ICON_OPTIONS = ["Droplet", "Eye", "Brain", "Sun", "AlertTriangle",
 const AGE_ICON_OPTIONS = ["Zap", "Activity", "Heart", "ShieldCheck", "Sparkles"];
 const LASTVISIT_ICON_OPTIONS = ["Check", "Clock", "AlertTriangle", "HelpCircle", "Sparkles"];
 const SUPPLEMENTS_ICON_OPTIONS = ["Sparkles", "Shield", "Activity", "AlertTriangle", "Pill", "Leaf"];
+const UV_ICON_OPTIONS = ["Sun", "Glasses", "AlertTriangle", "Shield", "Sparkles"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
@@ -87,6 +88,14 @@ const DEFAULTS = {
     { icon: "Activity", title: "Outro suplemento", description: "Pode não ser suficiente" },
     { icon: "AlertTriangle", title: "Não tomo nenhum", description: "Sem proteção ativa no momento" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_uv_title: "Com que frequência você sai no sol sem óculos escuros?",
+  quiz_uv_subtitle: "Os raios UV são um dos vilões silenciosos para a saúde da retina.",
+  quiz_uv_options: [
+    { icon: "Glasses", title: "Raramente", description: "Sempre uso proteção" },
+    { icon: "Sun", title: "Às vezes", description: "Quando esqueço" },
+    { icon: "Sun", title: "Com frequência", description: "Na maioria das vezes" },
+    { icon: "AlertTriangle", title: "Quase sempre", description: "Sem proteção UV" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
@@ -129,6 +138,7 @@ const ProtocolLandingSettings: React.FC = () => {
           quiz_age_options: Array.isArray(row.quiz_age_options) ? row.quiz_age_options : DEFAULTS.quiz_age_options,
           quiz_lastvisit_options: Array.isArray(row.quiz_lastvisit_options) ? row.quiz_lastvisit_options : DEFAULTS.quiz_lastvisit_options,
           quiz_supplements_options: Array.isArray(row.quiz_supplements_options) ? row.quiz_supplements_options : DEFAULTS.quiz_supplements_options,
+          quiz_uv_options: Array.isArray(row.quiz_uv_options) ? row.quiz_uv_options : DEFAULTS.quiz_uv_options,
         });
       }
       setLoading(false);
@@ -643,6 +653,59 @@ const ProtocolLandingSettings: React.FC = () => {
           {data.quiz_supplements_options.length < 6 && (
             <Button variant="outline" size="sm" className="gap-1.5"
               onClick={() => set("quiz_supplements_options", [...data.quiz_supplements_options, { icon: "Sparkles", title: "Nova opção", description: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar opção
+            </Button>
+          )}
+        </div>
+      </Section>
+
+      {/* QUIZ — sixth screen (UV exposure) */}
+      <Section
+        title="Tela 6 do Quiz (exposição UV)"
+        description="Pergunta de seleção única sobre frequência sem óculos escuros."
+      >
+        <Field label="Pergunta" value={data.quiz_uv_title} onChange={(v) => set("quiz_uv_title", v)} textarea />
+        <Field label="Subtexto" value={data.quiz_uv_subtitle} onChange={(v) => set("quiz_uv_subtitle", v)} />
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Opções</Label>
+          {data.quiz_uv_options.map((opt, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Opção {i + 1}</span>
+                {data.quiz_uv_options.length > 2 && (
+                  <Button variant="ghost" size="icon" onClick={() =>
+                    set("quiz_uv_options", data.quiz_uv_options.filter((_, idx) => idx !== i))
+                  } className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Ícone</Label>
+                  <Select value={opt.icon} onValueChange={(v) => {
+                    const next = [...data.quiz_uv_options]; next[i] = { ...opt, icon: v }; set("quiz_uv_options", next);
+                  }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {UV_ICON_OPTIONS.map((ic) => <SelectItem key={ic} value={ic}>{ic}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Título" value={opt.title} onChange={(v) => {
+                    const next = [...data.quiz_uv_options]; next[i] = { ...opt, title: v }; set("quiz_uv_options", next);
+                  }} />
+                </div>
+              </div>
+              <Field label="Descrição" value={opt.description} onChange={(v) => {
+                const next = [...data.quiz_uv_options]; next[i] = { ...opt, description: v }; set("quiz_uv_options", next);
+              }} />
+            </div>
+          ))}
+          {data.quiz_uv_options.length < 6 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("quiz_uv_options", [...data.quiz_uv_options, { icon: "Sun", title: "Nova opção", description: "" }])}>
               <Plus className="h-3.5 w-3.5" /> Adicionar opção
             </Button>
           )}

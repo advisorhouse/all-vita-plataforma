@@ -24,6 +24,7 @@ import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSympt
 import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
 import QuizStepAgeRange, { AgeOption } from "@/components/quiz/QuizStepAgeRange";
 import QuizStepSupplements, { SupplementOption } from "@/components/quiz/QuizStepSupplements";
+import QuizStepUV, { UVOption } from "@/components/quiz/QuizStepUV";
 
 export interface QuizFormData {
   fullName: string;
@@ -34,6 +35,7 @@ export interface QuizFormData {
   ageRange: string;
   lastVisit: string;
   supplements: string;
+  uvExposure: string;
   sex: string;
   screenTime: string;
   symptoms: string[];
@@ -57,7 +59,7 @@ export interface QuizFormData {
 }
 
 const INITIAL_DATA: QuizFormData = {
-  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", lastVisit: "", supplements: "", sex: "",
+  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", lastVisit: "", supplements: "", uvExposure: "", sex: "",
   screenTime: "",
   symptoms: [],
   healthConditions: [], otherConditions: "",
@@ -76,6 +78,7 @@ const STEPS_META = [
   { label: "Idade" },
   { label: "Última visita" },
   { label: "Suplementos" },
+  { label: "Exposição UV" },
   { label: "Identificação" },
   { label: "Saúde" },
   { label: "Medicações" },
@@ -104,6 +107,13 @@ const DEFAULT_SUPPLEMENTS: SupplementOption[] = [
   { icon: "Shield", title: "Sim, luteína ou zeaxantina", description: "Um bom começo" },
   { icon: "Activity", title: "Outro suplemento", description: "Pode não ser suficiente" },
   { icon: "AlertTriangle", title: "Não tomo nenhum", description: "Sem proteção ativa no momento" },
+];
+
+const DEFAULT_UV: UVOption[] = [
+  { icon: "Glasses", title: "Raramente", description: "Sempre uso proteção" },
+  { icon: "Sun", title: "Às vezes", description: "Quando esqueço" },
+  { icon: "Sun", title: "Com frequência", description: "Na maioria das vezes" },
+  { icon: "AlertTriangle", title: "Quase sempre", description: "Sem proteção UV" },
 ];
 
 const DEFAULT_SYMPTOMS: SymptomOption[] = [
@@ -157,6 +167,9 @@ const PublicQuizPage: React.FC = () => {
     supplementsTitle: "Você já toma algum suplemento voltado para a saúde dos olhos?",
     supplementsSubtitle: "Alguns nutrientes ajudam a proteger a retina de forma ativa.",
     supplementsOptions: DEFAULT_SUPPLEMENTS,
+    uvTitle: "Com que frequência você sai no sol sem óculos escuros?",
+    uvSubtitle: "Os raios UV são um dos vilões silenciosos para a saúde da retina.",
+    uvOptions: DEFAULT_UV,
   });
 
   // Resolve referral
@@ -174,7 +187,7 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options,quiz_supplements_title,quiz_supplements_subtitle,quiz_supplements_options")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options,quiz_supplements_title,quiz_supplements_subtitle,quiz_supplements_options,quiz_uv_title,quiz_uv_subtitle,quiz_uv_options")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
@@ -198,6 +211,9 @@ const PublicQuizPage: React.FC = () => {
           supplementsTitle: row.quiz_supplements_title || prev.supplementsTitle,
           supplementsSubtitle: row.quiz_supplements_subtitle || prev.supplementsSubtitle,
           supplementsOptions: Array.isArray(row.quiz_supplements_options) ? row.quiz_supplements_options : prev.supplementsOptions,
+          uvTitle: row.quiz_uv_title || prev.uvTitle,
+          uvSubtitle: row.quiz_uv_subtitle || prev.uvSubtitle,
+          uvOptions: Array.isArray(row.quiz_uv_options) ? row.quiz_uv_options : prev.uvOptions,
         }));
       }
     })();
@@ -211,8 +227,9 @@ const PublicQuizPage: React.FC = () => {
     if (step === 2) return !!data.ageRange;
     if (step === 3) return !!data.lastVisit;
     if (step === 4) return !!data.supplements;
-    if (step === 5) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 10) return data.consentDataUsage;
+    if (step === 5) return !!data.uvExposure;
+    if (step === 6) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 11) return data.consentDataUsage;
     return true;
   };
 
@@ -357,18 +374,27 @@ const PublicQuizPage: React.FC = () => {
                   onChange={(v) => update({ supplements: v })}
                 />
               )}
-              {step === 5 && <QuizStepIdentification data={data} update={update} />}
-              {step === 6 && <QuizStepHealth data={data} update={update} />}
-              {step === 7 && <QuizStepMedications data={data} update={update} />}
-              {step === 8 && <QuizStepOphthalmology data={data} update={update} />}
-              {step === 9 && <QuizStepReason data={data} update={update} />}
-              {step === 10 && <QuizStepConsent data={data} update={update} />}
-              {step === 11 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+              {step === 5 && (
+                <QuizStepUV
+                  title={config.uvTitle}
+                  subtitle={config.uvSubtitle}
+                  options={config.uvOptions}
+                  value={data.uvExposure}
+                  onChange={(v) => update({ uvExposure: v })}
+                />
+              )}
+              {step === 6 && <QuizStepIdentification data={data} update={update} />}
+              {step === 7 && <QuizStepHealth data={data} update={update} />}
+              {step === 8 && <QuizStepMedications data={data} update={update} />}
+              {step === 9 && <QuizStepOphthalmology data={data} update={update} />}
+              {step === 10 && <QuizStepReason data={data} update={update} />}
+              {step === 11 && <QuizStepConsent data={data} update={update} />}
+              {step === 12 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 11 && (
+          {step < 12 && (
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
               <Button
                 variant="ghost"
