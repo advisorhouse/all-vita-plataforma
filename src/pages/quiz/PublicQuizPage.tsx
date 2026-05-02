@@ -174,7 +174,7 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options,quiz_supplements_title,quiz_supplements_subtitle,quiz_supplements_options")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
@@ -195,6 +195,9 @@ const PublicQuizPage: React.FC = () => {
           lastVisitTitle: row.quiz_lastvisit_title || prev.lastVisitTitle,
           lastVisitSubtitle: row.quiz_lastvisit_subtitle || prev.lastVisitSubtitle,
           lastVisitOptions: Array.isArray(row.quiz_lastvisit_options) ? row.quiz_lastvisit_options : prev.lastVisitOptions,
+          supplementsTitle: row.quiz_supplements_title || prev.supplementsTitle,
+          supplementsSubtitle: row.quiz_supplements_subtitle || prev.supplementsSubtitle,
+          supplementsOptions: Array.isArray(row.quiz_supplements_options) ? row.quiz_supplements_options : prev.supplementsOptions,
         }));
       }
     })();
