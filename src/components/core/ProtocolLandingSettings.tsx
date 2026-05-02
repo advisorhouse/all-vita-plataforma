@@ -14,6 +14,7 @@ import { toast } from "sonner";
 const ICON_OPTIONS = ["Activity", "Sparkles", "ShieldCheck", "Stethoscope", "Eye"];
 const QUIZ_ICON_OPTIONS = ["Smartphone", "Monitor", "Tv", "AlertTriangle"];
 const SYMPTOM_ICON_OPTIONS = ["Droplet", "Eye", "Brain", "Sun", "AlertTriangle", "Sparkles"];
+const AGE_ICON_OPTIONS = ["Zap", "Activity", "Heart", "ShieldCheck", "Sparkles"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
@@ -60,6 +61,14 @@ const DEFAULTS = {
     { icon: "Brain", title: "Dor de cabeça frequente", description: "Principalmente após uso de telas" },
     { icon: "Sun", title: "Incômodo com luz forte", description: "Sensibilidade ao sair para a claridade" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_age_title: "Qual é a sua faixa etária?",
+  quiz_age_subtitle: "A proteção natural da retina muda com o tempo — e isso faz parte do processo.",
+  quiz_age_options: [
+    { icon: "Zap", title: "18 a 30 anos", description: "Proteção natural ainda alta" },
+    { icon: "Activity", title: "31 a 45 anos", description: "Começa a reduzir gradualmente" },
+    { icon: "Heart", title: "46 a 60 anos", description: "Momento importante de cuidar" },
+    { icon: "ShieldCheck", title: "Acima de 60", description: "Proteção ativa é essencial" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
@@ -99,6 +108,7 @@ const ProtocolLandingSettings: React.FC = () => {
           quiz_question_options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULTS.quiz_question_options,
           quiz_footer_badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULTS.quiz_footer_badges,
           quiz_symptoms_options: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : DEFAULTS.quiz_symptoms_options,
+          quiz_age_options: Array.isArray(row.quiz_age_options) ? row.quiz_age_options : DEFAULTS.quiz_age_options,
         });
       }
       setLoading(false);
@@ -455,6 +465,59 @@ const ProtocolLandingSettings: React.FC = () => {
             <Button variant="outline" size="sm" className="gap-1.5"
               onClick={() => set("quiz_symptoms_options", [...data.quiz_symptoms_options, { icon: "Sparkles", title: "Novo sintoma", description: "" }])}>
               <Plus className="h-3.5 w-3.5" /> Adicionar opção
+            </Button>
+          )}
+        </div>
+      </Section>
+
+      {/* QUIZ — third screen (age range) */}
+      <Section
+        title="Tela 3 do Quiz (faixa etária)"
+        description="Pergunta de seleção única sobre a faixa etária do paciente."
+      >
+        <Field label="Pergunta" value={data.quiz_age_title} onChange={(v) => set("quiz_age_title", v)} textarea />
+        <Field label="Subtexto" value={data.quiz_age_subtitle} onChange={(v) => set("quiz_age_subtitle", v)} />
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Faixas etárias</Label>
+          {data.quiz_age_options.map((opt, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Opção {i + 1}</span>
+                {data.quiz_age_options.length > 2 && (
+                  <Button variant="ghost" size="icon" onClick={() =>
+                    set("quiz_age_options", data.quiz_age_options.filter((_, idx) => idx !== i))
+                  } className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Ícone</Label>
+                  <Select value={opt.icon} onValueChange={(v) => {
+                    const next = [...data.quiz_age_options]; next[i] = { ...opt, icon: v }; set("quiz_age_options", next);
+                  }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {AGE_ICON_OPTIONS.map((ic) => <SelectItem key={ic} value={ic}>{ic}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Título" value={opt.title} onChange={(v) => {
+                    const next = [...data.quiz_age_options]; next[i] = { ...opt, title: v }; set("quiz_age_options", next);
+                  }} />
+                </div>
+              </div>
+              <Field label="Descrição" value={opt.description} onChange={(v) => {
+                const next = [...data.quiz_age_options]; next[i] = { ...opt, description: v }; set("quiz_age_options", next);
+              }} />
+            </div>
+          ))}
+          {data.quiz_age_options.length < 6 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("quiz_age_options", [...data.quiz_age_options, { icon: "Sparkles", title: "Nova faixa", description: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar faixa
             </Button>
           )}
         </div>

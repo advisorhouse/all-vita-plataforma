@@ -21,6 +21,7 @@ import QuizStepCheckout from "@/components/quiz/QuizStepCheckout";
 import QuizSuccessView from "@/components/quiz/QuizSuccessView";
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
 import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
+import QuizStepAgeRange, { AgeOption } from "@/components/quiz/QuizStepAgeRange";
 
 export interface QuizFormData {
   fullName: string;
@@ -28,6 +29,7 @@ export interface QuizFormData {
   phone: string;
   email: string;
   age: string;
+  ageRange: string;
   sex: string;
   screenTime: string;
   symptoms: string[];
@@ -51,7 +53,7 @@ export interface QuizFormData {
 }
 
 const INITIAL_DATA: QuizFormData = {
-  fullName: "", cpf: "", phone: "", email: "", age: "", sex: "",
+  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", sex: "",
   screenTime: "",
   symptoms: [],
   healthConditions: [], otherConditions: "",
@@ -67,6 +69,7 @@ const INITIAL_DATA: QuizFormData = {
 const STEPS_META = [
   { label: "Rotina" },
   { label: "Sintomas" },
+  { label: "Idade" },
   { label: "Identificação" },
   { label: "Saúde" },
   { label: "Medicações" },
@@ -74,6 +77,13 @@ const STEPS_META = [
   { label: "Consulta" },
   { label: "Consentimento" },
   { label: "Produto" },
+];
+
+const DEFAULT_AGES: AgeOption[] = [
+  { icon: "Zap", title: "18 a 30 anos", description: "Proteção natural ainda alta" },
+  { icon: "Activity", title: "31 a 45 anos", description: "Começa a reduzir gradualmente" },
+  { icon: "Heart", title: "46 a 60 anos", description: "Momento importante de cuidar" },
+  { icon: "ShieldCheck", title: "Acima de 60", description: "Proteção ativa é essencial" },
 ];
 
 const DEFAULT_SYMPTOMS: SymptomOption[] = [
@@ -118,6 +128,9 @@ const PublicQuizPage: React.FC = () => {
     symptomsTitle: "Você tem sentido algum desses incômodos nos olhos?",
     symptomsSubtitle: "Marque todos que se aplicam ao seu dia a dia — mesmo que pareçam leves.",
     symptomsOptions: DEFAULT_SYMPTOMS,
+    ageTitle: "Qual é a sua faixa etária?",
+    ageSubtitle: "A proteção natural da retina muda com o tempo — e isso faz parte do processo.",
+    ageOptions: DEFAULT_AGES,
   });
 
   // Resolve referral
@@ -135,7 +148,7 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
@@ -150,6 +163,9 @@ const PublicQuizPage: React.FC = () => {
           symptomsTitle: row.quiz_symptoms_title || prev.symptomsTitle,
           symptomsSubtitle: row.quiz_symptoms_subtitle || prev.symptomsSubtitle,
           symptomsOptions: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : prev.symptomsOptions,
+          ageTitle: row.quiz_age_title || prev.ageTitle,
+          ageSubtitle: row.quiz_age_subtitle || prev.ageSubtitle,
+          ageOptions: Array.isArray(row.quiz_age_options) ? row.quiz_age_options : prev.ageOptions,
         }));
       }
     })();
@@ -160,8 +176,9 @@ const PublicQuizPage: React.FC = () => {
   const canAdvance = () => {
     if (step === 0) return !!data.screenTime;
     if (step === 1) return data.symptoms.length > 0;
-    if (step === 2) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 7) return data.consentDataUsage;
+    if (step === 2) return !!data.ageRange;
+    if (step === 3) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 8) return data.consentDataUsage;
     return true;
   };
 
@@ -279,18 +296,27 @@ const PublicQuizPage: React.FC = () => {
                   onChange={(v) => update({ symptoms: v })}
                 />
               )}
-              {step === 2 && <QuizStepIdentification data={data} update={update} />}
-              {step === 3 && <QuizStepHealth data={data} update={update} />}
-              {step === 4 && <QuizStepMedications data={data} update={update} />}
-              {step === 5 && <QuizStepOphthalmology data={data} update={update} />}
-              {step === 6 && <QuizStepReason data={data} update={update} />}
-              {step === 7 && <QuizStepConsent data={data} update={update} />}
-              {step === 8 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+              {step === 2 && (
+                <QuizStepAgeRange
+                  title={config.ageTitle}
+                  subtitle={config.ageSubtitle}
+                  options={config.ageOptions}
+                  value={data.ageRange}
+                  onChange={(v) => update({ ageRange: v })}
+                />
+              )}
+              {step === 3 && <QuizStepIdentification data={data} update={update} />}
+              {step === 4 && <QuizStepHealth data={data} update={update} />}
+              {step === 5 && <QuizStepMedications data={data} update={update} />}
+              {step === 6 && <QuizStepOphthalmology data={data} update={update} />}
+              {step === 7 && <QuizStepReason data={data} update={update} />}
+              {step === 8 && <QuizStepConsent data={data} update={update} />}
+              {step === 9 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 8 && (
+          {step < 9 && (
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
               <Button
                 variant="ghost"
