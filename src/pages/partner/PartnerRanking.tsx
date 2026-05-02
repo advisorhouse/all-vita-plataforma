@@ -168,6 +168,16 @@ const PartnerRanking: React.FC = () => {
   const currentPos = rankingPos || MY_POSITION;
   const currentPoints = Number(wallet?.total_earned || 0);
 
+  const displayedRewards = rewards.length > 0 
+    ? rewards.map(r => ({
+        title: r.name,
+        desc: r.description,
+        img: (r.metadata as any)?.image_url || productOriginal,
+        requirement: `${r.points_required} pts`,
+        unlocked: currentPoints >= (r.points_required || 0)
+      }))
+    : PRIZES_MOCK;
+
 
   return (
     <TooltipProvider delayDuration={200}>
