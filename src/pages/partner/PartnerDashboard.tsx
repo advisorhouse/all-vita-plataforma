@@ -109,11 +109,12 @@ const PartnerDashboard: React.FC = () => {
 
       const [profileRes, partnerRes, walletRes] = await Promise.all([
         supabase.from("profiles").select("first_name").eq("id", user.id).single(),
-        supabase.from("partners").select("id, level").eq("user_id", user.id).eq("tenant_id", currentTenant.id).single(),
+        supabase.from("partners").select("id, level, referral_code").eq("user_id", user.id).eq("tenant_id", currentTenant.id).single(),
         supabase.from("vitacoins_wallet").select("balance, total_earned").eq("user_id", user.id).eq("tenant_id", currentTenant.id).maybeSingle(),
       ]);
 
       const partnerId = partnerRes.data?.id;
+      const referralCode = partnerRes.data?.referral_code;
       let patientsCount = 0;
       if (partnerId) {
         const referralsRes = await supabase.from("referrals").select("id", { count: "exact", head: true }).eq("partner_id", partnerId);
@@ -123,6 +124,7 @@ const PartnerDashboard: React.FC = () => {
       return {
         firstName: profileRes.data?.first_name || "Partner",
         level: partnerRes.data?.level || "Iniciante",
+        referralCode: referralCode || "",
         balance: walletRes.data?.balance || 0,
         totalEarned: walletRes.data?.total_earned || 0,
         patientsCount
