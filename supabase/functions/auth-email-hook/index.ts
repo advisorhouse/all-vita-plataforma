@@ -157,7 +157,7 @@ serve(async (req) => {
 
         subject = isNetworkInvite
           ? `${inviterName} te convidou para a rede de parceiros da ${tenantBranding.name}`
-          : `Seu convite de parceria para a ${tenantBranding.name} chegou!!`;
+          : `Sua jornada como parceiro(a) na ${tenantBranding.name} foi aprovada!`;
 
         let extraContent = "";
         if (isNetworkInvite) {
@@ -194,7 +194,7 @@ serve(async (req) => {
         const intro = isNetworkInvite
           ? `<strong>${inviterName}</strong> te convidou para fazer parte da rede de parceiros da <strong>${tenantBranding.name}</strong>.`
           : `Você foi convidado para participar da plataforma <strong>${tenantBranding.name}</strong>.`;
-        const ctaLabel = isNetworkInvite ? "Aceitar convite e criar conta" : "Aceitar Convite";
+        const ctaLabel = isNetworkInvite ? "Aceitar convite e criar conta" : "Ativar minha conta de parceiro";
 
         html = getTemplate(tenantBranding, `
           <h2 style="color: ${tenantBranding.primaryColor};">${heading}</h2>
