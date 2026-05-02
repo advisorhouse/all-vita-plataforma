@@ -20,6 +20,7 @@ import SaleRedirect from "./pages/invite/SaleRedirect";
 import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
+import ProtocolLandingPage from "./pages/quiz/ProtocolLandingPage";
 import TermsOfUse from "./pages/TermsOfUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
@@ -171,8 +172,11 @@ const App = () => (
               <Route path="/q/:code" element={<SaleRedirect />} />
               <Route path="/proposta" element={<ProposalPresentation />} />
               <Route path="/proposta-site" element={<WebsiteProposal />} />
-              <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
-              <Route path="/quiz" element={<PublicQuizPage />} />
+              {/* Protocol landing (default) + quiz/AI assistant flow */}
+              <Route path="/quiz/:doctorCode/start" element={<PublicQuizPage />} />
+              <Route path="/quiz/start" element={<PublicQuizPage />} />
+              <Route path="/quiz/:doctorCode" element={<ProtocolLandingPage />} />
+              <Route path="/quiz" element={<ProtocolLandingPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/auth/accept-invitation" element={<AcceptInvitation />} />
