@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTenant } from "@/contexts/TenantContext";
+import { toTitleCase } from "@/lib/utils";
 
 import QuizStepIdentification from "@/components/quiz/QuizStepIdentification";
 import QuizStepHealth from "@/components/quiz/QuizStepHealth";
