@@ -207,7 +207,11 @@ const PartnerRevenue: React.FC = () => {
 
   const availablePoints = Number(wallet?.balance || 0);
   const totalEarnedPoints = Number(wallet?.total_earned || 0);
-  const conversionRate = 0.03; // Should come from settings in real app
+  const conversionRate = 0.03; 
+
+  const avgTicket = 420;
+  const commissionRate = 0.15;
+  const retentionRate = 0.91;
 
 
   const simulate = (months: number) => {
