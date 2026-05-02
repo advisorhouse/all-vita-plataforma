@@ -119,10 +119,10 @@ serve(async (req) => {
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=recovery&redirect_to=${encodeURIComponent(redirect_to)}`;
 
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">Olá, ${name}</h2>
+          <h2 style="color: ${tenantBranding.secondaryColor};">Olá, ${name}</h2>
           <p>Recebemos uma solicitação para redefinir sua senha na plataforma <strong>${tenantBranding.name}</strong>.</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Redefinir Minha Senha
             </a>
           </div>
@@ -139,11 +139,11 @@ serve(async (req) => {
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=email_change&redirect_to=${encodeURIComponent(redirect_to)}`;
 
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">Confirmação de Alteração</h2>
+          <h2 style="color: ${tenantBranding.secondaryColor};">Confirmação de Alteração</h2>
           <p>Você solicitou a alteração do seu e-mail na plataforma <strong>${tenantBranding.name}</strong>.</p>
           <p>Para concluir o processo, clique no botão abaixo:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Confirmar Novo E-mail
             </a>
           </div>
@@ -165,7 +165,7 @@ serve(async (req) => {
         if (isNetworkInvite) {
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
-              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Você foi indicado por ${inviterName}</h3>
+              <h3 style="margin-top:0;color:${tenantBranding.secondaryColor};font-size:18px">Você foi indicado por ${inviterName}</h3>
               <p style="font-size:14px;color:#475569"><strong>${inviterName}</strong> faz parte da rede de parceiros da ${tenantBranding.name} e indicou você para entrar também. Como parceiro, você poderá:</p>
               <ul style="padding-left:20px;color:#475569;font-size:14px">
                 <li style="margin-bottom:8px"><strong>Divulgar produtos da ${tenantBranding.name}:</strong> Compartilhe com sua rede e seja recompensado por cada indicação.</li>
@@ -178,7 +178,7 @@ serve(async (req) => {
         } else if (isPartner) {
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
-              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada com a ${tenantBranding.name} foi aprovada</h3>
+              <h3 style="margin-top:0;color:${tenantBranding.secondaryColor};font-size:18px">Sua nova jornada com a ${tenantBranding.name} foi aprovada</h3>
               <p style="font-size:14px;color:#475569">A partir de agora você poderá divulgar os produtos da ${tenantBranding.name} e ser recompensado por isso:</p>
               <ul style="padding-left:20px;color:#475569;font-size:14px">
                 <li style="margin-bottom:8px"><strong>Indicação de Produtos:</strong> Divulgue os produtos da ${tenantBranding.name} para sua rede.</li>
@@ -199,14 +199,14 @@ serve(async (req) => {
         const ctaLabel = isNetworkInvite ? "Aceitar convite e criar conta" : "Ativar minha conta de parceiro";
 
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">${heading}</h2>
+          <h2 style="color: ${tenantBranding.secondaryColor};">${heading}</h2>
           <p>${intro}</p>
           
           ${extraContent}
 
           <p>Clique no botão abaixo para aceitar o convite e configurar sua conta:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            <a href="${redirect_to}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               ${ctaLabel}
             </a>
           </div>
@@ -226,7 +226,7 @@ serve(async (req) => {
         if (isPartner) {
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
-              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada com a ${tenantBranding.name} foi aprovada</h3>
+              <h3 style="margin-top:0;color:${tenantBranding.secondaryColor};font-size:18px">Sua nova jornada com a ${tenantBranding.name} foi aprovada</h3>
               <p style="font-size:14px;color:#475569">A partir de agora você poderá divulgar os produtos da ${tenantBranding.name} e ser recompensado por isso:</p>
               <ul style="padding-left:20px;color:#475569;font-size:14px">
                 <li style="margin-bottom:8px"><strong>Ganhe Vitacoins:</strong> Receba pontos por cada indicação de produtos da ${tenantBranding.name}.</li>
@@ -238,14 +238,14 @@ serve(async (req) => {
         }
 
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">Quase lá, ${name}!</h2>
+          <h2 style="color: ${tenantBranding.secondaryColor};">Quase lá, ${name}!</h2>
           <p>Obrigado por se cadastrar na <strong>${tenantBranding.name}</strong>.</p>
           
           ${extraContent}
 
           <p>Por favor, confirme seu e-mail para ativar sua conta e começar sua jornada:</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            <a href="${confirmationUrl}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Confirmar Meu E-mail
             </a>
           </div>
@@ -256,10 +256,10 @@ serve(async (req) => {
       case "MAGICLINK":
         subject = `Seu link de acesso - ${tenantBranding.name}`;
         html = getTemplate(tenantBranding, `
-          <h2 style="color: ${tenantBranding.primaryColor};">Acesso Rápido</h2>
+          <h2 style="color: ${tenantBranding.secondaryColor};">Acesso Rápido</h2>
           <p>Use o botão abaixo para entrar em sua conta na <strong>${tenantBranding.name}</strong>.</p>
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${redirect_to}" style="background-color: ${tenantBranding.primaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${redirect_to}" style="background-color: ${tenantBranding.secondaryColor}; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Entrar Agora
             </a>
           </div>
