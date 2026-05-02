@@ -474,9 +474,13 @@ const PublicQuizPage: React.FC = () => {
                 onClick={() => setStep((s) => s + 1)}
                 disabled={!canAdvance()}
                 className={cn(
-                  "h-11 px-6 rounded-xl text-sm font-medium",
-                  canAdvance() ? "bg-[#1a1a1a] hover:bg-[#1a1a1a]/90 text-white" : "bg-[#B5B5B5] text-white cursor-not-allowed hover:bg-[#B5B5B5]"
+                  "h-11 px-6 rounded-xl text-sm font-medium transition-all",
+                  !canAdvance() && "bg-[#B5B5B5] text-white cursor-not-allowed hover:bg-[#B5B5B5]"
                 )}
+                style={canAdvance() ? {
+                  backgroundColor: currentTenant?.secondary_color || "#1a1a1a",
+                  color: "#ffffff"
+                } : {}}
               >
                 Próxima
                 <ChevronRight className="h-4 w-4 ml-1" />
