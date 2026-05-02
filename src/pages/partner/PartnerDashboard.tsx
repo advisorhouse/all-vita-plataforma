@@ -1,15 +1,19 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { QRCodeSVG } from "qrcode.react";
 import {
   TrendingUp, Users, ShieldCheck, Repeat, Coins,
   Clock, Zap, Gift, CreditCard, GraduationCap, Ticket, Wrench,
+  QrCode, Copy, Download, Share2, Check
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
