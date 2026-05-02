@@ -17,6 +17,7 @@ const SYMPTOM_ICON_OPTIONS = ["Droplet", "Eye", "Brain", "Sun", "AlertTriangle",
 const AGE_ICON_OPTIONS = ["Zap", "Activity", "Heart", "ShieldCheck", "Sparkles"];
 const LASTVISIT_ICON_OPTIONS = ["Check", "Clock", "AlertTriangle", "HelpCircle", "Sparkles"];
 const SUPPLEMENTS_ICON_OPTIONS = ["Sparkles", "Shield", "Activity", "AlertTriangle", "Pill", "Leaf"];
+const UV_ICON_OPTIONS = ["Sun", "Glasses", "AlertTriangle", "Shield", "Sparkles"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
