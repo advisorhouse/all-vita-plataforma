@@ -1,22 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye, Shield, User, Heart, Pill, Stethoscope, AlertCircle,
-  ChevronRight, ChevronLeft, Check, Lock, ShoppingBag, Loader2, Bot, Sparkles,
+  ChevronRight, ChevronLeft, Lock, ShoppingBag, Loader2, BadgeCheck,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import iconVisionLift from "@/assets/icon-vision-lift.png";
-import logoVisionLift from "@/assets/logo-vision-lift.png";
+import { useTenant } from "@/contexts/TenantContext";
 
 import QuizStepIdentification from "@/components/quiz/QuizStepIdentification";
 import QuizStepHealth from "@/components/quiz/QuizStepHealth";
@@ -26,6 +19,7 @@ import QuizStepReason from "@/components/quiz/QuizStepReason";
 import QuizStepConsent from "@/components/quiz/QuizStepConsent";
 import QuizStepCheckout from "@/components/quiz/QuizStepCheckout";
 import QuizSuccessView from "@/components/quiz/QuizSuccessView";
+import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
 
 export interface QuizFormData {
   fullName: string;
@@ -34,6 +28,7 @@ export interface QuizFormData {
   email: string;
   age: string;
   sex: string;
+  screenTime: string;
   healthConditions: string[];
   otherConditions: string;
   continuousMedications: boolean;
@@ -55,6 +50,7 @@ export interface QuizFormData {
 
 const INITIAL_DATA: QuizFormData = {
   fullName: "", cpf: "", phone: "", email: "", age: "", sex: "",
+  screenTime: "",
   healthConditions: [], otherConditions: "",
   continuousMedications: false, medicationsDetail: "",
   usesEyeDrops: false, eyeDropsDetail: "",
@@ -65,58 +61,92 @@ const INITIAL_DATA: QuizFormData = {
   consentSms: false, consentPhone: false, consentSocial: false,
 };
 
-const STEPS = [
-  { label: "Identificação", icon: User },
-  { label: "Saúde", icon: Heart },
-  { label: "Medicações", icon: Pill },
-  { label: "Especializado", icon: Stethoscope },
-  { label: "Consulta", icon: AlertCircle },
-  { label: "Consentimento", icon: Shield },
-  { label: "Produto", icon: ShoppingBag },
+const STEPS_META = [
+  { label: "Rotina" },
+  { label: "Identificação" },
+  { label: "Saúde" },
+  { label: "Medicações" },
+  { label: "Especializado" },
+  { label: "Consulta" },
+  { label: "Consentimento" },
+  { label: "Produto" },
 ];
+
+const DEFAULT_OPTIONS: ScreenTimeOption[] = [
+  { icon: "Smartphone", title: "Menos de 4h", description: "Uso tranquilo" },
+  { icon: "Monitor", title: "4 a 8 horas", description: "Bastante comum hoje em dia" },
+  { icon: "Tv", title: "8 a 12 horas", description: "Rotina intensa" },
+  { icon: "AlertTriangle", title: "Mais de 12h", description: "Seus olhos merecem atenção extra" },
+];
+
+const DEFAULT_HEADER = {
+  title: "Dr. {doctor} recomendou esta avaliação",
+  subtitle: "Complete este diagnóstico complementar para que seu protocolo de proteção seja personalizado ao seu perfil clínico",
+  question_title: "Vamos começar pelo dia a dia — quanto tempo você passa olhando para telas?",
+  question_subtitle: "Pode ser computador, celular, tablet ou TV. Soma tudo, sem culpa.",
+  badges: ["Dados criptografados", "LGPD compliant", "Validado por oftalmologistas"],
+};
 
 const PublicQuizPage: React.FC = () => {
   const { doctorCode: doctorCodeParam } = useParams<{ doctorCode: string }>();
+  const [searchParams] = useSearchParams();
+  const { currentTenant } = useTenant();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<QuizFormData>(INITIAL_DATA);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [doctorValid, setDoctorValid] = useState<boolean | null>(null);
   const [doctorName, setDoctorName] = useState("");
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [config, setConfig] = useState({
+    headerTitle: DEFAULT_HEADER.title,
+    headerSubtitle: DEFAULT_HEADER.subtitle,
+    questionTitle: DEFAULT_HEADER.question_title,
+    questionSubtitle: DEFAULT_HEADER.question_subtitle,
+    options: DEFAULT_OPTIONS,
+    badges: DEFAULT_HEADER.badges,
+  });
 
+  // Resolve referral
   useEffect(() => {
-    // Capture referral from URL or stored localStorage
-    const urlRef = new URLSearchParams(window.location.search).get("ref");
+    const urlRef = searchParams.get("ref");
     const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
     const finalRef = (urlRef || stored || doctorCodeParam || null)?.toUpperCase() ?? null;
-    
     setReferralCode(finalRef);
-    
-    if (finalRef) {
-      setDoctorValid(true);
-      setDoctorName(finalRef);
-    } else if (!doctorCodeParam) {
-      // If no code is present at all, we might want to show a general version or redirect
-      // For now, let's keep it valid to allow testing, but in production we might require one
-      setDoctorValid(true);
-      setDoctorName("Geral");
-    } else {
-      setDoctorValid(true);
-      setDoctorName(doctorCodeParam);
-    }
-  }, [doctorCodeParam]);
+    setDoctorName(finalRef || "Geral");
+  }, [doctorCodeParam, searchParams]);
+
+  // Load tenant-configured copy
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    (async () => {
+      const { data: row } = await (supabase as any)
+        .from("tenant_protocol_landing")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges")
+        .eq("tenant_id", currentTenant.id)
+        .maybeSingle();
+      if (row) {
+        setConfig({
+          headerTitle: row.quiz_header_title || DEFAULT_HEADER.title,
+          headerSubtitle: row.quiz_header_subtitle || DEFAULT_HEADER.subtitle,
+          questionTitle: row.quiz_question_title || DEFAULT_HEADER.question_title,
+          questionSubtitle: row.quiz_question_subtitle || DEFAULT_HEADER.question_subtitle,
+          options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULT_OPTIONS,
+          badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULT_HEADER.badges,
+        });
+      }
+    })();
+  }, [currentTenant?.id]);
 
   const update = (fields: Partial<QuizFormData>) => setData((d) => ({ ...d, ...fields }));
 
   const canAdvance = () => {
-    if (step === 0) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 5) return data.consentDataUsage;
+    if (step === 0) return !!data.screenTime;
+    if (step === 1) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 6) return data.consentDataUsage;
     return true;
   };
 
   const handleSubmit = async () => {
-    // We no longer strictly require doctorCode in the URL if we have a referral code
     if (!referralCode && !doctorCodeParam) {
       toast.error("Código de indicação não encontrado.");
       return;
@@ -149,7 +179,6 @@ const PublicQuizPage: React.FC = () => {
         consent_contact_social: data.consentSocial,
         doctor_code: referralCode || doctorCodeParam,
       });
-
       if (error) throw error;
       setSubmitted(true);
       toast.success("Protocolo enviado com sucesso!");
@@ -160,111 +189,116 @@ const PublicQuizPage: React.FC = () => {
     }
   };
 
-  if (doctorValid === null) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
-  }
+  if (submitted) return <QuizSuccessView patientName={data.fullName} />;
 
-  if (submitted) {
-    return <QuizSuccessView patientName={data.fullName} />;
-  }
+  const tenantLogo = currentTenant?.logo_url;
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "";
+  const headerTitle = config.headerTitle.replace("{doctor}", doctorName || "Médico");
+  const progress = Math.round(((step + 1) / STEPS_META.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Bot className="h-7 w-7 text-accent" />
-            <div>
-              <p className="text-xs font-bold text-foreground">Assistente Virtual</p>
-              <p className="text-[10px] text-muted-foreground">Protocolo Pós-Consulta</p>
-            </div>
+    <div className="min-h-screen bg-[#FAF8F5] py-8 px-4">
+      <div className="max-w-[720px] mx-auto">
+        {/* Tenant logo */}
+        <div className="flex items-center justify-center mb-6 h-10">
+          {tenantLogo ? (
+            <img src={tenantLogo} alt={tenantName} className="max-h-10 max-w-[180px] object-contain" />
+          ) : (
+            <span className="text-base font-semibold tracking-wide text-foreground">{tenantName}</span>
+          )}
+        </div>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-[26px] sm:text-[30px] font-bold text-[#1a1a1a] leading-tight">
+            {headerTitle}
+          </h1>
+          <p className="text-[13px] text-muted-foreground mt-2 max-w-[520px] mx-auto leading-relaxed">
+            {config.headerSubtitle}
+          </p>
+        </div>
+
+        {/* Progress */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[12px] text-muted-foreground">Progresso</span>
+            <span className="text-[12px] font-semibold" style={{ color: "#D97757" }}>{progress}%</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-accent/10 rounded-lg px-2.5 py-1 text-[10px] font-medium text-accent">
-            <Eye className="h-3 w-3" />
-            {doctorName || "Protocolo"}
+          <div className="h-1.5 w-full bg-[#EFEAE4] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${progress}%`, backgroundColor: "#D97757" }}
+            />
           </div>
         </div>
-      </header>
 
-      {/* Progress */}
-      <div className="max-w-2xl mx-auto px-4 pt-4">
-        <div className="flex items-center gap-1">
-          {STEPS.map((s, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-[0_2px_24px_rgba(0,0,0,0.04)] border border-black/5 p-6 sm:p-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.2 }}
+            >
+              {step === 0 && (
+                <QuizStepScreenTime
+                  title={config.questionTitle}
+                  subtitle={config.questionSubtitle}
+                  options={config.options}
+                  value={data.screenTime}
+                  onChange={(v) => update({ screenTime: v })}
+                />
+              )}
+              {step === 1 && <QuizStepIdentification data={data} update={update} />}
+              {step === 2 && <QuizStepHealth data={data} update={update} />}
+              {step === 3 && <QuizStepMedications data={data} update={update} />}
+              {step === 4 && <QuizStepOphthalmology data={data} update={update} />}
+              {step === 5 && <QuizStepReason data={data} update={update} />}
+              {step === 6 && <QuizStepConsent data={data} update={update} />}
+              {step === 7 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation */}
+          {step < 7 && (
+            <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
+              <Button
+                variant="ghost"
+                onClick={() => setStep((s) => s - 1)}
+                disabled={step === 0}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              <Button
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canAdvance()}
                 className={cn(
-                  "h-1.5 w-full rounded-full transition-colors",
-                  i <= step ? "bg-accent" : "bg-border"
+                  "h-11 px-6 rounded-xl text-sm font-medium",
+                  canAdvance() ? "bg-[#1a1a1a] hover:bg-[#1a1a1a]/90 text-white" : "bg-[#B5B5B5] text-white cursor-not-allowed hover:bg-[#B5B5B5]"
                 )}
-              />
-              <span className={cn(
-                "text-[9px] font-medium hidden sm:block",
-                i <= step ? "text-accent" : "text-muted-foreground/50"
-              )}>
-                {s.label}
-              </span>
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
-          ))}
+          )}
         </div>
-        <p className="text-[11px] text-muted-foreground text-center mt-2">
-          Etapa {step + 1} de {STEPS.length} — {STEPS[step].label}
-        </p>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-          >
-            {step === 0 && <QuizStepIdentification data={data} update={update} />}
-            {step === 1 && <QuizStepHealth data={data} update={update} />}
-            {step === 2 && <QuizStepMedications data={data} update={update} />}
-            {step === 3 && <QuizStepOphthalmology data={data} update={update} />}
-            {step === 4 && <QuizStepReason data={data} update={update} />}
-            {step === 5 && <QuizStepConsent data={data} update={update} />}
-            {step === 6 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation */}
-        {step < 6 && (
-          <div className="flex items-center justify-between mt-8">
-            <Button
-              variant="ghost"
-              onClick={() => setStep((s) => s - 1)}
-              disabled={step === 0}
-              className="text-sm"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Voltar
-            </Button>
-            <Button
-              onClick={() => setStep((s) => s + 1)}
-              disabled={!canAdvance()}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 text-sm"
-            >
-              Continuar
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-center gap-1.5 mt-8 pb-8">
-          <Lock className="h-3 w-3 text-muted-foreground/40" />
-          <span className="text-[10px] text-muted-foreground/40">
-            Protegido pela LGPD • Seus dados são criptografados
-          </span>
+        {/* Trust badges */}
+        <div className="flex flex-wrap items-center justify-center gap-5 mt-6">
+          {config.badges.map((b, i) => {
+            const Icon = i === 0 ? Lock : i === 1 ? BadgeCheck : Eye;
+            return (
+              <div key={i} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Icon className="h-3 w-3" strokeWidth={1.5} />
+                {b}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
