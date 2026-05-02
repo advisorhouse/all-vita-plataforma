@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { toTitleCase } from "@/lib/utils";
 import defaultHero from "@/assets/protocol-hero-default.jpg";
 
 const ICON_MAP: Record<string, LucideIcon> = {
