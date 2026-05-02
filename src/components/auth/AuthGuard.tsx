@@ -157,7 +157,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     if (isSuperAdmin || platformRole === 'super_admin' || platformRole === 'admin') {
       return <>{children}</>;
     }
-    const fallback = isSubdomainAccess ? "/core" : (activeSlug ? `/${activeSlug}/core` : "/core");
+    const fallback = isSubdomainAccess ? "/core" : (activeSlug && activeSlug !== 'allvita' ? `/${activeSlug}/core` : "/admin");
     return <Navigate to={fallback} replace />;
   }
 

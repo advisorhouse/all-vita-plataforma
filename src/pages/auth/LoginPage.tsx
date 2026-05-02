@@ -48,7 +48,10 @@ const LoginPage: React.FC = () => {
 
       await logAccessEvent("login", { method: "password" });
       // Use tenantPath to ensure slug is preserved in the destination
-      const destination = redirectTo || (currentTenant ? "/core" : "/");
+      const defaultDest = currentTenant 
+        ? (currentTenant.slug === 'allvita' ? '/admin' : '/core') 
+        : '/';
+      const destination = redirectTo || defaultDest;
       navigate(destination);
     } catch {
       toast.error("Erro ao fazer login");
