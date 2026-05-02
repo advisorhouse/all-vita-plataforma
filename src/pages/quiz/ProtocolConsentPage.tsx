@@ -77,7 +77,7 @@ const ProtocolConsentPage: React.FC<ProtocolConsentPageProps> = ({ mode = "quiz"
             <ShieldCheck
               className="h-10 w-10"
               strokeWidth={1.5}
-              style={{ color: "#D97757" }}
+              style={{ color: currentTenant?.secondary_color || "#D97757" }}
             />
           </div>
         </div>
@@ -105,15 +105,15 @@ const ProtocolConsentPage: React.FC<ProtocolConsentPageProps> = ({ mode = "quiz"
             />
             <p className="text-[13px] leading-[1.6] text-foreground/80">
               Li e concordo com o{" "}
-              <Link to="#" className="font-semibold" style={{ color: "#D97757" }}>
+              <Link to="#" className="font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>
                 Termo de Consentimento para Telessaúde
               </Link>
               ,{" "}
-              <Link to="#" className="font-semibold" style={{ color: "#D97757" }}>
+              <Link to="#" className="font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>
                 Política de dados pessoais
               </Link>
               ,{" "}
-              <Link to="#" className="font-semibold" style={{ color: "#D97757" }}>
+              <Link to="#" className="font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>
                 Termos e condições de uso
               </Link>
               , autorizando a coleta e tratamento de meus dados pela{" "}
