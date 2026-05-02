@@ -22,6 +22,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CorePermissions from "./CorePermissions";
+import ProtocolLandingSettings from "@/components/core/ProtocolLandingSettings";
+import { Stethoscope } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -251,8 +253,14 @@ const CoreSettings: React.FC = () => {
           <TabsTrigger value="security" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Segurança</TabsTrigger>
           <TabsTrigger value="integrations" className="gap-1.5 text-xs"><WebhookIcon className="h-3.5 w-3.5" />Integrações</TabsTrigger>
           <TabsTrigger value="appearance" className="gap-1.5 text-xs"><Palette className="h-3.5 w-3.5" />Aparência</TabsTrigger>
+          <TabsTrigger value="protocol" className="gap-1.5 text-xs"><Stethoscope className="h-3.5 w-3.5" />Protocolo Pós-Consulta</TabsTrigger>
           <TabsTrigger value="permissions" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Permissões</TabsTrigger>
         </TabsList>
+
+        {/* ===== PROTOCOLO PÓS-CONSULTA ===== */}
+        <TabsContent value="protocol" className="space-y-4 mt-4">
+          <ProtocolLandingSettings />
+        </TabsContent>
 
         {/* ===== GERAL ===== */}
         <TabsContent value="general" className="space-y-4 mt-4">
