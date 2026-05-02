@@ -167,6 +167,9 @@ const PublicQuizPage: React.FC = () => {
     supplementsTitle: "Você já toma algum suplemento voltado para a saúde dos olhos?",
     supplementsSubtitle: "Alguns nutrientes ajudam a proteger a retina de forma ativa.",
     supplementsOptions: DEFAULT_SUPPLEMENTS,
+    uvTitle: "Com que frequência você sai no sol sem óculos escuros?",
+    uvSubtitle: "Os raios UV são um dos vilões silenciosos para a saúde da retina.",
+    uvOptions: DEFAULT_UV,
   });
 
   // Resolve referral
