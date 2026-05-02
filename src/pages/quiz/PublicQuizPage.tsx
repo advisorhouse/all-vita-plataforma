@@ -17,8 +17,6 @@ import QuizStepMedications from "@/components/quiz/QuizStepMedications";
 import QuizStepOphthalmology from "@/components/quiz/QuizStepOphthalmology";
 import QuizStepReason from "@/components/quiz/QuizStepReason";
 import QuizStepConsent from "@/components/quiz/QuizStepConsent";
-import QuizStepCheckout from "@/components/quiz/QuizStepCheckout";
-import QuizSuccessView from "@/components/quiz/QuizSuccessView";
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
 import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
 import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
