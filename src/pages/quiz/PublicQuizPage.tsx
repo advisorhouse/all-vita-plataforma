@@ -57,7 +57,7 @@ export interface QuizFormData {
 }
 
 const INITIAL_DATA: QuizFormData = {
-  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", lastVisit: "", sex: "",
+  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", lastVisit: "", supplements: "", sex: "",
   screenTime: "",
   symptoms: [],
   healthConditions: [], otherConditions: "",
