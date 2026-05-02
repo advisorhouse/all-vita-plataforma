@@ -21,6 +21,7 @@ import QuizStepCheckout from "@/components/quiz/QuizStepCheckout";
 import QuizSuccessView from "@/components/quiz/QuizSuccessView";
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
 import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
+import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
 import QuizStepAgeRange, { AgeOption } from "@/components/quiz/QuizStepAgeRange";
 
 export interface QuizFormData {
@@ -30,6 +31,7 @@ export interface QuizFormData {
   email: string;
   age: string;
   ageRange: string;
+  lastVisit: string;
   sex: string;
   screenTime: string;
   symptoms: string[];
@@ -53,7 +55,7 @@ export interface QuizFormData {
 }
 
 const INITIAL_DATA: QuizFormData = {
-  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", sex: "",
+  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", lastVisit: "", sex: "",
   screenTime: "",
   symptoms: [],
   healthConditions: [], otherConditions: "",
@@ -70,6 +72,7 @@ const STEPS_META = [
   { label: "Rotina" },
   { label: "Sintomas" },
   { label: "Idade" },
+  { label: "Última visita" },
   { label: "Identificação" },
   { label: "Saúde" },
   { label: "Medicações" },
@@ -84,6 +87,13 @@ const DEFAULT_AGES: AgeOption[] = [
   { icon: "Activity", title: "31 a 45 anos", description: "Começa a reduzir gradualmente" },
   { icon: "Heart", title: "46 a 60 anos", description: "Momento importante de cuidar" },
   { icon: "ShieldCheck", title: "Acima de 60", description: "Proteção ativa é essencial" },
+];
+
+const DEFAULT_LASTVISIT: LastVisitOption[] = [
+  { icon: "Check", title: "Menos de 1 ano", description: "Ótimo, continue assim!" },
+  { icon: "Clock", title: "1 a 2 anos", description: "Talvez seja hora de agendar" },
+  { icon: "AlertTriangle", title: "Mais de 2 anos", description: "Vale a pena remarcar" },
+  { icon: "AlertTriangle", title: "Não lembro", description: "Acontece — mas vamos resolver" },
 ];
 
 const DEFAULT_SYMPTOMS: SymptomOption[] = [
@@ -131,6 +141,9 @@ const PublicQuizPage: React.FC = () => {
     ageTitle: "Qual é a sua faixa etária?",
     ageSubtitle: "A proteção natural da retina muda com o tempo — e isso faz parte do processo.",
     ageOptions: DEFAULT_AGES,
+    lastVisitTitle: "Faz quanto tempo que você foi ao oftalmologista pela última vez?",
+    lastVisitSubtitle: "Sem julgamento — o importante é começar a cuidar a partir de agora.",
+    lastVisitOptions: DEFAULT_LASTVISIT,
   });
 
   // Resolve referral
@@ -148,7 +161,7 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
@@ -166,6 +179,9 @@ const PublicQuizPage: React.FC = () => {
           ageTitle: row.quiz_age_title || prev.ageTitle,
           ageSubtitle: row.quiz_age_subtitle || prev.ageSubtitle,
           ageOptions: Array.isArray(row.quiz_age_options) ? row.quiz_age_options : prev.ageOptions,
+          lastVisitTitle: row.quiz_lastvisit_title || prev.lastVisitTitle,
+          lastVisitSubtitle: row.quiz_lastvisit_subtitle || prev.lastVisitSubtitle,
+          lastVisitOptions: Array.isArray(row.quiz_lastvisit_options) ? row.quiz_lastvisit_options : prev.lastVisitOptions,
         }));
       }
     })();
@@ -177,8 +193,9 @@ const PublicQuizPage: React.FC = () => {
     if (step === 0) return !!data.screenTime;
     if (step === 1) return data.symptoms.length > 0;
     if (step === 2) return !!data.ageRange;
-    if (step === 3) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 8) return data.consentDataUsage;
+    if (step === 3) return !!data.lastVisit;
+    if (step === 4) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 9) return data.consentDataUsage;
     return true;
   };
 
@@ -305,18 +322,27 @@ const PublicQuizPage: React.FC = () => {
                   onChange={(v) => update({ ageRange: v })}
                 />
               )}
-              {step === 3 && <QuizStepIdentification data={data} update={update} />}
-              {step === 4 && <QuizStepHealth data={data} update={update} />}
-              {step === 5 && <QuizStepMedications data={data} update={update} />}
-              {step === 6 && <QuizStepOphthalmology data={data} update={update} />}
-              {step === 7 && <QuizStepReason data={data} update={update} />}
-              {step === 8 && <QuizStepConsent data={data} update={update} />}
-              {step === 9 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+              {step === 3 && (
+                <QuizStepLastVisit
+                  title={config.lastVisitTitle}
+                  subtitle={config.lastVisitSubtitle}
+                  options={config.lastVisitOptions}
+                  value={data.lastVisit}
+                  onChange={(v) => update({ lastVisit: v })}
+                />
+              )}
+              {step === 4 && <QuizStepIdentification data={data} update={update} />}
+              {step === 5 && <QuizStepHealth data={data} update={update} />}
+              {step === 6 && <QuizStepMedications data={data} update={update} />}
+              {step === 7 && <QuizStepOphthalmology data={data} update={update} />}
+              {step === 8 && <QuizStepReason data={data} update={update} />}
+              {step === 9 && <QuizStepConsent data={data} update={update} />}
+              {step === 10 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 9 && (
+          {step < 10 && (
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
               <Button
                 variant="ghost"
