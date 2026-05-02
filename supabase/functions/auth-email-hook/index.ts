@@ -108,6 +108,8 @@ serve(async (req) => {
     const normalizedEvent = (event || "").toUpperCase();
     console.log(`Processing event: ${normalizedEvent} for ${userEmail}`);
 
+    const authApiUrl = email_data?.site_url || "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
+
     switch (normalizedEvent) {
       case "PASSWORD_RECOVERY":
       case "RECOVERY": {
