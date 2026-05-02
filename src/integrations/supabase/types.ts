@@ -2135,6 +2135,98 @@ export type Database = {
           },
         ]
       }
+      tenant_protocol_landing: {
+        Row: {
+          active: boolean
+          created_at: string
+          cta_button_label: string | null
+          cta_description: string | null
+          cta_meta: string | null
+          cta_title: string | null
+          hero_badge: string | null
+          hero_cta_label: string | null
+          hero_image_url: string | null
+          hero_meta: string | null
+          hero_subtitle: string | null
+          hero_title: string | null
+          id: string
+          logic_benefits: Json | null
+          logic_description: string | null
+          logic_eyebrow: string | null
+          logic_title: string | null
+          reasons: Json | null
+          tenant_id: string
+          trust_badges: Json | null
+          updated_at: string
+          why_eyebrow: string | null
+          why_paragraph_1: string | null
+          why_paragraph_2: string | null
+          why_title: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          cta_button_label?: string | null
+          cta_description?: string | null
+          cta_meta?: string | null
+          cta_title?: string | null
+          hero_badge?: string | null
+          hero_cta_label?: string | null
+          hero_image_url?: string | null
+          hero_meta?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          logic_benefits?: Json | null
+          logic_description?: string | null
+          logic_eyebrow?: string | null
+          logic_title?: string | null
+          reasons?: Json | null
+          tenant_id: string
+          trust_badges?: Json | null
+          updated_at?: string
+          why_eyebrow?: string | null
+          why_paragraph_1?: string | null
+          why_paragraph_2?: string | null
+          why_title?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          cta_button_label?: string | null
+          cta_description?: string | null
+          cta_meta?: string | null
+          cta_title?: string | null
+          hero_badge?: string | null
+          hero_cta_label?: string | null
+          hero_image_url?: string | null
+          hero_meta?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          logic_benefits?: Json | null
+          logic_description?: string | null
+          logic_eyebrow?: string | null
+          logic_title?: string | null
+          reasons?: Json | null
+          tenant_id?: string
+          trust_badges?: Json | null
+          updated_at?: string
+          why_eyebrow?: string | null
+          why_paragraph_1?: string | null
+          why_paragraph_2?: string | null
+          why_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_protocol_landing_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_role_permissions: {
         Row: {
           action: string
