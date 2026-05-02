@@ -117,7 +117,6 @@ serve(async (req) => {
         
         // Use site_url from email_data or fallback to a hardcoded one if necessary
         // The verify link should point to the Supabase Auth API verify endpoint
-        const authApiUrl = email_data?.site_url || "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=recovery&redirect_to=${encodeURIComponent(redirect_to)}`;
 
         html = getTemplate(tenantBranding, `
