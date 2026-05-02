@@ -150,15 +150,15 @@ serve(async (req) => {
       }
 
       case "INVITE": {
-        subject = `Você foi convidado para ${tenantBranding.name}`;
+        subject = `Seu convite de parceira para a ${tenantBranding.name} chegou!!`;
         const isPartner = user?.user_metadata?.role === "partner";
         
         let extraContent = "";
         if (isPartner) {
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
-              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada com ${tenantBranding.name}</h3>
-              <p style="font-size:14px;color:#475569">Como parceiro, você poderá indicar nossos produtos e ser recompensado por isso:</p>
+              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada com a ${tenantBranding.name} foi aprovada</h3>
+              <p style="font-size:14px;color:#475569">A partir de agora você poderá divulgar os produtos da ${tenantBranding.name} e ser recompensado por isso:</p>
               <ul style="padding-left:20px;color:#475569;font-size:14px">
                 <li style="margin-bottom:8px"><strong>Indicação de Produtos:</strong> Divulgue os produtos da ${tenantBranding.name} para sua rede.</li>
                 <li style="margin-bottom:8px"><strong>Vitacoins:</strong> Ganhe Vitacoins a cada indicação realizada com sucesso.</li>
@@ -197,8 +197,8 @@ serve(async (req) => {
         if (isPartner) {
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
-              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Bem-vindo à ${tenantBranding.name}!</h3>
-              <p style="font-size:14px;color:#475569">Ao confirmar seu e-mail, você poderá começar a indicar e ganhar:</p>
+              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada com a ${tenantBranding.name} foi aprovada</h3>
+              <p style="font-size:14px;color:#475569">A partir de agora você poderá divulgar os produtos da ${tenantBranding.name} e ser recompensado por isso:</p>
               <ul style="padding-left:20px;color:#475569;font-size:14px">
                 <li style="margin-bottom:8px"><strong>Ganhe Vitacoins:</strong> Receba pontos por cada indicação de produtos da ${tenantBranding.name}.</li>
                 <li style="margin-bottom:8px"><strong>Troque por Prêmios:</strong> Suas Vitacoins podem ser trocadas por premiações exclusivas, cursos e produtos.</li>
