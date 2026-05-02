@@ -779,39 +779,9 @@ serve(async (req) => {
         const { email, first_name, last_name, tenant_id } = body;
         if (!email) return jsonRes(400, { error: "E-mail é obrigatório" });
         
-        console.log(`[InviteAction] Inviting/Resending ${email} for tenant ${tenant_id}`);
+        console.log(`[InviteAction] Processing ${email} for tenant ${tenant_id}`);
         
-        // Check if user exists first to decide whether to invite or re-invite
-        const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
-        const existingUser = users.find(u => u.email === email);
-
-        if (existingUser) {
-          console.log(`[InviteAction] User exists, generating invite link for ${email}`);
-          const { data, error } = await adminClient.auth.admin.generateLink({
-            type: 'invite',
-            email: email,
-            options: {
-              data: {
-                first_name: first_name || existingUser.user_metadata?.first_name || "",
-                last_name: last_name || existingUser.user_metadata?.last_name || "",
-                full_name: `${first_name || ""} ${last_name || ""}`.trim() || existingUser.user_metadata?.full_name,
-                role: "partner",
-                partner_level: 1,
-                tenant_id: tenant_id,
-                tenant_slug: "lumyss"
-              },
-              redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
-            }
-          });
-          
-          if (error) return jsonRes(400, { error: error.message });
-          
-          // Note: generateLink might not automatically trigger the email hook in some Supabase setups 
-          // but if we have the hook enabled for "INVITE", it should.
-          // If it doesn't, we might need to manually call the email sender if we want.
-          return jsonRes(200, { success: true, message: "Link de convite gerado/reenviado", user: existingUser });
-        }
-
+        // Use inviteUserByEmail first
         const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
           data: {
             first_name: first_name || "",
@@ -825,9 +795,36 @@ serve(async (req) => {
           redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
         });
 
-        if (inviteError) return jsonRes(400, { error: inviteError.message });
+        if (inviteError) {
+          if (inviteError.message.includes("already")) {
+            console.log(`[InviteAction] User exists, using generateLink for ${email}`);
+            // For existing users, we use generateLink which also triggers the hook
+            const { error: genError } = await adminClient.auth.admin.generateLink({
+              type: 'invite',
+              email: email,
+              options: {
+                data: {
+                  first_name: first_name || "",
+                  last_name: last_name || "",
+                  full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+                  role: "partner",
+                  partner_level: 1,
+                  tenant_id: tenant_id,
+                  tenant_slug: "lumyss"
+                },
+                redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
+              }
+            });
+            
+            if (genError) return jsonRes(400, { error: genError.message });
+            return jsonRes(200, { success: true, message: "Convite reenviado com sucesso (via link)." });
+          }
+          return jsonRes(400, { error: inviteError.message });
+        }
+
         return jsonRes(200, { success: true, user: invited.user });
       }
+
 
       case "delete-tenant": {
         const body = await req.json();
