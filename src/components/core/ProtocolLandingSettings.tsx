@@ -14,6 +14,7 @@ import { toast } from "sonner";
 const ICON_OPTIONS = ["Activity", "Sparkles", "ShieldCheck", "Stethoscope", "Eye"];
 const QUIZ_ICON_OPTIONS = ["Smartphone", "Monitor", "Tv", "AlertTriangle"];
 const SYMPTOM_ICON_OPTIONS = ["Droplet", "Eye", "Brain", "Sun", "AlertTriangle", "Sparkles"];
+const AGE_ICON_OPTIONS = ["Zap", "Activity", "Heart", "ShieldCheck", "Sparkles"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
@@ -60,6 +61,14 @@ const DEFAULTS = {
     { icon: "Brain", title: "Dor de cabeça frequente", description: "Principalmente após uso de telas" },
     { icon: "Sun", title: "Incômodo com luz forte", description: "Sensibilidade ao sair para a claridade" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_age_title: "Qual é a sua faixa etária?",
+  quiz_age_subtitle: "A proteção natural da retina muda com o tempo — e isso faz parte do processo.",
+  quiz_age_options: [
+    { icon: "Zap", title: "18 a 30 anos", description: "Proteção natural ainda alta" },
+    { icon: "Activity", title: "31 a 45 anos", description: "Começa a reduzir gradualmente" },
+    { icon: "Heart", title: "46 a 60 anos", description: "Momento importante de cuidar" },
+    { icon: "ShieldCheck", title: "Acima de 60", description: "Proteção ativa é essencial" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
@@ -99,6 +108,7 @@ const ProtocolLandingSettings: React.FC = () => {
           quiz_question_options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULTS.quiz_question_options,
           quiz_footer_badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULTS.quiz_footer_badges,
           quiz_symptoms_options: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : DEFAULTS.quiz_symptoms_options,
+          quiz_age_options: Array.isArray(row.quiz_age_options) ? row.quiz_age_options : DEFAULTS.quiz_age_options,
         });
       }
       setLoading(false);
