@@ -157,13 +157,13 @@ serve(async (req) => {
         if (isPartner) {
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
-              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada como Parceiro Nível 1</h3>
-              <p style="font-size:14px;color:#475569">Ao aceitar este convite, você terá acesso imediato a:</p>
+              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Sua nova jornada com ${tenantBranding.name}</h3>
+              <p style="font-size:14px;color:#475569">Como parceiro, você poderá indicar nossos produtos e ser recompensado por isso:</p>
               <ul style="padding-left:20px;color:#475569;font-size:14px">
-                <li style="margin-bottom:8px"><strong>Vitacoins:</strong> Sistema de pontos por performance e indicações.</li>
-                <li style="margin-bottom:8px"><strong>Vínculo Médico-Paciente:</strong> Conecte seus pacientes via Quiz digital.</li>
-                <li style="margin-bottom:8px"><strong>Rede Própria:</strong> Construa sua rede e ganhe benefícios sobre o desempenho dela.</li>
-                <li><strong>Resgate em Pix:</strong> Transforme pontos em dinheiro direto na sua conta.</li>
+                <li style="margin-bottom:8px"><strong>Indicação de Produtos:</strong> Divulgue os produtos da ${tenantBranding.name} para sua rede.</li>
+                <li style="margin-bottom:8px"><strong>Vitacoins:</strong> Ganhe Vitacoins a cada indicação realizada com sucesso.</li>
+                <li style="margin-bottom:8px"><strong>Premiações:</strong> Suas Vitacoins podem ser trocadas por premiações exclusivas e produtos.</li>
+                <li><strong>Resgate em Pix:</strong> Transforme seu saldo em dinheiro direto na sua conta de forma simples.</li>
               </ul>
             </div>
           `;
@@ -192,20 +192,17 @@ serve(async (req) => {
         const authApiUrl = email_data?.site_url || "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=signup&redirect_to=${encodeURIComponent(redirect_to)}`;
         const isPartner = user?.user_metadata?.source === "partner_onboarding" || user?.user_metadata?.role === "partner";
-        const isLevel2 = !!user?.user_metadata?.parent_partner_id;
 
         let extraContent = "";
         if (isPartner) {
-          const level = isLevel2 ? "Nível 2+" : "Nível 1";
           extraContent = `
             <div style="background:#f8f9fa;border-radius:12px;padding:25px;margin:24px 0;border:1px solid #e2e8f0;text-align:left">
-              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Bem-vindo à rede como ${level}!</h3>
-              <p style="font-size:14px;color:#475569">Ao confirmar seu e-mail, você terá acesso a:</p>
+              <h3 style="margin-top:0;color:${tenantBranding.primaryColor};font-size:18px">Bem-vindo à ${tenantBranding.name}!</h3>
+              <p style="font-size:14px;color:#475569">Ao confirmar seu e-mail, você poderá começar a indicar e ganhar:</p>
               <ul style="padding-left:20px;color:#475569;font-size:14px">
-                <li style="margin-bottom:8px"><strong>Vitacoins:</strong> Ganhe pontos por vendas, quizzes e indicações.</li>
-                <li style="margin-bottom:8px"><strong>Vínculo Automático:</strong> Conecte-se aos seus pacientes via Quiz.</li>
-                <li style="margin-bottom:8px"><strong>Gestão de Rede:</strong> Acompanhe seu crescimento e de seus indicados.</li>
-                <li><strong>Resgate:</strong> Transforme pontos em Pix, produtos ou cursos.</li>
+                <li style="margin-bottom:8px"><strong>Ganhe Vitacoins:</strong> Receba pontos por cada indicação de produtos da ${tenantBranding.name}.</li>
+                <li style="margin-bottom:8px"><strong>Troque por Prêmios:</strong> Suas Vitacoins podem ser trocadas por premiações exclusivas, cursos e produtos.</li>
+                <li><strong>Resgate Fácil:</strong> Converta seus ganhos em Pix direto na sua conta bancária.</li>
               </ul>
             </div>
           `;
