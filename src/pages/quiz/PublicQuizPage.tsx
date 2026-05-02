@@ -75,6 +75,7 @@ const STEPS_META = [
   { label: "Sintomas" },
   { label: "Idade" },
   { label: "Última visita" },
+  { label: "Suplementos" },
   { label: "Identificação" },
   { label: "Saúde" },
   { label: "Medicações" },
