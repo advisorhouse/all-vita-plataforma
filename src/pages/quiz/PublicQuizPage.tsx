@@ -24,6 +24,7 @@ import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSympt
 import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
 import QuizStepAgeRange, { AgeOption } from "@/components/quiz/QuizStepAgeRange";
 import QuizStepSupplements, { SupplementOption } from "@/components/quiz/QuizStepSupplements";
+import QuizStepUV, { UVOption } from "@/components/quiz/QuizStepUV";
 
 export interface QuizFormData {
   fullName: string;
