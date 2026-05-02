@@ -738,6 +738,135 @@ const ProtocolLandingSettings: React.FC = () => {
         </div>
       </Section>
 
+      {/* RESULT SCREEN */}
+      <Section
+        title="Tela final do Quiz (Resultado)"
+        description="Score final, mensagem por nível de risco e CTA para a página de vendas."
+      >
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field label="Título do resultado" value={data.result_title} onChange={(v) => set("result_title", v)} />
+          <Field label="Subtítulo do resultado" value={data.result_subtitle} onChange={(v) => set("result_subtitle", v)} />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Faixas de score (do menor para o maior — `max` é o limite superior inclusivo)</Label>
+          {data.result_levels.map((lv, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Faixa {i + 1}</span>
+                {data.result_levels.length > 1 && (
+                  <Button variant="ghost" size="icon"
+                    onClick={() => set("result_levels", data.result_levels.filter((_, idx) => idx !== i))}
+                    className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Score máximo</Label>
+                  <Input type="number" min={0} max={100} value={lv.max}
+                    onChange={(e) => {
+                      const next = [...data.result_levels];
+                      next[i] = { ...lv, max: parseInt(e.target.value || "0") };
+                      set("result_levels", next);
+                    }}
+                    className="h-9 text-sm" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Rótulo" value={lv.label}
+                    onChange={(v) => {
+                      const next = [...data.result_levels]; next[i] = { ...lv, label: v }; set("result_levels", next);
+                    }} />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-4 gap-2 items-end">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Cor</Label>
+                  <div className="flex gap-1 items-center">
+                    <Input type="color" value={lv.color} className="h-9 w-12 p-1"
+                      onChange={(e) => {
+                        const next = [...data.result_levels]; next[i] = { ...lv, color: e.target.value }; set("result_levels", next);
+                      }} />
+                    <Input value={lv.color} className="h-9 text-sm font-mono"
+                      onChange={(e) => {
+                        const next = [...data.result_levels]; next[i] = { ...lv, color: e.target.value }; set("result_levels", next);
+                      }} />
+                  </div>
+                </div>
+                <div className="sm:col-span-3">
+                  <Field label="Mensagem" value={lv.message}
+                    onChange={(v) => {
+                      const next = [...data.result_levels]; next[i] = { ...lv, message: v }; set("result_levels", next);
+                    }}
+                    textarea />
+                </div>
+              </div>
+            </div>
+          ))}
+          {data.result_levels.length < 5 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("result_levels", [...data.result_levels, { max: 100, label: "Novo nível", color: "#D97757", message: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar faixa
+            </Button>
+          )}
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3 pt-2 border-t border-border">
+          <Field label="Pré-título do produto" value={data.result_product_eyebrow} onChange={(v) => set("result_product_eyebrow", v)} />
+          <Field label="Nome do produto" value={data.result_product_name} onChange={(v) => set("result_product_name", v)} />
+          <Field label="Selo / tecnologia" value={data.result_product_powered_by} onChange={(v) => set("result_product_powered_by", v)} />
+          <Field label="Texto do botão CTA" value={data.result_cta_label} onChange={(v) => set("result_cta_label", v)} />
+        </div>
+        <Field
+          label="URL da página de vendas (link direto de checkout)"
+          value={data.result_cta_url}
+          onChange={(v) => set("result_cta_url", v)}
+        />
+        <p className="text-[10px] text-muted-foreground">Cole aqui o link direto de compra do produto (ex: hotmart, kiwify, página de vendas externa).</p>
+        <Field label="Disclaimer (rodapé)" value={data.result_disclaimer} onChange={(v) => set("result_disclaimer", v)} textarea />
+      </Section>
+
+      {/* SCORE WEIGHTS */}
+      <Section
+        title="Algoritmo do Score (pesos por resposta)"
+        description="Cada valor (0–100) representa quantos pontos de proteção a opção contribui. A média dos blocos forma o score final do paciente."
+      >
+        {([
+          ["screenTime", "Rotina (telas)", data.quiz_question_options],
+          ["symptoms", "Sintomas", data.quiz_symptoms_options],
+          ["ageRange", "Faixa etária", data.quiz_age_options],
+          ["lastVisit", "Última visita", data.quiz_lastvisit_options],
+          ["supplements", "Suplementos", data.quiz_supplements_options],
+          ["uvExposure", "Exposição UV", data.quiz_uv_options],
+        ] as const).map(([key, label, opts]) => (
+          <div key={key} className="rounded-lg border border-border p-3 space-y-2">
+            <Label className="text-[12px] font-semibold text-foreground">{label}</Label>
+            <div className="grid sm:grid-cols-2 gap-2">
+              {opts.map((opt, i) => {
+                const current = (data.score_weights[key] || [])[i] ?? 50;
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground flex-1 truncate" title={opt.title}>{opt.title}</span>
+                    <Input
+                      type="number" min={0} max={100} value={current}
+                      className="h-8 w-20 text-sm"
+                      onChange={(e) => {
+                        const arr = [...(data.score_weights[key] || [])];
+                        while (arr.length < opts.length) arr.push(50);
+                        arr[i] = Math.max(0, Math.min(100, parseInt(e.target.value || "0")));
+                        set("score_weights", { ...data.score_weights, [key]: arr });
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <p className="text-[10px] text-muted-foreground">Dica: respostas saudáveis = pesos altos (80–100). Respostas de risco = pesos baixos (10–40).</p>
+      </Section>
+
       <div className="flex justify-end pt-2">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
