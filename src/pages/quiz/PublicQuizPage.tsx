@@ -35,6 +35,7 @@ export interface QuizFormData {
   ageRange: string;
   lastVisit: string;
   supplements: string;
+  uvExposure: string;
   sex: string;
   screenTime: string;
   symptoms: string[];
