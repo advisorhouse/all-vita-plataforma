@@ -26,6 +26,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import productVisionLift from "@/assets/product-vision-lift-1month.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -467,7 +468,7 @@ const ProgressionWidget: React.FC<{ partner: any; stats: any }> = ({ partner, st
 };
 
 // ─── Network Tree Visual Component ──────────────────────────
-const NetworkTreeView: React.FC<{ nodes: NetworkNode[] }> = ({ nodes }) => {
+const NetworkTreeView: React.FC<{ nodes: NetworkNode[]; partner: any; stats: any }> = ({ nodes, partner, stats }) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
 
