@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS partner_onboarding_seen boolean NOT NULL DEFAULT false;

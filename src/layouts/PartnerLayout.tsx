@@ -9,6 +9,8 @@ import {
 import { Outlet } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { useTenant } from "@/contexts/TenantContext";
+import PartnerOnboardingTour from "@/components/partner/PartnerOnboardingTour";
+import { usePartnerOnboarding } from "@/hooks/usePartnerOnboarding";
 
 const partnerLinks = [
   { label: "Dashboard", href: "/partner", icon: Home },
@@ -51,17 +53,21 @@ const SidebarFooterContent: React.FC = () => {
 
 const PartnerLayout: React.FC = () => {
   const { currentTenant } = useTenant();
-  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Vision Lift";
+  const tenantName = currentTenant?.trade_name || currentTenant?.name || "Partner";
+  const { shouldShow, markAsSeen } = usePartnerOnboarding();
 
   return (
-    <AppShell
-      sidebarTitle={tenantName}
-      sidebarSubtitle="Partner"
-      sidebarLinks={partnerLinks}
-      sidebarFooter={<SidebarFooterContent />}
-    >
-      <Outlet />
-    </AppShell>
+    <>
+      <AppShell
+        sidebarTitle={tenantName}
+        sidebarSubtitle="Partner"
+        sidebarLinks={partnerLinks}
+        sidebarFooter={<SidebarFooterContent />}
+      >
+        <Outlet />
+      </AppShell>
+      {shouldShow && <PartnerOnboardingTour onClose={markAsSeen} />}
+    </>
   );
 };
 
