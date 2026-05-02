@@ -169,7 +169,7 @@ const CoreDashboard: React.FC = () => {
       <div className="space-y-5 pb-12">
 
         {/* ═══ GREETING ═══ */}
-        <motion.div custom={-1} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div id="core-greeting" custom={-1} variants={fadeUp} initial="hidden" animate="visible">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ const CoreDashboard: React.FC = () => {
         </motion.div>
 
         {/* ═══ KPIs with Sparklines ═══ */}
-        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div id="core-kpis" custom={0} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {KPI_CARDS.map(({ label, value, change, up, icon: Icon, tip, accent, invertColor, href }, idx) => (
               <Card
@@ -283,7 +283,7 @@ const CoreDashboard: React.FC = () => {
 
           <div className="col-span-12 lg:col-span-4 space-y-4">
             {/* Revenue Hero Card */}
-            <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
+            <motion.div id="core-revenue-hero" custom={2} variants={fadeUp} initial="hidden" animate="visible">
               <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-foreground via-foreground/95 to-foreground/80">
                 <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-accent/15 blur-xl" />
                 <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-accent/10 blur-lg" />

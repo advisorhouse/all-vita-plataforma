@@ -139,7 +139,7 @@ const PartnerDashboard: React.FC = () => {
       <div className="space-y-5 pb-12">
 
         {/* ═══ Greeting ═══ */}
-        <motion.div custom={-1} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div id="dashboard-greeting" custom={-1} variants={fadeUp} initial="hidden" animate="visible">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2.5">
@@ -168,7 +168,7 @@ const PartnerDashboard: React.FC = () => {
         </motion.div>
 
         {/* ═══ ROW 1 — KPIs ═══ */}
-        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div id="dashboard-kpis" custom={0} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {KPI_CARDS.map(({ label, value, change, icon: Icon, tip, accent }) => (
               <Card key={label} className={accent ? "border-accent/20 shadow-sm bg-accent/5" : "border-border shadow-sm"}>
@@ -202,7 +202,7 @@ const PartnerDashboard: React.FC = () => {
           </motion.div>
 
           <div className="col-span-12 lg:col-span-4">
-            <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible" className="h-full">
+            <motion.div id="dashboard-wallet" custom={2} variants={fadeUp} initial="hidden" animate="visible" className="h-full">
               <Card className="relative border-accent/30 shadow-sm overflow-hidden h-full bg-gradient-to-br from-accent via-accent/90 to-accent/70">
                 <div className="absolute -top-8 -right-8 h-28 w-28 rounded-full bg-white/10" />
                 <div className="absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-white/5" />
