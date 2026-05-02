@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users, UserPlus, Coins, CheckCircle2, Clock,
   ChevronRight, Stethoscope, TrendingUp, AlertTriangle,
-  Copy, Share2, Smartphone, Link2,
+  Copy, Share2, Smartphone, Link2, Plus
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { RegisterPartnerNetworkModal } from "@/components/partner/RegisterPartnerNetworkModal";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
