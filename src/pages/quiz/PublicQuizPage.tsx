@@ -25,6 +25,8 @@ import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLa
 import QuizStepAgeRange, { AgeOption } from "@/components/quiz/QuizStepAgeRange";
 import QuizStepSupplements, { SupplementOption } from "@/components/quiz/QuizStepSupplements";
 import QuizStepUV, { UVOption } from "@/components/quiz/QuizStepUV";
+import QuizStepResult, { ResultLevel } from "@/components/quiz/QuizStepResult";
+import { computeProtectionScore, ScoreWeights } from "@/lib/quizScore";
 
 export interface QuizFormData {
   fullName: string;
