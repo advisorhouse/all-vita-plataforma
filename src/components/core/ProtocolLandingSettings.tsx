@@ -79,6 +79,14 @@ const DEFAULTS = {
     { icon: "AlertTriangle", title: "Mais de 2 anos", description: "Vale a pena remarcar" },
     { icon: "AlertTriangle", title: "Não lembro", description: "Acontece — mas vamos resolver" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_supplements_title: "Você já toma algum suplemento voltado para a saúde dos olhos?",
+  quiz_supplements_subtitle: "Alguns nutrientes ajudam a proteger a retina de forma ativa.",
+  quiz_supplements_options: [
+    { icon: "Sparkles", title: "Sim, com astaxantina", description: "Excelente escolha" },
+    { icon: "Shield", title: "Sim, luteína ou zeaxantina", description: "Um bom começo" },
+    { icon: "Activity", title: "Outro suplemento", description: "Pode não ser suficiente" },
+    { icon: "AlertTriangle", title: "Não tomo nenhum", description: "Sem proteção ativa no momento" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
