@@ -9,6 +9,7 @@ import {
   UserCheck, UserMinus, UserX, Sparkles, GitBranch,
   Crown, CircleDot, Minus, Plus, Award, Lock, Gem, Trophy,
   Coins, BookOpen, Lightbulb, GraduationCap, Loader2,
+  Link2, Copy, Smartphone
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTenant } from "@/contexts/TenantContext";
+import { buildTenantUrl } from "@/lib/tenant-routing";
+import { toast } from "sonner";
 import productVisionLift from "@/assets/product-vision-lift-1month.png";
 
 const fadeUp = {
@@ -730,9 +734,79 @@ const NetworkTreeView: React.FC<{ nodes: NetworkNode[]; partner: any; stats: any
   );
 };
 
+// ─── Recruit Link Card ───────────────────────────────────────
+const RecruitLinkCard: React.FC<{ partner: any; tenant: any }> = ({ partner, tenant }) => {
+  const [copied, setCopied] = useState(false);
+  const code = partner?.referral_code;
+  const slug = tenant?.slug;
+  const url = slug && code ? buildTenantUrl(slug, `/r/${code}`) : "";
+  const tenantName = tenant?.trade_name || tenant?.name || "plataforma";
+  const recruitMessage = `Quero te convidar para fazer parte da rede de parceiros ${tenantName}. Cadastre-se pelo meu link:`;
+
+  const handleCopy = () => {
+    if (!url) return;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast.success("Link copiado!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!url) return null;
+
+  return (
+    <Card className="relative overflow-hidden border-accent/30 shadow-sm bg-gradient-to-br from-accent via-accent/90 to-accent/70">
+      <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-white/10" />
+      <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-white/5" />
+      <CardContent className="relative z-10 p-6 text-accent-foreground">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
+            <UserPlus className="h-4 w-4" />
+          </div>
+          <p className="text-[11px] font-medium text-accent-foreground/60 uppercase tracking-wider">Expandir sua rede</p>
+        </div>
+        <h2 className="text-xl font-bold leading-tight">
+          Convide novos parceiros.
+        </h2>
+        <p className="text-[13px] text-accent-foreground/70 mt-1 max-w-lg">
+          Compartilhe seu link exclusivo. Quem se cadastrar entra automaticamente na sua rede e você ganha Vitacoins sobre as vendas deles.
+        </p>
+
+        <div className="mt-5 flex flex-col sm:flex-row gap-2">
+          <div className="flex-1 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2.5 border border-white/20">
+            <Link2 className="h-4 w-4 text-accent-foreground/50 shrink-0" />
+            <span className="text-[13px] text-accent-foreground/80 truncate font-mono">{url}</span>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleCopy}
+              className="rounded-xl h-10 px-5 text-[13px] font-semibold bg-white text-accent hover:bg-white/90 gap-2 shrink-0"
+            >
+              {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Copiado!" : "Copiar"}
+            </Button>
+            <a 
+              href={`https://wa.me/?text=${encodeURIComponent(recruitMessage + "\n" + url)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                variant="outline"
+                className="rounded-xl h-10 px-4 text-[13px] font-semibold bg-white/10 border-white/20 text-accent-foreground hover:bg-white hover:text-accent gap-2"
+              >
+                <Smartphone className="h-4 w-4" />
+              </Button>
+            </a>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 // ─── Main Page ──────────────────────────────────────────────
 const PartnerNetwork: React.FC = () => {
   const { data: partner, isLoading: loadingPartner } = useCurrentPartner();
+  const { currentTenant } = useTenant();
 
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ["partner-network-stats", partner?.id],
@@ -764,7 +838,7 @@ const PartnerNetwork: React.FC = () => {
         cancelled: 0,
         lifetimeRevenue: totalEarned,
         avgLifetime: 0,
-        retentionRate: 0, // In a real app, calculate this
+        retentionRate: 0, 
         avgTicket: 0,
         revenueThisMonth: 0,
         newThisMonth: 0,
@@ -780,13 +854,12 @@ const PartnerNetwork: React.FC = () => {
       if (!partner?.id) return [];
 
       const { data, error } = await supabase
-        .from("conversions")
+        .from("referrals")
         .select(`
           id,
           created_at,
           clients (
-            first_name,
-            last_name
+            full_name
           )
         `)
         .eq("partner_id", partner.id);
@@ -794,8 +867,8 @@ const PartnerNetwork: React.FC = () => {
       if (error) throw error;
 
       return data.map((c: any) => ({
-        name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
-        initials: (c.clients?.first_name?.[0] || "") + (c.clients?.last_name?.[0] || ""),
+        name: c.clients?.full_name || "Paciente",
+        initials: (c.clients?.full_name?.[0] || ""),
         status: "active" as const,
         months: 1,
         plan: "Padrão",
@@ -849,9 +922,14 @@ const PartnerNetwork: React.FC = () => {
             </div>
           </div>
         </motion.div>
+        
+        {/* ═══ Recruit Link ═══ */}
+        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+          <RecruitLinkCard partner={partner} tenant={currentTenant} />
+        </motion.div>
 
         {/* ═══ ROW 1 — KPI Cards (uniform 4-column) ═══ */}
-        <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div custom={0.5} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {kpiCards.map(({ label, value, change, icon: Icon, tip, accent }) => (
               <Card key={label} className={accent ? "border-accent/20 shadow-sm bg-accent/5" : "border-border shadow-sm"}>

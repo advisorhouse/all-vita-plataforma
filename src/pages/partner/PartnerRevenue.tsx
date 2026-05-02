@@ -199,8 +199,38 @@ const PartnerRevenue: React.FC = () => {
     queryKey: ["partner-revenue-stats", partner?.id],
     queryFn: async () => {
       if (!partner?.id) return null;
-      // Get monthly totals for chart (simulated for now based on actual data if exists)
       return REVENUE_MONTHLY; 
+    },
+    enabled: !!partner?.id
+  });
+
+  const { data: clientStats } = useQuery({
+    queryKey: ["partner-client-revenue-stats", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return [];
+      const { data: referrals } = await supabase
+        .from("referrals")
+        .select(`
+          id,
+          created_at,
+          clients (
+            full_name
+          )
+        `)
+        .eq("partner_id", partner.id)
+        .order("created_at", { ascending: false });
+        
+      if (!referrals?.length) return CLIENTS_LIST;
+
+      return referrals.map(c => ({
+        name: c.clients?.full_name || "Paciente",
+        plan: "Mensal",
+        months: 1,
+        consistency: 100,
+        risk: "low",
+        points: `— pts`,
+        nextPayment: format(new Date(), "dd/MM")
+      }));
     },
     enabled: !!partner?.id
   });
@@ -212,6 +242,7 @@ const PartnerRevenue: React.FC = () => {
   const avgTicket = 420;
   const commissionRate = 0.15;
   const retentionRate = 0.91;
+  const clientsList = clientStats || CLIENTS_LIST;
 
 
   const simulate = (months: number) => {

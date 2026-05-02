@@ -20,7 +20,6 @@ const partnerLinks = [
   { label: "Meus Pontos", href: "/partner/revenue", icon: CheckSquare },
   { label: "Ranking", href: "/partner/ranking", icon: Trophy },
   { label: "Parceiros Indicados", href: "/partner/referred-partners", icon: UserPlus },
-  { label: "Meus Links", href: "/partner/links", icon: Link2 },
   { label: "Campanhas", href: "/partner/campaigns", icon: Target },
   { label: "Catálogo", href: "/partner/materials", icon: ShoppingBag },
   { label: "Formação", href: "/partner/formation", icon: GraduationCap },
