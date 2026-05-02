@@ -1316,6 +1316,7 @@ export type Database = {
           last_name: string | null
           must_change_password: boolean
           onboarding_completed: boolean
+          partner_onboarding_seen: boolean
           phone: string | null
           tour_completed: boolean | null
           updated_at: string
@@ -1331,6 +1332,7 @@ export type Database = {
           last_name?: string | null
           must_change_password?: boolean
           onboarding_completed?: boolean
+          partner_onboarding_seen?: boolean
           phone?: string | null
           tour_completed?: boolean | null
           updated_at?: string
@@ -1346,6 +1348,7 @@ export type Database = {
           last_name?: string | null
           must_change_password?: boolean
           onboarding_completed?: boolean
+          partner_onboarding_seen?: boolean
           phone?: string | null
           tour_completed?: boolean | null
           updated_at?: string
