@@ -348,18 +348,27 @@ const PublicQuizPage: React.FC = () => {
                   onChange={(v) => update({ lastVisit: v })}
                 />
               )}
-              {step === 4 && <QuizStepIdentification data={data} update={update} />}
-              {step === 5 && <QuizStepHealth data={data} update={update} />}
-              {step === 6 && <QuizStepMedications data={data} update={update} />}
-              {step === 7 && <QuizStepOphthalmology data={data} update={update} />}
-              {step === 8 && <QuizStepReason data={data} update={update} />}
-              {step === 9 && <QuizStepConsent data={data} update={update} />}
-              {step === 10 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+              {step === 4 && (
+                <QuizStepSupplements
+                  title={config.supplementsTitle}
+                  subtitle={config.supplementsSubtitle}
+                  options={config.supplementsOptions}
+                  value={data.supplements}
+                  onChange={(v) => update({ supplements: v })}
+                />
+              )}
+              {step === 5 && <QuizStepIdentification data={data} update={update} />}
+              {step === 6 && <QuizStepHealth data={data} update={update} />}
+              {step === 7 && <QuizStepMedications data={data} update={update} />}
+              {step === 8 && <QuizStepOphthalmology data={data} update={update} />}
+              {step === 9 && <QuizStepReason data={data} update={update} />}
+              {step === 10 && <QuizStepConsent data={data} update={update} />}
+              {step === 11 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 10 && (
+          {step < 11 && (
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
               <Button
                 variant="ghost"
