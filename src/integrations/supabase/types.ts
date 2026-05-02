@@ -2726,6 +2726,10 @@ export type Database = {
         Returns: Json
       }
       anonymize_user_data: { Args: { _user_id: string }; Returns: undefined }
+      attribute_sale: {
+        Args: { _order_id: string; _referral_code: string }
+        Returns: Json
+      }
       belongs_to_tenant: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -2819,6 +2823,17 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      resolve_referral: {
+        Args: { _code: string; _tenant_id?: string }
+        Returns: {
+          active: boolean
+          partner_avatar: string
+          partner_id: string
+          partner_level: string
+          partner_name: string
+          tenant_id: string
+        }[]
       }
     }
     Enums: {
