@@ -188,6 +188,16 @@ const PublicQuizPage: React.FC = () => {
     uvTitle: "Com que frequência você sai no sol sem óculos escuros?",
     uvSubtitle: "Os raios UV são um dos vilões silenciosos para a saúde da retina.",
     uvOptions: DEFAULT_UV,
+    resultTitle: "Seu Nível de Proteção Macular",
+    resultSubtitle: "Baseado nas suas respostas, calculamos seu score de proteção visual",
+    resultLevels: DEFAULT_LEVELS,
+    resultProductEyebrow: "PROTOCOLO RECOMENDADO",
+    resultProductName: "Retina Shield System™",
+    resultProductPoweredBy: "powered by CAROTENOID CORE™",
+    resultCtaLabel: "Conhecer o protocolo",
+    resultCtaUrl: "",
+    resultDisclaimer: "Este diagnóstico é uma ferramenta de triagem e não substitui uma consulta oftalmológica profissional. Recomendamos acompanhamento regular com um especialista.",
+    scoreWeights: DEFAULT_WEIGHTS,
   });
 
   // Resolve referral
