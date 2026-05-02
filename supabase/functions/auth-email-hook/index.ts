@@ -218,7 +218,6 @@ serve(async (req) => {
       case "CONFIRMATION": {
         subject = `Confirme seu cadastro - ${tenantBranding.name}`;
         
-        const authApiUrl = email_data?.site_url || "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=signup&redirect_to=${encodeURIComponent(redirect_to)}`;
         const isPartner = user?.user_metadata?.source === "partner_onboarding" || user?.user_metadata?.role === "partner";
 
