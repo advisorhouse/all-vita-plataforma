@@ -766,6 +766,23 @@ serve(async (req) => {
         return jsonRes(200, { success: true, message: "Convite reenviado com sucesso." });
       }
 
+      case "invite_user": {
+        const body = await req.json();
+        const { email, first_name, last_name, tenant_id } = body;
+        if (!email) return jsonRes(400, { error: "E-mail é obrigatório" });
+        const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+          data: {
+            first_name: first_name || "",
+            last_name: last_name || "",
+            full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+            role: "partner",
+            partner_level: 1,
+            tenant_id: tenant_id,
+          },
+        });
+        if (inviteError) return jsonRes(400, { error: inviteError.message });
+        return jsonRes(200, { success: true, user: invited.user });
+      }
       case "delete-tenant": {
         const body = await req.json();
         const { tenantId: targetTenantId } = body;
