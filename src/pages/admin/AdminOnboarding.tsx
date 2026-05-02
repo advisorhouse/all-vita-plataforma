@@ -169,7 +169,7 @@ const AdminOnboarding: React.FC = () => {
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
     const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
-    const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && (window.location.hostname.endsWith(".allvita.com.br") || window.location.hostname.endsWith(".lovable.app"));
+    const isSubdomain = typeof window !== "undefined" && window.location.hostname !== "app.allvita.com.br" && (window.location.hostname.endsWith(".allvita.com.br") || window.location.hostname.endsWith(".lovable.app") || window.location.hostname.endsWith(".lovableproject.com"));
 
     let destination = "/";
     if (isSuperAdmin || platformRole) {
@@ -181,6 +181,9 @@ const AdminOnboarding: React.FC = () => {
     }
 
     await logOnboardingRedirect("complete", destination);
+    
+    // Using navigate with replace instead of window.location.href to avoid hard reloads if possible,
+    // but window.location.href is safer to clear any stale state
     window.location.href = destination;
   };
 
