@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users, UserPlus, Coins, CheckCircle2, Clock,
   ChevronRight, Stethoscope, TrendingUp, AlertTriangle,
-  Copy, Share2, Smartphone, Link2,
+  Copy, Share2, Smartphone, Link2, Plus
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { RegisterPartnerNetworkModal } from "@/components/partner/RegisterPartnerNetworkModal";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -143,7 +144,8 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
 
 const PartnerReferredPartners: React.FC = () => {
   const navigate = useNavigate();
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const totalReferred = REFERRED_PARTNERS.length;
   const totalActive = REFERRED_PARTNERS.filter(p => p.status === "active").length;
@@ -178,8 +180,17 @@ const PartnerReferredPartners: React.FC = () => {
                 Acompanhe os colegas que você indicou e os pontos gerados pela rede deles.
               </p>
             </div>
+            <Button 
+              onClick={() => setIsModalOpen(true)}
+              className="rounded-xl h-10 px-5 text-[13px] font-semibold gap-2"
+            >
+              <UserPlus className="h-4 w-4" />
+              Convidar Colega
+            </Button>
           </div>
         </motion.div>
+
+        <RegisterPartnerNetworkModal open={isModalOpen} onOpenChange={setIsModalOpen} />
 
         {/* KPIs */}
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
