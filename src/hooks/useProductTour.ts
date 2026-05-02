@@ -1,4 +1,4 @@
-import { driver } from 'driver.js';
+import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { useLocation } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
@@ -13,13 +13,14 @@ export const useProductTour = () => {
     const isClub = location.pathname.includes('/club');
     const isAdmin = location.pathname.includes('/admin');
 
-    const commonSteps = [
+    const commonSteps: DriveStep[] = [
       {
         element: '#sidebar-brand',
         popover: {
           title: '✨ Bem-vindo',
           description: `Você está acessando o portal ${currentTenant?.name || 'Allvita'}. Aqui você encontra todas as suas ferramentas de forma organizada.`,
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       },
       {
@@ -27,18 +28,20 @@ export const useProductTour = () => {
         popover: {
           title: '📂 Menu Principal',
           description: 'Navegue por todas as funcionalidades do sistema através deste menu lateral.',
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       }
     ];
 
-    const finalSteps = [
+    const finalSteps: DriveStep[] = [
       {
         element: '#topbar-notifications',
         popover: {
           title: '🔔 Notificações',
           description: 'Fique por dentro de alertas, mensagens e novidades importantes em tempo real.',
-          position: 'bottom' as const,
+          side: 'bottom',
+          align: 'center'
         }
       },
       {
@@ -46,12 +49,13 @@ export const useProductTour = () => {
         popover: {
           title: '👤 Seu Perfil',
           description: 'Gerencie seus dados, altere sua senha e personalize sua experiência no sistema.',
-          position: 'bottom' as const,
+          side: 'bottom',
+          align: 'center'
         }
       }
     ];
 
-    let steps = [...commonSteps];
+    let steps: DriveStep[] = [...commonSteps];
 
     // Role-specific steps
     if (isPartner) {
@@ -60,7 +64,8 @@ export const useProductTour = () => {
         popover: {
           title: '🌟 Minha Rede',
           description: 'Acompanhe o crescimento da sua rede, seus pontos e parceiros indicados.',
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       });
       steps.push({
@@ -68,7 +73,8 @@ export const useProductTour = () => {
         popover: {
           title: '💰 Minha Receita',
           description: 'Visualize seus ganhos, histórico de comissões e metas financeiras.',
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       });
     } else if (isCore) {
@@ -77,7 +83,8 @@ export const useProductTour = () => {
         popover: {
           title: '🤝 Parceiros',
           description: 'Gerencie e acompanhe o desempenho de todos os parceiros do seu tenant.',
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       });
       steps.push({
@@ -85,7 +92,8 @@ export const useProductTour = () => {
         popover: {
           title: '📈 Financeiro',
           description: 'Controle total sobre o faturamento, pagamentos e saúde financeira da empresa.',
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       });
     } else if (isClub) {
@@ -94,7 +102,8 @@ export const useProductTour = () => {
         popover: {
           title: '🎁 Benefícios',
           description: 'Explore todos os produtos, descontos e serviços exclusivos para membros.',
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       });
     } else if (isAdmin) {
@@ -103,7 +112,8 @@ export const useProductTour = () => {
         popover: {
           title: '🏢 Gestão de Tenants',
           description: 'Controle centralizado de todas as empresas e marcas da plataforma.',
-          position: 'right' as const,
+          side: 'right',
+          align: 'start'
         }
       });
     }
