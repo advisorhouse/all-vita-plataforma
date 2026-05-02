@@ -106,13 +106,12 @@ const PartnerReferrals: React.FC = () => {
       if (!partner?.id) return [];
       
       const { data, error } = await supabase
-        .from("conversions")
+        .from("referrals")
         .select(`
           id,
           created_at,
           clients (
-            first_name,
-            last_name
+            full_name
           )
         `)
         .eq("partner_id", partner.id)
