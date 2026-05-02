@@ -121,7 +121,7 @@ const PartnerReferrals: React.FC = () => {
       if (error) throw error;
       
       return data.map((c: any) => ({
-        name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
+        name: c.clients?.full_name || "Paciente",
         date: format(new Date(c.created_at), "dd/MM", { locale: ptBR }),
         status: "Comprou",
         plan: "Confirmado", // We'd need to join with orders to get specific plan
