@@ -859,8 +859,7 @@ const PartnerNetwork: React.FC = () => {
           id,
           created_at,
           clients (
-            first_name,
-            last_name
+            full_name
           )
         `)
         .eq("partner_id", partner.id);
@@ -868,8 +867,8 @@ const PartnerNetwork: React.FC = () => {
       if (error) throw error;
 
       return data.map((c: any) => ({
-        name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
-        initials: (c.clients?.first_name?.[0] || "") + (c.clients?.last_name?.[0] || ""),
+        name: c.clients?.full_name || "Paciente",
+        initials: (c.clients?.full_name?.[0] || ""),
         status: "active" as const,
         months: 1,
         plan: "Padrão",
