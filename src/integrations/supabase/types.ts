@@ -112,6 +112,53 @@ export type Database = {
           },
         ]
       }
+      ai_personas: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          knowledge_base: string | null
+          name: string
+          system_prompt: string | null
+          tenant_id: string
+          tone_of_voice: string | null
+          updated_at: string
+          use_emojis: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          knowledge_base?: string | null
+          name?: string
+          system_prompt?: string | null
+          tenant_id: string
+          tone_of_voice?: string | null
+          updated_at?: string
+          use_emojis?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          knowledge_base?: string | null
+          name?: string
+          system_prompt?: string | null
+          tenant_id?: string
+          tone_of_voice?: string | null
+          updated_at?: string
+          use_emojis?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_personas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       all_vita_staff: {
         Row: {
           created_at: string
