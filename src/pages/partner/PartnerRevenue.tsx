@@ -214,8 +214,7 @@ const PartnerRevenue: React.FC = () => {
           id,
           created_at,
           clients (
-            first_name,
-            last_name
+            full_name
           )
         `)
         .eq("partner_id", partner.id)
@@ -224,7 +223,7 @@ const PartnerRevenue: React.FC = () => {
       if (!referrals?.length) return CLIENTS_LIST;
 
       return referrals.map(c => ({
-        name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
+        name: c.clients?.full_name || "Paciente",
         plan: "Mensal",
         months: 1,
         consistency: 100,
