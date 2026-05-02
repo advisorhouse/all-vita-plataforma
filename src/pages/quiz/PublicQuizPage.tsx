@@ -352,12 +352,12 @@ const PublicQuizPage: React.FC = () => {
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[12px] text-muted-foreground">Progresso</span>
-            <span className="text-[12px] font-semibold" style={{ color: "#D97757" }}>{progress}%</span>
+            <span className="text-[12px] font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>{progress}%</span>
           </div>
           <div className="h-1.5 w-full bg-[#EFEAE4] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${progress}%`, backgroundColor: "#D97757" }}
+              style={{ width: `${progress}%`, backgroundColor: currentTenant?.secondary_color || "#D97757" }}
             />
           </div>
         </div>
@@ -474,9 +474,13 @@ const PublicQuizPage: React.FC = () => {
                 onClick={() => setStep((s) => s + 1)}
                 disabled={!canAdvance()}
                 className={cn(
-                  "h-11 px-6 rounded-xl text-sm font-medium",
-                  canAdvance() ? "bg-[#1a1a1a] hover:bg-[#1a1a1a]/90 text-white" : "bg-[#B5B5B5] text-white cursor-not-allowed hover:bg-[#B5B5B5]"
+                  "h-11 px-6 rounded-xl text-sm font-medium transition-all",
+                  !canAdvance() && "bg-[#B5B5B5] text-white cursor-not-allowed hover:bg-[#B5B5B5]"
                 )}
+                style={canAdvance() ? {
+                  backgroundColor: currentTenant?.secondary_color || "#1a1a1a",
+                  color: "#ffffff"
+                } : {}}
               >
                 Próxima
                 <ChevronRight className="h-4 w-4 ml-1" />

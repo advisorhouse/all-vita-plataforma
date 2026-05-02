@@ -77,7 +77,7 @@ const ProtocolConsentPage: React.FC<ProtocolConsentPageProps> = ({ mode = "quiz"
             <ShieldCheck
               className="h-10 w-10"
               strokeWidth={1.5}
-              style={{ color: "#D97757" }}
+              style={{ color: currentTenant?.secondary_color || "#D97757" }}
             />
           </div>
         </div>
@@ -105,15 +105,15 @@ const ProtocolConsentPage: React.FC<ProtocolConsentPageProps> = ({ mode = "quiz"
             />
             <p className="text-[13px] leading-[1.6] text-foreground/80">
               Li e concordo com o{" "}
-              <Link to="#" className="font-semibold" style={{ color: "#D97757" }}>
+              <Link to="#" className="font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>
                 Termo de Consentimento para Telessaúde
               </Link>
               ,{" "}
-              <Link to="#" className="font-semibold" style={{ color: "#D97757" }}>
+              <Link to="#" className="font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>
                 Política de dados pessoais
               </Link>
               ,{" "}
-              <Link to="#" className="font-semibold" style={{ color: "#D97757" }}>
+              <Link to="#" className="font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>
                 Termos e condições de uso
               </Link>
               , autorizando a coleta e tratamento de meus dados pela{" "}
@@ -128,10 +128,12 @@ const ProtocolConsentPage: React.FC<ProtocolConsentPageProps> = ({ mode = "quiz"
           disabled={!accepted}
           className={cn(
             "w-full h-14 rounded-xl text-[15px] font-medium transition-all",
-            accepted
-              ? "bg-[#1a1a1a] hover:bg-[#1a1a1a]/90 text-white"
-              : "bg-[#B5B5B5] text-white cursor-not-allowed hover:bg-[#B5B5B5]"
+            !accepted && "bg-[#B5B5B5] text-white cursor-not-allowed hover:bg-[#B5B5B5]"
           )}
+          style={accepted ? { 
+            backgroundColor: currentTenant?.secondary_color || "#1a1a1a",
+            color: "#ffffff"
+          } : {}}
         >
           Sim, eu concordo
           <ChevronRight className="h-4 w-4 ml-1" />
