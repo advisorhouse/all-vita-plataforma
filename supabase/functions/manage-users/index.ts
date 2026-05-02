@@ -80,7 +80,7 @@ serve(async (req) => {
     case "preview-email": requiredAction = "read"; break;
   }
 
-  const isAllowed = await checkPermission(requiredResource, requiredAction, tenantId);
+  const isAllowed = isAdminToken || await checkPermission(requiredResource, requiredAction, tenantId);
 
   if (!isAllowed) {
     // Specialized error for delete which traditionally only super admin did
