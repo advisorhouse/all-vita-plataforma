@@ -5,7 +5,7 @@ import {
   ClipboardList, Copy, Link2, QrCode, Eye,
   Users, CheckCircle2, Share2,
   Smartphone, Download, ExternalLink,
-  Sparkles, BarChart3, Zap, Coins,
+  Sparkles, BarChart3, Zap, Coins, Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,13 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useCurrentPartner } from "@/hooks/useCurrentPartner";
+import { useTenant } from "@/contexts/TenantContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { buildTenantUrl } from "@/lib/tenant-routing";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -34,9 +41,6 @@ const Tip: React.FC<{ text: string }> = ({ text }) => (
 );
 
 // ─── Data ────────────────────────────────────────────────────
-const QUIZ_LINK = "https://visionlift.com.br/quiz/hogv-100";
-const DOCTOR_CODE = "HOGV-100";
-
 const QUIZ_FIELDS = [
   "Nome, CPF, Telefone, E-mail, Idade, Sexo",
   "Histórico de saúde (diabetes, HAS, glaucoma...)",
@@ -46,34 +50,100 @@ const QUIZ_FIELDS = [
   "Consentimento LGPD e autorização de contato",
 ];
 
-const RECENT_PATIENTS = [
-  { name: "Maria S.", date: "28/02", status: "Comprou", plan: "5 meses", points: 528 },
-  { name: "Roberto N.", date: "25/02", status: "Comprou", plan: "3 meses", points: 396 },
-  { name: "Ana Paula C.", date: "22/02", status: "Pendente", plan: "—", points: 0 },
-  { name: "Juliana M.", date: "18/02", status: "Comprou", plan: "9 meses", points: 697 },
-  { name: "Fernanda L.", date: "15/02", status: "Pendente", plan: "—", points: 0 },
-];
-
-const SHARE_MESSAGE = encodeURIComponent(
-  `Olá! Antes da sua consulta, por favor preencha este questionário rápido: ${QUIZ_LINK}\n\nÉ rápido e nos ajuda a ter uma consulta mais eficiente. 🩺`
-);
-
 const PartnerReferrals: React.FC = () => {
   const navigate = useNavigate();
+  const { data: partner, isLoading: loadingPartner } = useCurrentPartner();
+  const { currentTenant } = useTenant();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"link" | "qr">("link");
   const [quizPreviewOpen, setQuizPreviewOpen] = useState(false);
 
+  const referralCode = partner?.referral_code || "AGUARDE";
+  const quizLink = currentTenant 
+    ? buildTenantUrl(currentTenant.slug, "/quiz", { ref: referralCode })
+    : "#";
+
+  const shareMessage = encodeURIComponent(
+    `Olá! Antes da sua consulta, por favor preencha este questionário rápido: ${quizLink}\n\nÉ rápido e nos ajuda a ter uma consulta mais eficiente. 🩺`
+  );
+
+  const { data: stats } = useQuery({
+    queryKey: ["partner-quiz-stats", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return null;
+      
+      const { data: referralsCount } = await supabase
+        .from("referrals")
+        .select("id", { count: "exact", head: true })
+        .eq("partner_id", partner.id);
+        
+      const { data: conversionsCount } = await supabase
+        .from("conversions")
+        .select("id", { count: "exact", head: true })
+        .eq("partner_id", partner.id);
+        
+      const { data: pointsData } = await supabase
+        .from("vitacoin_transactions")
+        .select("amount")
+        .eq("tenant_id", partner.tenant_id)
+        .eq("user_id", partner.user_id)
+        .eq("source", "sale");
+        
+      const totalPoints = pointsData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+      
+      return {
+        totalQuiz: referralsCount || 0,
+        totalConverted: conversionsCount || 0,
+        pointsFromQuiz: totalPoints
+      };
+    },
+    enabled: !!partner?.id
+  });
+
+  const { data: recentConversions = [] } = useQuery({
+    queryKey: ["partner-recent-patients", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("conversions")
+        .select(`
+          id,
+          created_at,
+          clients (
+            first_name,
+            last_name
+          )
+        `)
+        .eq("partner_id", partner.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+        
+      if (error) throw error;
+      
+      return data.map((c: any) => ({
+        name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
+        date: format(new Date(c.created_at), "dd/MM", { locale: ptBR }),
+        status: "Comprou",
+        plan: "Confirmado", // We'd need to join with orders to get specific plan
+        points: 0 // We'd need to join with transactions to get specific points
+      }));
+    },
+    enabled: !!partner?.id
+  });
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(QUIZ_LINK);
+    navigator.clipboard.writeText(quizLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const totalQuiz = 87;
-  const totalConverted = 48;
-  const conversionRate = ((totalConverted / totalQuiz) * 100).toFixed(0);
-  const pointsFromQuiz = 12_480;
+  if (loadingPartner) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-accent" /></div>;
+
+  const totalQuiz = stats?.totalQuiz || 0;
+  const totalConverted = stats?.totalConverted || 0;
+  const conversionRate = totalQuiz > 0 ? ((totalConverted / totalQuiz) * 100).toFixed(0) : "0";
+  const pointsFromQuiz = stats?.pointsFromQuiz || 0;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -86,7 +156,7 @@ const PartnerReferrals: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 <h1 className="text-xl font-bold text-foreground">Quiz Pré-Consulta</h1>
                 <span className="rounded-full border border-accent/20 bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent">
-                  Código: {DOCTOR_CODE}
+                  Código: {referralCode}
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
@@ -177,7 +247,7 @@ const PartnerReferrals: React.FC = () => {
                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-4 flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2.5 border border-white/20">
                     <Link2 className="h-4 w-4 text-accent-foreground/50 shrink-0" />
-                    <span className="text-[13px] text-accent-foreground/80 truncate font-mono">{QUIZ_LINK}</span>
+                    <span className="text-[13px] text-accent-foreground/80 truncate font-mono">{quizLink}</span>
                   </div>
                   <Button
                     onClick={handleCopy}
@@ -284,7 +354,7 @@ const PartnerReferrals: React.FC = () => {
                 </Button>
               </div>
               <div className="space-y-2">
-                {RECENT_PATIENTS.map(({ name, date, status, plan, points }) => (
+                {recentConversions.map(({ name, date, status, plan, points }) => (
                   <div key={name + date} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[11px] font-bold text-foreground">
