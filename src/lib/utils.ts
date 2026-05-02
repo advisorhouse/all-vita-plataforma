@@ -36,3 +36,13 @@ export function isColorLight(color: string | null | undefined): boolean {
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
   return brightness > 180; // Adjusted threshold
 }
+
+export function toTitleCase(str: string): string {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .split(/[\s_]+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
