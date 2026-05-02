@@ -15,6 +15,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ActivatePage from "./pages/activate/ActivatePage";
 import InviteLanding from "./pages/invite/InviteLanding";
+import RecruitLanding from "./pages/invite/RecruitLanding";
+import SaleRedirect from "./pages/invite/SaleRedirect";
 import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
@@ -163,6 +165,8 @@ const App = () => (
               <Route path="/" element={<AuthGuard requireTenant={false}><Index /></AuthGuard>} />
               <Route path="/activate" element={<ActivatePage />} />
               <Route path="/invite/:token" element={<InviteLanding />} />
+              <Route path="/r/:code" element={<RecruitLanding />} />
+              <Route path="/q/:code" element={<SaleRedirect />} />
               <Route path="/proposta" element={<ProposalPresentation />} />
               <Route path="/proposta-site" element={<WebsiteProposal />} />
               <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
