@@ -1,111 +1,84 @@
+# Decisão: Convite vs Criação direta de Partner
 
-# Plano: documento PDF "Multi-tenant por subdomínio na All Vita — alternativas e caminho recomendado"
+## Diagnóstico do problema atual
 
-## O que vou entregar
+Hoje o `RegisterPartnerModal` (Core) chama `manage-users/create`, que internamente usa:
 
-Um arquivo PDF salvo em `/mnt/documents/allvita-multitenant-subdominio.pdf`, em português, escrito para você (não-técnico), com diagramas em ASCII, matriz comparativa e uma recomendação clara. Nada no código será alterado nesta etapa — só a geração do documento.
+```ts
+adminClient.auth.admin.createUser({ email, email_confirm: true, ... })
+```
 
-## Por que um documento (e não código agora)
+Esse método:
+- Cria o usuário **já confirmado**, sem senha
+- **NÃO dispara nenhum email** (não passa pelo `auth-email-hook`)
+- Resultado: o parceiro fica cadastrado mas nunca recebe nada — exatamente o que aconteceu com `tecnologia@advisorhouse.com.br`
 
-Você pediu para **mapear as possibilidades** antes de decidir. O código atual já tem dois modos coexistindo (subdomínio real + path-based como fallback no `app.allvita.com.br`), então qualquer mudança de infra muda só DNS/proxy + algumas linhas em `tenant-routing.ts` e nos templates de e-mail. A decisão de infra é a parte cara — é ela que precisa virar documento primeiro.
+Já o fluxo do **admin do tenant** (criado pela All Vita) usa o caminho de signup/invite que passa pelo hook → por isso o email chega.
 
-## Estrutura do PDF (≈ 10–12 páginas)
+## Comparação dos caminhos possíveis
 
-### 1. Resumo executivo (1 pág.)
-- O problema em 3 linhas: Lovable redireciona qualquer domínio secundário para o "primary domain" do projeto. Por isso `lumyss.allvita.com.br` cai em `app.allvita.com.br/auth/login`.
-- A causa não é o seu DNS nem o seu código — é uma regra da hospedagem da Lovable confirmada na documentação oficial: "Lovable does not currently support wildcard subdomains or different content per subdomain".
-- Recomendação antecipada (com 1 linha de justificativa).
+| Critério | A) Criação direta (`createUser`) | B) Convite (`inviteUserByEmail`) | C) Magic Link / generateLink type=invite |
+|---|---|---|---|
+| Dispara `auth-email-hook` | ❌ Não | ✅ Sim (template `invite`) | ✅ Sim |
+| Usuário define própria senha | ❌ (precisa recovery depois) | ✅ Sim, no link de aceite | ✅ Sim |
+| UX do parceiro | Confusa (sem email) | Direta: "convite aprovado → defina senha → entrar" | Igual a B |
+| Permite reenviar convite | Manual (recovery) | ✅ Nativo | ✅ Nativo |
+| Status do user até aceitar | confirmed sem senha | invited (claro) | invited |
+| Risco de inconsistência | Alto (user existe, partner pendente) | Baixo | Baixo |
+| Suporta metadata custom | ✅ | ✅ (via `data`) | ✅ |
 
-### 2. Diagnóstico técnico do que está acontecendo hoje (2 pág.)
-- Fluxo atual ilustrado:
-  ```text
-  Browser → lumyss.allvita.com.br
-         → DNS A 185.158.133.1 (Lovable edge)
-         → Edge identifica domínio secundário do projeto
-         → 301 para https://app.allvita.com.br/auth/login   ← aqui mora o bug percebido
-  ```
-- Por que mover o "primary domain" no painel da Lovable não resolve: o redirect é sempre para o primary, então só inverte o problema (`app` passaria a redirecionar para `lumyss`).
-- O que o código já suporta hoje (path-based + subdomain), trecho relevante de `useSubdomainTenant.ts` e `tenant-routing.ts`.
+**Recomendação: caminho B — `inviteUserByEmail`.**
 
-### 3. As 4 alternativas viáveis (4–5 pág., 1 página por alternativa)
+Razões:
+1. Já temos o template `invite.tsx` com o copy "Seu convite de parceria para a [marca] chegou!" pronto para esse fluxo.
+2. É o método semanticamente correto: parceiro nível 1 é convidado pelo tenant, parceiro nível 2+ é convidado por outro parceiro — mesmo mecanismo, templates diferentes via metadata.
+3. Não precisa de gambiarra de "criar + recovery" para entregar o email.
+4. Reenvio de convite vira um botão simples na lista de parceiros.
 
-Cada alternativa traz: diagrama, o que muda no DNS, o que muda no código, custo mensal estimado, esforço de implementação, prós e contras, riscos.
+## Mudanças propostas
 
-**Alternativa A — Manter path-based (`app.allvita.com.br/lumyss/core`)**
-- Sem infra nova. Sem Cloudflare. Sem custo.
-- Trabalho: remover `lumyss.allvita.com.br` do painel, ajustar `buildTenantUrl` para sempre retornar path, atualizar templates de e-mail (`invite-staff`, `tenant-onboarding`).
-- Contras: marca menos "white-label" (URL mostra `app.allvita.com.br`), cookies compartilhados entre tenants (precisa ter cuidado com isolamento client-side).
+### 1. `supabase/functions/manage-users/index.ts`
+Quando `role === "partner"` (ou novo flag `send_invite: true`):
+- Substituir `auth.admin.createUser` por `auth.admin.inviteUserByEmail(email, { data: { ...metadata, tenant_id, tenant_slug, tenant_name, partner_level, invited_by_partner_id }, redirectTo: \`https://<slug>.allvita.com.br/auth/set-password\` })`
+- Após o invite voltar com user, criar o registro em `partners` com `user_id`, `tenant_id`, `parent_partner_id` (null se nível 1, ou ID do convidante), `level` (1 ou 2+), e demais dados do form (CPF, PIX, endereço, etc.)
+- Retornar `{ success: true, partner_id, invited: true }`
 
-**Alternativa B — Cloudflare Worker como reverse proxy (subdomínio "verdadeiro")**
-- Mover NS de `allvita.com.br` do Registro.br para Cloudflare (gratuito).
-- Wildcard `*.allvita.com.br` CNAME → Lovable + Worker que reescreve `Host` header e domínio dos cookies.
-- URL final: `https://lumyss.allvita.com.br/core` permanece na barra.
-- Custo: Cloudflare Free + Workers Free (100k req/dia grátis). Acima disso, US$ 5/mês.
-- Contras: dependência adicional, exige um pouco de manutenção do script do Worker, precisa adicionar `*.allvita.com.br` nas Redirect URLs do Supabase Auth.
+### 2. `supabase/functions/auth-email-hook/index.ts`
+- Para emails do tipo `invite`, ler `user_metadata.partner_level`:
+  - Se `1` (ou ausente) → template atual `invite.tsx` (convite do tenant)
+  - Se `>= 2` → novo template `invite-partner-network.tsx` (convite vindo de outro parceiro, mencionando quem convidou)
+- Continuar usando `tenant_slug`/`tenant_name`/branding já implementados.
 
-**Alternativa C — Cadastrar cada subdomínio manualmente no painel Lovable (status atual)**
-- Modelo "1 domínio = 1 entrada manual" no painel + 1 registro DNS por tenant.
-- Por que NÃO funciona como você quer: a Lovable trata tudo como "domínio secundário do mesmo projeto" e força o redirect ao primary. Mesmo cadastrando 100 subdomínios, todos cairiam em `app.allvita.com.br`.
-- Útil só se cada tenant virar um **projeto Lovable separado** (inviável para SaaS multi-tenant com base de dados única).
+### 3. `supabase/functions/_shared/email-templates/invite-partner-network.tsx` (novo)
+Template para parceiros nível 2+:
+- Assunto: `[Nome do convidante] te convidou para a rede de parceiros da [Marca]`
+- Corpo: contextualiza que ele foi indicado por outro parceiro, mantém pitch de vitacoins/recompensas, CTA "Aceitar convite e criar conta"
 
-**Alternativa D — Sair da hospedagem da Lovable (Vercel/Netlify/Cloudflare Pages) mantendo o código**
-- Build do mesmo repo em outra hospedagem que suporta wildcard nativo.
-- Custo: Vercel Hobby grátis até certo tráfego, ou ~US$ 20/mês no Pro; Cloudflare Pages grátis.
-- Contras: perde o preview integrado da Lovable, deploy passa a ser via GitHub→Vercel, exige configurar SSL wildcard (automático no Cloudflare/Vercel).
+### 4. `RegisterPartnerModal.tsx`
+- Sem mudança de UX. Apenas o body da chamada ganha:
+  - `send_invite: true`
+  - `partner_level: 1`
+  - dados estruturados de partner (cpf, pix, endereço…) que hoje só ficam no state e somem
+- Tela final passa a dizer claramente: "Convite enviado para [email]. O parceiro vai receber um link para definir a senha e ativar a conta."
 
-### 4. Matriz comparativa (1 pág., tabela)
+### 5. Fluxo de convite por outro parceiro (nível 2+)
+- No portal `/partner` adicionar ação "Convidar parceiro" em `PartnerReferredPartners` que chama o mesmo endpoint com `partner_level: 2`, `parent_partner_id: <partner_atual>`.
+- Backend valida hierarquia via função existente `is_in_partner_downline` para evitar ciclos.
 
-| Critério | A. Path-based | B. Cloudflare Worker | C. Painel Lovable | D. Outra hospedagem |
-|---|---|---|---|---|
-| URL white-label real | ❌ | ✅ | ❌ | ✅ |
-| Custo mensal | R$ 0 | R$ 0 a ~R$ 30 | R$ 0 | R$ 0 a ~R$ 110 |
-| Esforço inicial | Baixo (2 h) | Médio (1 dia) | — (já tentado, não resolve) | Alto (2–3 dias) |
-| Manutenção contínua | Nenhuma | Baixa (Worker estável) | Alta (1 entrada manual por tenant) | Baixa |
-| Isolamento de cookies | Compartilhado | Por subdomínio | — | Por subdomínio |
-| Dependências externas | Nenhuma | Cloudflare | Lovable | Vercel/Netlify/CF |
-| Reversibilidade | Total | Total (basta apontar DNS de volta) | — | Média |
+### 6. Reenviar convite
+- Endpoint `manage-users/resend-invite` que chama `auth.admin.inviteUserByEmail` de novo (Supabase trata como reenvio se o user ainda não confirmou).
+- Botão na listagem de parceiros do Core e do Partner.
 
-### 5. Recomendação (1 pág.)
+### 7. Caso especial: parceiros já existentes sem email recebido
+- Para `tecnologia@advisorhouse.com.br` e quaisquer outros nessa situação: rodar uma vez `auth.admin.generateLink({ type: 'recovery' })` ou simplesmente reenviar via `inviteUserByEmail` (ele aceita re-invite enquanto user não tiver senha definida) para regularizar.
 
-**Caminho sugerido: B (Cloudflare Worker)**, com A como plano B imediato.
+## Pontos de atenção técnicos
 
-Justificativa em bullets:
-- Mantém o produto na Lovable (você não perde o fluxo de edição que já usa).
-- Resolve o problema de marca (`lumyss.allvita.com.br` continua na barra).
-- Custo praticamente zero no início.
-- 100% reversível: se um dia sair da Lovable, é só repontar DNS.
+- `inviteUserByEmail` exige que o domínio do `redirectTo` esteja na allow-list do Supabase Auth (URL Configuration). Hoje já temos `*.allvita.com.br` configurado para o admin — confirmar se inclui subdomínios de tenant.
+- A página `/auth/set-password` precisa existir e tratar o token vindo no link (já temos `/auth/reset-password`; podemos reutilizar com copy diferente quando for primeiro acesso, detectado por `user.last_sign_in_at == null`).
+- Manter `email_confirm` implícito do invite (Supabase confirma quando o user clica no link).
+- `manage-users` precisa continuar idempotente: se o email já existe como user, buscar o id e só criar/atualizar `partners`.
 
-Plano B (A) entra se você quiser ir ao ar essa semana sem mexer em DNS: muda 3 arquivos e pronto, com a contrapartida estética do path.
+## Resumo executivo
 
-### 6. Próximos passos concretos (1 pág.)
-
-Passo a passo prático para o caminho B:
-1. Criar conta Cloudflare (grátis) e adicionar zona `allvita.com.br`.
-2. Trocar nameservers no Registro.br para os da Cloudflare (propaga em até 24 h).
-3. Recriar registros existentes (A para `app`, MX, SPF, DKIM se houver).
-4. Adicionar CNAME `*` → `app.allvita.com.br` (proxied, nuvenzinha laranja).
-5. Publicar Worker com script de proxy (snippet incluso no anexo).
-6. Adicionar `https://*.allvita.com.br` em **Supabase → Authentication → URL Configuration → Redirect URLs**.
-7. Testar `lumyss.allvita.com.br/core` → deve carregar sem 301 para `app`.
-8. Em build mode, eu ajusto `buildTenantUrl` (já está pronto pra subdomínio em prod) e os templates de e-mail.
-
-### 7. Anexo técnico (1–2 pág.)
-- Script completo do Cloudflare Worker (≈ 40 linhas) com comentários linha a linha.
-- Lista de arquivos da plataforma que mudam quando a decisão for tomada (`src/lib/tenant-routing.ts`, `supabase/functions/invite-staff`, `supabase/functions/tenant-onboarding`).
-- Checklist de QA pós-deploy (login, cookies, e-mail de convite, link de quiz público).
-
-## Como vou gerar o PDF
-
-- ReportLab (Platypus) com tipografia limpa, paleta da All Vita (preto `#1A1A1A` + verde `#6B8E23`) só nos títulos de seção, corpo em cinza-escuro.
-- Tabelas com `WidthType` fixo, sem emojis no PDF (vou usar "Sim/Não/Parcial" no lugar dos ✅/❌ pra evitar caixas pretas em fontes sem suporte).
-- Diagramas em monoespaçado (Courier) dentro de blocos cinza claro.
-- QA: converto cada página em JPG e inspeciono antes de te entregar.
-
-## O que NÃO faço neste plano
-
-- Não troco nada em produção.
-- Não mexo em DNS no Registro.br.
-- Não publico nada no Cloudflare.
-- Não removo `lumyss.allvita.com.br` do painel Lovable.
-
-Tudo isso fica para a próxima etapa, depois que você ler o PDF e me disser qual caminho seguir.
+Trocamos `createUser` (silencioso, quebrado) por `inviteUserByEmail` (envia email pelo nosso hook), reaproveitamos o template `invite` atual para nível 1 e criamos um template novo para convites entre parceiros (nível 2+). Isso resolve o caso do `tecnologia@advisorhouse.com.br`, organiza a hierarquia da rede e dá base para o botão "convidar parceiro" no portal do parceiro.

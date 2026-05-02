@@ -201,6 +201,24 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
           full_name: data.fullName,
           phone: `${data.phoneDdi}${data.phone.replace(/\D/g, "")}`,
           role: "partner",
+          partner_data: {
+            type: data.type,
+            cpf: data.cpf,
+            rg: data.rg,
+            cnpj: data.cnpj,
+            social_name: data.socialName,
+            trading_name: data.tradingName,
+            responsible_name: data.responsibleName,
+            crm: data.crm,
+            specialty: data.specialty,
+            address: {
+              cep: data.cep, street: data.street, number: data.number,
+              complement: data.complement, district: data.district,
+              city: data.city, state: data.state,
+            },
+            pix: { type: data.pixType, key: data.pixKey },
+            bank: { bank: data.bank, agency: data.agency, account: data.account },
+          },
         },
       });
 
@@ -249,10 +267,11 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
               <Check className="h-8 w-8 text-success" strokeWidth={2.5} />
             </motion.div>
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-foreground">Partner Cadastrado!</h2>
+              <h2 className="text-xl font-bold text-foreground">Convite enviado!</h2>
               <p className="text-sm text-muted-foreground">
-                <strong className="text-foreground">{data.fullName}</strong> foi cadastrado com sucesso.
-                Um convite será enviado para <strong className="text-foreground">{data.email}</strong>.
+                Enviamos um convite para <strong className="text-foreground">{data.email}</strong>.
+                <br />
+                <strong className="text-foreground">{data.fullName}</strong> vai receber um link para definir a senha e ativar a conta de parceiro.
               </p>
             </div>
             <div className="rounded-xl border border-border bg-secondary/20 p-4 text-left space-y-2">
