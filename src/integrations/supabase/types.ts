@@ -2160,6 +2160,9 @@ export type Database = {
           quiz_footer_badges: Json
           quiz_header_subtitle: string
           quiz_header_title: string
+          quiz_lastvisit_options: Json | null
+          quiz_lastvisit_subtitle: string | null
+          quiz_lastvisit_title: string | null
           quiz_question_options: Json
           quiz_question_subtitle: string
           quiz_question_title: string
@@ -2199,6 +2202,9 @@ export type Database = {
           quiz_footer_badges?: Json
           quiz_header_subtitle?: string
           quiz_header_title?: string
+          quiz_lastvisit_options?: Json | null
+          quiz_lastvisit_subtitle?: string | null
+          quiz_lastvisit_title?: string | null
           quiz_question_options?: Json
           quiz_question_subtitle?: string
           quiz_question_title?: string
@@ -2238,6 +2244,9 @@ export type Database = {
           quiz_footer_badges?: Json
           quiz_header_subtitle?: string
           quiz_header_title?: string
+          quiz_lastvisit_options?: Json | null
+          quiz_lastvisit_subtitle?: string | null
+          quiz_lastvisit_title?: string | null
           quiz_question_options?: Json
           quiz_question_subtitle?: string
           quiz_question_title?: string
