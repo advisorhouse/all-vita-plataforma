@@ -210,8 +210,9 @@ const PublicQuizPage: React.FC = () => {
     if (step === 1) return data.symptoms.length > 0;
     if (step === 2) return !!data.ageRange;
     if (step === 3) return !!data.lastVisit;
-    if (step === 4) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 9) return data.consentDataUsage;
+    if (step === 4) return !!data.supplements;
+    if (step === 5) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 10) return data.consentDataUsage;
     return true;
   };
 
