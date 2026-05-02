@@ -213,7 +213,6 @@ const PartnerRevenue: React.FC = () => {
         .select(`
           id,
           created_at,
-          amount,
           clients (
             first_name,
             last_name
@@ -230,7 +229,7 @@ const PartnerRevenue: React.FC = () => {
         months: 1,
         consistency: 100,
         risk: "low",
-        points: `${c.amount || 0} pts`,
+        points: `— pts`,
         nextPayment: format(new Date(), "dd/MM")
       }));
     },
