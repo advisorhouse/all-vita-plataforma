@@ -161,6 +161,10 @@ const ProtocolLandingSettings: React.FC = () => {
           quiz_lastvisit_options: Array.isArray(row.quiz_lastvisit_options) ? row.quiz_lastvisit_options : DEFAULTS.quiz_lastvisit_options,
           quiz_supplements_options: Array.isArray(row.quiz_supplements_options) ? row.quiz_supplements_options : DEFAULTS.quiz_supplements_options,
           quiz_uv_options: Array.isArray(row.quiz_uv_options) ? row.quiz_uv_options : DEFAULTS.quiz_uv_options,
+          result_levels: Array.isArray(row.result_levels) ? row.result_levels : DEFAULTS.result_levels,
+          score_weights: (row.score_weights && typeof row.score_weights === "object" && !Array.isArray(row.score_weights))
+            ? { ...DEFAULTS.score_weights, ...row.score_weights }
+            : DEFAULTS.score_weights,
         });
       }
       setLoading(false);
