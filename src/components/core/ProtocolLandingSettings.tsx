@@ -88,6 +88,14 @@ const DEFAULTS = {
     { icon: "Activity", title: "Outro suplemento", description: "Pode não ser suficiente" },
     { icon: "AlertTriangle", title: "Não tomo nenhum", description: "Sem proteção ativa no momento" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_uv_title: "Com que frequência você sai no sol sem óculos escuros?",
+  quiz_uv_subtitle: "Os raios UV são um dos vilões silenciosos para a saúde da retina.",
+  quiz_uv_options: [
+    { icon: "Glasses", title: "Raramente", description: "Sempre uso proteção" },
+    { icon: "Sun", title: "Às vezes", description: "Quando esqueço" },
+    { icon: "Sun", title: "Com frequência", description: "Na maioria das vezes" },
+    { icon: "AlertTriangle", title: "Quase sempre", description: "Sem proteção UV" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
