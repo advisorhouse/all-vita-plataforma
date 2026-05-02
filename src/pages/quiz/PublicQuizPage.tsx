@@ -76,7 +76,7 @@ const STEPS = [
 ];
 
 const PublicQuizPage: React.FC = () => {
-  const { doctorCode } = useParams<{ doctorCode: string }>();
+  const { doctorCode: doctorCodeParam } = useParams<{ doctorCode: string }>();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<QuizFormData>(INITIAL_DATA);
   const [submitting, setSubmitting] = useState(false);
@@ -86,17 +86,26 @@ const PublicQuizPage: React.FC = () => {
   const [referralCode, setReferralCode] = useState<string | null>(null);
 
   useEffect(() => {
-    if (doctorCode) {
-      // For now, accept any code and show the quiz
-      // In production, validate against affiliates.doctor_code
-      setDoctorValid(true);
-      setDoctorName(doctorCode);
-    }
     // Capture referral from URL or stored localStorage
     const urlRef = new URLSearchParams(window.location.search).get("ref");
     const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
-    setReferralCode((urlRef || stored || doctorCode || null)?.toUpperCase() ?? null);
-  }, [doctorCode]);
+    const finalRef = (urlRef || stored || doctorCodeParam || null)?.toUpperCase() ?? null;
+    
+    setReferralCode(finalRef);
+    
+    if (finalRef) {
+      setDoctorValid(true);
+      setDoctorName(finalRef);
+    } else if (!doctorCodeParam) {
+      // If no code is present at all, we might want to show a general version or redirect
+      // For now, let's keep it valid to allow testing, but in production we might require one
+      setDoctorValid(true);
+      setDoctorName("Geral");
+    } else {
+      setDoctorValid(true);
+      setDoctorName(doctorCodeParam);
+    }
+  }, [doctorCodeParam]);
 
   const update = (fields: Partial<QuizFormData>) => setData((d) => ({ ...d, ...fields }));
 
@@ -107,7 +116,11 @@ const PublicQuizPage: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!doctorCode) return;
+    // We no longer strictly require doctorCode in the URL if we have a referral code
+    if (!referralCode && !doctorCodeParam) {
+      toast.error("Código de indicação não encontrado.");
+      return;
+    }
     setSubmitting(true);
     try {
       const { error } = await (supabase.from as any)("quiz_submissions").insert({
@@ -134,7 +147,7 @@ const PublicQuizPage: React.FC = () => {
         consent_contact_sms: data.consentSms,
         consent_contact_phone: data.consentPhone,
         consent_contact_social: data.consentSocial,
-        doctor_code: referralCode || doctorCode,
+        doctor_code: referralCode || doctorCodeParam,
       });
 
       if (error) throw error;
@@ -168,12 +181,12 @@ const PublicQuizPage: React.FC = () => {
             <Bot className="h-7 w-7 text-accent" />
             <div>
               <p className="text-xs font-bold text-foreground">Assistente Virtual</p>
-              <p className="text-[10px] text-muted-foreground">Protocolo de Acompanhamento</p>
+              <p className="text-[10px] text-muted-foreground">Protocolo Pós-Consulta</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 bg-accent/10 rounded-lg px-2.5 py-1 text-[10px] font-medium text-accent">
             <Eye className="h-3 w-3" />
-            {doctorCode}
+            {doctorName || "Protocolo"}
           </div>
         </div>
       </header>

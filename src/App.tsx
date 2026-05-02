@@ -172,6 +172,7 @@ const App = () => (
               <Route path="/proposta" element={<ProposalPresentation />} />
               <Route path="/proposta-site" element={<WebsiteProposal />} />
               <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
+              <Route path="/quiz" element={<PublicQuizPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/auth/accept-invitation" element={<AcceptInvitation />} />
