@@ -1,7 +1,13 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing env vars')
+  process.exit(1)
+}
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 const email = 'tecnologia@advisorhouse.com.br'
@@ -15,7 +21,7 @@ const { data, error } = await supabase.auth.admin.generateLink({
 
 if (error) {
   console.error(error)
-  Deno.exit(1)
+  process.exit(1)
 }
 
-console.log(data.properties.action_link)
+console.log('LINK_START:' + data.properties.action_link + ':LINK_END')
