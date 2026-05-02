@@ -1,0 +1,55 @@
+import React from "react";
+import { Sun, Glasses, AlertTriangle, Shield, Sparkles, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Sun, Glasses, AlertTriangle, Shield, Sparkles,
+};
+
+export interface UVOption {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface Props {
+  title: string;
+  subtitle: string;
+  options: UVOption[];
+  value: string;
+  onChange: (v: string) => void;
+}
+
+const QuizStepUV: React.FC<Props> = ({ title, subtitle, options, value, onChange }) => (
+  <div>
+    <h2 className="text-[18px] font-bold text-[#1a1a1a] leading-tight mb-2">{title}</h2>
+    <p className="text-[13px] text-muted-foreground mb-6">{subtitle}</p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {options.map((opt, i) => {
+        const Icon = ICON_MAP[opt.icon] || Sun;
+        const selected = value === opt.title;
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onChange(opt.title)}
+            className={cn(
+              "text-left rounded-xl bg-[#F5F2EE] hover:bg-[#EFEAE4] p-4 transition-colors flex items-start gap-3",
+              selected && "ring-2 ring-[#D97757] bg-[#EFEAE4]"
+            )}
+          >
+            <div className="h-10 w-10 rounded-lg bg-white flex items-center justify-center shrink-0">
+              <Icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[14px] font-semibold text-[#1a1a1a] leading-tight">{opt.title}</p>
+              <p className="text-[12px] text-muted-foreground mt-0.5 leading-snug">{opt.description}</p>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
+export default QuizStepUV;
