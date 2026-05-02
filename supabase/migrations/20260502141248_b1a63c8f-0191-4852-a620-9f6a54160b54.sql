@@ -1,0 +1,1 @@
+UPDATE public.profiles SET tour_completed = false WHERE email = 'tecnologia@advisorhouse.com.br';
