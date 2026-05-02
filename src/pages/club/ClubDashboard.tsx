@@ -159,7 +159,7 @@ const ClubDashboard: React.FC = () => {
       <MilestoneModal open={milestone.show12MModal} onDismiss={milestone.dismiss12MModal} variant="12m" />
 
       {/* ===== HERO BANNER ===== */}
-      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+      <motion.div id="club-hero" custom={0} variants={fadeUp} initial="hidden" animate="visible">
         <Card className="border-0 shadow-md overflow-hidden bg-gradient-to-br from-accent/10 via-card to-accent/5">
           <CardContent className="p-0">
             <div className="flex flex-col lg:flex-row">
@@ -234,7 +234,7 @@ const ClubDashboard: React.FC = () => {
       </motion.div>
 
       {/* ===== COMO FUNCIONA ===== */}
-      <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+      <motion.div id="club-how-it-works" custom={1} variants={fadeUp} initial="hidden" animate="visible">
         <Card className="border border-border shadow-md bg-secondary/30">
           <CardContent className="p-8 space-y-6">
             <div className="flex items-center gap-4">
@@ -342,7 +342,7 @@ const ClubDashboard: React.FC = () => {
         />
       )}
 
-      <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
+      <motion.div id="club-rewards" custom={3} variants={fadeUp} initial="hidden" animate="visible">
         <RewardsRoadmap
           currentMonth={activeMonths}
           onRedeem={(id) => console.log("Redeem:", id)}
