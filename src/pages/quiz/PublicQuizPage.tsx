@@ -159,8 +159,9 @@ const PublicQuizPage: React.FC = () => {
 
   const canAdvance = () => {
     if (step === 0) return !!data.screenTime;
-    if (step === 1) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 6) return data.consentDataUsage;
+    if (step === 1) return data.symptoms.length > 0;
+    if (step === 2) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 7) return data.consentDataUsage;
     return true;
   };
 
