@@ -313,7 +313,15 @@ const PublicQuizPage: React.FC = () => {
     }
   };
 
-  if (submitted) return <QuizSuccessView patientName={data.fullName} />;
+  // Auto submit when reaching the result step
+  useEffect(() => {
+    if (step === 12 && !submitted && !submitting) {
+      handleSubmit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+
 
   const tenantLogo = currentTenant?.logo_url;
   const tenantName = currentTenant?.trade_name || currentTenant?.name || "";
