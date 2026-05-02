@@ -20,6 +20,7 @@ import SaleRedirect from "./pages/invite/SaleRedirect";
 import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
+import PublicChatPage from "./pages/quiz/PublicChatPage";
 import ProtocolLandingPage from "./pages/quiz/ProtocolLandingPage";
 import ProtocolConsentPage from "./pages/quiz/ProtocolConsentPage";
 import TermsOfUse from "./pages/TermsOfUse";
