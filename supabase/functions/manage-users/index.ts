@@ -234,7 +234,7 @@ serve(async (req) => {
 
       case "create": {
         const body = await req.json();
-        const { email, full_name, phone, role, is_staff } = body;
+        const { email, full_name, phone, role, is_staff, partner_data } = body;
 
         if (!email || !full_name || !role) {
           return jsonRes(400, { error: "email, full_name and role are required" });
@@ -245,38 +245,111 @@ serve(async (req) => {
           return jsonRes(400, { error: `Invalid role. Must be one of: ${validRoles.join(", ")}` });
         }
 
-        // Generate temp password
+        // For partners: use inviteUserByEmail so auth-email-hook is triggered
+        // and the user receives a real activation link to set their own password.
+        const usePartnerInvite = role === "partner";
+
+        // Resolve tenant slug for redirect (partner invite)
+        let tenantSlugForRedirect: string | null = null;
+        let tenantNameForMeta: string | null = null;
+        if (usePartnerInvite && tenantId) {
+          const { data: t } = await adminClient
+            .from("tenants")
+            .select("slug, name, trade_name")
+            .eq("id", tenantId)
+            .maybeSingle();
+          tenantSlugForRedirect = t?.slug || null;
+          tenantNameForMeta = t?.trade_name || t?.name || null;
+        }
+
+        const inviteRedirectTo = usePartnerInvite
+          ? (tenantSlugForRedirect
+              ? `https://${tenantSlugForRedirect}.allvita.com.br/auth/set-password`
+              : `https://app.allvita.com.br/auth/set-password`)
+          : undefined;
+
+        // Resolve inviter (parent partner) info if provided
+        let inviterPartnerId: string | null = null;
+        let inviterName: string | null = null;
+        let partnerLevel = 1;
+        if (usePartnerInvite && partner_data?.parent_partner_id) {
+          inviterPartnerId = partner_data.parent_partner_id;
+          const { data: parent } = await adminClient
+            .from("partners")
+            .select("level, user_id")
+            .eq("id", inviterPartnerId)
+            .maybeSingle();
+          partnerLevel = (parseInt(parent?.level || "1") || 1) + 1;
+          if (parent?.user_id) {
+            const { data: parentProfile } = await adminClient
+              .from("profiles")
+              .select("first_name, last_name")
+              .eq("id", parent.user_id)
+              .maybeSingle();
+            inviterName = [parentProfile?.first_name, parentProfile?.last_name].filter(Boolean).join(" ").trim() || null;
+          }
+        }
+
         const tempPassword = generateTempPassword();
-
-        // Create user via Supabase Auth
         let userId: string;
-        const { data: authUser, error: signupError } = await adminClient.auth.admin.createUser({
-          email,
-          password: tempPassword,
-          email_confirm: true, // Auto-confirm email so user can login immediately with temp password
-          user_metadata: {
-            first_name: full_name.split(" ")[0],
-            last_name: full_name.split(" ").slice(1).join(" "),
-          },
-        });
 
-        if (signupError) {
-          if (signupError.message?.includes("already been registered")) {
-            // Find existing user
-            const { data: existingUsers } = await adminClient.auth.admin.listUsers();
-            const existing = existingUsers?.users?.find((u: any) => u.email === email);
-            if (!existing) return jsonRes(400, { error: "User exists but could not be found" });
-            userId = existing.id;
-            
-            // Ensure existing user is confirmed if being re-created/invited
-            await adminClient.auth.admin.updateUserById(userId, { 
-              email_confirm: true 
-            });
+        if (usePartnerInvite) {
+          // Try invite first; if user already exists, fall back to capturing the existing id.
+          const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+            data: {
+              first_name: full_name.split(" ")[0],
+              last_name: full_name.split(" ").slice(1).join(" "),
+              full_name,
+              role: "partner",
+              source: "partner_onboarding",
+              tenant_id: tenantId,
+              tenant_slug: tenantSlugForRedirect,
+              tenant_name: tenantNameForMeta,
+              partner_level: partnerLevel,
+              inviter_partner_id: inviterPartnerId,
+              inviter_name: inviterName,
+            },
+            redirectTo: inviteRedirectTo,
+          });
+
+          if (inviteError) {
+            const msg = inviteError.message || "";
+            if (msg.includes("already been registered") || msg.toLowerCase().includes("already")) {
+              const { data: existingUsers } = await adminClient.auth.admin.listUsers();
+              const existing = existingUsers?.users?.find((u: any) => u.email === email);
+              if (!existing) return jsonRes(400, { error: "User exists but could not be found" });
+              userId = existing.id;
+            } else {
+              return jsonRes(400, { error: inviteError.message });
+            }
           } else {
-            return jsonRes(400, { error: signupError.message });
+            userId = invited.user.id;
           }
         } else {
-          userId = authUser.user.id;
+          // Non-partner: keep current behavior (auto-confirm + temp password) so internal staff/admin flow stays the same.
+          const { data: authUser, error: signupError } = await adminClient.auth.admin.createUser({
+            email,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: {
+              first_name: full_name.split(" ")[0],
+              last_name: full_name.split(" ").slice(1).join(" "),
+            },
+          });
+
+          if (signupError) {
+            if (signupError.message?.includes("already been registered")) {
+              const { data: existingUsers } = await adminClient.auth.admin.listUsers();
+              const existing = existingUsers?.users?.find((u: any) => u.email === email);
+              if (!existing) return jsonRes(400, { error: "User exists but could not be found" });
+              userId = existing.id;
+              await adminClient.auth.admin.updateUserById(userId, { email_confirm: true });
+            } else {
+              return jsonRes(400, { error: signupError.message });
+            }
+          } else {
+            userId = authUser.user.id;
+          }
         }
 
         // Update profile flags
