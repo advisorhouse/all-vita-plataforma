@@ -154,6 +154,9 @@ const PublicQuizPage: React.FC = () => {
     lastVisitTitle: "Faz quanto tempo que você foi ao oftalmologista pela última vez?",
     lastVisitSubtitle: "Sem julgamento — o importante é começar a cuidar a partir de agora.",
     lastVisitOptions: DEFAULT_LASTVISIT,
+    supplementsTitle: "Você já toma algum suplemento voltado para a saúde dos olhos?",
+    supplementsSubtitle: "Alguns nutrientes ajudam a proteger a retina de forma ativa.",
+    supplementsOptions: DEFAULT_SUPPLEMENTS,
   });
 
   // Resolve referral
