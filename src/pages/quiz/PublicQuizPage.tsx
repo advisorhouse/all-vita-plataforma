@@ -109,6 +109,13 @@ const DEFAULT_SUPPLEMENTS: SupplementOption[] = [
   { icon: "AlertTriangle", title: "Não tomo nenhum", description: "Sem proteção ativa no momento" },
 ];
 
+const DEFAULT_UV: UVOption[] = [
+  { icon: "Glasses", title: "Raramente", description: "Sempre uso proteção" },
+  { icon: "Sun", title: "Às vezes", description: "Quando esqueço" },
+  { icon: "Sun", title: "Com frequência", description: "Na maioria das vezes" },
+  { icon: "AlertTriangle", title: "Quase sempre", description: "Sem proteção UV" },
+];
+
 const DEFAULT_SYMPTOMS: SymptomOption[] = [
   { icon: "Droplet", title: "Olhos secos ou ardendo", description: "Sensação de areia ou ressecamento" },
   { icon: "Eye", title: "Visão embaçada às vezes", description: "Dificuldade de foco em algum momento" },
