@@ -208,8 +208,8 @@ const PartnerRevenue: React.FC = () => {
     queryKey: ["partner-client-revenue-stats", partner?.id],
     queryFn: async () => {
       if (!partner?.id) return [];
-      const { data: conversions } = await supabase
-        .from("conversions")
+      const { data: referrals } = await supabase
+        .from("referrals")
         .select(`
           id,
           created_at,
@@ -221,9 +221,9 @@ const PartnerRevenue: React.FC = () => {
         .eq("partner_id", partner.id)
         .order("created_at", { ascending: false });
         
-      if (!conversions?.length) return CLIENTS_LIST;
+      if (!referrals?.length) return CLIENTS_LIST;
 
-      return conversions.map(c => ({
+      return referrals.map(c => ({
         name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
         plan: "Mensal",
         months: 1,
