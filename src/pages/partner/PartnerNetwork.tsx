@@ -9,6 +9,7 @@ import {
   UserCheck, UserMinus, UserX, Sparkles, GitBranch,
   Crown, CircleDot, Minus, Plus, Award, Lock, Gem, Trophy,
   Coins, BookOpen, Lightbulb, GraduationCap, Loader2,
+  Link2, Copy, Smartphone
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTenant } from "@/contexts/TenantContext";
+import { buildTenantUrl } from "@/lib/tenant-routing";
+import { toast } from "sonner";
 import productVisionLift from "@/assets/product-vision-lift-1month.png";
 
 const fadeUp = {
