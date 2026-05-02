@@ -298,9 +298,9 @@ const PartnerRevenue: React.FC = () => {
             <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
               <Zap className="h-3 w-3 text-warning" />
               <p className="text-[10px] text-muted-foreground">
-                Vínculo: <span className="font-semibold text-foreground">Último Quiz</span>
+                Vínculo: <span className="font-semibold text-foreground">Último Protocolo</span>
               </p>
-              <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo quiz foi preenchido por último." />
+              <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo protocolo foi finalizado por último." />
             </div>
           </div>
         </motion.div>

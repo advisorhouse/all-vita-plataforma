@@ -24,11 +24,11 @@ const Tip: React.FC<{ text: string }> = ({ text }) => (
 );
 
 const FAQ = [
-  { q: "Como funciona o vínculo com pacientes?", a: "Você compartilha seu link exclusivo do Quiz Pré-Consulta. O paciente preenche, autoriza LGPD e fica vinculado automaticamente ao seu cadastro. Toda compra futura gera Vitacoins para você." },
-  { q: "O que são Vitacoins?", a: "Vitacoins é a moeda interna da plataforma. Você acumula pontos automaticamente por indicações de pacientes, quizzes preenchidos e campanhas especiais. Pode resgatar por Pix, produtos, cursos, congressos ou equipamentos." },
-  { q: "Como o paciente faz a compra?", a: "Após preencher o quiz, o paciente recebe o link de compra e escolhe seu plano de tratamento (1, 3, 5 ou 10 meses). Toda a compra e acompanhamento acontecem pela plataforma." },
+  { q: "Como funciona o vínculo com pacientes?", a: "Você compartilha seu link exclusivo do Protocolo Pós-Consulta. O Assistente de IA conversa com o paciente, valida o tratamento e o vincula automaticamente ao seu cadastro. Toda compra futura gera Vitacoins para você." },
+  { q: "O que são Vitacoins?", a: "Vitacoins é a moeda interna da plataforma. Você acumula pontos automaticamente por indicações de pacientes, protocolos concluídos e campanhas especiais. Pode resgatar por Pix, produtos, cursos, congressos ou equipamentos." },
+  { q: "Como o paciente faz a compra?", a: "Durante a conversa com a IA, o paciente recebe o link de compra e escolhe seu plano de tratamento (1, 3, 5 ou 10 meses). Toda a compra e acompanhamento acontecem pela plataforma." },
   { q: "Quando meus Vitacoins são liberados?", a: "Os pontos ficam em carência por 30 dias após a venda. Depois, são liberados automaticamente na sua Wallet Médica para resgate." },
-  { q: "O que acontece se outro médico enviar o quiz para meu paciente?", a: "O modelo é Último Click. Se o paciente preencher um novo quiz de outro médico, o vínculo anterior é desativado e os pontos futuros passam para o novo médico ativo." },
+  { q: "O que acontece se outro médico enviar o protocolo para meu paciente?", a: "O modelo é Último Click. Se o paciente concluir um novo protocolo de outro médico, o vínculo anterior é desativado e os pontos futuros passam para o novo médico ativo." },
 ];
 
 const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => {
@@ -66,8 +66,8 @@ const PartnerSupport: React.FC = () => {
           </div>
           <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
             <Zap className="h-3 w-3 text-warning" />
-            <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Quiz</span></p>
-            <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo quiz foi preenchido por último." />
+            <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Protocolo</span></p>
+            <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo protocolo foi concluído por último." />
           </div>
         </div>
       </motion.div>

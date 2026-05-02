@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import QuizPreviewModal from "@/components/partner/QuizPreviewModal";
 import { motion } from "framer-motion";
 import {
-  ClipboardList, Copy, Link2, QrCode, Eye,
+  Brain, Copy, Link2, QrCode, Eye,
   Users, CheckCircle2, Share2,
   Smartphone, Download, ExternalLink,
-  Sparkles, BarChart3, Zap, Coins, Loader2,
+  Sparkles, BarChart3, Zap, Coins, Loader2, Bot, MessageSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,7 +64,7 @@ const PartnerReferrals: React.FC = () => {
     : "#";
 
   const shareMessage = encodeURIComponent(
-    `Olá! Antes da sua consulta, por favor preencha este questionário rápido: ${quizLink}\n\nÉ rápido e nos ajuda a ter uma consulta mais eficiente. 🩺`
+    `Olá! Como conversamos na consulta, aqui está o seu Protocolo de Acompanhamento Inteligente: ${quizLink}\n\nA IA vai te guiar nos próximos passos do seu tratamento. 🩺`
   );
 
   const { data: stats } = useQuery({
@@ -153,13 +153,13 @@ const PartnerReferrals: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-bold text-foreground">Quiz Pré-Consulta</h1>
+                <h1 className="text-xl font-bold text-foreground">Protocolo Pós-Consulta</h1>
                 <span className="rounded-full border border-accent/20 bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent">
                   Código: {referralCode}
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
-                Gerencie o questionário que vincula seus pacientes automaticamente.
+                Gerencie o acompanhamento inteligente via IA que vincula seus pacientes automaticamente.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -180,10 +180,10 @@ const PartnerReferrals: React.FC = () => {
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { label: "Quiz Preenchidos", value: totalQuiz.toString(), icon: ClipboardList, tip: "Total de pacientes que preencheram o quiz pré-consulta." },
-              { label: "Pacientes Vinculados", value: totalConverted.toString(), icon: Users, tip: "Pacientes do quiz que compraram e estão vinculados a você.", accent: true },
-              { label: "Taxa de Conversão", value: `${conversionRate}%`, icon: BarChart3, tip: "Percentual de pacientes do quiz que viraram compradores." },
-              { label: "Vitacoins Gerados", value: pointsFromQuiz.toLocaleString("pt-BR"), icon: Coins, tip: "Total de Vitacoins acumulados a partir de compras via quiz.", accent: true },
+              { label: "Protocolos Iniciados", value: totalQuiz.toString(), icon: MessageSquare, tip: "Total de pacientes que iniciaram o protocolo de acompanhamento pós-consulta." },
+              { label: "Pacientes Vinculados", value: totalConverted.toString(), icon: Users, tip: "Pacientes que completaram o protocolo e estão vinculados a você.", accent: true },
+              { label: "Taxa de Conversão", value: `${conversionRate}%`, icon: BarChart3, tip: "Percentual de pacientes que viraram compradores via IA." },
+              { label: "Vitacoins Gerados", value: pointsFromQuiz.toLocaleString("pt-BR"), icon: Coins, tip: "Total de Vitacoins acumulados a partir do acompanhamento inteligente.", accent: true },
             ].map(({ label, value, icon: Icon, tip, accent }) => (
               <Card key={label} className={accent ? "border-accent/20 shadow-sm bg-accent/5" : "border-border shadow-sm"}>
                 <CardContent className="p-4 space-y-2">
@@ -209,15 +209,15 @@ const PartnerReferrals: React.FC = () => {
             <CardContent className="relative z-10 p-7 text-accent-foreground">
               <div className="flex items-center gap-2 mb-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
-                  <ClipboardList className="h-4 w-4" />
+                  <Bot className="h-4 w-4" />
                 </div>
-                <p className="text-[11px] font-medium text-accent-foreground/60 uppercase tracking-wider">Seu questionário exclusivo</p>
+                <p className="text-[11px] font-medium text-accent-foreground/60 uppercase tracking-wider">Acompanhamento Inteligente (IA)</p>
               </div>
               <h2 className="text-xl font-bold leading-tight">
-                Envie o quiz antes da consulta.
+                Envie o protocolo após a consulta.
               </h2>
               <p className="text-[13px] text-accent-foreground/70 mt-1 max-w-lg">
-                O paciente preenche dados de saúde, autoriza LGPD e fica vinculado ao seu cadastro <strong className="text-accent-foreground">automaticamente</strong>. Toda compra futura gera Vitacoins para você.
+                Seu Assistente de IA conversa com o paciente, valida o tratamento passado em consulta e oferece os produtos <strong className="text-accent-foreground">automaticamente</strong>. Toda venda gera Vitacoins.
               </p>
 
               {/* Tab toggle: Link / QR */}
@@ -293,7 +293,7 @@ const PartnerReferrals: React.FC = () => {
                     <h3 className="text-[15px] font-semibold text-foreground">Enviar para paciente</h3>
                   </div>
                   <p className="text-[12px] text-muted-foreground mb-4">
-                    Envie o link do quiz diretamente pelo WhatsApp da sua recepção ou secretária.
+                    Envie o link do protocolo diretamente pelo WhatsApp após a consulta do paciente.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2.5">
@@ -304,7 +304,7 @@ const PartnerReferrals: React.FC = () => {
                   >
                     <Button className="w-full h-11 rounded-xl text-[13px] font-semibold bg-[hsl(142,70%,49%)] hover:bg-[hsl(142,70%,42%)] text-white gap-2">
                       <Smartphone className="h-4 w-4" />
-                      Enviar pelo WhatsApp
+                      Enviar via WhatsApp
                     </Button>
                   </a>
                   <Button
