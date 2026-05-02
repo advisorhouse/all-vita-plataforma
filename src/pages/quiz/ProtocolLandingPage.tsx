@@ -125,9 +125,9 @@ const ProtocolLandingPage: React.FC = () => {
     if (ref) params.set("ref", ref.toString());
     const qs = params.toString();
     if (doctorCode) {
-      navigate(`/quiz/${doctorCode}/start${qs ? `?${qs}` : ""}`);
+      navigate(`/quiz/${doctorCode}/consent${qs ? `?${qs}` : ""}`);
     } else {
-      navigate(`/quiz/start${qs ? `?${qs}` : ""}`);
+      navigate(`/quiz/consent${qs ? `?${qs}` : ""}`);
     }
   };
 

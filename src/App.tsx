@@ -21,6 +21,7 @@ import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
 import ProtocolLandingPage from "./pages/quiz/ProtocolLandingPage";
+import ProtocolConsentPage from "./pages/quiz/ProtocolConsentPage";
 import TermsOfUse from "./pages/TermsOfUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
@@ -172,9 +173,13 @@ const App = () => (
               <Route path="/q/:code" element={<SaleRedirect />} />
               <Route path="/proposta" element={<ProposalPresentation />} />
               <Route path="/proposta-site" element={<WebsiteProposal />} />
-              {/* Protocol landing (default) + quiz/AI assistant flow */}
+              {/* Protocol landing (default) + consent gate + quiz/AI assistant flow */}
               <Route path="/quiz/:doctorCode/start" element={<PublicQuizPage />} />
               <Route path="/quiz/start" element={<PublicQuizPage />} />
+              <Route path="/quiz/:doctorCode/consent" element={<ProtocolConsentPage mode="quiz" />} />
+              <Route path="/quiz/consent" element={<ProtocolConsentPage mode="quiz" />} />
+              <Route path="/chat/:doctorCode/consent" element={<ProtocolConsentPage mode="chat" />} />
+              <Route path="/chat/consent" element={<ProtocolConsentPage mode="chat" />} />
               <Route path="/quiz/:doctorCode" element={<ProtocolLandingPage />} />
               <Route path="/quiz" element={<ProtocolLandingPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
