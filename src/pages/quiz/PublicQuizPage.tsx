@@ -135,18 +135,22 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
-        setConfig({
-          headerTitle: row.quiz_header_title || DEFAULT_HEADER.title,
-          headerSubtitle: row.quiz_header_subtitle || DEFAULT_HEADER.subtitle,
-          questionTitle: row.quiz_question_title || DEFAULT_HEADER.question_title,
-          questionSubtitle: row.quiz_question_subtitle || DEFAULT_HEADER.question_subtitle,
-          options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULT_OPTIONS,
-          badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULT_HEADER.badges,
-        });
+        setConfig((prev) => ({
+          ...prev,
+          headerTitle: row.quiz_header_title || prev.headerTitle,
+          headerSubtitle: row.quiz_header_subtitle || prev.headerSubtitle,
+          questionTitle: row.quiz_question_title || prev.questionTitle,
+          questionSubtitle: row.quiz_question_subtitle || prev.questionSubtitle,
+          options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : prev.options,
+          badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : prev.badges,
+          symptomsTitle: row.quiz_symptoms_title || prev.symptomsTitle,
+          symptomsSubtitle: row.quiz_symptoms_subtitle || prev.symptomsSubtitle,
+          symptomsOptions: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : prev.symptomsOptions,
+        }));
       }
     })();
   }, [currentTenant?.id]);
