@@ -11,7 +11,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Gift, Plus, Trash2, Edit2, Loader2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
-const RewardsManager: React.FC = () => {
+interface RewardsManagerProps {
+  tenantId?: string;
+}
+
+const RewardsManager: React.FC<RewardsManagerProps> = ({ tenantId }) => {
   const queryClient = useQueryClient();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -26,10 +30,16 @@ const RewardsManager: React.FC = () => {
   const { data: rewards = [], isLoading } = useQuery({
     queryKey: ["admin-rewards"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("rewards")
         .select("*")
         .order("points_required", { ascending: true });
+      
+      if (tenantId && tenantId !== "all") {
+        q = q.eq("tenant_id", tenantId);
+      }
+      
+      const { data, error } = await q;
       if (error) throw error;
       return data || [];
     }
@@ -37,12 +47,17 @@ const RewardsManager: React.FC = () => {
 
   const saveMutation = useMutation({
     mutationFn: async (id: string | null) => {
+      if (!tenantId || tenantId === "all") {
+        throw new Error("Selecione uma empresa para gerenciar prêmios");
+      }
+
       const payload = {
         name: formData.name,
         description: formData.description,
         points_required: formData.points_required,
         active: formData.active,
-        metadata: { image_url: formData.image_url }
+        metadata: { image_url: formData.image_url },
+        tenant_id: tenantId
       };
 
       if (id) {
