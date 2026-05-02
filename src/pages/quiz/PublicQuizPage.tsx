@@ -78,6 +78,7 @@ const STEPS_META = [
   { label: "Idade" },
   { label: "Última visita" },
   { label: "Suplementos" },
+  { label: "Exposição UV" },
   { label: "Identificação" },
   { label: "Saúde" },
   { label: "Medicações" },
