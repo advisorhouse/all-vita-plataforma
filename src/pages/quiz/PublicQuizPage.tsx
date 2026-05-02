@@ -134,8 +134,7 @@ const PublicQuizPage: React.FC = () => {
         consent_contact_sms: data.consentSms,
         consent_contact_phone: data.consentPhone,
         consent_contact_social: data.consentSocial,
-        doctor_code: doctorCode,
-        metadata: { referral_code: referralCode },
+        doctor_code: referralCode || doctorCode,
       });
 
       if (error) throw error;
