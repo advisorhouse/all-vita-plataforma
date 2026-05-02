@@ -1,84 +1,123 @@
-# Decisão: Convite vs Criação direta de Partner
+# Onboarding Educacional do Partner — White-label + Vitacoins dinâmico
 
-## Diagnóstico do problema atual
+## Objetivo
 
-Hoje o `RegisterPartnerModal` (Core) chama `manage-users/create`, que internamente usa:
+Reaproveitar **somente as telas informativas** do fluxo antigo do Vision Lift (3 telas: Welcome, Sistema de Vínculo, Vitacoins) e transformá-las em um **onboarding educacional universal** disparado para todo partner em qualquer tenant, com:
 
-```ts
-adminClient.auth.admin.createUser({ email, email_confirm: true, ... })
+- Logo, nome e cores do tenant atual (white-label)
+- Nome do programa fixo: **"Vitacoins"** (não mais "VisionPoints Coin", não mais "Vision Lift")
+- Exemplo prático **dinâmico**, calculado a partir das configurações que o Super Admin define em `vitacoin_settings`
+- **Sem** etapas de cadastro de CRM/PIX (partner já está cadastrado)
+- Marcação de "visto" persistente: o onboarding aparece **uma única vez** por partner
+
+## Escopo das telas (3 telas, todas educacionais)
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ Tela 1 — Boas-vindas                                    │
+│  Logo do tenant + "Bem-vindo(a) ao {Tenant} Partners"   │
+│  4 pilares: Vínculo · Vitacoins · Resgate · Ético       │
+│  CTA: "Começar tour"                                    │
+├─────────────────────────────────────────────────────────┤
+│ Tela 2 — Sistema de Vínculo Médico–Paciente             │
+│  4 passos (quiz → paciente → LGPD → pontos automáticos) │
+│  Caixa destaque: "Modelo Último Click"                  │
+│  CTA: "Continuar"                                       │
+├─────────────────────────────────────────────────────────┤
+│ Tela 3 — Vitacoins (moeda interna)                      │
+│  5 formas de ganhar pontos                              │
+│  Wallet: Pendentes (30d) · Liberados · Expiram (2 anos) │
+│  6 opções de resgate (Pix, Produtos, Cursos…)           │
+│  💡 Exemplo prático DINÂMICO ← lê vitacoin_settings     │
+│  CTA: "Ir para o painel"                                │
+└─────────────────────────────────────────────────────────┘
 ```
 
-Esse método:
-- Cria o usuário **já confirmado**, sem senha
-- **NÃO dispara nenhum email** (não passa pelo `auth-email-hook`)
-- Resultado: o parceiro fica cadastrado mas nunca recebe nada — exatamente o que aconteceu com `tecnologia@advisorhouse.com.br`
+**Telas removidas do fluxo antigo:** `s1` a `s7` (cadastro de CRM, dados pessoais, endereço, PIX, etc.) e `done` — partner já está cadastrado.
 
-Já o fluxo do **admin do tenant** (criado pela All Vita) usa o caminho de signup/invite que passa pelo hook → por isso o email chega.
+## Como o exemplo prático fica dinâmico
 
-## Comparação dos caminhos possíveis
+Hoje a tabela `public.vitacoin_settings` armazena:
+- `conversion_rate` (ex: 1.0 → 1 Vitacoin = R$ 1,00)
+- `min_redemption`
+- `max_redemption_daily`
+- `metadata` (jsonb — usaremos para guardar % por evento)
 
-| Critério | A) Criação direta (`createUser`) | B) Convite (`inviteUserByEmail`) | C) Magic Link / generateLink type=invite |
-|---|---|---|---|
-| Dispara `auth-email-hook` | ❌ Não | ✅ Sim (template `invite`) | ✅ Sim |
-| Usuário define própria senha | ❌ (precisa recovery depois) | ✅ Sim, no link de aceite | ✅ Sim |
-| UX do parceiro | Confusa (sem email) | Direta: "convite aprovado → defina senha → entrar" | Igual a B |
-| Permite reenviar convite | Manual (recovery) | ✅ Nativo | ✅ Nativo |
-| Status do user até aceitar | confirmed sem senha | invited (claro) | invited |
-| Risco de inconsistência | Alto (user existe, partner pendente) | Baixo | Baixo |
-| Suporta metadata custom | ✅ | ✅ (via `data`) | ✅ |
+O Super Admin já edita `conversion_rate` em `/admin/vitacoins`. O onboarding vai ler **em tempo real** essa configuração e recalcular o exemplo:
 
-**Recomendação: caminho B — `inviteUserByEmail`.**
+> "Paciente adquire plano de R$ 528 → você recebe **528 Vitacoins** (com `conversion_rate = 1.0`)"
+> Se admin mudar `conversion_rate` para `0.5`, o exemplo passa a mostrar "264 Vitacoins" automaticamente.
 
-Razões:
-1. Já temos o template `invite.tsx` com o copy "Seu convite de parceria para a [marca] chegou!" pronto para esse fluxo.
-2. É o método semanticamente correto: parceiro nível 1 é convidado pelo tenant, parceiro nível 2+ é convidado por outro parceiro — mesmo mecanismo, templates diferentes via metadata.
-3. Não precisa de gambiarra de "criar + recovery" para entregar o email.
-4. Reenvio de convite vira um botão simples na lista de parceiros.
+A página de admin **não precisa de mudança de UI** — a fonte da verdade já existe.
 
-## Mudanças propostas
+## Quando o onboarding aparece
 
-### 1. `supabase/functions/manage-users/index.ts`
-Quando `role === "partner"` (ou novo flag `send_invite: true`):
-- Substituir `auth.admin.createUser` por `auth.admin.inviteUserByEmail(email, { data: { ...metadata, tenant_id, tenant_slug, tenant_name, partner_level, invited_by_partner_id }, redirectTo: \`https://<slug>.allvita.com.br/auth/set-password\` })`
-- Após o invite voltar com user, criar o registro em `partners` com `user_id`, `tenant_id`, `parent_partner_id` (null se nível 1, ou ID do convidante), `level` (1 ou 2+), e demais dados do form (CPF, PIX, endereço, etc.)
-- Retornar `{ success: true, partner_id, invited: true }`
+- Ao acessar `/partner` (ou `/<slug>/partner`) pela primeira vez
+- Lê flag `profiles.partner_onboarding_seen` (nova coluna, separada de `tour_completed` que é do tour por tooltips)
+- Se `false` → modal full-screen abre automaticamente
+- Ao concluir a Tela 3 ou clicar "Pular" → grava `true` e fecha
+- Botão "Rever apresentação" disponível em `/partner/settings` para reabrir manualmente
 
-### 2. `supabase/functions/auth-email-hook/index.ts`
-- Para emails do tipo `invite`, ler `user_metadata.partner_level`:
-  - Se `1` (ou ausente) → template atual `invite.tsx` (convite do tenant)
-  - Se `>= 2` → novo template `invite-partner-network.tsx` (convite vindo de outro parceiro, mencionando quem convidou)
-- Continuar usando `tenant_slug`/`tenant_name`/branding já implementados.
+## Arquivos a criar / modificar
 
-### 3. `supabase/functions/_shared/email-templates/invite-partner-network.tsx` (novo)
-Template para parceiros nível 2+:
-- Assunto: `[Nome do convidante] te convidou para a rede de parceiros da [Marca]`
-- Corpo: contextualiza que ele foi indicado por outro parceiro, mantém pitch de vitacoins/recompensas, CTA "Aceitar convite e criar conta"
+**Novos:**
+- `src/components/partner/PartnerOnboardingTour.tsx` — componente das 3 telas (full-screen, framer-motion, white-label via `useTenant()` e `useTenantBranding()`)
+- `src/hooks/usePartnerOnboarding.ts` — controla flag `partner_onboarding_seen`, expõe `shouldShow` e `markAsSeen()`
+- `src/hooks/useVitacoinSettings.ts` — busca `vitacoin_settings` do tenant atual (com fallback global) para alimentar o exemplo dinâmico
 
-### 4. `RegisterPartnerModal.tsx`
-- Sem mudança de UX. Apenas o body da chamada ganha:
-  - `send_invite: true`
-  - `partner_level: 1`
-  - dados estruturados de partner (cpf, pix, endereço…) que hoje só ficam no state e somem
-- Tela final passa a dizer claramente: "Convite enviado para [email]. O parceiro vai receber um link para definir a senha e ativar a conta."
+**Modificados:**
+- `src/layouts/PartnerLayout.tsx` — monta `<PartnerOnboardingTour />` controlado pelo hook
+- `src/pages/partner/PartnerSettings.tsx` — adiciona botão "Rever apresentação inicial"
 
-### 5. Fluxo de convite por outro parceiro (nível 2+)
-- No portal `/partner` adicionar ação "Convidar parceiro" em `PartnerReferredPartners` que chama o mesmo endpoint com `partner_level: 2`, `parent_partner_id: <partner_atual>`.
-- Backend valida hierarquia via função existente `is_in_partner_downline` para evitar ciclos.
+**Banco (migration):**
+- `ALTER TABLE public.profiles ADD COLUMN partner_onboarding_seen boolean NOT NULL DEFAULT false;`
 
-### 6. Reenviar convite
-- Endpoint `manage-users/resend-invite` que chama `auth.admin.inviteUserByEmail` de novo (Supabase trata como reenvio se o user ainda não confirmou).
-- Botão na listagem de parceiros do Core e do Partner.
+**Não tocar:**
+- `PartnerOnboarding.tsx` antigo (cadastro de CRM da Vision Lift) — permanece nas rotas `/partner/onboarding` e `/partner/start` para compatibilidade do fluxo legado
+- `useProductTour.ts` — continua sendo o tour de tooltips (Driver.js), independente do onboarding educacional
 
-### 7. Caso especial: parceiros já existentes sem email recebido
-- Para `tecnologia@advisorhouse.com.br` e quaisquer outros nessa situação: rodar uma vez `auth.admin.generateLink({ type: 'recovery' })` ou simplesmente reenviar via `inviteUserByEmail` (ele aceita re-invite enquanto user não tiver senha definida) para regularizar.
+## Detalhes técnicos
 
-## Pontos de atenção técnicos
+**White-label (Tela 1):**
+```tsx
+const { currentTenant } = useTenant();
+const tenantName = currentTenant?.trade_name || currentTenant?.name;
+const logoUrl = currentTenant?.logo_url; // sem fallback Vision Lift
+const primary = currentTenant?.brand_primary_color; // aplicado via inline style/CSS var
+```
 
-- `inviteUserByEmail` exige que o domínio do `redirectTo` esteja na allow-list do Supabase Auth (URL Configuration). Hoje já temos `*.allvita.com.br` configurado para o admin — confirmar se inclui subdomínios de tenant.
-- A página `/auth/set-password` precisa existir e tratar o token vindo no link (já temos `/auth/reset-password`; podemos reutilizar com copy diferente quando for primeiro acesso, detectado por `user.last_sign_in_at == null`).
-- Manter `email_confirm` implícito do invite (Supabase confirma quando o user clica no link).
-- `manage-users` precisa continuar idempotente: se o email já existe como user, buscar o id e só criar/atualizar `partners`.
+**Exemplo dinâmico (Tela 3):**
+```tsx
+const { conversionRate } = useVitacoinSettings(tenantId);
+const exampleSale = 528; // valor base do exemplo
+const earnedCoins = Math.round(exampleSale / conversionRate);
+// renderiza: "Você recebe {earnedCoins} Vitacoins"
+```
 
-## Resumo executivo
+**Controle de exibição:**
+```tsx
+// PartnerLayout
+const { shouldShow, markAsSeen } = usePartnerOnboarding();
+return (
+  <AppShell ...>
+    {shouldShow && <PartnerOnboardingTour onClose={markAsSeen} />}
+    <Outlet />
+  </AppShell>
+);
+```
 
-Trocamos `createUser` (silencioso, quebrado) por `inviteUserByEmail` (envia email pelo nosso hook), reaproveitamos o template `invite` atual para nível 1 e criamos um template novo para convites entre parceiros (nível 2+). Isso resolve o caso do `tecnologia@advisorhouse.com.br`, organiza a hierarquia da rede e dá base para o botão "convidar parceiro" no portal do parceiro.
+## Branding strategy (alinhado à memória do projeto)
+
+- **Zero referência hardcoded** a "Vision Lift", `logo-vision-lift.png` ou imagem `partnerHeroImg` específica
+- Logo no header: `currentTenant.logo_url` (placeholder neutro se ausente)
+- Cor de destaque dos ícones e CTA: usar tokens `accent`/`primary` que já são sobrescritos por `useTenantBranding`
+- Texto "Vision Lift Partners" → `"{tenantName} Partners"`
+
+## Fora de escopo (não será feito agora)
+
+- Tornar `vitacoin_settings.metadata` editável com % por tipo de evento (venda/quiz/indicação) — hoje só `conversion_rate` é exposto na UI admin. Se quiser % específicos por evento no exemplo, é uma evolução à parte
+- Resetar a flag para todos os partners existentes (decisão sua: aplicar só para novos, ou disparar para todos atualmente cadastrados também)
+
+## Pergunta antes de implementar
+
+Quer que o onboarding apareça **apenas para novos partners** que logarem após o deploy, **ou também para todos os partners atuais** (resetando a flag uma vez para que vejam a apresentação no próximo login)?
