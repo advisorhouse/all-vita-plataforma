@@ -15,6 +15,7 @@ const ICON_OPTIONS = ["Activity", "Sparkles", "ShieldCheck", "Stethoscope", "Eye
 const QUIZ_ICON_OPTIONS = ["Smartphone", "Monitor", "Tv", "AlertTriangle"];
 const SYMPTOM_ICON_OPTIONS = ["Droplet", "Eye", "Brain", "Sun", "AlertTriangle", "Sparkles"];
 const AGE_ICON_OPTIONS = ["Zap", "Activity", "Heart", "ShieldCheck", "Sparkles"];
+const LASTVISIT_ICON_OPTIONS = ["Check", "Clock", "AlertTriangle", "HelpCircle", "Sparkles"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
@@ -69,6 +70,14 @@ const DEFAULTS = {
     { icon: "Heart", title: "46 a 60 anos", description: "Momento importante de cuidar" },
     { icon: "ShieldCheck", title: "Acima de 60", description: "Proteção ativa é essencial" },
   ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_lastvisit_title: "Faz quanto tempo que você foi ao oftalmologista pela última vez?",
+  quiz_lastvisit_subtitle: "Sem julgamento — o importante é começar a cuidar a partir de agora.",
+  quiz_lastvisit_options: [
+    { icon: "Check", title: "Menos de 1 ano", description: "Ótimo, continue assim!" },
+    { icon: "Clock", title: "1 a 2 anos", description: "Talvez seja hora de agendar" },
+    { icon: "AlertTriangle", title: "Mais de 2 anos", description: "Vale a pena remarcar" },
+    { icon: "AlertTriangle", title: "Não lembro", description: "Acontece — mas vamos resolver" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
@@ -109,6 +118,7 @@ const ProtocolLandingSettings: React.FC = () => {
           quiz_footer_badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULTS.quiz_footer_badges,
           quiz_symptoms_options: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : DEFAULTS.quiz_symptoms_options,
           quiz_age_options: Array.isArray(row.quiz_age_options) ? row.quiz_age_options : DEFAULTS.quiz_age_options,
+          quiz_lastvisit_options: Array.isArray(row.quiz_lastvisit_options) ? row.quiz_lastvisit_options : DEFAULTS.quiz_lastvisit_options,
         });
       }
       setLoading(false);
@@ -518,6 +528,59 @@ const ProtocolLandingSettings: React.FC = () => {
             <Button variant="outline" size="sm" className="gap-1.5"
               onClick={() => set("quiz_age_options", [...data.quiz_age_options, { icon: "Sparkles", title: "Nova faixa", description: "" }])}>
               <Plus className="h-3.5 w-3.5" /> Adicionar faixa
+            </Button>
+          )}
+        </div>
+      </Section>
+
+      {/* QUIZ — fourth screen (last ophthalmology visit) */}
+      <Section
+        title="Tela 4 do Quiz (última visita ao oftalmologista)"
+        description="Pergunta de seleção única sobre quanto tempo desde a última consulta."
+      >
+        <Field label="Pergunta" value={data.quiz_lastvisit_title} onChange={(v) => set("quiz_lastvisit_title", v)} textarea />
+        <Field label="Subtexto" value={data.quiz_lastvisit_subtitle} onChange={(v) => set("quiz_lastvisit_subtitle", v)} />
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Opções</Label>
+          {data.quiz_lastvisit_options.map((opt, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Opção {i + 1}</span>
+                {data.quiz_lastvisit_options.length > 2 && (
+                  <Button variant="ghost" size="icon" onClick={() =>
+                    set("quiz_lastvisit_options", data.quiz_lastvisit_options.filter((_, idx) => idx !== i))
+                  } className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Ícone</Label>
+                  <Select value={opt.icon} onValueChange={(v) => {
+                    const next = [...data.quiz_lastvisit_options]; next[i] = { ...opt, icon: v }; set("quiz_lastvisit_options", next);
+                  }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {LASTVISIT_ICON_OPTIONS.map((ic) => <SelectItem key={ic} value={ic}>{ic}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Título" value={opt.title} onChange={(v) => {
+                    const next = [...data.quiz_lastvisit_options]; next[i] = { ...opt, title: v }; set("quiz_lastvisit_options", next);
+                  }} />
+                </div>
+              </div>
+              <Field label="Descrição" value={opt.description} onChange={(v) => {
+                const next = [...data.quiz_lastvisit_options]; next[i] = { ...opt, description: v }; set("quiz_lastvisit_options", next);
+              }} />
+            </div>
+          ))}
+          {data.quiz_lastvisit_options.length < 6 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("quiz_lastvisit_options", [...data.quiz_lastvisit_options, { icon: "Sparkles", title: "Nova opção", description: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar opção
             </Button>
           )}
         </div>
