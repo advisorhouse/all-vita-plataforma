@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye, Shield, User, Heart, Pill, Stethoscope, AlertCircle,
-  ChevronRight, ChevronLeft, Check, Lock, ShoppingBag, Loader2,
+  ChevronRight, ChevronLeft, Check, Lock, ShoppingBag, Loader2, Bot, Sparkles,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -139,7 +139,7 @@ const PublicQuizPage: React.FC = () => {
 
       if (error) throw error;
       setSubmitted(true);
-      toast.success("Questionário enviado com sucesso!");
+      toast.success("Protocolo enviado com sucesso!");
     } catch (err: any) {
       toast.error("Erro ao enviar: " + err.message);
     } finally {
@@ -165,10 +165,10 @@ const PublicQuizPage: React.FC = () => {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src={iconVisionLift} alt="Vision Lift" className="h-7 w-7" />
+            <Bot className="h-7 w-7 text-accent" />
             <div>
-              <p className="text-xs font-bold text-foreground">Vision Lift</p>
-              <p className="text-[10px] text-muted-foreground">Questionário Pré-Consulta</p>
+              <p className="text-xs font-bold text-foreground">Assistente Virtual</p>
+              <p className="text-[10px] text-muted-foreground">Protocolo de Acompanhamento</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 bg-accent/10 rounded-lg px-2.5 py-1 text-[10px] font-medium text-accent">

@@ -12,12 +12,12 @@ const PILLARS = [
   {
     icon: Link2,
     title: "Vínculo médico–paciente",
-    desc: "Envie o quiz pré-consulta. O paciente preenche, autoriza LGPD e fica vinculado a você automaticamente.",
+    desc: "Envie o protocolo pós-consulta. A IA conversa com o paciente, valida o tratamento e o vincula a você automaticamente.",
   },
   {
     icon: Coins,
     title: "Vitacoins",
-    desc: "Moeda interna da plataforma. Acumule Vitacoins por vendas, quizzes e indicações — sem comissão direta.",
+    desc: "Moeda interna da plataforma. Acumule Vitacoins por vendas, protocolos e indicações — sem comissão direta.",
   },
   {
     icon: Gift,

@@ -79,7 +79,7 @@ const PartnerCampaignsPage: React.FC = () => {
             </div>
             <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
               <Zap className="h-3 w-3 text-warning" />
-              <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Quiz</span></p>
+              <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Protocolo</span></p>
             </div>
           </div>
         </motion.div>
