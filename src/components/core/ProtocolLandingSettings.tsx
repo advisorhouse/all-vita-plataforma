@@ -12,6 +12,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 
 const ICON_OPTIONS = ["Activity", "Sparkles", "ShieldCheck", "Stethoscope", "Eye"];
+const QUIZ_ICON_OPTIONS = ["Smartphone", "Monitor", "Tv", "AlertTriangle"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
@@ -38,6 +39,18 @@ const DEFAULTS = {
   cta_button_label: "Iniciar minha avaliação",
   cta_meta: "Menos de 2 minutos • Resultado personalizado",
   trust_badges: ["Dados criptografados", "Recomendado por profissionais", "Resultado individualizado"] as string[],
+  // Quiz screen (first question)
+  quiz_header_title: "Dr. {doctor} recomendou esta avaliação",
+  quiz_header_subtitle: "Complete este diagnóstico complementar para que seu protocolo de proteção seja personalizado ao seu perfil clínico",
+  quiz_question_title: "Vamos começar pelo dia a dia — quanto tempo você passa olhando para telas?",
+  quiz_question_subtitle: "Pode ser computador, celular, tablet ou TV. Soma tudo, sem culpa.",
+  quiz_question_options: [
+    { icon: "Smartphone", title: "Menos de 4h", description: "Uso tranquilo" },
+    { icon: "Monitor", title: "4 a 8 horas", description: "Bastante comum hoje em dia" },
+    { icon: "Tv", title: "8 a 12 horas", description: "Rotina intensa" },
+    { icon: "AlertTriangle", title: "Mais de 12h", description: "Seus olhos merecem atenção extra" },
+  ] as Array<{ title: string; description: string; icon: string }>,
+  quiz_footer_badges: ["Dados criptografados", "LGPD compliant", "Validado por oftalmologistas"] as string[],
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
@@ -74,6 +87,8 @@ const ProtocolLandingSettings: React.FC = () => {
           reasons: Array.isArray(row.reasons) ? row.reasons : DEFAULTS.reasons,
           logic_benefits: Array.isArray(row.logic_benefits) ? row.logic_benefits : DEFAULTS.logic_benefits,
           trust_badges: Array.isArray(row.trust_badges) ? row.trust_badges : DEFAULTS.trust_badges,
+          quiz_question_options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULTS.quiz_question_options,
+          quiz_footer_badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULTS.quiz_footer_badges,
         });
       }
       setLoading(false);
@@ -298,6 +313,84 @@ const ProtocolLandingSettings: React.FC = () => {
           {data.trust_badges.length < 3 && (
             <Button variant="outline" size="sm" className="gap-1.5"
               onClick={() => set("trust_badges", [...data.trust_badges, ""])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar selo
+            </Button>
+          )}
+        </div>
+      </Section>
+
+      {/* QUIZ — first screen */}
+      <Section
+        title="Tela 1 do Quiz (rotina diária)"
+        description="Cabeçalho exibido no topo do quiz e primeira pergunta. Use {doctor} no título para inserir o nome do parceiro/médico que indicou."
+      >
+        <Field label="Título (use {doctor} para o nome do parceiro)" value={data.quiz_header_title} onChange={(v) => set("quiz_header_title", v)} />
+        <Field label="Subtítulo" value={data.quiz_header_subtitle} onChange={(v) => set("quiz_header_subtitle", v)} textarea />
+        <div className="border-t border-border pt-3 mt-2">
+          <Field label="Pergunta inicial" value={data.quiz_question_title} onChange={(v) => set("quiz_question_title", v)} textarea />
+          <Field label="Subtexto da pergunta" value={data.quiz_question_subtitle} onChange={(v) => set("quiz_question_subtitle", v)} />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Opções de resposta</Label>
+          {data.quiz_question_options.map((opt, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Opção {i + 1}</span>
+                {data.quiz_question_options.length > 2 && (
+                  <Button variant="ghost" size="icon" onClick={() =>
+                    set("quiz_question_options", data.quiz_question_options.filter((_, idx) => idx !== i))
+                  } className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Ícone</Label>
+                  <Select value={opt.icon} onValueChange={(v) => {
+                    const next = [...data.quiz_question_options]; next[i] = { ...opt, icon: v }; set("quiz_question_options", next);
+                  }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {QUIZ_ICON_OPTIONS.map((ic) => <SelectItem key={ic} value={ic}>{ic}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Título" value={opt.title} onChange={(v) => {
+                    const next = [...data.quiz_question_options]; next[i] = { ...opt, title: v }; set("quiz_question_options", next);
+                  }} />
+                </div>
+              </div>
+              <Field label="Descrição" value={opt.description} onChange={(v) => {
+                const next = [...data.quiz_question_options]; next[i] = { ...opt, description: v }; set("quiz_question_options", next);
+              }} />
+            </div>
+          ))}
+          {data.quiz_question_options.length < 6 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("quiz_question_options", [...data.quiz_question_options, { icon: "Smartphone", title: "Nova opção", description: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar opção
+            </Button>
+          )}
+        </div>
+        <div className="space-y-2 border-t border-border pt-3">
+          <Label className="text-[11px] text-muted-foreground">Selos de confiança no rodapé do quiz (até 3)</Label>
+          {data.quiz_footer_badges.map((b, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Input value={b} onChange={(e) => {
+                const next = [...data.quiz_footer_badges]; next[i] = e.target.value; set("quiz_footer_badges", next);
+              }} className="h-9 text-sm" />
+              <Button variant="ghost" size="icon" onClick={() =>
+                set("quiz_footer_badges", data.quiz_footer_badges.filter((_, idx) => idx !== i))
+              } className="h-8 w-8 text-destructive">
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+          {data.quiz_footer_badges.length < 3 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("quiz_footer_badges", [...data.quiz_footer_badges, ""])}>
               <Plus className="h-3.5 w-3.5" /> Adicionar selo
             </Button>
           )}
