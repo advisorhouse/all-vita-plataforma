@@ -227,8 +227,9 @@ const PublicQuizPage: React.FC = () => {
     if (step === 2) return !!data.ageRange;
     if (step === 3) return !!data.lastVisit;
     if (step === 4) return !!data.supplements;
-    if (step === 5) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 10) return data.consentDataUsage;
+    if (step === 5) return !!data.uvExposure;
+    if (step === 6) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 11) return data.consentDataUsage;
     return true;
   };
 
