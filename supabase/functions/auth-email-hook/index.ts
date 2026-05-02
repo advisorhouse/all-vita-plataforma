@@ -136,7 +136,6 @@ serve(async (req) => {
       case "EMAIL_CHANGE_CONFIRM": {
         subject = `Confirme seu novo e-mail - ${tenantBranding.name}`;
         
-        const authApiUrl = email_data?.site_url || "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
         const confirmationUrl = `${authApiUrl}/verify?token=${email_data?.token_hash}&type=email_change&redirect_to=${encodeURIComponent(redirect_to)}`;
 
         html = getTemplate(tenantBranding, `
