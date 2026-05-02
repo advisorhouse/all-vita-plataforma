@@ -20,6 +20,7 @@ import SaleRedirect from "./pages/invite/SaleRedirect";
 import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
+import PublicChatPage from "./pages/quiz/PublicChatPage";
 import ProtocolLandingPage from "./pages/quiz/ProtocolLandingPage";
 import ProtocolConsentPage from "./pages/quiz/ProtocolConsentPage";
 import TermsOfUse from "./pages/TermsOfUse";
@@ -180,6 +181,8 @@ const App = () => (
               <Route path="/quiz/consent" element={<ProtocolConsentPage mode="quiz" />} />
               <Route path="/chat/:doctorCode/consent" element={<ProtocolConsentPage mode="chat" />} />
               <Route path="/chat/consent" element={<ProtocolConsentPage mode="chat" />} />
+              <Route path="/chat/:doctorCode" element={<PublicChatPage />} />
+              <Route path="/chat" element={<PublicChatPage />} />
               <Route path="/quiz/:doctorCode" element={<ProtocolLandingPage />} />
               <Route path="/quiz" element={<ProtocolLandingPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
