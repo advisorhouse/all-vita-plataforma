@@ -1,123 +1,134 @@
-# Onboarding Educacional do Partner — White-label + Vitacoins dinâmico
+## Diagnóstico do que existe hoje
 
-## Objetivo
+| Item | Status |
+|---|---|
+| `partners.referral_code` | Gerado **só** quando o partner se cadastra via `tenant-signup` (formato `SLUG-XXXXXX`). Partners criados por convite admin **não recebem código**. |
+| Tabela `affiliate_links` | Existe (com `code`, `url`, `partner_id`, `tenant_id`) mas **nunca é populada automaticamente**. |
+| `PartnerLinksPage` | O arquivo existe mas seu conteúdo é da página "Campanhas" (mock). **Não há UI real de links**. |
+| `usePartnerTracking` | Captura `?ref=` e `?partner=` no localStorage, mas **nenhum fluxo lê esse valor** para vincular parceiro novo (parent) ou cliente novo. |
+| `parent_partner_id` na tabela `partners` | Coluna existe; `tenant-signup` lê de `metadata.parent_partner_id` mas isso nunca é preenchido pelo frontend. |
+| `process-attribution` edge function | **Quebrada** — referencia tabelas inexistentes (`client_profiles`, `affiliates`, `attribution_logs`, `fraud_alerts`). |
+| Rota pública `/r/:code` ou `/p/:code` | **Não existe**. |
+| Webhook → comissão | `webhook-receiver` registra, `commission-engine-v2` calcula — mas a venda chega sem `partner_id` resolvido a partir de `referral_code`. |
 
-Reaproveitar **somente as telas informativas** do fluxo antigo do Vision Lift (3 telas: Welcome, Sistema de Vínculo, Vitacoins) e transformá-las em um **onboarding educacional universal** disparado para todo partner em qualquer tenant, com:
+## O que vamos construir
 
-- Logo, nome e cores do tenant atual (white-label)
-- Nome do programa fixo: **"Vitacoins"** (não mais "VisionPoints Coin", não mais "Vision Lift")
-- Exemplo prático **dinâmico**, calculado a partir das configurações que o Super Admin define em `vitacoin_settings`
-- **Sem** etapas de cadastro de CRM/PIX (partner já está cadastrado)
-- Marcação de "visto" persistente: o onboarding aparece **uma única vez** por partner
+Dois links únicos por parceiro, gerados automaticamente assim que o partner é criado:
 
-## Escopo das telas (3 telas, todas educacionais)
+1. **Link de RECRUTAMENTO de rede** (vira downline): `https://<slug>.allvita.com.br/r/<code>` → leva à landing pública de cadastro de novo partner já com `parent_partner_id` travado.
+2. **Link de VENDA do produto** (vira cliente): `https://<slug>.allvita.com.br/q/<code>` → leva ao quiz/checkout público com `partner_id` atribuído à venda.
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Tela 1 — Boas-vindas                                    │
-│  Logo do tenant + "Bem-vindo(a) ao {Tenant} Partners"   │
-│  4 pilares: Vínculo · Vitacoins · Resgate · Ético       │
-│  CTA: "Começar tour"                                    │
-├─────────────────────────────────────────────────────────┤
-│ Tela 2 — Sistema de Vínculo Médico–Paciente             │
-│  4 passos (quiz → paciente → LGPD → pontos automáticos) │
-│  Caixa destaque: "Modelo Último Click"                  │
-│  CTA: "Continuar"                                       │
-├─────────────────────────────────────────────────────────┤
-│ Tela 3 — Vitacoins (moeda interna)                      │
-│  5 formas de ganhar pontos                              │
-│  Wallet: Pendentes (30d) · Liberados · Expiram (2 anos) │
-│  6 opções de resgate (Pix, Produtos, Cursos…)           │
-│  💡 Exemplo prático DINÂMICO ← lê vitacoin_settings     │
-│  CTA: "Ir para o painel"                                │
-└─────────────────────────────────────────────────────────┘
-```
+Mesmo `referral_code` resolve ambos os contextos (a rota define a intenção: `/r` rede, `/q` venda).
 
-**Telas removidas do fluxo antigo:** `s1` a `s7` (cadastro de CRM, dados pessoais, endereço, PIX, etc.) e `done` — partner já está cadastrado.
+---
 
-## Como o exemplo prático fica dinâmico
+## Plano de implementação
 
-Hoje a tabela `public.vitacoin_settings` armazena:
-- `conversion_rate` (ex: 1.0 → 1 Vitacoin = R$ 1,00)
-- `min_redemption`
-- `max_redemption_daily`
-- `metadata` (jsonb — usaremos para guardar % por evento)
+### 1) Banco de dados (migrations)
 
-O Super Admin já edita `conversion_rate` em `/admin/vitacoins`. O onboarding vai ler **em tempo real** essa configuração e recalcular o exemplo:
+a) **Backfill + trigger de `referral_code`**: garantir que toda linha em `partners` tenha um código único.
+- Trigger `BEFORE INSERT` na tabela `partners`: se `referral_code IS NULL`, gera `<SLUG_TENANT>-<6_HEX_DO_USER>`.
+- Backfill: UPDATE em todos partners existentes sem código.
+- Constraint `UNIQUE (tenant_id, referral_code)` se ainda não houver.
 
-> "Paciente adquire plano de R$ 528 → você recebe **528 Vitacoins** (com `conversion_rate = 1.0`)"
-> Se admin mudar `conversion_rate` para `0.5`, o exemplo passa a mostrar "264 Vitacoins" automaticamente.
+b) **Trigger para auto-criar membership "partner" + linha em `partners`** quando admin convida usuário com `role=partner` (já é feito em alguns fluxos, mas vamos centralizar via trigger em `memberships AFTER INSERT WHEN role='partner'`).
 
-A página de admin **não precisa de mudança de UI** — a fonte da verdade já existe.
+c) **Função RPC `resolve_referral(code, tenant_id)`** SECURITY DEFINER, retorna `{ partner_id, parent_partner_id_for_new_recruits, tenant_id, partner_name, partner_avatar }`. Permite SELECT público (anon) somente desse RPC, sem expor a tabela `partners`.
 
-## Quando o onboarding aparece
+d) **Função RPC `attribute_sale(order_id, referral_code)`** SECURITY DEFINER: cria linha em `referrals` + `conversions`, e dispara `commission-engine-v2` via `pg_net` (ou apenas marca pendente para o webhook chamar).
 
-- Ao acessar `/partner` (ou `/<slug>/partner`) pela primeira vez
-- Lê flag `profiles.partner_onboarding_seen` (nova coluna, separada de `tour_completed` que é do tour por tooltips)
-- Se `false` → modal full-screen abre automaticamente
-- Ao concluir a Tela 3 ou clicar "Pular" → grava `true` e fecha
-- Botão "Rever apresentação" disponível em `/partner/settings` para reabrir manualmente
+### 2) Edge functions
 
-## Arquivos a criar / modificar
+a) **Reescrever `process-attribution`** para usar as tabelas reais (`partners`, `referrals`, `conversions`, `clients`, `mt_commissions`):
+- Entrada: `{ tenant_id, client_id, referral_code, source: 'sale'|'recruit', order_id?, ip, user_agent }`.
+- Resolve partner pelo `referral_code`.
+- Anti-fraude: bloqueia self-referral (mesmo `user_id`), e (opcional) trava cliente já atribuído.
+- Cria `referrals` + (se sale) `conversions` ligada a `order_id`.
+- Chama `commission-engine-v2` em background para gerar `mt_commissions` em todos os níveis upline.
 
-**Novos:**
-- `src/components/partner/PartnerOnboardingTour.tsx` — componente das 3 telas (full-screen, framer-motion, white-label via `useTenant()` e `useTenantBranding()`)
-- `src/hooks/usePartnerOnboarding.ts` — controla flag `partner_onboarding_seen`, expõe `shouldShow` e `markAsSeen()`
-- `src/hooks/useVitacoinSettings.ts` — busca `vitacoin_settings` do tenant atual (com fallback global) para alimentar o exemplo dinâmico
+b) **Atualizar `tenant-signup`** para, quando `role=partner`, ler `metadata.parent_referral_code`, resolver via `resolve_referral` e setar `parent_partner_id` automaticamente. Já roda no fluxo público.
 
-**Modificados:**
-- `src/layouts/PartnerLayout.tsx` — monta `<PartnerOnboardingTour />` controlado pelo hook
-- `src/pages/partner/PartnerSettings.tsx` — adiciona botão "Rever apresentação inicial"
+c) **Atualizar `webhook-receiver`** (Shopify/Pagar.me): quando o pedido vier com `metadata.referral_code` (ou cookie/query persistido no checkout), chamar `process-attribution` após criar o `order`.
 
-**Banco (migration):**
-- `ALTER TABLE public.profiles ADD COLUMN partner_onboarding_seen boolean NOT NULL DEFAULT false;`
+### 3) Frontend — captura e propagação do `ref`
 
-**Não tocar:**
-- `PartnerOnboarding.tsx` antigo (cadastro de CRM da Vision Lift) — permanece nas rotas `/partner/onboarding` e `/partner/start` para compatibilidade do fluxo legado
-- `useProductTour.ts` — continua sendo o tour de tooltips (Driver.js), independente do onboarding educacional
+a) `usePartnerTracking` já salva `localStorage.allvita_partner_ref`. Vamos:
+- Estender para também salvar `allvita_partner_source` (`recruit` ou `sale`) baseado na rota.
+- Limpar após uso bem-sucedido.
 
-## Detalhes técnicos
+b) **Cadastro de novo partner (`SignupPage` / `tenant-signup`)**: ao chamar `tenant-signup` com `role=partner`, ler `localStorage.allvita_partner_ref` e enviar como `metadata.parent_referral_code`.
 
-**White-label (Tela 1):**
-```tsx
-const { currentTenant } = useTenant();
-const tenantName = currentTenant?.trade_name || currentTenant?.name;
-const logoUrl = currentTenant?.logo_url; // sem fallback Vision Lift
-const primary = currentTenant?.brand_primary_color; // aplicado via inline style/CSS var
-```
+c) **Quiz público (`PublicQuizPage`) + Checkout**: incluir `referral_code` no payload da submissão e na criação do pedido (já há `metadata` em `orders` — passa para lá).
 
-**Exemplo dinâmico (Tela 3):**
-```tsx
-const { conversionRate } = useVitacoinSettings(tenantId);
-const exampleSale = 528; // valor base do exemplo
-const earnedCoins = Math.round(exampleSale / conversionRate);
-// renderiza: "Você recebe {earnedCoins} Vitacoins"
-```
+### 4) Rotas públicas (novas)
 
-**Controle de exibição:**
-```tsx
-// PartnerLayout
-const { shouldShow, markAsSeen } = usePartnerOnboarding();
-return (
-  <AppShell ...>
-    {shouldShow && <PartnerOnboardingTour onClose={markAsSeen} />}
-    <Outlet />
-  </AppShell>
-);
-```
+a) `/r/:code` → `RecruitLandingPage`
+- Componente novo, white-label (usa `getTenantBrand` por subdomínio).
+- Mostra: nome/avatar do partner que está convidando ("João te convidou para fazer parte da rede"), benefícios resumidos, CTA "Cadastrar como Partner" → vai para `SignupPage` com `?role=partner&ref=<code>`.
 
-## Branding strategy (alinhado à memória do projeto)
+b) `/q/:code` → redireciona para o quiz público (`/quiz`) preservando `?ref=<code>`. Se o tenant tiver checkout próprio, redireciona pra lá.
 
-- **Zero referência hardcoded** a "Vision Lift", `logo-vision-lift.png` ou imagem `partnerHeroImg` específica
-- Logo no header: `currentTenant.logo_url` (placeholder neutro se ausente)
-- Cor de destaque dos ícones e CTA: usar tokens `accent`/`primary` que já são sobrescritos por `useTenantBranding`
-- Texto "Vision Lift Partners" → `"{tenantName} Partners"`
+c) Adicionar ambas em `App.tsx` **fora** do `AuthGuard`.
 
-## Fora de escopo (não será feito agora)
+### 5) UI do parceiro — Página "Meus Links"
 
-- Tornar `vitacoin_settings.metadata` editável com % por tipo de evento (venda/quiz/indicação) — hoje só `conversion_rate` é exposto na UI admin. Se quiser % específicos por evento no exemplo, é uma evolução à parte
-- Resetar a flag para todos os partners existentes (decisão sua: aplicar só para novos, ou disparar para todos atualmente cadastrados também)
+O arquivo `PartnerLinksPage.tsx` hoje contém Campanhas. Vamos:
+- Renomear o atual para `PartnerCampaignsPage.tsx` e ajustar o import em `App.tsx` (rota `campaigns` continua igual).
+- Criar um **novo** `PartnerLinksPage.tsx` real, mostrando:
+  - **Card "Link de Recrutamento"**: URL completa, botão copiar, QR code, contadores (`partners ativos na minha rede`, `vitacoins ganhos com a rede este mês`).
+  - **Card "Link de Vendas"**: URL do quiz/produto, botão copiar, QR code, contadores (`vendas atribuídas`, `comissão acumulada`, `vitacoins do mês`).
+  - **Sub-link por campanha** (futuro): UTM por produto destacado.
+  - Botões "Compartilhar no WhatsApp", "Copiar com mensagem pronta".
+- Hook `useCurrentPartner` já existe; estender com campos de stats agregados (rápido via SELECTs em `referrals`/`mt_commissions`).
 
-## Pergunta antes de implementar
+### 6) Validação ponta a ponta
 
-Quer que o onboarding apareça **apenas para novos partners** que logarem após o deploy, **ou também para todos os partners atuais** (resetando a flag uma vez para que vejam a apresentação no próximo login)?
+Após deploy, testar manualmente:
+1. Criar Partner A no tenant `lumyss`. Conferir `referral_code` no banco e link na UI.
+2. Abrir `/r/<code>` em janela anônima → cadastrar Partner B → conferir `partners.parent_partner_id = A.id`.
+3. Abrir `/q/<code>` → preencher quiz → simular pedido (chamar `webhook-receiver` com payload mock contendo `referral_code`) → conferir:
+   - `referrals` criada
+   - `conversions` criada
+   - `mt_commissions` criadas para A (nível 1) e (se houver) upline de A
+   - Vitacoins creditados conforme `commission_to_coin_rules` ativo do tenant
+
+---
+
+## Arquivos que serão criados/alterados
+
+**Migrations**
+- `supabase/migrations/<timestamp>_partner_referral_codes.sql` (trigger, backfill, RPCs)
+
+**Edge Functions**
+- `supabase/functions/process-attribution/index.ts` (reescrita)
+- `supabase/functions/tenant-signup/index.ts` (lê `parent_referral_code`)
+- `supabase/functions/webhook-receiver/index.ts` (chama process-attribution)
+
+**Frontend**
+- `src/App.tsx` (novas rotas `/r/:code`, `/q/:code`)
+- `src/pages/invite/RecruitLanding.tsx` (novo)
+- `src/pages/invite/SaleRedirect.tsx` (novo, simples)
+- `src/pages/partner/PartnerCampaignsPage.tsx` (renomeado a partir do atual `PartnerLinksPage.tsx`)
+- `src/pages/partner/PartnerLinksPage.tsx` (novo conteúdo real)
+- `src/hooks/usePartnerTracking.ts` (estendido)
+- `src/hooks/useCurrentPartner.ts` (stats agregados)
+- `src/pages/auth/SignupPage.tsx` (envia `parent_referral_code`)
+- `src/pages/quiz/PublicQuizPage.tsx` (envia `referral_code`)
+
+---
+
+## Resposta direta às suas perguntas
+
+> "Quando o partner é cadastrado, precisa ser gerado um link único rastreável..."
+
+Hoje **só é gerado** quando o partner se cadastra pelo fluxo público `tenant-signup`. Vamos garantir via **trigger no banco** que **todo** partner (incluindo convidados pelo admin) receba o código automaticamente, e expor o link na página "Meus Links" do portal do partner.
+
+> "...para indicar outros partners para sua rede, com comissão definida"
+
+Será o link `/r/<code>`. O fluxo grava `parent_partner_id` no novo partner; o `commission-engine-v2` (que já existe e usa `is_in_partner_downline`) calcula comissão multinível automaticamente em cada venda da rede.
+
+> "Tambem precisa ser gerado o link único rastreável para a venda do produto do tenant, isso já esta sendo feito?"
+
+**Não está funcional hoje.** O `usePartnerTracking` captura, mas nada lê esse valor para atribuir a venda. Vamos fechar esse loop com a rota `/q/<code>` + propagação no payload do pedido + reescrita do `process-attribution`.
+
+Posso seguir com a implementação?
