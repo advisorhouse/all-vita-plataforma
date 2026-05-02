@@ -176,7 +176,7 @@ const PublicQuizPage: React.FC = () => {
   const canAdvance = () => {
     if (step === 0) return !!data.screenTime;
     if (step === 1) return data.symptoms.length > 0;
-    if (step === 2) return !!data.age;
+    if (step === 2) return !!data.ageRange;
     if (step === 3) return !!(data.fullName && data.cpf && data.phone && data.email);
     if (step === 8) return data.consentDataUsage;
     return true;
@@ -194,7 +194,7 @@ const PublicQuizPage: React.FC = () => {
         cpf: data.cpf,
         phone: data.phone,
         email: data.email,
-        age: data.age ? (parseInt((data.age.match(/\d+/) || [])[0] || "") || null) : null,
+        age: data.age ? parseInt(data.age) : null,
         sex: data.sex || null,
         health_conditions: data.healthConditions,
         other_conditions: data.otherConditions || null,
@@ -301,8 +301,8 @@ const PublicQuizPage: React.FC = () => {
                   title={config.ageTitle}
                   subtitle={config.ageSubtitle}
                   options={config.ageOptions}
-                  value={data.age}
-                  onChange={(v) => update({ age: v })}
+                  value={data.ageRange}
+                  onChange={(v) => update({ ageRange: v })}
                 />
               )}
               {step === 3 && <QuizStepIdentification data={data} update={update} />}
