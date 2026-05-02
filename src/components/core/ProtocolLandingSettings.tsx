@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 const ICON_OPTIONS = ["Activity", "Sparkles", "ShieldCheck", "Stethoscope", "Eye"];
 const QUIZ_ICON_OPTIONS = ["Smartphone", "Monitor", "Tv", "AlertTriangle"];
+const SYMPTOM_ICON_OPTIONS = ["Droplet", "Eye", "Brain", "Sun", "AlertTriangle", "Sparkles"];
 
 const DEFAULTS = {
   hero_badge: "Continuação do seu atendimento",
@@ -51,6 +52,14 @@ const DEFAULTS = {
     { icon: "AlertTriangle", title: "Mais de 12h", description: "Seus olhos merecem atenção extra" },
   ] as Array<{ title: string; description: string; icon: string }>,
   quiz_footer_badges: ["Dados criptografados", "LGPD compliant", "Validado por oftalmologistas"] as string[],
+  quiz_symptoms_title: "Você tem sentido algum desses incômodos nos olhos?",
+  quiz_symptoms_subtitle: "Marque todos que se aplicam ao seu dia a dia — mesmo que pareçam leves.",
+  quiz_symptoms_options: [
+    { icon: "Droplet", title: "Olhos secos ou ardendo", description: "Sensação de areia ou ressecamento" },
+    { icon: "Eye", title: "Visão embaçada às vezes", description: "Dificuldade de foco em algum momento" },
+    { icon: "Brain", title: "Dor de cabeça frequente", description: "Principalmente após uso de telas" },
+    { icon: "Sun", title: "Incômodo com luz forte", description: "Sensibilidade ao sair para a claridade" },
+  ] as Array<{ title: string; description: string; icon: string }>,
 };
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
@@ -89,6 +98,7 @@ const ProtocolLandingSettings: React.FC = () => {
           trust_badges: Array.isArray(row.trust_badges) ? row.trust_badges : DEFAULTS.trust_badges,
           quiz_question_options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULTS.quiz_question_options,
           quiz_footer_badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULTS.quiz_footer_badges,
+          quiz_symptoms_options: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : DEFAULTS.quiz_symptoms_options,
         });
       }
       setLoading(false);
