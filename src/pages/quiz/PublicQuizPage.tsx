@@ -87,7 +87,6 @@ const STEPS_META = [
   { label: "Especializado" },
   { label: "Consulta" },
   { label: "Consentimento" },
-  { label: "Produto" },
   { label: "Resultado" },
 ];
 
