@@ -596,6 +596,59 @@ const ProtocolLandingSettings: React.FC = () => {
         </div>
       </Section>
 
+      {/* QUIZ — fifth screen (supplements) */}
+      <Section
+        title="Tela 5 do Quiz (suplementos para saúde ocular)"
+        description="Pergunta de seleção única sobre uso de suplementos para os olhos."
+      >
+        <Field label="Pergunta" value={data.quiz_supplements_title} onChange={(v) => set("quiz_supplements_title", v)} textarea />
+        <Field label="Subtexto" value={data.quiz_supplements_subtitle} onChange={(v) => set("quiz_supplements_subtitle", v)} />
+        <div className="space-y-2">
+          <Label className="text-[11px] text-muted-foreground">Opções</Label>
+          {data.quiz_supplements_options.map((opt, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground">Opção {i + 1}</span>
+                {data.quiz_supplements_options.length > 2 && (
+                  <Button variant="ghost" size="icon" onClick={() =>
+                    set("quiz_supplements_options", data.quiz_supplements_options.filter((_, idx) => idx !== i))
+                  } className="h-7 w-7 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground">Ícone</Label>
+                  <Select value={opt.icon} onValueChange={(v) => {
+                    const next = [...data.quiz_supplements_options]; next[i] = { ...opt, icon: v }; set("quiz_supplements_options", next);
+                  }}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SUPPLEMENTS_ICON_OPTIONS.map((ic) => <SelectItem key={ic} value={ic}>{ic}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Título" value={opt.title} onChange={(v) => {
+                    const next = [...data.quiz_supplements_options]; next[i] = { ...opt, title: v }; set("quiz_supplements_options", next);
+                  }} />
+                </div>
+              </div>
+              <Field label="Descrição" value={opt.description} onChange={(v) => {
+                const next = [...data.quiz_supplements_options]; next[i] = { ...opt, description: v }; set("quiz_supplements_options", next);
+              }} />
+            </div>
+          ))}
+          {data.quiz_supplements_options.length < 6 && (
+            <Button variant="outline" size="sm" className="gap-1.5"
+              onClick={() => set("quiz_supplements_options", [...data.quiz_supplements_options, { icon: "Sparkles", title: "Nova opção", description: "" }])}>
+              <Plus className="h-3.5 w-3.5" /> Adicionar opção
+            </Button>
+          )}
+        </div>
+      </Section>
+
       <div className="flex justify-end pt-2">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
