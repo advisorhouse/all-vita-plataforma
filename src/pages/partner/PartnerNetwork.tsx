@@ -860,7 +860,6 @@ const PartnerNetwork: React.FC = () => {
           )
         `)
         .eq("partner_id", partner.id);
-... keep existing code
 
       if (error) throw error;
 
