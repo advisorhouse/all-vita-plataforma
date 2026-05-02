@@ -16,20 +16,28 @@ serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return jsonRes(401, { error: "Unauthorized" });
+  const isAdminToken = authHeader?.replace("Bearer ", "") === serviceKey;
+  let callerUserId = "";
+
+  if (isAdminToken) {
+    callerUserId = "00000000-0000-0000-0000-000000000000";
+  } else {
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonRes(401, { error: "Unauthorized" });
+    }
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: authError } = await userClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (authError || !userData?.user) {
+      return jsonRes(401, { error: "Invalid token" });
+    }
+    callerUserId = userData.user.id;
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const token = authHeader.replace("Bearer ", "");
-  const { data: userData, error: authError } = await userClient.auth.getUser(token);
-  if (authError || !userData?.user) {
-    return jsonRes(401, { error: "Invalid token" });
-  }
 
-  const callerUserId = userData.user.id;
+
+
   const tenantId = req.headers.get("X-Tenant-Id");
   const adminClient = createClient(supabaseUrl, serviceKey);
 
@@ -72,7 +80,7 @@ serve(async (req) => {
     case "preview-email": requiredAction = "read"; break;
   }
 
-  const isAllowed = await checkPermission(requiredResource, requiredAction, tenantId);
+  const isAllowed = isAdminToken || await checkPermission(requiredResource, requiredAction, tenantId);
 
   if (!isAllowed) {
     // Specialized error for delete which traditionally only super admin did
@@ -765,6 +773,58 @@ serve(async (req) => {
 
         return jsonRes(200, { success: true, message: "Convite reenviado com sucesso." });
       }
+
+      case "invite_user": {
+        const body = await req.json();
+        const { email, first_name, last_name, tenant_id } = body;
+        if (!email) return jsonRes(400, { error: "E-mail é obrigatório" });
+        
+        console.log(`[InviteAction] Processing ${email} for tenant ${tenant_id}`);
+        
+        // Use inviteUserByEmail first
+        const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+          data: {
+            first_name: first_name || "",
+            last_name: last_name || "",
+            full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+            role: "partner",
+            partner_level: 1,
+            tenant_id: tenant_id,
+            tenant_slug: "lumyss"
+          },
+          redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
+        });
+
+        if (inviteError) {
+          if (inviteError.message.includes("already")) {
+            console.log(`[InviteAction] User exists, using generateLink for ${email}`);
+            // For existing users, we use generateLink which also triggers the hook
+            const { error: genError } = await adminClient.auth.admin.generateLink({
+              type: 'invite',
+              email: email,
+              options: {
+                data: {
+                  first_name: first_name || "",
+                  last_name: last_name || "",
+                  full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+                  role: "partner",
+                  partner_level: 1,
+                  tenant_id: tenant_id,
+                  tenant_slug: "lumyss"
+                },
+                redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
+              }
+            });
+            
+            if (genError) return jsonRes(400, { error: genError.message });
+            return jsonRes(200, { success: true, message: "Convite reenviado com sucesso (via link)." });
+          }
+          return jsonRes(400, { error: inviteError.message });
+        }
+
+        return jsonRes(200, { success: true, user: invited.user });
+      }
+
 
       case "delete-tenant": {
         const body = await req.json();
