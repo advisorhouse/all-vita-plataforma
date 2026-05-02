@@ -98,8 +98,8 @@ export const useProductTour = () => {
       steps.push({
         element: '#dashboard-greeting',
         popover: {
-          title: '🤝 Olá, Parceiro!',
-          description: 'Aqui você vê um resumo rápido do seu nível e status atual.',
+          title: '🤝 Sua Carreira na Plataforma',
+          description: 'Seu nível (Basic, Premium ou Elite) define seus benefícios. Ele é baseado na sua performance: quanto mais pacientes ativos e maior a retenção, maior será seu multiplicador de ganhos.',
           side: 'bottom',
           align: 'start'
         }
@@ -107,8 +107,8 @@ export const useProductTour = () => {
       steps.push({
         element: '#dashboard-kpis',
         popover: {
-          title: '📊 Seus Indicadores',
-          description: 'Acompanhe o número de pacientes vinculados, taxa de retenção e recorrência.',
+          title: '📊 Os Pilares do Crescimento',
+          description: 'Acompanhe de perto a **Retenção** e a **Recorrência**. Pacientes que compram todos os meses garantem sua estabilidade e aceleram sua subida de nível.',
           side: 'bottom',
           align: 'start'
         }
@@ -116,17 +116,26 @@ export const useProductTour = () => {
       steps.push({
         element: '#dashboard-wallet',
         popover: {
-          title: '💰 Sua Wallet Médica',
-          description: 'Veja seu saldo de Vitacoins e resgate seus pontos por benefícios ou Pix.',
+          title: '💰 Vitacoins e Multiplicadores',
+          description: 'Cada compra dos seus pacientes gera Vitacoins. Ao subir de nível, você desbloqueia multiplicadores (ex: 12x ou 15x), fazendo cada indicação valer muito mais.',
           side: 'left',
           align: 'center'
         }
       });
       steps.push({
+        element: '#sidebar-partner-levels',
+        popover: {
+          title: '📈 Sua Progressão',
+          description: 'Clique aqui para ver exatamente o que falta para o próximo nível. Cada novo degrau libera suporte prioritário, bônus de permanência e prêmios exclusivos.',
+          side: 'right',
+          align: 'start'
+        }
+      });
+      steps.push({
         element: '#sidebar-link-network',
         popover: {
-          title: '🌟 Minha Rede',
-          description: 'Expanda sua influência e acompanhe o crescimento dos seus parceiros indicados.',
+          title: '🌟 Potencialize sua Rede',
+          description: 'Além dos seus pacientes, você pode convidar outros parceiros. Quando a rede deles cresce, você também é recompensado pela expansão do ecossistema.',
           side: 'right',
           align: 'start'
         }
