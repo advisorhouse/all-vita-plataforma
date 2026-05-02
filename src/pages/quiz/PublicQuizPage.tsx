@@ -20,6 +20,7 @@ import QuizStepConsent from "@/components/quiz/QuizStepConsent";
 import QuizStepCheckout from "@/components/quiz/QuizStepCheckout";
 import QuizSuccessView from "@/components/quiz/QuizSuccessView";
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
+import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
 
 export interface QuizFormData {
   fullName: string;
@@ -29,6 +30,7 @@ export interface QuizFormData {
   age: string;
   sex: string;
   screenTime: string;
+  symptoms: string[];
   healthConditions: string[];
   otherConditions: string;
   continuousMedications: boolean;
@@ -51,6 +53,7 @@ export interface QuizFormData {
 const INITIAL_DATA: QuizFormData = {
   fullName: "", cpf: "", phone: "", email: "", age: "", sex: "",
   screenTime: "",
+  symptoms: [],
   healthConditions: [], otherConditions: "",
   continuousMedications: false, medicationsDetail: "",
   usesEyeDrops: false, eyeDropsDetail: "",
@@ -63,6 +66,7 @@ const INITIAL_DATA: QuizFormData = {
 
 const STEPS_META = [
   { label: "Rotina" },
+  { label: "Sintomas" },
   { label: "Identificação" },
   { label: "Saúde" },
   { label: "Medicações" },
@@ -70,6 +74,13 @@ const STEPS_META = [
   { label: "Consulta" },
   { label: "Consentimento" },
   { label: "Produto" },
+];
+
+const DEFAULT_SYMPTOMS: SymptomOption[] = [
+  { icon: "Droplet", title: "Olhos secos ou ardendo", description: "Sensação de areia ou ressecamento" },
+  { icon: "Eye", title: "Visão embaçada às vezes", description: "Dificuldade de foco em algum momento" },
+  { icon: "Brain", title: "Dor de cabeça frequente", description: "Principalmente após uso de telas" },
+  { icon: "Sun", title: "Incômodo com luz forte", description: "Sensibilidade ao sair para a claridade" },
 ];
 
 const DEFAULT_OPTIONS: ScreenTimeOption[] = [
@@ -104,6 +115,9 @@ const PublicQuizPage: React.FC = () => {
     questionSubtitle: DEFAULT_HEADER.question_subtitle,
     options: DEFAULT_OPTIONS,
     badges: DEFAULT_HEADER.badges,
+    symptomsTitle: "Você tem sentido algum desses incômodos nos olhos?",
+    symptomsSubtitle: "Marque todos que se aplicam ao seu dia a dia — mesmo que pareçam leves.",
+    symptomsOptions: DEFAULT_SYMPTOMS,
   });
 
   // Resolve referral
@@ -121,18 +135,22 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
-        setConfig({
-          headerTitle: row.quiz_header_title || DEFAULT_HEADER.title,
-          headerSubtitle: row.quiz_header_subtitle || DEFAULT_HEADER.subtitle,
-          questionTitle: row.quiz_question_title || DEFAULT_HEADER.question_title,
-          questionSubtitle: row.quiz_question_subtitle || DEFAULT_HEADER.question_subtitle,
-          options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : DEFAULT_OPTIONS,
-          badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : DEFAULT_HEADER.badges,
-        });
+        setConfig((prev) => ({
+          ...prev,
+          headerTitle: row.quiz_header_title || prev.headerTitle,
+          headerSubtitle: row.quiz_header_subtitle || prev.headerSubtitle,
+          questionTitle: row.quiz_question_title || prev.questionTitle,
+          questionSubtitle: row.quiz_question_subtitle || prev.questionSubtitle,
+          options: Array.isArray(row.quiz_question_options) ? row.quiz_question_options : prev.options,
+          badges: Array.isArray(row.quiz_footer_badges) ? row.quiz_footer_badges : prev.badges,
+          symptomsTitle: row.quiz_symptoms_title || prev.symptomsTitle,
+          symptomsSubtitle: row.quiz_symptoms_subtitle || prev.symptomsSubtitle,
+          symptomsOptions: Array.isArray(row.quiz_symptoms_options) ? row.quiz_symptoms_options : prev.symptomsOptions,
+        }));
       }
     })();
   }, [currentTenant?.id]);
@@ -141,8 +159,9 @@ const PublicQuizPage: React.FC = () => {
 
   const canAdvance = () => {
     if (step === 0) return !!data.screenTime;
-    if (step === 1) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 6) return data.consentDataUsage;
+    if (step === 1) return data.symptoms.length > 0;
+    if (step === 2) return !!(data.fullName && data.cpf && data.phone && data.email);
+    if (step === 7) return data.consentDataUsage;
     return true;
   };
 
@@ -251,18 +270,27 @@ const PublicQuizPage: React.FC = () => {
                   onChange={(v) => update({ screenTime: v })}
                 />
               )}
-              {step === 1 && <QuizStepIdentification data={data} update={update} />}
-              {step === 2 && <QuizStepHealth data={data} update={update} />}
-              {step === 3 && <QuizStepMedications data={data} update={update} />}
-              {step === 4 && <QuizStepOphthalmology data={data} update={update} />}
-              {step === 5 && <QuizStepReason data={data} update={update} />}
-              {step === 6 && <QuizStepConsent data={data} update={update} />}
-              {step === 7 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
+              {step === 1 && (
+                <QuizStepSymptoms
+                  title={config.symptomsTitle}
+                  subtitle={config.symptomsSubtitle}
+                  options={config.symptomsOptions}
+                  value={data.symptoms}
+                  onChange={(v) => update({ symptoms: v })}
+                />
+              )}
+              {step === 2 && <QuizStepIdentification data={data} update={update} />}
+              {step === 3 && <QuizStepHealth data={data} update={update} />}
+              {step === 4 && <QuizStepMedications data={data} update={update} />}
+              {step === 5 && <QuizStepOphthalmology data={data} update={update} />}
+              {step === 6 && <QuizStepReason data={data} update={update} />}
+              {step === 7 && <QuizStepConsent data={data} update={update} />}
+              {step === 8 && <QuizStepCheckout data={data} onSubmit={handleSubmit} submitting={submitting} />}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 7 && (
+          {step < 8 && (
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
               <Button
                 variant="ghost"

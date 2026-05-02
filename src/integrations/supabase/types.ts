@@ -2160,6 +2160,9 @@ export type Database = {
           quiz_question_options: Json
           quiz_question_subtitle: string
           quiz_question_title: string
+          quiz_symptoms_options: Json
+          quiz_symptoms_subtitle: string
+          quiz_symptoms_title: string
           reasons: Json | null
           tenant_id: string
           trust_badges: Json | null
@@ -2193,6 +2196,9 @@ export type Database = {
           quiz_question_options?: Json
           quiz_question_subtitle?: string
           quiz_question_title?: string
+          quiz_symptoms_options?: Json
+          quiz_symptoms_subtitle?: string
+          quiz_symptoms_title?: string
           reasons?: Json | null
           tenant_id: string
           trust_badges?: Json | null
@@ -2226,6 +2232,9 @@ export type Database = {
           quiz_question_options?: Json
           quiz_question_subtitle?: string
           quiz_question_title?: string
+          quiz_symptoms_options?: Json
+          quiz_symptoms_subtitle?: string
+          quiz_symptoms_title?: string
           reasons?: Json | null
           tenant_id?: string
           trust_badges?: Json | null
