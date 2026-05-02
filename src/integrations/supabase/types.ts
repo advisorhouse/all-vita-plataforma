@@ -2154,6 +2154,12 @@ export type Database = {
           logic_description: string | null
           logic_eyebrow: string | null
           logic_title: string | null
+          quiz_footer_badges: Json
+          quiz_header_subtitle: string
+          quiz_header_title: string
+          quiz_question_options: Json
+          quiz_question_subtitle: string
+          quiz_question_title: string
           reasons: Json | null
           tenant_id: string
           trust_badges: Json | null
@@ -2181,6 +2187,12 @@ export type Database = {
           logic_description?: string | null
           logic_eyebrow?: string | null
           logic_title?: string | null
+          quiz_footer_badges?: Json
+          quiz_header_subtitle?: string
+          quiz_header_title?: string
+          quiz_question_options?: Json
+          quiz_question_subtitle?: string
+          quiz_question_title?: string
           reasons?: Json | null
           tenant_id: string
           trust_badges?: Json | null
@@ -2208,6 +2220,12 @@ export type Database = {
           logic_description?: string | null
           logic_eyebrow?: string | null
           logic_title?: string | null
+          quiz_footer_badges?: Json
+          quiz_header_subtitle?: string
+          quiz_header_title?: string
+          quiz_question_options?: Json
+          quiz_question_subtitle?: string
+          quiz_question_title?: string
           reasons?: Json | null
           tenant_id?: string
           trust_badges?: Json | null
