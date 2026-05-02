@@ -44,7 +44,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
         className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-sidebar overflow-hidden"
       >
         {/* Brand + Toggle */}
-        <div className={cn("relative flex items-center border-b border-border transition-all duration-300", collapsed ? "h-20 flex-col justify-center py-2" : "h-16")}>
+        <div id="sidebar-brand" className={cn("relative flex items-center border-b border-border transition-all duration-300", collapsed ? "h-20 flex-col justify-center py-2" : "h-16")}>
           {/* Toggle button */}
           <button
             onClick={onToggle}
@@ -116,13 +116,14 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ title, subtitle, links, accentL
         </AnimatePresence>
 
         {/* Navigation */}
-        <nav className={cn("flex-1 space-y-1 overflow-y-auto py-4 transition-all duration-300", collapsed ? "px-2" : "px-3")}>
+        <nav id="sidebar-nav" className={cn("flex-1 space-y-1 overflow-y-auto py-4 transition-all duration-300", collapsed ? "px-2" : "px-3")}>
           {links.map((link) => {
             const isActive = location.pathname === link.href;
             const Icon = link.icon;
             const linkContent = (
               <NavLink
                 to={link.href}
+                id={`sidebar-link-${link.href.split('/').pop()}`}
                 className={cn(
                   "group relative flex items-center rounded-xl text-sm font-medium transition-colors",
                   collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",

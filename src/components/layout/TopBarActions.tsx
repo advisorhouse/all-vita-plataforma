@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Bell, User, Check, CheckCheck, ExternalLink } from "lucide-react";
+import { Bell, User, Check, CheckCheck, ExternalLink, HelpCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useProductTour } from "@/hooks/useProductTour";
 
 const typeColor: Record<string, string> = {
   info: "bg-accent",
@@ -29,6 +30,7 @@ const TopBarActions: React.FC = () => {
   const [open, setOpen] = useState(false);
 
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
+  const { startTour } = useProductTour();
 
   const isAdmin = location.pathname.startsWith("/admin");
   const isCore = location.pathname.startsWith("/core");
@@ -51,10 +53,23 @@ const TopBarActions: React.FC = () => {
 
   return (
     <div className="fixed top-4 right-8 z-50 flex items-center gap-2">
+      {/* Help/Tour */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={startTour}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-sm text-muted-foreground hover:text-foreground"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-[11px]">Tour Virtual</TooltipContent>
+      </Tooltip>
+
       {/* Notifications */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-sm">
+          <button id="topbar-notifications" className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-sm">
             <Bell className="h-4 w-4 text-foreground" />
             <AnimatePresence>
               {unreadCount > 0 && (
@@ -144,6 +159,7 @@ const TopBarActions: React.FC = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <button
+            id="topbar-profile"
             onClick={() => navigate(profilePath)}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-sm"
           >
