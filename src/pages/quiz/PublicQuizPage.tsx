@@ -29,6 +29,7 @@ export interface QuizFormData {
   phone: string;
   email: string;
   age: string;
+  ageRange: string;
   sex: string;
   screenTime: string;
   symptoms: string[];
@@ -52,7 +53,7 @@ export interface QuizFormData {
 }
 
 const INITIAL_DATA: QuizFormData = {
-  fullName: "", cpf: "", phone: "", email: "", age: "", sex: "",
+  fullName: "", cpf: "", phone: "", email: "", age: "", ageRange: "", sex: "",
   screenTime: "",
   symptoms: [],
   healthConditions: [], otherConditions: "",
