@@ -263,7 +263,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Header + Filters */}
-      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+      <motion.div id="admin-header" variants={fadeUp} initial="hidden" animate="visible">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold text-foreground">
@@ -345,7 +345,7 @@ const AdminDashboard: React.FC = () => {
       </motion.div>
 
       {/* Pending Registrations Widget */}
-      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="w-full">
+      <motion.div id="admin-pending-tenants" variants={fadeUp} initial="hidden" animate="visible" className="w-full">
         <PendingTenantsWidget onResume={(tenant) => {
           setResumeTenant(tenant);
           setIsDialogOpen(true);
@@ -372,7 +372,7 @@ const AdminDashboard: React.FC = () => {
       }} />
 
       {/* Revenue Charts */}
-      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+      <motion.div id="admin-revenue-charts" variants={fadeUp} initial="hidden" animate="visible">
         <RevenueCharts revenueByMonth={revenueByMonth} revenueByTenant={revenueByTenant} />
       </motion.div>
 

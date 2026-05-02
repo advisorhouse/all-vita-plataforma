@@ -60,58 +60,139 @@ export const useProductTour = () => {
     // Role-specific steps
     if (isPartner) {
       steps.push({
-        element: '#sidebar-link-network',
+        element: '#dashboard-greeting',
         popover: {
-          title: '🌟 Minha Rede',
-          description: 'Acompanhe o crescimento da sua rede, seus pontos e parceiros indicados.',
-          side: 'right',
+          title: '🤝 Olá, Parceiro!',
+          description: 'Aqui você vê um resumo rápido do seu nível e status atual.',
+          side: 'bottom',
           align: 'start'
         }
       });
       steps.push({
-        element: '#sidebar-link-revenue',
+        element: '#dashboard-kpis',
         popover: {
-          title: '💰 Minha Receita',
-          description: 'Visualize seus ganhos, histórico de comissões e metas financeiras.',
+          title: '📊 Seus Indicadores',
+          description: 'Acompanhe o número de pacientes vinculados, taxa de retenção e recorrência.',
+          side: 'bottom',
+          align: 'start'
+        }
+      });
+      steps.push({
+        element: '#dashboard-wallet',
+        popover: {
+          title: '💰 Sua Wallet Médica',
+          description: 'Veja seu saldo de Vitacoins e resgate seus pontos por benefícios ou Pix.',
+          side: 'left',
+          align: 'center'
+        }
+      });
+      steps.push({
+        element: '#sidebar-link-network',
+        popover: {
+          title: '🌟 Minha Rede',
+          description: 'Expanda sua influência e acompanhe o crescimento dos seus parceiros indicados.',
           side: 'right',
           align: 'start'
         }
       });
     } else if (isCore) {
       steps.push({
-        element: '#sidebar-link-partners',
+        element: '#core-greeting',
         popover: {
-          title: '🤝 Parceiros',
-          description: 'Gerencie e acompanhe o desempenho de todos os parceiros do seu tenant.',
-          side: 'right',
+          title: '🏢 Gestão Master',
+          description: 'Bem-vindo ao centro de comando do seu tenant. Aqui você tem a visão master de tudo.',
+          side: 'bottom',
           align: 'start'
         }
       });
       steps.push({
-        element: '#sidebar-link-finance',
+        element: '#core-kpis',
         popover: {
-          title: '📈 Financeiro',
-          description: 'Controle total sobre o faturamento, pagamentos e saúde financeira da empresa.',
+          title: '📈 Métricas Vitais',
+          description: 'Acompanhe Clientes Ativos, MRR e Ticket Médio em tempo real.',
+          side: 'bottom',
+          align: 'start'
+        }
+      });
+      steps.push({
+        element: '#core-revenue-hero',
+        popover: {
+          title: '💸 Saúde Financeira',
+          description: 'Visão detalhada da sua receita acumulada e margens de operação.',
+          side: 'left',
+          align: 'center'
+        }
+      });
+      steps.push({
+        element: '#sidebar-link-partners',
+        popover: {
+          title: '🤝 Rede de Afiliados',
+          description: 'Gerencie todos os parceiros que impulsionam o seu negócio.',
           side: 'right',
           align: 'start'
         }
       });
     } else if (isClub) {
       steps.push({
-        element: '#sidebar-link-benefits',
+        element: '#club-hero',
         popover: {
-          title: '🎁 Benefícios',
-          description: 'Explore todos os produtos, descontos e serviços exclusivos para membros.',
-          side: 'right',
+          title: '🎁 Portal do Membro',
+          description: 'Tudo o que você precisa para sua jornada de bem-estar está aqui.',
+          side: 'bottom',
           align: 'start'
+        }
+      });
+      steps.push({
+        element: '#club-how-it-works',
+        popover: {
+          title: '✨ Como Funciona',
+          description: 'Siga os passos para garantir seus benefícios e ganhar prêmios.',
+          side: 'top',
+          align: 'center'
+        }
+      });
+      steps.push({
+        element: '#club-rewards',
+        popover: {
+          title: '🏆 Suas Recompensas',
+          description: 'Veja o seu progresso e quais prêmios você já pode resgatar.',
+          side: 'top',
+          align: 'center'
         }
       });
     } else if (isAdmin) {
       steps.push({
+        element: '#admin-header',
+        popover: {
+          title: '👑 Painel Super Admin',
+          description: 'Controle total da infraestrutura Allvita e de todos os tenants.',
+          side: 'bottom',
+          align: 'start'
+        }
+      });
+      steps.push({
+        element: '#admin-pending-tenants',
+        popover: {
+          title: '🕒 Pendências',
+          description: 'Aprove e gerencie novos tenants que estão entrando na plataforma.',
+          side: 'bottom',
+          align: 'center'
+        }
+      });
+      steps.push({
+        element: '#admin-revenue-charts',
+        popover: {
+          title: '📊 Faturamento Global',
+          description: 'Análise macro do crescimento financeiro de toda a rede Allvita.',
+          side: 'top',
+          align: 'center'
+        }
+      });
+      steps.push({
         element: '#sidebar-link-tenants',
         popover: {
-          title: '🏢 Gestão de Tenants',
-          description: 'Controle centralizado de todas as empresas e marcas da plataforma.',
+          title: '🏢 Ecossistema',
+          description: 'Gerencie a lista completa de empresas parceiras.',
           side: 'right',
           align: 'start'
         }
