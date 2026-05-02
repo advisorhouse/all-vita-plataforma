@@ -180,8 +180,17 @@ const PartnerReferredPartners: React.FC = () => {
                 Acompanhe os colegas que você indicou e os pontos gerados pela rede deles.
               </p>
             </div>
+            <Button 
+              onClick={() => setIsModalOpen(true)}
+              className="rounded-xl h-10 px-5 text-[13px] font-semibold gap-2"
+            >
+              <UserPlus className="h-4 w-4" />
+              Convidar Colega
+            </Button>
           </div>
         </motion.div>
+
+        <RegisterPartnerNetworkModal open={isModalOpen} onOpenChange={setIsModalOpen} />
 
         {/* KPIs */}
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
