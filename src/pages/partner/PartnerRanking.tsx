@@ -4,7 +4,7 @@ import {
   Trophy, Crown, Medal, Star, TrendingUp, Users, Heart,
   Award, Zap, ArrowUpRight, ChevronUp, ChevronDown, Minus,
   Target, ShieldCheck, Sparkles, Info, Flame, Coins,
-  Gift, CheckCircle2, Lock,
+  Gift, CheckCircle2, Lock, Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -12,6 +12,9 @@ import {
   Tooltip as TooltipUI, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useCurrentPartner } from "@/hooks/useCurrentPartner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 import productOriginal from "@/assets/product-vision-lift-1month.png";
 import product5Month from "@/assets/product-vision-lift-5month.png";
@@ -82,7 +85,7 @@ const MILESTONES = [
   { label: "100 Pacientes", done: false },
 ];
 
-const PRIZES = [
+const PRIZES_MOCK = [
   { title: "Kit Exclusivo Vision Lift", desc: "Kit premium com produtos selecionados para uso pessoal — reconhecimento por estar entre os melhores.", img: productOriginal, requirement: "Top 10 do mês", unlocked: true },
   { title: "Vision Lift 5 Meses Premium", desc: "Plano completo de 5 meses enviado para você como parceiro(a) destaque por 2 meses consecutivos.", img: product5Month, requirement: "Top 5 por 2 meses", unlocked: false },
   { title: "Vision Lift 10 Meses + 2.000 pts", desc: "Tratamento completo de 10 meses + bônus permanente de 2.000 Vitacoins.", img: product10Month, requirement: "Nível Platina", unlocked: false },
@@ -95,6 +98,56 @@ const levelColors: Record<string, string> = {
 };
 
 const PartnerRanking: React.FC = () => {
+  const { data: partner, isLoading: loadingPartner } = useCurrentPartner();
+
+  const { data: rewards = [] } = useQuery({
+    queryKey: ["partner-rewards", partner?.tenant_id],
+    queryFn: async () => {
+      if (!partner?.tenant_id) return [];
+      const { data, error } = await supabase
+        .from("rewards")
+        .select("*")
+        .eq("tenant_id", partner.tenant_id)
+        .eq("active", true)
+        .order("points_required", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!partner?.tenant_id
+  });
+
+  const { data: wallet } = useQuery({
+    queryKey: ["partner-wallet-ranking", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return null;
+      const { data } = await supabase
+        .from("vitacoins_wallet")
+        .select("*")
+        .eq("user_id", partner.user_id)
+        .eq("tenant_id", partner.tenant_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!partner?.id
+  });
+
+  const { data: rankingPos = 0 } = useQuery({
+    queryKey: ["partner-ranking-pos", partner?.tenant_id],
+    queryFn: async () => {
+      if (!partner?.tenant_id) return 0;
+      // Simple ranking by total earned
+      const { data } = await supabase
+        .from("vitacoins_wallet")
+        .select("user_id, total_earned")
+        .eq("tenant_id", partner.tenant_id)
+        .order("total_earned", { ascending: false });
+      
+      const pos = data?.findIndex(w => w.user_id === partner.user_id) ?? -1;
+      return pos === -1 ? 0 : pos + 1;
+    },
+    enabled: !!partner?.tenant_id
+  });
+
   const unlockedCount = ACHIEVEMENTS.filter((a) => a.unlocked).length;
 
   // For the current user, show full name; for others, anonymize
@@ -110,6 +163,12 @@ const PartnerRanking: React.FC = () => {
     return parts.map(n => n[0]).join("");
   };
 
+  if (loadingPartner) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-accent" /></div>;
+
+  const currentPos = rankingPos || MY_POSITION;
+  const currentPoints = Number(wallet?.total_earned || 0);
+
+
   return (
     <TooltipProvider delayDuration={200}>
       <div className="space-y-5 pb-12">
@@ -122,7 +181,7 @@ const PartnerRanking: React.FC = () => {
                 <h1 className="text-xl font-bold text-foreground">Ranking Partners</h1>
                 <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent flex items-center gap-1">
                   <Trophy className="h-3 w-3" />
-                  #{MY_POSITION} de {TOTAL_PARTNERS}
+                  #{currentPos} de {TOTAL_PARTNERS}
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
@@ -161,7 +220,7 @@ const PartnerRanking: React.FC = () => {
                   <p className="text-[11px] font-medium text-accent-foreground/60 uppercase tracking-wider">Sua Posição Geral</p>
                 </div>
                 <div className="flex items-baseline gap-3">
-                  <span className="text-5xl font-black">#{MY_POSITION}</span>
+                  <span className="text-5xl font-black">#{currentPos}</span>
                   <span className="text-[15px] text-accent-foreground/70 font-medium">de {TOTAL_PARTNERS} Partners ativos</span>
                 </div>
                 <p className="text-[13px] text-accent-foreground/70 mt-2 max-w-lg leading-relaxed">
@@ -197,7 +256,7 @@ const PartnerRanking: React.FC = () => {
                     <Tip text="Para subir no ranking, foque em aumentar pacientes ativos e manter alta retenção." />
                   </div>
                   <p className="text-[12px] text-background/60 mt-1">
-                    Para alcançar <span className="font-bold text-background">#{MY_POSITION - 1}</span> você precisa de mais 4 pacientes ativos.
+                    Para alcançar <span className="font-bold text-background">#{currentPos - 1}</span> você precisa de mais 4 pacientes ativos.
                   </p>
                   <div className="space-y-1 mt-1">
                     <div className="flex items-center justify-between">
@@ -285,7 +344,51 @@ const PartnerRanking: React.FC = () => {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {PRIZES.map((prize, i) => (
+            {rewards.length > 0 ? rewards.map((prize: any, i) => (
+              <Card key={prize.id} className={cn(
+                "border shadow-sm overflow-hidden transition-all hover:shadow-md group relative",
+                currentPoints >= prize.points_required ? "border-accent/30 bg-gradient-to-b from-accent/8 to-transparent" : "border-border"
+              )}>
+                {currentPoints >= prize.points_required && (
+                  <div className="absolute top-3 right-3 z-10 bg-accent text-accent-foreground text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" /> Disponível
+                  </div>
+                )}
+                <CardContent className="p-0">
+                  <div className={cn(
+                    "h-40 flex items-center justify-center overflow-hidden",
+                    currentPoints >= prize.points_required ? "bg-accent/5" : "bg-secondary/30"
+                  )}>
+                    {(prize.metadata as any)?.image_url ? (
+                      <img
+                        src={(prize.metadata as any).image_url}
+                        alt={prize.name}
+                        className={cn(
+                          "h-32 w-32 object-contain transition-transform duration-300 group-hover:scale-110",
+                          currentPoints < prize.points_required && "opacity-40 grayscale"
+                        )}
+                      />
+                    ) : (
+                      <Gift className={cn("h-16 w-16", currentPoints >= prize.points_required ? "text-accent" : "text-muted-foreground")} />
+                    )}
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <h3 className="text-sm font-bold text-foreground leading-tight">{prize.name}</h3>
+                    <p className="text-[11px] text-muted-foreground line-clamp-2">{prize.description}</p>
+                    <div className="pt-2 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">{prize.points_required} Vitacoins</span>
+                      {currentPoints < prize.points_required ? (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Lock className="h-3 w-3" /> Bloqueado
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-success font-bold">Resgate liberado</div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )) : PRIZES_MOCK.map((prize, i) => (
               <Card key={i} className={cn(
                 "border shadow-sm overflow-hidden transition-all hover:shadow-md group relative",
                 prize.unlocked ? "border-accent/30 bg-gradient-to-b from-accent/8 to-transparent" : "border-border"

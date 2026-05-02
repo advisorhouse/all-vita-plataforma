@@ -13,6 +13,7 @@ import VCTransactionsTable from "@/components/admin/vitacoins/VCTransactionsTabl
 import RedemptionsTable from "@/components/admin/vitacoins/RedemptionsTable";
 import ImpactChart from "@/components/admin/vitacoins/ImpactChart";
 import VCAlertsPanel from "@/components/admin/vitacoins/VCAlertsPanel";
+import RewardsManager from "@/components/admin/vitacoins/RewardsManager";
 import type { VCTransaction } from "@/components/admin/vitacoins/VCTransactionsTable";
 import type { RedemptionRow } from "@/components/admin/vitacoins/RedemptionsTable";
 
@@ -245,6 +246,9 @@ const AdminVitacoins: React.FC = () => {
         <DistributionByTenantChart data={distByTenant} />
         <ImpactChart data={impactData} />
       </div>
+
+      {/* Rewards management */}
+      <RewardsManager tenantId={tenantFilter} />
 
       {/* Transactions */}
       <VCTransactionsTable transactions={txRows} />

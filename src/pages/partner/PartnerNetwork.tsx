@@ -8,9 +8,9 @@ import {
   Info, BarChart3, Star, ArrowDown, ArrowRight,
   UserCheck, UserMinus, UserX, Sparkles, GitBranch,
   Crown, CircleDot, Minus, Plus, Award, Lock, Gem, Trophy,
-  Coins,
+  Coins, BookOpen, Lightbulb, GraduationCap, Loader2,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -21,6 +21,11 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { useCurrentPartner } from "@/hooks/useCurrentPartner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import productVisionLift from "@/assets/product-vision-lift-1month.png";
 
 const fadeUp = {
@@ -207,21 +212,78 @@ const Tip: React.FC<{ text: string }> = ({ text }) => (
   </Tooltip>
 );
 
+// ─── Level Explanation Widget ──────────────────────────────
+const PartnerLevelExplainer: React.FC = () => {
+  return (
+    <Card className="border-accent/20 bg-accent/5 overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-accent" />
+          <CardTitle className="text-base font-bold">Como funcionam os níveis?</CardTitle>
+        </div>
+        <CardDescription className="text-xs">
+          Sua jornada como Partner é recompensada à medida que sua rede cresce e se mantém saudável.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <h4 className="text-[13px] font-semibold flex items-center gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5 text-accent" /> Expansão (Volume)
+            </h4>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Quanto mais pacientes ativos você tiver, maior seu nível. Isso mostra sua capacidade de educar e trazer novos membros para o ecossistema.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-[13px] font-semibold flex items-center gap-1.5">
+              <Heart className="h-3.5 w-3.5 text-accent" /> Retenção (Qualidade)
+            </h4>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Não basta apenas trazer, é preciso cuidar. Pacientes que continuam comprando (recorrência) aumentam sua taxa de retenção e garantem bônus extras.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white/50 rounded-xl p-3 border border-accent/10 space-y-2">
+          <h4 className="text-[12px] font-bold text-foreground flex items-center gap-1.5">
+            <Lightbulb className="h-3.5 w-3.5 text-warning" /> Dica de Ouro
+          </h4>
+          <p className="text-[11px] text-muted-foreground italic">
+            "Um Partner de sucesso não é um vendedor, é um educador. Ao elevar o nível de consciência do seu paciente sobre a saúde, a venda e a retenção tornam-se consequências naturais."
+          </p>
+        </div>
+
+        <div className="flex justify-center pt-2">
+          <Button variant="outline" size="sm" className="text-[11px] gap-2 h-8 rounded-full">
+            <GraduationCap className="h-3.5 w-3.5" /> Ver Academy Completo
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 // ─── Progression Level Widget ───────────────────────────────
-const ProgressionWidget: React.FC = () => {
-  const currentIdx = PROGRESSION_LEVELS.findIndex((l) => l.key === CURRENT_LEVEL_KEY);
-  const current = PROGRESSION_LEVELS[currentIdx];
+const ProgressionWidget: React.FC<{ partner: any; stats: any }> = ({ partner, stats }) => {
+  const currentLevelLabel = partner?.level || "Bronze";
+  const currentIdx = PROGRESSION_LEVELS.findIndex((l) => l.label.toLowerCase() === currentLevelLabel.toLowerCase());
+  const current = PROGRESSION_LEVELS[currentIdx] || PROGRESSION_LEVELS[0];
   const next = currentIdx < PROGRESSION_LEVELS.length - 1 ? PROGRESSION_LEVELS[currentIdx + 1] : null;
 
+  const currentClients = stats?.activeNow || 0;
+  const currentRetention = stats?.retentionRate || 0;
+
   // Progress toward next level
-  const clientProgress = next ? Math.min((CURRENT_CLIENTS / next.minClients) * 100, 100) : 100;
-  const retentionProgress = next ? Math.min((CURRENT_RETENTION / next.minRetention) * 100, 100) : 100;
+  const clientProgress = next ? Math.min((currentClients / next.minClients) * 100, 100) : 100;
+  const retentionProgress = next ? Math.min((currentRetention / next.minRetention) * 100, 100) : 100;
   const overallProgress = next ? Math.round((clientProgress + retentionProgress) / 2) : 100;
 
-  const clientsNeeded = next ? Math.max(next.minClients - CURRENT_CLIENTS, 0) : 0;
-  const retentionNeeded = next ? Math.max(next.minRetention - CURRENT_RETENTION, 0) : 0;
+  const clientsNeeded = next ? Math.max(next.minClients - currentClients, 0) : 0;
+  const retentionNeeded = next ? Math.max(next.minRetention - currentRetention, 0) : 0;
 
   const CurrentIcon = current.icon;
+
 
   return (
     <Card className="border-border shadow-sm overflow-hidden">
@@ -286,7 +348,7 @@ const ProgressionWidget: React.FC = () => {
                   <span className="text-muted-foreground flex items-center gap-1.5">
                     <Users className="h-3 w-3" /> Pacientes ativos
                   </span>
-                  <span className="font-semibold text-foreground">{CURRENT_CLIENTS} / {next.minClients}</span>
+                  <span className="font-semibold text-foreground">{currentClients} / {next.minClients}</span>
                 </div>
                 <Progress value={clientProgress} className="h-2" />
                 {clientsNeeded > 0 && (
@@ -302,7 +364,7 @@ const ProgressionWidget: React.FC = () => {
                   <span className="text-muted-foreground flex items-center gap-1.5">
                     <Heart className="h-3 w-3" /> Pacientes que ficam
                   </span>
-                  <span className="font-semibold text-foreground">{CURRENT_RETENTION}% / {next.minRetention}%</span>
+                  <span className="font-semibold text-foreground">{currentRetention}% / {next.minRetention}%</span>
                 </div>
                 <Progress value={retentionProgress} className="h-2" />
                 {retentionNeeded > 0 && (
@@ -406,7 +468,7 @@ const ProgressionWidget: React.FC = () => {
 };
 
 // ─── Network Tree Visual Component ──────────────────────────
-const NetworkTreeView: React.FC<{ nodes: NetworkNode[] }> = ({ nodes }) => {
+const NetworkTreeView: React.FC<{ nodes: NetworkNode[]; partner: any; stats: any }> = ({ nodes, partner, stats }) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
 
@@ -596,11 +658,11 @@ const NetworkTreeView: React.FC<{ nodes: NetworkNode[] }> = ({ nodes }) => {
             </div>
             <div>
               <p className="text-[13px] font-bold text-foreground">Você (Partner)</p>
-              <p className="text-[10px] text-muted-foreground">{NETWORK_STATS.totalLinked} pacientes na rede • {NETWORK_STATS.activeNow} comprando</p>
+              <p className="text-[10px] text-muted-foreground">{stats?.totalLinked || 0} pacientes na rede • {stats?.activeNow || 0} comprando</p>
             </div>
             <div className="ml-auto flex items-center gap-1 text-amber-500">
               <Star className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold">Nível Ouro</span>
+              <span className="text-[11px] font-semibold">Nível {partner?.level || "Bronze"}</span>
             </div>
           </div>
           <div className="ml-6 h-4 border-l-2 border-accent/20" />
@@ -670,6 +732,97 @@ const NetworkTreeView: React.FC<{ nodes: NetworkNode[] }> = ({ nodes }) => {
 
 // ─── Main Page ──────────────────────────────────────────────
 const PartnerNetwork: React.FC = () => {
+  const { data: partner, isLoading: loadingPartner } = useCurrentPartner();
+
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ["partner-network-stats", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return null;
+
+      const { count: totalLinked } = await supabase
+        .from("referrals")
+        .select("id", { count: "exact", head: true })
+        .eq("partner_id", partner.id);
+
+      const { count: activeNow } = await supabase
+        .from("conversions")
+        .select("id", { count: "exact", head: true })
+        .eq("partner_id", partner.id);
+
+      const { data: pointsData } = await supabase
+        .from("vitacoin_transactions")
+        .select("amount")
+        .eq("user_id", partner.user_id)
+        .eq("tenant_id", partner.tenant_id);
+
+      const totalEarned = pointsData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+
+      return {
+        totalLinked: totalLinked || 0,
+        activeNow: activeNow || 0,
+        paused: 0,
+        cancelled: 0,
+        lifetimeRevenue: totalEarned,
+        avgLifetime: 0,
+        retentionRate: 0, // In a real app, calculate this
+        avgTicket: 0,
+        revenueThisMonth: 0,
+        newThisMonth: 0,
+        churnThisMonth: 0,
+      };
+    },
+    enabled: !!partner?.id
+  });
+
+  const { data: networkTree = [] } = useQuery({
+    queryKey: ["partner-network-tree", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return [];
+
+      const { data, error } = await supabase
+        .from("conversions")
+        .select(`
+          id,
+          created_at,
+          clients (
+            first_name,
+            last_name
+          )
+        `)
+        .eq("partner_id", partner.id);
+
+      if (error) throw error;
+
+      return data.map((c: any) => ({
+        name: `${c.clients?.first_name || ""} ${c.clients?.last_name || ""}`.trim() || "Paciente",
+        initials: (c.clients?.first_name?.[0] || "") + (c.clients?.last_name?.[0] || ""),
+        status: "active" as const,
+        months: 1,
+        plan: "Padrão",
+        revenue: 0,
+        consistency: 100,
+        joinedDate: format(new Date(c.created_at), "MMM/yy", { locale: ptBR }),
+        lastPurchase: format(new Date(c.created_at), "dd/MM/yy"),
+        nextRenewal: "—",
+        commissionRate: 15,
+      }));
+    },
+    enabled: !!partner?.id
+  });
+
+  const currentLevelLabel = partner?.level || "Bronze";
+  const currentIdx = PROGRESSION_LEVELS.findIndex((l) => l.label.toLowerCase() === currentLevelLabel.toLowerCase());
+  const current = PROGRESSION_LEVELS[currentIdx] || PROGRESSION_LEVELS[0];
+
+  const kpiCards = [
+    { label: "Total na Rede", value: String(stats?.totalLinked || 0), change: "+0", icon: Users, tip: "Todos os pacientes que entraram pela sua indicação." },
+    { label: "Comprando Agora", value: String(stats?.activeNow || 0), change: "100%", icon: UserCheck, tip: "Pacientes com assinatura ativa neste momento.", accent: true },
+    { label: "Tempo Médio", value: "0m", change: "+0", icon: Clock, tip: "Em média, seus pacientes ficam X meses comprando." },
+    { label: "Vitacoins Totais", value: (stats?.lifetimeRevenue || 0).toLocaleString("pt-BR"), change: "+0%", icon: Coins, tip: "Total de Vitacoins acumulados com sua rede.", accent: true },
+  ];
+
+  if (loadingPartner || loadingStats) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-accent" /></div>;
+
   return (
     <TooltipProvider delayDuration={200}>
       <div className="space-y-5 pb-12">
@@ -682,7 +835,7 @@ const PartnerNetwork: React.FC = () => {
                 <h1 className="text-xl font-bold text-foreground">Minha Rede</h1>
                 <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  {NETWORK_STATS.totalLinked} pacientes
+                  {stats?.totalLinked || 0} pacientes
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
@@ -700,7 +853,7 @@ const PartnerNetwork: React.FC = () => {
         {/* ═══ ROW 1 — KPI Cards (uniform 4-column) ═══ */}
         <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {KPI_CARDS.map(({ label, value, change, icon: Icon, tip, accent }) => (
+            {kpiCards.map(({ label, value, change, icon: Icon, tip, accent }) => (
               <Card key={label} className={accent ? "border-accent/20 shadow-sm bg-accent/5" : "border-border shadow-sm"}>
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-center justify-between">
@@ -722,8 +875,9 @@ const PartnerNetwork: React.FC = () => {
 
         {/* ═══ ROW 2 — Progression Widget + Growth Chart ═══ */}
         <div className="grid grid-cols-12 gap-4">
-          <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-5">
-            <ProgressionWidget />
+          <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-5 space-y-4">
+            <ProgressionWidget partner={partner} stats={stats} />
+            <PartnerLevelExplainer />
           </motion.div>
 
           <div className="col-span-12 lg:col-span-7 flex flex-col gap-4">
@@ -810,7 +964,7 @@ const PartnerNetwork: React.FC = () => {
 
         {/* ═══ ROW 3 — Network Tree (full width) ═══ */}
         <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
-          <NetworkTreeView nodes={NETWORK_TREE} />
+          <NetworkTreeView nodes={networkTree} partner={partner} stats={stats} />
         </motion.div>
 
         {/* ═══ ROW 4 — Status Pie + Plan Breakdown + Prediction ═══ */}
