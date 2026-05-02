@@ -165,7 +165,7 @@ const ProtocolLandingPage: React.FC = () => {
   // Build hero title with doctor reference
   const heroTitle = config.hero_title;
   const heroSubtitle = doctorName
-    ? config.hero_subtitle.replace(/Dr\.\s*[\w]+/gi, "").replace("seu médico", `Dr. ${doctorName}`)
+    ? config.hero_subtitle.replace(/Dr\.\s*[\w]+/gi, "").replace("seu médico", doctorName)
     : config.hero_subtitle;
 
   if (loading) {
