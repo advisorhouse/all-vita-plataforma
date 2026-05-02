@@ -181,6 +181,8 @@ const App = () => (
               <Route path="/quiz/consent" element={<ProtocolConsentPage mode="quiz" />} />
               <Route path="/chat/:doctorCode/consent" element={<ProtocolConsentPage mode="chat" />} />
               <Route path="/chat/consent" element={<ProtocolConsentPage mode="chat" />} />
+              <Route path="/chat/:doctorCode" element={<PublicChatPage />} />
+              <Route path="/chat" element={<PublicChatPage />} />
               <Route path="/quiz/:doctorCode" element={<ProtocolLandingPage />} />
               <Route path="/quiz" element={<ProtocolLandingPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
