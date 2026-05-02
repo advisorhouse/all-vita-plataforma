@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN tour_completed BOOLEAN DEFAULT false;
