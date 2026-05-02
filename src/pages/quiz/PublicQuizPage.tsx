@@ -352,12 +352,12 @@ const PublicQuizPage: React.FC = () => {
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[12px] text-muted-foreground">Progresso</span>
-            <span className="text-[12px] font-semibold" style={{ color: "#D97757" }}>{progress}%</span>
+            <span className="text-[12px] font-semibold" style={{ color: currentTenant?.secondary_color || "#D97757" }}>{progress}%</span>
           </div>
           <div className="h-1.5 w-full bg-[#EFEAE4] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${progress}%`, backgroundColor: "#D97757" }}
+              style={{ width: `${progress}%`, backgroundColor: currentTenant?.secondary_color || "#D97757" }}
             />
           </div>
         </div>

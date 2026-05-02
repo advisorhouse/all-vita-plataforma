@@ -337,7 +337,8 @@ const ProtocolLandingPage: React.FC = () => {
             <Button
               onClick={startQuiz}
               size="lg"
-              className="mt-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-12 text-sm font-semibold gap-2"
+              className="mt-8 rounded-xl text-primary-foreground px-8 h-12 text-sm font-semibold gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              style={{ backgroundColor: currentTenant?.secondary_color || "var(--primary)" }}
             >
               {config.cta_button_label}
               <ChevronRight className="h-4 w-4" />
