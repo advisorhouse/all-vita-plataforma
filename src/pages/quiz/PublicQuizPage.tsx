@@ -215,7 +215,7 @@ const PublicQuizPage: React.FC = () => {
     (async () => {
       const { data: row } = await (supabase as any)
         .from("tenant_protocol_landing")
-        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options,quiz_supplements_title,quiz_supplements_subtitle,quiz_supplements_options,quiz_uv_title,quiz_uv_subtitle,quiz_uv_options")
+        .select("quiz_header_title,quiz_header_subtitle,quiz_question_title,quiz_question_subtitle,quiz_question_options,quiz_footer_badges,quiz_symptoms_title,quiz_symptoms_subtitle,quiz_symptoms_options,quiz_age_title,quiz_age_subtitle,quiz_age_options,quiz_lastvisit_title,quiz_lastvisit_subtitle,quiz_lastvisit_options,quiz_supplements_title,quiz_supplements_subtitle,quiz_supplements_options,quiz_uv_title,quiz_uv_subtitle,quiz_uv_options,result_title,result_subtitle,result_levels,result_product_eyebrow,result_product_name,result_product_powered_by,result_cta_label,result_cta_url,result_disclaimer,score_weights")
         .eq("tenant_id", currentTenant.id)
         .maybeSingle();
       if (row) {
