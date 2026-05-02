@@ -2,10 +2,46 @@ import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { useLocation } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
 
 export const useProductTour = () => {
   const location = useLocation();
   const { currentTenant } = useTenant();
+  const { user } = useAuth();
+  const [tourCompleted, setTourCompleted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const checkTourStatus = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('tour_completed')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data) {
+        setTourCompleted(data.tour_completed);
+      }
+    };
+
+    checkTourStatus();
+  }, [user]);
+
+  const markTourAsCompleted = async () => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ tour_completed: true })
+      .eq('id', user.id);
+
+    if (!error) {
+      setTourCompleted(true);
+    }
+  };
 
   const startTour = () => {
     const isPartner = location.pathname.includes('/partner');
@@ -208,10 +244,28 @@ export const useProductTour = () => {
       doneBtnText: 'Concluir',
       steps: steps,
       overlayColor: 'rgba(0, 0, 0, 0.75)',
+      onDestroyStarted: () => {
+        markTourAsCompleted();
+        driverObj.destroy();
+      }
     });
 
     driverObj.drive();
   };
+
+  useEffect(() => {
+    const dashboardPaths = ['/partner', '/core', '/club', '/admin'];
+    const isDashboard = dashboardPaths.some(path => {
+      return location.pathname.endsWith(path);
+    });
+
+    if (isDashboard && tourCompleted === false) {
+      const timer = setTimeout(() => {
+        startTour();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [tourCompleted, location.pathname]);
 
   return { startTour };
 };
