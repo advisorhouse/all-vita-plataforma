@@ -72,12 +72,12 @@ const PartnerReferrals: React.FC = () => {
     queryFn: async () => {
       if (!partner?.id) return null;
       
-      const { data: referralsCount } = await supabase
+      const { count: referralsCount } = await supabase
         .from("referrals")
         .select("id", { count: "exact", head: true })
         .eq("partner_id", partner.id);
         
-      const { data: conversionsCount } = await supabase
+      const { count: conversionsCount } = await supabase
         .from("conversions")
         .select("id", { count: "exact", head: true })
         .eq("partner_id", partner.id);
@@ -299,7 +299,7 @@ const PartnerReferrals: React.FC = () => {
                 </div>
                 <div className="flex flex-col gap-2.5">
                   <a
-                    href={`https://wa.me/?text=${SHARE_MESSAGE}`}
+                    href={`https://wa.me/?text=${shareMessage}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
