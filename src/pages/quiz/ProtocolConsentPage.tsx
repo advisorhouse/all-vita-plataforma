@@ -17,7 +17,7 @@ const ProtocolConsentPage: React.FC<ProtocolConsentPageProps> = ({ mode = "quiz"
   const { doctorCode } = useParams<{ doctorCode: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { currentTenant, loading: tenantLoading } = useTenant();
+  const { currentTenant } = useTenant();
   const [accepted, setAccepted] = useState(false);
 
   // Persist referral if it arrives via URL
@@ -47,14 +47,6 @@ const ProtocolConsentPage: React.FC<ProtocolConsentPageProps> = ({ mode = "quiz"
       navigate(`${base}${suffix}${qs ? `?${qs}` : ""}`);
     }
   };
-
-  if (tenantLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF8F5]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-4 py-10">
