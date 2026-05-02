@@ -42,6 +42,8 @@ export const RESERVED_PATH_SEGMENTS = new Set<string>([
   "favicon.ico",
   "robots.txt",
   "placeholder.svg",
+  "r", // partner referral landing
+  "q", // partner sale link → quiz redirect
 ]);
 
 export function isPathBasedHost(hostname: string): boolean {

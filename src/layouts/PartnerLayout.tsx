@@ -4,7 +4,7 @@ import AppShell from "@/components/layout/AppShell";
 import {
   Home, ShoppingBag, GraduationCap, Target,
   CheckSquare, HelpCircle, Star, UserPlus,
-  Users, ClipboardList, Trophy, Network,
+  Users, ClipboardList, Trophy, Network, Link2,
 } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
@@ -20,7 +20,8 @@ const partnerLinks = [
   { label: "Meus Pontos", href: "/partner/revenue", icon: CheckSquare },
   { label: "Ranking", href: "/partner/ranking", icon: Trophy },
   { label: "Parceiros Indicados", href: "/partner/referred-partners", icon: UserPlus },
-  { label: "Campanhas", href: "/partner/links", icon: Target },
+  { label: "Meus Links", href: "/partner/links", icon: Link2 },
+  { label: "Campanhas", href: "/partner/campaigns", icon: Target },
   { label: "Catálogo", href: "/partner/materials", icon: ShoppingBag },
   { label: "Formação", href: "/partner/formation", icon: GraduationCap },
   { label: "Suporte", href: "/partner/support", icon: HelpCircle },

@@ -15,6 +15,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ActivatePage from "./pages/activate/ActivatePage";
 import InviteLanding from "./pages/invite/InviteLanding";
+import RecruitLanding from "./pages/invite/RecruitLanding";
+import SaleRedirect from "./pages/invite/SaleRedirect";
 import ProposalPresentation from "./pages/proposal/ProposalPresentation";
 import WebsiteProposal from "./pages/proposal/WebsiteProposal";
 import PublicQuizPage from "./pages/quiz/PublicQuizPage";
@@ -54,6 +56,7 @@ import PartnerClients from "./pages/partner/PartnerClients";
 import PartnerRevenue from "./pages/partner/PartnerRevenue";
 import PartnerMaterials from "./pages/partner/PartnerMaterials";
 import PartnerLinksPage from "./pages/partner/PartnerLinksPage";
+import PartnerCampaignsPage from "./pages/partner/PartnerCampaignsPage";
 import PartnerLevels from "./pages/partner/PartnerLevels";
 import PartnerSettings from "./pages/partner/PartnerSettings";
 import PartnerOnboarding from "./pages/partner/PartnerOnboarding";
@@ -116,6 +119,7 @@ const partnerChildren = (
     <Route path="revenue" element={<PartnerRevenue />} />
     <Route path="materials" element={<PartnerMaterials />} />
     <Route path="links" element={<PartnerLinksPage />} />
+    <Route path="campaigns" element={<PartnerCampaignsPage />} />
     <Route path="levels" element={<PartnerLevels />} />
     <Route path="ranking" element={<PartnerRanking />} />
     <Route path="referred-partners" element={<PartnerReferredPartners />} />
@@ -163,6 +167,8 @@ const App = () => (
               <Route path="/" element={<AuthGuard requireTenant={false}><Index /></AuthGuard>} />
               <Route path="/activate" element={<ActivatePage />} />
               <Route path="/invite/:token" element={<InviteLanding />} />
+              <Route path="/r/:code" element={<RecruitLanding />} />
+              <Route path="/q/:code" element={<SaleRedirect />} />
               <Route path="/proposta" element={<ProposalPresentation />} />
               <Route path="/proposta-site" element={<WebsiteProposal />} />
               <Route path="/quiz/:doctorCode" element={<PublicQuizPage />} />
