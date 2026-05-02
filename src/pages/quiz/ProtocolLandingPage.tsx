@@ -114,7 +114,33 @@ const ProtocolLandingPage: React.FC = () => {
   useEffect(() => {
     const ref = searchParams.get("ref") || doctorCode;
     if (ref) {
-      setDoctorName(ref.toString());
+      const loadPartnerName = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("partners")
+            .select(`
+              profiles (
+                first_name,
+                last_name
+              )
+            `)
+            .eq("referral_code", ref.toString().toUpperCase())
+            .maybeSingle();
+
+          if (data?.profiles) {
+            const profile = data.profiles as any;
+            const fullName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+            setDoctorName(toTitleCase(fullName));
+          } else {
+            setDoctorName(toTitleCase(ref.toString()));
+          }
+        } catch (e) {
+          console.error("Error loading partner name:", e);
+          setDoctorName(toTitleCase(ref.toString()));
+        }
+      };
+      
+      loadPartnerName();
       // Persist for tracking inside subsequent quiz/AI conversation
       try { localStorage.setItem("allvita_partner_ref", ref.toString().toUpperCase()); } catch {}
     }
