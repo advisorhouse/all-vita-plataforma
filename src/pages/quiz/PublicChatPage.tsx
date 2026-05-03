@@ -106,7 +106,7 @@ const PublicChatPage: React.FC = () => {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         await handleAudioSend(audioBlob);
       };
 
