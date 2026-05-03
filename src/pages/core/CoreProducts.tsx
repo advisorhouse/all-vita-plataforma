@@ -70,6 +70,10 @@ const CoreProducts: React.FC = () => {
   const [showBindPartner, setShowBindPartner] = useState(false);
   const [activeTab, setActiveTab] = useState("products");
   const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["core-products", currentTenant?.id],
@@ -77,25 +81,78 @@ const CoreProducts: React.FC = () => {
       if (!currentTenant?.id) return [];
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("*, product_images(*)")
         .eq("tenant_id", currentTenant.id);
       
       if (error) throw error;
       
       return (data || []).map(p => ({
-        id: p.id,
-        name: p.name,
-        category: p.type || "Geral",
+        ...p,
         price: Number(p.price),
-        discountedPrice: Number(p.price), // Fallback if no discount logic
-        months: (p.metadata as any)?.months || 1,
-        points: (p.metadata as any)?.points || 0,
-        active: p.active,
-        partners: 0,
-        exclusivePartners: 0
+        discountedPrice: Number(p.price),
+        category: p.type || "Geral",
+        images: p.product_images || []
       }));
     },
     enabled: !!currentTenant?.id
+  });
+
+  const uploadImageMutation = useMutation({
+    mutationFn: async ({ productId, file }: { productId: string, file: File }) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${productId}/${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase
+        .from('product_images')
+        .insert({
+          product_id: productId,
+          url: publicUrl,
+          is_primary: false
+        });
+
+      if (dbError) throw dbError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["core-products"] });
+      toast.success("Imagem enviada com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar imagem: " + error.message);
+    }
+  });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && selectedProduct) {
+      setIsUploading(true);
+      await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
+      setIsUploading(false);
+    }
+  };
+
+  const deleteImageMutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      const { error } = await supabase
+        .from('product_images')
+        .delete()
+        .eq('id', imageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["core-products"] });
+      toast.success("Imagem removida!");
+    }
   });
 
   const { data: storeIntegrations = [] } = useQuery({
@@ -114,7 +171,7 @@ const CoreProducts: React.FC = () => {
     return { connected: !!found, active: !!found?.active };
   };
 
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = products.filter((p: any) => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
     return matchesSearch && matchesCategory;
