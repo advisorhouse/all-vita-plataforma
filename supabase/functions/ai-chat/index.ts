@@ -31,7 +31,7 @@ serve(async (req) => {
       .from("ai_personas")
       .select("*")
       .eq("tenant_id", tenant_id)
-      .eq("is_active", true)
+      .eq("active", true)
       .maybeSingle();
 
     if (personaError) {
