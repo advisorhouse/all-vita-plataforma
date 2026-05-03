@@ -9,7 +9,8 @@ import { QRCodeSVG } from "qrcode.react";
 import {
   TrendingUp, Users, ShieldCheck, Repeat, Coins,
   Clock, Zap, Gift, CreditCard, GraduationCap, Ticket, Wrench,
-  QrCode, Copy, Download, Share2, Check, MessageSquare
+  QrCode, Copy, Download, Share2, Check, MessageSquare,
+  Link2, ClipboardList, Sparkles
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
