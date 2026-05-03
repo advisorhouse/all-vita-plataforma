@@ -165,14 +165,7 @@ const SignupPage: React.FC = () => {
             className="h-16 w-auto mx-auto mb-4 object-contain" 
             style={{ maxHeight: '80px' }}
           />
-          <h1 
-            className="text-2xl font-semibold tracking-tight transition-colors duration-500"
-            style={{ 
-              color: currentTenant?.primary_color 
-                ? (isColorLight(currentTenant.primary_color) ? '#1A1A1A' : 'white') 
-                : 'var(--foreground)'
-            }}
-          >
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Criar conta
           </h1>
           <p 
