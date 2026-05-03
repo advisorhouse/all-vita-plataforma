@@ -98,6 +98,22 @@ const CoreProducts: React.FC = () => {
     enabled: !!currentTenant?.id
   });
 
+  const { data: storeIntegrations = [] } = useQuery({
+    queryKey: ["core-products-integrations", currentTenant?.id],
+    enabled: !!currentTenant?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("integrations")
+        .select("type, active")
+        .eq("tenant_id", currentTenant!.id);
+      return data || [];
+    },
+  });
+  const integrationStatus = (type: string) => {
+    const found = storeIntegrations.find((i: any) => i.type === type);
+    return { connected: !!found, active: !!found?.active };
+  };
+
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
