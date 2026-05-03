@@ -202,12 +202,16 @@ const PublicQuizPage: React.FC = () => {
   useEffect(() => {
     const urlRef = searchParams.get("ref");
     const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
-    const finalRef = (urlRef || stored || doctorCodeParam || null)?.toUpperCase() ?? null;
+    const finalRef = (urlRef || stored || doctorCodeParam || null)?.trim() ?? null;
     setReferralCode(finalRef);
     
     if (finalRef) {
       const loadPartnerName = async () => {
         try {
+          // Normalize the code for searching: upper case and both underscore/hyphen versions
+          const codeUpper = finalRef.toUpperCase();
+          const altCode = codeUpper.includes("_") ? codeUpper.replace(/_/g, "-") : codeUpper.replace(/-/g, "_");
+
           const { data, error } = await supabase
             .from("partners")
             .select(`
@@ -216,13 +220,13 @@ const PublicQuizPage: React.FC = () => {
                 last_name
               )
             `)
-            .eq("referral_code", finalRef)
+            .or(`referral_code.eq.${codeUpper},referral_code.eq.${altCode}`)
             .maybeSingle();
 
           if (data?.profiles) {
             const profile = data.profiles as any;
             const fullName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
-            setDoctorName(toTitleCase(fullName));
+            setDoctorName(fullName);
           } else {
             setDoctorName(toTitleCase(finalRef));
           }
