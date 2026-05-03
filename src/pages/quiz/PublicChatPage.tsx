@@ -358,29 +358,45 @@ const PublicChatPage: React.FC = () => {
           {/* Input */}
           <div className="border-t border-black/5 px-5 py-4 bg-white">
             <div className="flex items-center gap-2 bg-[#F5F2EE] rounded-full px-4 py-2">
+              <button
+                onClick={isRecording ? stopRecording : startRecording}
+                className={cn(
+                  "h-9 w-9 rounded-full flex items-center justify-center transition-all",
+                  isRecording ? "bg-red-500 text-white animate-pulse" : "bg-black/5 text-muted-foreground"
+                )}
+                title={isRecording ? "Parar gravação" : "Gravar áudio"}
+              >
+                {isRecording ? <Square className="h-4 w-4 fill-white" /> : <Mic className="h-4 w-4" />}
+              </button>
+
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Digite sua resposta..."
-                disabled={isTyping}
+                placeholder={isRecording ? "Gravando áudio..." : "Digite sua resposta..."}
+                disabled={isTyping || isRecording}
                 className="flex-1 bg-transparent outline-none text-[14px] placeholder:text-muted-foreground/60 text-foreground disabled:opacity-50"
               />
               <button
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
+                onClick={() => handleSend()}
+                disabled={(!input.trim() && !isRecording) || isTyping || isProcessingAudio}
                 className="h-9 w-9 rounded-full flex items-center justify-center text-white transition-opacity disabled:opacity-40"
                 style={{ backgroundColor: tenantSecondary }}
                 aria-label="Enviar"
               >
-                {isTyping ? (
+                {isTyping || isProcessingAudio ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
               </button>
             </div>
+            {isProcessingAudio && (
+              <p className="text-[10px] text-center mt-2 text-muted-foreground animate-pulse">
+                Processando seu áudio...
+              </p>
+            )}
           </div>
         </motion.div>
 
