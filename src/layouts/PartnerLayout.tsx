@@ -15,10 +15,10 @@ import { usePartnerOnboarding } from "@/hooks/usePartnerOnboarding";
 const partnerLinks = [
   { label: "Dashboard", href: "/partner", icon: Home },
   { label: "Meus Pacientes", href: "/partner/clients", icon: Users },
+  { label: "Parceiros Indicados", href: "/partner/referred-partners", icon: UserPlus },
   { label: "Minha Rede", href: "/partner/network", icon: Network },
   { label: "Meus Pontos", href: "/partner/revenue", icon: CheckSquare },
   { label: "Ranking", href: "/partner/ranking", icon: Trophy },
-  { label: "Parceiros Indicados", href: "/partner/referred-partners", icon: UserPlus },
   { label: "Campanhas", href: "/partner/campaigns", icon: Target },
   { label: "Catálogo", href: "/partner/materials", icon: ShoppingBag },
   { label: "Formação", href: "/partner/formation", icon: GraduationCap },
