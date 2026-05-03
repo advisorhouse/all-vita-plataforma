@@ -98,11 +98,22 @@ serve(async (req) => {
 
       if (voiceResponse.ok) {
         const audioBlob = await voiceResponse.blob();
-        // Here you would typically upload to Supabase Storage and return a URL
-        // For now, we'll return the base64 or placeholder logic
-        // In a real scenario, we'd use: 
-        // const { data: uploadData } = await supabaseAdmin.storage.from('voice-clips').upload(`${crypto.randomUUID()}.mp3`, audioBlob);
-        // voiceUrl = supabaseAdmin.storage.from('voice-clips').getPublicUrl(uploadData.path).data.publicUrl;
+        const fileName = `${crypto.randomUUID()}.mp3`;
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from('voice-clips')
+          .upload(fileName, audioBlob, {
+            contentType: 'audio/mpeg',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+        } else {
+          const { data: { publicUrl } } = supabaseAdmin.storage
+            .from('voice-clips')
+            .getPublicUrl(fileName);
+          voiceUrl = publicUrl;
+        }
       }
     }
 
