@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import {
   Search, ClipboardList, Users, TrendingUp, Coins,
   AlertTriangle, CheckCircle2, ChevronDown, ChevronUp,
-  MessageSquare, Phone, Mail, Eye, Info,
+  MessageSquare, Phone, Mail, Eye, Info, Share2,
+  ShieldCheck, ArrowUpRight, Sparkles, Activity, Star, Zap, Heart, BarChart3,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,12 +13,17 @@ import { Input } from "@/components/ui/input";
 import {
   Tooltip as TooltipUI, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PremiumLinkWidget from "@/components/partner/PremiumLinkWidget";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid,
+  PieChart, Pie, Cell,
+} from "recharts";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
