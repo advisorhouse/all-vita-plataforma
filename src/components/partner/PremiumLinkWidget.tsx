@@ -64,17 +64,17 @@ const PremiumLinkWidget: React.FC<PremiumLinkWidgetProps> = ({ referralCode, ten
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-2xl shadow-lg"
+      className="relative overflow-hidden rounded-2xl shadow-lg text-white"
       style={{
         background:
-          "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.88) 55%, hsl(var(--primary) / 0.72) 100%)",
-        color: "hsl(var(--primary-foreground))",
+          "linear-gradient(135deg, #4F8BF5 0%, #5B95F7 45%, #7AAEFB 100%)",
       }}
     >
-      {/* Decorative orbs */}
-      <div className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.06]"
+      {/* Decorative orbs (top-right + bottom-left like reference) */}
+      <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/15 blur-[2px]" />
+      <div className="pointer-events-none absolute top-10 -right-32 h-72 w-72 rounded-full border-[40px] border-white/10" />
+      <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-white/8 blur-2xl" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.07]"
         style={{
           backgroundImage:
             "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
