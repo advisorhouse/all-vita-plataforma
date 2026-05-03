@@ -72,6 +72,7 @@ const AdminOnboarding: React.FC = () => {
       .single();
 
     if (profile?.onboarding_completed) {
+      const isPartner = memberships.some(m => m.active && m.role === 'partner');
       const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
       const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
@@ -80,6 +81,8 @@ const AdminOnboarding: React.FC = () => {
       let destination = "/auth/login";
       if (isSuperAdmin || platformRole) {
         destination = "/admin";
+      } else if (isPartner) {
+        destination = isSubdomain ? "/partner" : (tenantSlug ? `/${tenantSlug}/partner` : "/partner");
       } else if (hasTenantMemberships && tenantSlug) {
         destination = isSubdomain ? "/core" : `/${tenantSlug}/core`;
       } else if (hasTenantMemberships) {
@@ -166,6 +169,7 @@ const AdminOnboarding: React.FC = () => {
     setLoading(false);
     
     // Extra validation before navigating
+    const isPartner = memberships.some(m => m.active && m.role === 'partner');
     const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
     const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
 
@@ -174,6 +178,8 @@ const AdminOnboarding: React.FC = () => {
     let destination = "/";
     if (isSuperAdmin || platformRole) {
       destination = "/admin";
+    } else if (isPartner) {
+      destination = isSubdomain ? "/partner" : (tenantSlug ? `/${tenantSlug}/partner` : "/partner");
     } else if (hasTenantMemberships && tenantSlug) {
       destination = isSubdomain ? "/core" : `/${tenantSlug}/core`;
     } else if (hasTenantMemberships) {
@@ -295,6 +301,7 @@ const AdminOnboarding: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Button onClick={async () => {
+            const isPartner = memberships.some(m => m.active && m.role === 'partner');
             const hasTenantMemberships = memberships.some(m => m.tenant_id !== null && m.active);
             const tenantSlug = currentTenant?.slug || memberships.find(m => m.tenant_id && m.active)?.tenant?.slug;
             
@@ -303,6 +310,8 @@ const AdminOnboarding: React.FC = () => {
             let destination = "/";
             if (isSuperAdmin || platformRole) {
               destination = "/admin";
+            } else if (isPartner) {
+              destination = isSubdomain ? "/partner" : (tenantSlug ? `/${tenantSlug}/partner` : "/partner");
             } else if (hasTenantMemberships && tenantSlug) {
               destination = isSubdomain ? "/core" : `/${tenantSlug}/core`;
             } else if (hasTenantMemberships) {
