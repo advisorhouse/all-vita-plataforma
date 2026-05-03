@@ -79,48 +79,6 @@ const CLIENTS: Client[] = [
   { id: "CL-012", name: "Roberto Nunes", initials: "RN", email: "roberto@email.com", phone: "(31) 88765-4321", status: "active", plan: "3 meses", activeMonths: 1, totalPoints: 396, monthlyPoints: 396, consistencyScore: 72, engagementScore: 58, riskLevel: "low", lastLogin: "Hoje", nextPayment: "20/03", joinedDate: "Fev/26", contentConsumed: 6, daysStreak: 5, nps: null },
 ];
 
-const GROWTH_DATA = [
-  { month: "Set", ativos: 18, novos: 6, cancelados: 1 },
-  { month: "Out", ativos: 24, novos: 8, cancelados: 2 },
-  { month: "Nov", ativos: 30, novos: 9, cancelados: 3 },
-  { month: "Dez", ativos: 36, novos: 10, cancelados: 4 },
-  { month: "Jan", ativos: 42, novos: 11, cancelados: 5 },
-  { month: "Fev", ativos: 48, novos: 9, cancelados: 3 },
-];
-
-const PLAN_DISTRIBUTION = [
-  { name: "3 meses", value: 18, color: "hsl(var(--muted-foreground))" },
-  { name: "5 meses", value: 22, color: "hsl(217, 91%, 60%)" },
-  { name: "9 meses", value: 8, color: "hsl(var(--accent))" },
-];
-
-const RISK_DISTRIBUTION = [
-  { name: "Estável", value: 32, color: "hsl(var(--accent))" },
-  { name: "Atenção", value: 10, color: "hsl(var(--warning))" },
-  { name: "Risco", value: 6, color: "hsl(var(--destructive))" },
-];
-
-const RETENTION_BY_PLAN = [
-  { plan: "3 meses", clients: 18, retention: 82, avgMonths: 2.8, avgConsistency: 62, avgNps: 6.8, monthlyPoints: 7128, churnRate: 18 },
-  { plan: "5 meses", clients: 22, retention: 94, avgMonths: 4.2, avgConsistency: 84, avgNps: 8.2, monthlyPoints: 11616, churnRate: 6 },
-  { plan: "9 meses", clients: 8, retention: 98, avgMonths: 6.5, avgConsistency: 95, avgNps: 9.6, monthlyPoints: 5576, churnRate: 2 },
-];
-
-const ENGAGEMENT_INSIGHTS = [
-  { metric: "Login médio semanal", value: "4.2x", trend: "+0.8", up: true, icon: Activity },
-  { metric: "Conteúdos consumidos/mês", value: "8.4", trend: "+1.2", up: true, icon: Star },
-  { metric: "Streak médio (dias)", value: "7.8", trend: "+2.1", up: true, icon: Zap },
-  { metric: "NPS médio", value: "8.1", trend: "+0.4", up: true, icon: Heart },
-];
-
-const COHORT_DATA = [
-  { cohort: "Jul/25", m1: 100, m2: 96, m3: 94, m4: 92, m5: 90, m6: 88, m7: 86, m8: 85 },
-  { cohort: "Set/25", m1: 100, m2: 94, m3: 92, m4: 90, m5: 88, m6: 86, m7: null, m8: null },
-  { cohort: "Nov/25", m1: 100, m2: 92, m3: 88, m4: 84, m5: null, m6: null, m7: null, m8: null },
-  { cohort: "Jan/26", m1: 100, m2: 90, m3: null, m4: null, m5: null, m6: null, m7: null, m8: null },
-  { cohort: "Fev/26", m1: 100, m2: null, m3: null, m4: null, m5: null, m6: null, m7: null, m8: null },
-];
-
 const statusConfig: Record<ClientStatus, { label: string; className: string }> = {
   active: { label: "Ativo", className: "bg-accent/10 text-accent" },
   paused: { label: "Pausado", className: "bg-warning/10 text-warning" },
@@ -131,13 +89,6 @@ const riskConfig: Record<RiskLevel, { label: string; icon: React.ElementType; cl
   low: { label: "Estável", icon: CheckCircle2, className: "bg-accent/10 text-accent" },
   medium: { label: "Atenção", icon: AlertTriangle, className: "bg-warning/10 text-warning" },
   high: { label: "Risco", icon: AlertTriangle, className: "bg-destructive/10 text-destructive" },
-};
-
-const tooltipStyle = {
-  background: "hsl(var(--card))",
-  border: "1px solid hsl(var(--border))",
-  borderRadius: "8px",
-  fontSize: "12px",
 };
 
 // removed unused PARTNER_NAME
