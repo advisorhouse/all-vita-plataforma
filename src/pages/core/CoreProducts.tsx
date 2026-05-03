@@ -11,7 +11,7 @@ import {
   ArrowUpDown, Tag, ShoppingBag, Coins,
   Upload, X, Box, Barcode, FileText, Truck,
   Settings2, CheckCircle2, AlertCircle, RefreshCw,
-  Image as ImageIcon
+  Image as ImageIcon, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +70,10 @@ const CoreProducts: React.FC = () => {
   const [showBindPartner, setShowBindPartner] = useState(false);
   const [activeTab, setActiveTab] = useState("products");
   const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["core-products", currentTenant?.id],
@@ -77,25 +81,78 @@ const CoreProducts: React.FC = () => {
       if (!currentTenant?.id) return [];
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("*, product_images(*)")
         .eq("tenant_id", currentTenant.id);
       
       if (error) throw error;
       
       return (data || []).map(p => ({
-        id: p.id,
-        name: p.name,
-        category: p.type || "Geral",
+        ...p,
         price: Number(p.price),
-        discountedPrice: Number(p.price), // Fallback if no discount logic
-        months: (p.metadata as any)?.months || 1,
-        points: (p.metadata as any)?.points || 0,
-        active: p.active,
-        partners: 0,
-        exclusivePartners: 0
+        discountedPrice: Number(p.price),
+        category: p.type || "Geral",
+        images: p.product_images || []
       }));
     },
     enabled: !!currentTenant?.id
+  });
+
+  const uploadImageMutation = useMutation({
+    mutationFn: async ({ productId, file }: { productId: string, file: File }) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${productId}/${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase
+        .from('product_images')
+        .insert({
+          product_id: productId,
+          url: publicUrl,
+          is_primary: false
+        });
+
+      if (dbError) throw dbError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["core-products"] });
+      toast.success("Imagem enviada com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar imagem: " + error.message);
+    }
+  });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && selectedProduct) {
+      setIsUploading(true);
+      await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
+      setIsUploading(false);
+    }
+  };
+
+  const deleteImageMutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      const { error } = await supabase
+        .from('product_images')
+        .delete()
+        .eq('id', imageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["core-products"] });
+      toast.success("Imagem removida!");
+    }
   });
 
   const { data: storeIntegrations = [] } = useQuery({
@@ -114,7 +171,7 @@ const CoreProducts: React.FC = () => {
     return { connected: !!found, active: !!found?.active };
   };
 
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = products.filter((p: any) => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
     return matchesSearch && matchesCategory;
@@ -263,8 +320,15 @@ const CoreProducts: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProducts.map((p) => (
-                      <TableRow key={p.id} className="hover:bg-secondary/20">
+                    {filteredProducts.map((p: any) => (
+                      <TableRow 
+                        key={p.id} 
+                        className="hover:bg-secondary/20 cursor-pointer"
+                        onClick={() => {
+                          setSelectedProduct(p);
+                          setShowAddProduct(true);
+                        }}
+                      >
                         <TableCell className="font-medium text-xs">{p.name}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px] gap-1">
@@ -278,18 +342,13 @@ const CoreProducts: React.FC = () => {
                         <TableCell className="text-right text-xs font-medium text-foreground">
                           R$ {p.discountedPrice.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-center text-xs">{p.months} mês{p.months > 1 ? "es" : ""}</TableCell>
-                        <TableCell className="text-center text-xs font-medium text-accent">{p.points.toLocaleString()}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <span className="text-xs">{p.partners}</span>
-                            {p.exclusivePartners > 0 && (
-                              <Badge variant="outline" className="text-[9px] border-warning/30 text-warning bg-warning/5">
-                                {p.exclusivePartners} excl.
-                              </Badge>
-                            )}
-                          </div>
+                        <TableCell className="text-center text-xs">
+                          {(p.metadata as any)?.months || 1} mês{((p.metadata as any)?.months || 1) > 1 ? "es" : ""}
                         </TableCell>
+                        <TableCell className="text-center text-xs font-medium text-accent">
+                          {((p.metadata as any)?.points || 0).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-center text-xs">0</TableCell>
                         <TableCell className="text-center">
                           {p.active ? (
                             <Badge className="bg-success/10 text-success border-success/20 text-[10px]">Ativo</Badge>
@@ -297,7 +356,7 @@ const CoreProducts: React.FC = () => {
                             <Badge variant="outline" className="text-[10px]">Inativo</Badge>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-7 w-7">
                             <MoreHorizontal className="h-3.5 w-3.5" />
                           </Button>
@@ -454,20 +513,46 @@ const CoreProducts: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      ref={fileInputRef} 
+                      onChange={handleFileUpload} 
+                      accept="image/*"
+                    />
                     <div className="grid grid-cols-4 gap-3">
-                      <div className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/30 transition-colors">
-                        <Upload className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[10px] text-muted-foreground font-medium">Adicionar</span>
+                      <div 
+                        className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/30 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                        ) : (
+                          <Upload className="h-5 w-5 text-muted-foreground" />
+                        )}
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          {isUploading ? "Enviando..." : "Adicionar"}
+                        </span>
                       </div>
-                      {/* Mock images */}
-                      {[1, 2].map((i) => (
-                        <div key={i} className="aspect-square rounded-xl border border-border bg-secondary/20 relative group overflow-hidden">
+                      
+                      {selectedProduct?.images?.map((img: any) => (
+                        <div key={img.id} className="aspect-square rounded-xl border border-border bg-secondary/20 relative group overflow-hidden">
+                          <img 
+                            src={img.url} 
+                            alt="Produto" 
+                            className="w-full h-full object-cover"
+                          />
                           <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="destructive" size="icon" className="h-5 w-5 rounded-md">
+                            <Button 
+                              variant="destructive" 
+                              size="icon" 
+                              className="h-5 w-5 rounded-md"
+                              onClick={() => deleteImageMutation.mutate(img.id)}
+                            >
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
-                          {i === 1 && (
+                          {img.is_primary && (
                             <div className="absolute bottom-1 left-1">
                               <Badge className="text-[8px] h-4 bg-accent/90">Principal</Badge>
                             </div>
