@@ -168,14 +168,7 @@ const SignupPage: React.FC = () => {
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Criar conta
           </h1>
-          <p 
-            className="text-sm mt-1 transition-colors duration-500"
-            style={{ 
-              color: currentTenant?.primary_color 
-                ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)') 
-                : 'var(--muted-foreground)'
-            }}
-          >
+          <p className="text-sm mt-1 text-muted-foreground">
             Complete seu cadastro para acessar a {currentTenant?.trade_name || currentTenant?.name || "All Vita"}
           </p>
         </div>
