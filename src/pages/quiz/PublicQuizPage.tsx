@@ -292,8 +292,9 @@ const PublicQuizPage: React.FC = () => {
     if (step === 3) return !!data.lastVisit;
     if (step === 4) return !!data.supplements;
     if (step === 5) return !!data.uvExposure;
-    if (step === 6) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 11) return data.consentDataUsage;
+    if (step === 6) return true; // Result step is always reachable now
+    // Form validation moved to specific steps if needed in future
+    return true;
     return true;
   };
 
