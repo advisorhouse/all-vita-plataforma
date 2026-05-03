@@ -373,7 +373,7 @@ const CoreProducts: React.FC = () => {
 
       {/* ── Add/Edit Product Modal (Robust Shopify-like) ── */}
       <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[95vw] w-full lg:max-w-6xl h-[95vh] p-0 overflow-hidden flex flex-col">
           <DialogHeader className="p-6 pb-0">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-lg bg-accent/10">
