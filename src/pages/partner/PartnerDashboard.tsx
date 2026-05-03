@@ -196,8 +196,8 @@ const PartnerDashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* ═══ ROW 2 — Link & QR Code ═══ */}
-        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+        {/* ═══ ROW 2 — Links & QR Code ═══ */}
+        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="space-y-4">
           <Card className="border-border shadow-sm overflow-hidden bg-white">
             <CardContent className="p-0">
               <div className="flex flex-col md:flex-row">
