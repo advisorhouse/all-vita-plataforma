@@ -16,6 +16,11 @@ import {
   Tooltip as TooltipUI, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { useAuth } from "@/contexts/AuthContext";
+import PremiumLinkWidget from "@/components/partner/PremiumLinkWidget";
 import {
   BarChart, Bar,
   XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid,
@@ -150,6 +155,23 @@ const PartnerClients: React.FC = () => {
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const { currentTenant } = useTenant();
+  const { user } = useAuth();
+
+  const { data: partnerData } = useQuery({
+    queryKey: ["partner-link-data", currentTenant?.id, user?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id || !user?.id) return null;
+      const { data } = await supabase
+        .from("partners")
+        .select("referral_code")
+        .eq("user_id", user.id)
+        .eq("tenant_id", currentTenant.id)
+        .single();
+      return data;
+    },
+    enabled: !!currentTenant?.id && !!user?.id
+  });
 
   const activeClients = CLIENTS.filter((c) => c.status === "active").length;
   const riskClients = CLIENTS.filter((c) => c.riskLevel === "high").length;
@@ -193,6 +215,12 @@ const PartnerClients: React.FC = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* ═══ Link & QR Widget ═══ */}
+        <PremiumLinkWidget 
+          referralCode={partnerData?.referral_code}
+          tenantLogo={currentTenant?.logo_url}
+        />
 
         {/* ═══ ROW 1 — Hero Card (8) + Side KPIs (4) ═══ */}
         <div className="grid grid-cols-12 gap-4">

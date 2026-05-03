@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -198,11 +199,29 @@ const PartnerDashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* ═══ ROW 2 — Premium Link Widget ═══ */}
-        <PremiumLinkWidget
-          referralCode={partnerData?.referralCode}
-          tenantLogo={currentTenant?.logo_url}
-        />
+        {/* ═══ Link Widget Shortcut ═══ */}
+        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+          <Card 
+            className="cursor-pointer border-accent/20 bg-accent/5 hover:bg-accent/10 transition-all group overflow-hidden"
+            onClick={() => navigate("/partner/clients")}
+          >
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 group-hover:scale-110 transition-transform">
+                  <Share2 className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">Compartilhar meu Canal</h3>
+                  <p className="text-sm text-muted-foreground">Acesse seus links exclusivos e QR Codes para vincular pacientes.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 font-bold text-accent group-hover:translate-x-1 transition-transform">
+                Acessar
+                <ArrowRight className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* ═══ ROW 3 — Wallet Médica ═══ */}
 
