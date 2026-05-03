@@ -9,7 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import {
   TrendingUp, Users, ShieldCheck, Repeat, Coins,
   Clock, Zap, Gift, CreditCard, GraduationCap, Ticket, Wrench,
-  QrCode, Copy, Download, Share2, Check
+  QrCode, Copy, Download, Share2, Check, MessageSquare
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -196,8 +196,8 @@ const PartnerDashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* ═══ ROW 2 — Link & QR Code ═══ */}
-        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+        {/* ═══ ROW 2 — Links & QR Code ═══ */}
+        <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="space-y-4">
           <Card className="border-border shadow-sm overflow-hidden bg-white">
             <CardContent className="p-0">
               <div className="flex flex-col md:flex-row">
@@ -260,35 +260,70 @@ const PartnerDashboard: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Link Section */}
-                <div className="flex-1 p-6 flex flex-col justify-center">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                      <Share2 className="h-4 w-4 text-accent" />
+                {/* Links Section */}
+                <div className="flex-1 p-6 space-y-6 flex flex-col justify-center">
+                  {/* Quiz Link */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <Share2 className="h-4 w-4 text-accent" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Link do Quiz (Seleção)</h3>
+                        <p className="text-[11px] text-muted-foreground">O quiz tradicional para triagem de pacientes.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-foreground">Seu Link Personalizado</h3>
-                      <p className="text-[11px] text-muted-foreground">Compartilhe este link para vincular novos pacientes.</p>
+                    
+                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                      <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-secondary/50 rounded-lg border border-border overflow-hidden">
+                        <p className="text-xs font-medium text-foreground truncate flex-1">
+                          {window.location.origin}/quiz/{partnerData?.referralCode || "..."}
+                        </p>
+                      </div>
+                      <Button 
+                        className="gap-2 bg-accent hover:bg-accent/90 shrink-0"
+                        onClick={() => {
+                          const link = `${window.location.origin}/quiz/${partnerData?.referralCode}`;
+                          navigator.clipboard.writeText(link);
+                          toast.success("Link do Quiz copiado!");
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copiar Quiz
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-secondary/50 rounded-lg border border-border overflow-hidden">
-                      <p className="text-xs font-medium text-foreground truncate flex-1">
-                        {window.location.origin}/quiz/{partnerData?.referralCode || "..."}
-                      </p>
+
+                  {/* Chat Link */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-8 w-8 rounded-lg bg-[#5551FF]/10 flex items-center justify-center">
+                        <MessageSquare className="h-4 w-4 text-[#5551FF]" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Link do Chat (IA)</h3>
+                        <p className="text-[11px] text-muted-foreground">Assistente de inteligência artificial personalizada.</p>
+                      </div>
                     </div>
-                    <Button 
-                      className="gap-2 bg-accent hover:bg-accent/90 shrink-0"
-                      onClick={() => {
-                        const link = `${window.location.origin}/quiz/${partnerData?.referralCode}`;
-                        navigator.clipboard.writeText(link);
-                        toast.success("Link copiado com sucesso!");
-                      }}
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      Copiar Link
-                    </Button>
+                    
+                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                      <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-[#5551FF]/5 rounded-lg border border-[#5551FF]/10 overflow-hidden">
+                        <p className="text-xs font-medium text-foreground truncate flex-1">
+                          {window.location.origin}/chat/{partnerData?.referralCode || "..."}
+                        </p>
+                      </div>
+                      <Button 
+                        className="gap-2 bg-[#5551FF] hover:bg-[#5551FF]/90 shrink-0 border-none"
+                        onClick={() => {
+                          const link = `${window.location.origin}/chat/${partnerData?.referralCode}`;
+                          navigator.clipboard.writeText(link);
+                          toast.success("Link do Chat copiado!");
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copiar Chat
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
