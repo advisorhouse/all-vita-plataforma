@@ -1215,7 +1215,7 @@ const PartnerNetwork: React.FC = () => {
         </div>
 
         {/* ═══ ROW 3 — Network Tree (full width) ═══ */}
-        <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible" className="relative z-10">
           <NetworkTreeView nodes={networkTree} partner={partner} stats={stats} />
         </motion.div>
 
