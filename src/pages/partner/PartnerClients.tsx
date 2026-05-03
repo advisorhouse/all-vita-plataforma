@@ -16,6 +16,11 @@ import {
   Tooltip as TooltipUI, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { useAuth } from "@/contexts/AuthContext";
+import PremiumLinkWidget from "@/components/partner/PremiumLinkWidget";
 import {
   BarChart, Bar,
   XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid,
