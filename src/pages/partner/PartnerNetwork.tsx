@@ -310,7 +310,7 @@ const ProgressionWidget: React.FC<{ partner: any; stats: any }> = ({ partner, st
         <div className={cn("p-5 relative overflow-hidden", current.bg)}>
           <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full opacity-20" style={{ background: "currentColor" }} />
           <div className="relative z-10 flex items-center gap-4">
-            <div className={cn("flex h-14 w-14 items-center justify-center rounded-2xl ring-2 bg-white/80", current.ring)}>
+            <div className={cn("flex h-14 w-14 items-center justify-center rounded-2xl ring-2 bg-background/80", current.ring)}>
               <CurrentIcon className={cn("h-7 w-7", current.color)} />
             </div>
             <div className="flex-1">
