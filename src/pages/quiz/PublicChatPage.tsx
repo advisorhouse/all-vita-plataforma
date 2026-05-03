@@ -177,6 +177,11 @@ const PublicChatPage: React.FC = () => {
           <h1 className="text-[30px] font-bold text-[#1a1a1a] leading-tight">
             Diagnóstico Visual Personalizado
           </h1>
+          {partnerName && (
+            <p className="text-[14px] text-accent font-semibold mt-2">
+              {partnerName} recomendou esta avaliação
+            </p>
+          )}
           <p className="text-[14px] text-muted-foreground mt-2 max-w-[520px] mx-auto leading-relaxed">
             Converse com a {attendantName} e descubra seu nível de proteção ocular em menos de 3 minutos.
           </p>
