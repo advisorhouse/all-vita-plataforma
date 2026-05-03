@@ -36,15 +36,18 @@ const PublicChatPage: React.FC = () => {
   useEffect(() => {
     const fetchPartner = async (code: string) => {
       try {
+        const codeUpper = code.toUpperCase();
+        const altCode = codeUpper.includes("_") ? codeUpper.replace(/_/g, "-") : codeUpper.replace(/-/g, "_");
+
         const { data, error } = await supabase
           .from("partners")
           .select("referral_code, profiles(first_name, last_name)")
-          .eq("referral_code", code.toUpperCase())
-          .single();
+          .or(`referral_code.eq.${codeUpper},referral_code.eq.${altCode}`)
+          .maybeSingle();
 
         if (data && data.profiles) {
           const profile = data.profiles as any;
-          setPartnerName(`${profile.first_name} ${profile.last_name}`);
+          setPartnerName(`${profile.first_name || ""} ${profile.last_name || ""}`.trim());
         }
       } catch (err) {
         console.error("Error fetching partner details:", err);
@@ -53,7 +56,7 @@ const PublicChatPage: React.FC = () => {
 
     const urlRef = searchParams.get("ref");
     const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
-    const finalRef = (urlRef || stored || doctorCode || null)?.toUpperCase() ?? null;
+    const finalRef = (urlRef || stored || doctorCode || null)?.trim() ?? null;
     
     setReferralCode(finalRef);
     if (finalRef) {
