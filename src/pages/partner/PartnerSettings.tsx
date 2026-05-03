@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Mail, Phone, Camera, Shield, Lock, CreditCard,
   Landmark, FileText, Eye, EyeOff, CheckCircle2, Copy,
   Sun, Moon, CloudSun, Info, ChevronRight, Upload,
   Smartphone, Key, Download, Calendar, DollarSign,
-  Settings, MapPin, Hash, Building,
+  Settings, MapPin, Hash, Building, Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,9 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -56,6 +59,59 @@ const PartnerSettings: React.FC = () => {
   const greeting = getGreeting();
   const GreetingIcon = greeting.Icon;
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!user?.id) throw new Error("Usuário não autenticado");
+
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+      return publicUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast({ title: "Sucesso", description: "Foto de perfil atualizada!" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro", description: error.message || "Falha ao enviar imagem.", variant: "destructive" });
+    },
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadMutation.mutate(file);
+  };
 
   const [showCPF, setShowCPF] = useState(false);
   const [showPix, setShowPix] = useState(false);
@@ -98,23 +154,49 @@ const PartnerSettings: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center gap-5">
                 <div className="relative group">
-                  <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center text-accent-foreground text-2xl font-bold">
-                    CS
+                  <div className="h-20 w-20 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden border border-border">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center text-accent-foreground text-2xl font-bold">
+                        {profile?.first_name?.[0] || profile?.email?.[0]?.toUpperCase() || "U"}
+                      </div>
+                    )}
                   </div>
-                  <button className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera className="h-5 w-5 text-white" />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadMutation.isPending}
+                    className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                  >
+                    {uploadMutation.isPending ? <Loader2 className="h-5 w-5 text-white animate-spin" /> : <Camera className="h-5 w-5 text-white" />}
                   </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[18px] font-bold text-foreground">Camila Santos</h2>
-                    <Badge variant="secondary" className="text-[9px] bg-accent/10 text-accent border-0">Partner Ouro</Badge>
+                    <h2 className="text-[18px] font-bold text-foreground truncate">
+                      {profile ? `${profile.first_name || ""} ${profile.last_name || ""}` : "Carregando..."}
+                    </h2>
+                    <Badge variant="secondary" className="text-[9px] bg-accent/10 text-accent border-0 shrink-0">Partner Ouro</Badge>
                   </div>
-                  <p className="text-[12px] text-muted-foreground mt-0.5">camila.santos@email.com</p>
+                  <p className="text-[12px] text-muted-foreground mt-0.5 truncate">{profile?.email}</p>
                   <p className="text-[11px] text-muted-foreground">Membro desde Out/2025 · ID: VL-P-00847</p>
                 </div>
-                <Button variant="outline" size="sm" className="text-[12px]">
-                  <Upload className="h-3.5 w-3.5 mr-1.5" /> Alterar foto
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-[12px] hidden sm:flex"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadMutation.isPending}
+                >
+                  {uploadMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1.5" />}
+                  Alterar foto
                 </Button>
               </div>
             </CardContent>
@@ -136,15 +218,28 @@ const PartnerSettings: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground">Nome completo</Label>
-                  <Input defaultValue="Camila Santos de Oliveira" className="text-[13px]" />
+                  <Input 
+                    value={`${profile?.first_name || ""} ${profile?.last_name || ""}`} 
+                    readOnly
+                    className="text-[13px] bg-secondary/30" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground">E-mail</Label>
-                  <Input defaultValue="camila.santos@email.com" type="email" className="text-[13px]" />
+                  <Input 
+                    value={profile?.email || ""} 
+                    readOnly
+                    type="email" 
+                    className="text-[13px] bg-secondary/30" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground">Telefone / WhatsApp</Label>
-                  <Input defaultValue="(11) 98765-4321" className="text-[13px]" />
+                  <Input 
+                    value={profile?.phone || ""} 
+                    readOnly
+                    className="text-[13px] bg-secondary/30" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground flex items-center gap-1.5">
