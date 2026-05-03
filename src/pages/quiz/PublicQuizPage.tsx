@@ -12,12 +12,7 @@ import { toast } from "sonner";
 import { useTenant } from "@/contexts/TenantContext";
 import { toTitleCase } from "@/lib/utils";
 
-import QuizStepIdentification from "@/components/quiz/QuizStepIdentification";
-import QuizStepHealth from "@/components/quiz/QuizStepHealth";
-import QuizStepMedications from "@/components/quiz/QuizStepMedications";
-import QuizStepOphthalmology from "@/components/quiz/QuizStepOphthalmology";
-import QuizStepReason from "@/components/quiz/QuizStepReason";
-import QuizStepConsent from "@/components/quiz/QuizStepConsent";
+// Form steps identification, health, medications, etc removed as per user request
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
 import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
 import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
@@ -80,12 +75,6 @@ const STEPS_META = [
   { label: "Última visita" },
   { label: "Suplementos" },
   { label: "Exposição UV" },
-  { label: "Identificação" },
-  { label: "Saúde" },
-  { label: "Medicações" },
-  { label: "Especializado" },
-  { label: "Consulta" },
-  { label: "Consentimento" },
   { label: "Resultado" },
 ];
 
@@ -151,7 +140,7 @@ const DEFAULT_HEADER = {
   subtitle: "Complete este diagnóstico complementar para que seu protocolo de proteção seja personalizado ao seu perfil clínico",
   question_title: "Vamos começar pelo dia a dia — quanto tempo você passa olhando para telas?",
   question_subtitle: "Pode ser computador, celular, tablet ou TV. Soma tudo, sem culpa.",
-  badges: ["Dados criptografados", "LGPD compliant", "Validado por oftalmologistas"],
+  badges: ["Seus dados estão protegidos", "LGPD compliant", "Validado por oftalmologistas"],
 };
 
 const PublicQuizPage: React.FC = () => {
@@ -298,8 +287,9 @@ const PublicQuizPage: React.FC = () => {
     if (step === 3) return !!data.lastVisit;
     if (step === 4) return !!data.supplements;
     if (step === 5) return !!data.uvExposure;
-    if (step === 6) return !!(data.fullName && data.cpf && data.phone && data.email);
-    if (step === 11) return data.consentDataUsage;
+    if (step === 6) return true; // Result step is always reachable now
+    // Form validation moved to specific steps if needed in future
+    return true;
     return true;
   };
 
@@ -346,12 +336,10 @@ const PublicQuizPage: React.FC = () => {
     }
   };
 
-  // Auto submit when reaching the result step
+  // No automatic submission needed for now as identification step was removed
+  // If we want to capture data, we should add a lead capture step later.
   useEffect(() => {
-    if (step === 12 && !submitted && !submitting) {
-      handleSubmit();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Logic for auto-submit if necessary
   }, [step]);
 
 
@@ -461,13 +449,7 @@ const PublicQuizPage: React.FC = () => {
                   onChange={(v) => update({ uvExposure: v })}
                 />
               )}
-              {step === 6 && <QuizStepIdentification data={data} update={update} />}
-              {step === 7 && <QuizStepHealth data={data} update={update} />}
-              {step === 8 && <QuizStepMedications data={data} update={update} />}
-              {step === 9 && <QuizStepOphthalmology data={data} update={update} />}
-              {step === 10 && <QuizStepReason data={data} update={update} />}
-              {step === 11 && <QuizStepConsent data={data} update={update} />}
-              {step === 12 && (
+              {step === 6 && (
                 <QuizStepResult
                   score={computeProtectionScore(data, config.scoreWeights, {
                     screenTime: config.options,
@@ -494,7 +476,7 @@ const PublicQuizPage: React.FC = () => {
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 12 && (
+          {step < 6 && (
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
               <Button
                 variant="ghost"
