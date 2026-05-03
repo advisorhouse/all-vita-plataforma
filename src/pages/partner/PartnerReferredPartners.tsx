@@ -180,17 +180,11 @@ const PartnerReferredPartners: React.FC = () => {
                 Acompanhe os colegas que você indicou e os pontos gerados pela rede deles.
               </p>
             </div>
-            <Button 
-              onClick={() => setIsModalOpen(true)}
-              className="rounded-xl h-10 px-5 text-[13px] font-semibold gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              Convidar Colega
-            </Button>
+            <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
+              <Tip text="Visão detalhada dos parceiros indicados por você e o desempenho da rede de cada um." />
+            </div>
           </div>
         </motion.div>
-
-        <RegisterPartnerNetworkModal open={isModalOpen} onOpenChange={setIsModalOpen} />
 
         {/* KPIs */}
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
@@ -215,64 +209,6 @@ const PartnerReferredPartners: React.FC = () => {
               </Card>
             ))}
           </div>
-        </motion.div>
-
-        {/* Invite CTA */}
-        <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
-          <Card className="relative overflow-hidden border-accent/30 shadow-sm bg-gradient-to-br from-accent via-accent/90 to-accent/70">
-            <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-white/10" />
-            <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-white/5" />
-            <CardContent className="relative z-10 p-6 text-accent-foreground">
-              <div className="flex items-center gap-2 mb-2">
-                <UserPlus className="h-5 w-5" />
-                <h2 className="text-[15px] font-bold">Indique um colega médico</h2>
-              </div>
-              <p className="text-[12px] text-accent-foreground/70 mb-4 max-w-lg">
-                Quando um colega que você indicou cadastra pacientes e gera vendas, <strong className="text-accent-foreground">você recebe 10% dos pontos dele automaticamente</strong>.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex-1 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2.5 border border-white/20">
-                  <Link2 className="h-4 w-4 text-accent-foreground/50 shrink-0" />
-                  <span className="text-[12px] text-accent-foreground/80 truncate font-mono">{REFERRAL_LINK}</span>
-                </div>
-                <Button onClick={handleCopy} className="rounded-xl h-10 px-5 text-[13px] font-semibold bg-white text-accent hover:bg-white/90 gap-2 shrink-0">
-                  {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {copied ? "Copiado!" : "Copiar"}
-                </Button>
-                <a href={`https://wa.me/?text=${shareMessage}`} target="_blank" rel="noopener noreferrer">
-                  <Button className="rounded-xl h-10 px-5 text-[13px] font-semibold bg-[hsl(142,70%,49%)] hover:bg-[hsl(142,70%,42%)] text-white gap-2 w-full sm:w-auto">
-                    <Smartphone className="h-4 w-4" /> WhatsApp
-                  </Button>
-                </a>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* How it works */}
-        <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
-          <Card className="border-border shadow-sm">
-            <CardContent className="p-5">
-              <h3 className="text-[13px] font-semibold text-foreground mb-3">Como funciona a rede de indicações</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { step: "1", title: "Você indica", desc: "Envie o link para um colega médico se cadastrar na plataforma.", icon: Share2 },
-                  { step: "2", title: "Colega vende", desc: "O médico indicado cadastra pacientes via quiz e gera vendas normalmente.", icon: Stethoscope },
-                  { step: "3", title: "Você ganha", desc: "A cada venda do paciente dele, você recebe 10% dos pontos gerados automaticamente.", icon: Coins },
-                ].map(({ step, title, desc, icon: Icon }) => (
-                  <div key={step} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent text-[12px] font-bold">
-                      {step}
-                    </div>
-                    <div>
-                      <p className="text-[12px] font-semibold text-foreground">{title}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </motion.div>
 
         {/* Partners Table */}
