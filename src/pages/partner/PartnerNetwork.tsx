@@ -263,7 +263,7 @@ const PartnerLevelExplainer: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white/50 rounded-xl p-3 border border-accent/10 space-y-2">
+        <div className="bg-muted/50 rounded-xl p-3 border border-accent/10 space-y-2">
           <h4 className="text-[12px] font-bold text-foreground flex items-center gap-1.5">
             <Lightbulb className="h-3.5 w-3.5 text-warning" /> Dica de Ouro
           </h4>
