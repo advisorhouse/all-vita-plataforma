@@ -1,0 +1,1 @@
+UPDATE public.ai_personas SET voice_id = 'EXAVITQu4vr4xnSDxMaL' WHERE tenant_id IN ('6a1818ae-5225-4a38-8f95-6c254dec0580', '955bb0a7-7a89-4cf0-9938-8d139b3c5d07');
