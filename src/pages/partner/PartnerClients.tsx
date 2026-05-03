@@ -404,21 +404,6 @@ const PartnerClients: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* ═══ ROW 7 — Insight ═══ */}
-        <motion.div custom={11} variants={fadeUp} initial="hidden" animate="visible">
-          <Card className="border-border shadow-sm bg-accent/5">
-            <CardContent className="p-5 space-y-2">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-accent" />
-                <h3 className="text-[13px] font-semibold text-foreground">Insight da Semana</h3>
-              </div>
-              <p className="text-[12px] text-muted-foreground leading-relaxed">
-                Clientes com consistência acima de 80% têm <strong className="text-foreground">3x menos chance</strong> de cancelamento.
-                Foque em engajar Carla R., Fernanda L. e Patrícia D. — um simples "como vai sua rotina?" pode fazer toda a diferença.
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
     </TooltipProvider>
   );
