@@ -110,52 +110,88 @@ const PremiumLinkWidget: React.FC<PremiumLinkWidgetProps> = ({ referralCode, ten
           <span className="font-semibold text-white">automaticamente</span>. Toda compra futura gera Vitacoins para você.
         </p>
 
-        {/* Channel selector */}
-        <div className="mt-5 inline-flex items-center gap-1 rounded-full bg-black/15 backdrop-blur-sm p-1 ring-1 ring-white/10">
-          {([
-            { id: "quiz", label: "Quiz", icon: ClipboardList },
-            { id: "chat", label: "Chat IA", icon: MessageSquare },
-          ] as const).map(({ id, label, icon: Icon }) => {
-            const active = channel === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setChannel(id)}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                  active
-                    ? "bg-white text-foreground shadow-sm"
-                    : "text-white/80 hover:text-white"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-                {label}
-              </button>
-            );
-          })}
+        {/* Channel selector — clearer cards with description */}
+        <div className="mt-5">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-white/70 font-semibold mb-2">
+            Escolha o formato de envio
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {([
+              {
+                id: "quiz",
+                label: "Quiz Tradicional",
+                desc: "Formulário guiado com perguntas objetivas de saúde.",
+                icon: ClipboardList,
+              },
+              {
+                id: "chat",
+                label: "Chat com IA",
+                desc: "Conversa natural com assistente inteligente.",
+                icon: MessageSquare,
+              },
+            ] as const).map(({ id, label, desc, icon: Icon }) => {
+              const active = channel === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setChannel(id)}
+                  className={`group flex items-start gap-3 rounded-xl px-3.5 py-3 text-left transition-all border ${
+                    active
+                      ? "bg-white text-foreground border-white shadow-md"
+                      : "bg-white/8 text-white border-white/15 hover:bg-white/15"
+                  }`}
+                >
+                  <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                    active ? "bg-[#4F8BF5]/10" : "bg-white/15"
+                  }`}>
+                    <Icon className={`h-4 w-4 ${active ? "text-[#4F8BF5]" : "text-white"}`} strokeWidth={1.8} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-bold leading-tight">{label}</p>
+                      {active && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#4F8BF5] bg-[#4F8BF5]/10 px-1.5 py-0.5 rounded">
+                          Selecionado
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-[11px] mt-0.5 leading-snug ${active ? "text-muted-foreground" : "text-white/75"}`}>
+                      {desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Mode tabs (Link / QR) */}
-        <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-white/10 backdrop-blur-sm p-1 ml-2 ring-1 ring-white/10">
-          {([
-            { id: "link", label: "Link", icon: Link2 },
-            { id: "qr", label: "QR Code", icon: QrCode },
-          ] as const).map(({ id, label, icon: Icon }) => {
-            const active = mode === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setMode(id)}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                  active
-                    ? "bg-white text-foreground shadow-sm"
-                    : "text-white/80 hover:text-white"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-                {label}
-              </button>
-            );
-          })}
+        <div className="mt-4">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-white/70 font-semibold mb-2">
+            Como compartilhar
+          </p>
+          <div className="inline-flex items-center gap-1 rounded-full bg-white/12 backdrop-blur-sm p-1 ring-1 ring-white/15">
+            {([
+              { id: "link", label: "Link", icon: Link2 },
+              { id: "qr", label: "QR Code", icon: QrCode },
+            ] as const).map(({ id, label, icon: Icon }) => {
+              const active = mode === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setMode(id)}
+                  className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                    active
+                      ? "bg-white text-foreground shadow-sm"
+                      : "text-white/85 hover:text-white"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Body */}
