@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, ShieldCheck, Send, Loader2 } from "lucide-react";
+import { Eye, ShieldCheck, Send, Loader2, Mic, Square, Volume2 } from "lucide-react";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
