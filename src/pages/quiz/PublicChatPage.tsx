@@ -91,8 +91,77 @@ const PublicChatPage: React.FC = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = async () => {
-    const text = input.trim();
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        await handleAudioSend(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      toast.error("Não foi possível acessar o microfone.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const handleAudioSend = async (blob: Blob) => {
+    setIsProcessingAudio(true);
+    try {
+      // 1. Convert Audio to Text using OpenAI Whisper (via Edge Function or direct if preferred)
+      // For now, we'll implement the UI and the placeholder for the actual transcription
+      // In a real implementation, we'd upload this blob to an Edge Function
+      
+      const formData = new FormData();
+      formData.append('file', blob);
+      formData.append('tenant_id', currentTenant?.id || '');
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat-voice`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Erro ao processar áudio");
+
+      const data = await response.json();
+      if (data.text) {
+        setInput(data.text);
+        // Auto-send the transcribed text
+        await handleSend(data.text);
+      }
+    } catch (error) {
+      console.error("Audio processing error:", error);
+      toast.error("Erro ao converter áudio em texto.");
+    } finally {
+      setIsProcessingAudio(false);
+    }
+  };
+
+  const handleSend = async (overrideText?: string) => {
+    const text = overrideText || input.trim();
     if (!text || isTyping || !currentTenant?.id) return;
     
     const userMsg: ChatMessage = {
