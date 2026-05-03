@@ -6,7 +6,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import {
   ShoppingCart, CreditCard, Brain, Mic, Settings2,
   CheckCircle2, XCircle, Loader2, ExternalLink, Plug,
-  Key, Globe, RefreshCw, ChevronRight, Truck, ScrollText
+  Key, Globe, RefreshCw, ChevronRight, Truck, ScrollText,
+  Box
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
