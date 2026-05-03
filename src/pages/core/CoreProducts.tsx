@@ -11,7 +11,7 @@ import {
   ArrowUpDown, Tag, ShoppingBag, Coins,
   Upload, X, Box, Barcode, FileText, Truck,
   Settings2, CheckCircle2, AlertCircle, RefreshCw,
-  Image as ImageIcon
+  Image as ImageIcon, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
