@@ -341,12 +341,10 @@ const PublicQuizPage: React.FC = () => {
     }
   };
 
-  // Auto submit when reaching the result step
+  // No automatic submission needed for now as identification step was removed
+  // If we want to capture data, we should add a lead capture step later.
   useEffect(() => {
-    if (step === 12 && !submitted && !submitting) {
-      handleSubmit();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Logic for auto-submit if necessary
   }, [step]);
 
 
