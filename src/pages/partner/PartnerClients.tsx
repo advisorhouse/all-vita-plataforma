@@ -155,6 +155,23 @@ const PartnerClients: React.FC = () => {
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const { currentTenant } = useTenant();
+  const { user } = useAuth();
+
+  const { data: partnerData } = useQuery({
+    queryKey: ["partner-link-data", currentTenant?.id, user?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id || !user?.id) return null;
+      const { data } = await supabase
+        .from("partners")
+        .select("referral_code")
+        .eq("user_id", user.id)
+        .eq("tenant_id", currentTenant.id)
+        .single();
+      return data;
+    },
+    enabled: !!currentTenant?.id && !!user?.id
+  });
 
   const activeClients = CLIENTS.filter((c) => c.status === "active").length;
   const riskClients = CLIENTS.filter((c) => c.riskLevel === "high").length;
