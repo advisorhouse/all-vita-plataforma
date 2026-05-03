@@ -59,6 +59,59 @@ const PartnerSettings: React.FC = () => {
   const greeting = getGreeting();
   const GreetingIcon = greeting.Icon;
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!user?.id) throw new Error("Usuário não autenticado");
+
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+      return publicUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast({ title: "Sucesso", description: "Foto de perfil atualizada!" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro", description: error.message || "Falha ao enviar imagem.", variant: "destructive" });
+    },
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadMutation.mutate(file);
+  };
 
   const [showCPF, setShowCPF] = useState(false);
   const [showPix, setShowPix] = useState(false);
