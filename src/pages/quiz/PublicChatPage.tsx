@@ -25,6 +25,11 @@ const PublicChatPage: React.FC = () => {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(true); // Default to voice enabled if hardware allows
 
   // Configuration (placeholder — will be tenant-configurable later)
   const attendantName = "Dra. Marina";
