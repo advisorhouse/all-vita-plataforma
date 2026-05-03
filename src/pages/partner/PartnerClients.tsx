@@ -216,6 +216,12 @@ const PartnerClients: React.FC = () => {
           </div>
         </motion.div>
 
+        {/* ═══ Link & QR Widget ═══ */}
+        <PremiumLinkWidget 
+          referralCode={partnerData?.referral_code}
+          tenantLogo={currentTenant?.logo_url}
+        />
+
         {/* ═══ ROW 1 — Hero Card (8) + Side KPIs (4) ═══ */}
         <div className="grid grid-cols-12 gap-4">
           {/* Hero — Accent gradient */}
