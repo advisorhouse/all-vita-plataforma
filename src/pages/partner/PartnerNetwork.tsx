@@ -169,6 +169,17 @@ interface NetworkNode {
   commissionRate: number;
 }
 
+interface AIPrediction {
+  projected_mrr_3m: number;
+  projected_mrr_12m: number;
+  churn_probability: number;
+  avg_ltv: number;
+  confidence_score: number;
+  insights: string[];
+  recommendations: string[];
+}
+
+
 const NETWORK_TREE: NetworkNode[] = [
   { name: "Maria Silva", initials: "MS", status: "active", months: 8, plan: "9 meses", revenue: 5593, consistency: 96, joinedDate: "Jul/25", lastPurchase: "28/02/26", nextRenewal: "15/03/26", commissionRate: 18 },
   { name: "Ana Paula Costa", initials: "AC", status: "active", months: 6, plan: "5 meses", revenue: 2685, consistency: 92, joinedDate: "Set/25", lastPurchase: "20/02/26", nextRenewal: "20/03/26", commissionRate: 15 },
