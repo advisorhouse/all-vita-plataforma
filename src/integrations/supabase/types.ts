@@ -114,6 +114,7 @@ export type Database = {
       }
       ai_personas: {
         Row: {
+          active: boolean | null
           avatar_url: string | null
           created_at: string
           id: string
@@ -126,6 +127,7 @@ export type Database = {
           use_emojis: boolean | null
         }
         Insert: {
+          active?: boolean | null
           avatar_url?: string | null
           created_at?: string
           id?: string
@@ -138,6 +140,7 @@ export type Database = {
           use_emojis?: boolean | null
         }
         Update: {
+          active?: boolean | null
           avatar_url?: string | null
           created_at?: string
           id?: string
