@@ -186,66 +186,43 @@ const PartnerClients: React.FC = () => {
                 Panorama completo dos seus pacientes vinculados e desempenho.
               </p>
             </div>
-            <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
-              <Info className="h-3 w-3 text-muted-foreground" />
-              <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Quiz</span></p>
-              <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo quiz foi preenchido por último." />
+            <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
+                <Info className="h-3 w-3 text-muted-foreground" />
+                <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Quiz</span></p>
+                <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo quiz foi preenchido por último." />
+              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2 h-9 rounded-lg bg-accent hover:bg-accent/90 text-accent-foreground">
+                    <Share2 className="h-3.5 w-3.5" />
+                    Compartilhar Canal
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl p-0 bg-transparent border-0 shadow-none">
+                  <PremiumLinkWidget
+                    referralCode={partnerData?.referral_code}
+                    tenantLogo={currentTenant?.logo_url}
+                  />
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </motion.div>
 
-        {/* ═══ Link & QR Widget ═══ */}
-        <PremiumLinkWidget 
-          referralCode={partnerData?.referral_code}
-          tenantLogo={currentTenant?.logo_url}
-        />
-
-        {/* ═══ KPIs Topo — Indicadores objetivos ═══ */}
+        {/* ═══ KPIs Topo (Funil de Aquisição) ═══ */}
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              {
-                icon: ClipboardList,
-                value: "87",
-                label: "Quiz Preenchidos",
-                tip: "Total de quizzes preenchidos via seu link exclusivo.",
-                accent: false,
-              },
-              {
-                icon: Users,
-                value: activeClients.toString(),
-                label: "Pacientes Vinculados",
-                tip: "Pacientes que finalizaram o quiz e estão vinculados a você.",
-                accent: false,
-              },
-              {
-                icon: TrendingUp,
-                value: "55%",
-                label: "Taxa de Conversão",
-                tip: "Percentual de quizzes que resultaram em paciente vinculado ativo.",
-                accent: false,
-              },
-              {
-                icon: Coins,
-                value: "12.480",
-                label: "Vitacoins Gerados",
-                tip: "Total de Vitacoins acumulados pela atividade dos seus pacientes.",
-                accent: true,
-              },
+              { icon: ClipboardList, value: "87", label: "Quiz Preenchidos", tip: "Total de quizzes preenchidos via seu link exclusivo.", accent: false },
+              { icon: Users, value: activeClients.toString(), label: "Pacientes Vinculados", tip: "Pacientes ativos vinculados a você.", accent: false },
+              { icon: TrendingUp, value: "55%", label: "Taxa de Conversão", tip: "Percentual de quizzes que viraram paciente ativo.", accent: false },
+              { icon: Coins, value: "12.480", label: "Vitacoins Gerados", tip: "Total de Vitacoins acumulados pela atividade dos pacientes.", accent: true },
             ].map(({ icon: Icon, value, label, tip, accent }) => (
-              <Card
-                key={label}
-                className={cn(
-                  "shadow-sm",
-                  accent ? "border-accent/30 bg-accent/5" : "border-border bg-card"
-                )}
-              >
+              <Card key={label} className={cn("shadow-sm", accent ? "border-accent/30 bg-accent/5" : "border-border bg-card")}>
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-xl",
-                      accent ? "bg-accent/15" : "bg-secondary"
-                    )}>
+                    <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl", accent ? "bg-accent/15" : "bg-secondary")}>
                       <Icon className={cn("h-4 w-4", accent ? "text-accent" : "text-foreground")} strokeWidth={1.5} />
                     </div>
                     <Tip text={tip} />
@@ -257,6 +234,194 @@ const PartnerClients: React.FC = () => {
             ))}
           </div>
         </motion.div>
+
+        {/* ═══ Hero Card (8) + Side KPIs (4) ═══ */}
+        <div className="grid grid-cols-12 gap-4">
+          <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-8">
+            <Card className="relative overflow-hidden border-accent/30 shadow-sm bg-gradient-to-br from-accent via-accent/90 to-accent/70 h-full">
+              <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-white/10" />
+              <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-white/5" />
+              <CardContent className="relative z-10 p-7 flex flex-col justify-center h-full text-accent-foreground min-h-[220px]">
+                <div className="absolute top-4 right-4 flex gap-1.5">
+                  <span className="text-[9px] font-medium bg-white/20 px-2 py-0.5 rounded-full">+9 novos este mês</span>
+                  <span className="text-[9px] font-medium bg-white/15 px-2 py-0.5 rounded-full">{activeClients} ativos</span>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
+                    <BarChart3 className="h-4 w-4" />
+                  </div>
+                  <p className="text-[11px] font-medium text-accent-foreground/60 uppercase tracking-wider">Visão Geral dos Pacientes</p>
+                </div>
+                <h2 className="text-[22px] font-bold leading-tight">Você tem {activeClients} pacientes vinculados</h2>
+                <p className="text-[13px] text-accent-foreground/70 mt-1 max-w-lg">
+                  {riskClients} pacientes precisam de atenção. Consistência média de <strong className="text-accent-foreground">{avgConsistency}%</strong>. Vitacoins recorrentes: <strong className="text-accent-foreground">{totalMonthlyPoints.toLocaleString("pt-BR")} pts/mês</strong>.
+                </p>
+                <div className="mt-5 flex gap-3 flex-wrap">
+                  {[
+                    { label: "Estável", count: CLIENTS.filter((c) => c.riskLevel === "low" && c.status === "active").length, cls: "bg-white/20" },
+                    { label: "Atenção", count: CLIENTS.filter((c) => c.riskLevel === "medium").length, cls: "bg-warning/40" },
+                    { label: "Risco", count: riskClients, cls: "bg-destructive/40" },
+                  ].map(({ label, count, cls }) => (
+                    <span key={label} className={cn("text-[11px] font-semibold px-3 py-1.5 rounded-full", cls)}>
+                      {count} {label}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
+            <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible" className="flex-1">
+              <Card className="border-border shadow-sm h-full bg-foreground">
+                <CardContent className="p-4 flex flex-col justify-center h-full gap-1 text-background">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      <h3 className="text-[12px] font-semibold">Saúde dos Pacientes</h3>
+                    </div>
+                    <Tip text="Média de consistência de todos os seus pacientes ativos." />
+                  </div>
+                  <div className="flex items-center gap-3 mt-1">
+                    <div className="relative w-16 h-16">
+                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="hsla(0,0%,100%,0.15)" strokeWidth="7" />
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--accent))" strokeWidth="7" strokeLinecap="round"
+                          strokeDasharray={`${(avgConsistency / 100) * 2 * Math.PI * 42} ${2 * Math.PI * 42}`} />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-lg font-bold">{avgConsistency}%</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-background/60">Consistência média</p>
+                      <div className="flex items-center gap-1 text-accent">
+                        <ArrowUpRight className="h-3 w-3" />
+                        <span className="text-[11px] font-semibold">+3% vs mês anterior</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible" className="flex-1">
+              <Card className="border-accent/20 shadow-sm h-full bg-accent/5">
+                <CardContent className="p-4 flex flex-col justify-center h-full gap-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-accent" />
+                    <h3 className="text-[12px] font-semibold text-foreground">Destaques do Mês</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { label: "Retenção geral", value: "91.6%" },
+                      { label: "NPS médio", value: "8.1" },
+                      { label: "Melhor streak", value: "18 dias (Maria S.)" },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex items-center justify-between">
+                        <span className="text-[11px] text-muted-foreground">{label}</span>
+                        <span className="text-[12px] font-bold text-foreground">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* ═══ Engajamento KPIs ═══ */}
+        <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {ENGAGEMENT_INSIGHTS.map(({ metric, value, trend, up, icon: Icon }) => (
+              <Card key={metric} className="border-border shadow-sm">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                      <Icon className="h-4 w-4 text-foreground" strokeWidth={1.5} />
+                    </div>
+                    <span className={cn("text-[11px] font-semibold", up ? "text-accent" : "text-destructive")}>
+                      {up ? "+" : ""}{trend}
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">{value}</p>
+                  <p className="text-[11px] text-muted-foreground">{metric}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* ═══ Evolução (8) + Distribuição Plano (4) ═══ */}
+        <div className="grid grid-cols-12 gap-4">
+          <motion.div custom={6} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-8">
+            <Card className="border-border shadow-sm">
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-foreground">Evolução da Carteira</h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Pacientes ativos, novos e cancelados por mês</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {[
+                      { label: "Ativos", color: "hsl(var(--accent))" },
+                      { label: "Novos", color: "hsl(217, 91%, 60%)" },
+                      { label: "Cancelados", color: "hsl(var(--destructive))" },
+                    ].map(({ label, color }) => (
+                      <div key={label} className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                        <span className="text-[10px] text-muted-foreground">{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={GROWTH_DATA} barGap={2}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                      <RTooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="ativos" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="novos" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="cancelados" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div custom={7} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-4">
+            <Card className="border-border shadow-sm h-full">
+              <CardContent className="p-4 space-y-3">
+                <h3 className="text-[13px] font-semibold text-foreground">Por Plano</h3>
+                <div className="flex items-center justify-center py-2">
+                  <div className="w-28 h-28">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={PLAN_DISTRIBUTION} cx="50%" cy="50%" innerRadius={32} outerRadius={50} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                          {PLAN_DISTRIBUTION.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  {PLAN_DISTRIBUTION.map((p) => (
+                    <div key={p.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
+                        <span className="text-[11px] text-muted-foreground">{p.name}</span>
+                      </div>
+                      <span className="text-[11px] font-semibold text-foreground">{p.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
         <motion.div custom={10} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
           <div className="flex items-center justify-between">
