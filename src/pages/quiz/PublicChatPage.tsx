@@ -305,7 +305,7 @@ const PublicChatPage: React.FC = () => {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25 }}
-                  className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
+                  className={cn("flex flex-col", m.role === "user" ? "items-end" : "items-start")}
                 >
                   <div
                     className={cn(
@@ -321,6 +321,11 @@ const PublicChatPage: React.FC = () => {
                     }
                   >
                     {m.content}
+                    {m.voiceUrl && (
+                      <div className="mt-2 pt-2 border-t border-white/20">
+                        <audio src={m.voiceUrl} controls className="h-8 w-full max-w-[200px]" />
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}
