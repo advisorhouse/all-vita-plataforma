@@ -97,6 +97,12 @@ serve(async (req) => {
     });
 
     const aiResult = await response.json();
+    console.log("AI Result:", JSON.stringify(aiResult));
+
+    if (!aiResult.choices || aiResult.choices.length === 0) {
+      throw new Error(`AI Gateway returned an error or no choices: ${JSON.stringify(aiResult)}`);
+    }
+
     const predictionData = JSON.parse(aiResult.choices[0].message.content);
 
     // 3. Save to database
