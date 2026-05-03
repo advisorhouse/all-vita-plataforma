@@ -579,7 +579,7 @@ const PartnerClients: React.FC = () => {
                             <Button variant="outline" size="sm" className="w-full text-[11px] h-8 rounded-lg gap-1.5 justify-start">
                               <MessageSquare className="h-3 w-3" /> Enviar mensagem
                             </Button>
-                            <Button variant="outline" size="sm" className="w-full text-[11px] h-8 rounded-lg gap-1.5 justify-start">
+                            <Button variant="outline" size="sm" className="w-full text-[11px] h-8 rounded-lg gap-1.5 justify-start" onClick={(e) => { e.stopPropagation(); setSelectedClientForDetail(client); }}>
                               <Eye className="h-3 w-3" /> Ver perfil completo
                             </Button>
                           </div>
