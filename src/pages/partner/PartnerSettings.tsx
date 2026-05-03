@@ -218,15 +218,28 @@ const PartnerSettings: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground">Nome completo</Label>
-                  <Input defaultValue="Camila Santos de Oliveira" className="text-[13px]" />
+                  <Input 
+                    value={`${profile?.first_name || ""} ${profile?.last_name || ""}`} 
+                    readOnly
+                    className="text-[13px] bg-secondary/30" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground">E-mail</Label>
-                  <Input defaultValue="camila.santos@email.com" type="email" className="text-[13px]" />
+                  <Input 
+                    value={profile?.email || ""} 
+                    readOnly
+                    type="email" 
+                    className="text-[13px] bg-secondary/30" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground">Telefone / WhatsApp</Label>
-                  <Input defaultValue="(11) 98765-4321" className="text-[13px]" />
+                  <Input 
+                    value={profile?.phone || ""} 
+                    readOnly
+                    className="text-[13px] bg-secondary/30" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground flex items-center gap-1.5">
