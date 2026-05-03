@@ -85,11 +85,15 @@ const LoginPage: React.FC = () => {
 
   return (
     <div 
-      className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500"
-      style={{ 
-        backgroundColor: currentTenant?.primary_color || 'var(--background)' 
-      }}
+      className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500 bg-background"
     >
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-20"
+        style={{ 
+          backgroundColor: currentTenant?.primary_color || 'transparent' 
+        }}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
