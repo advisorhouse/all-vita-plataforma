@@ -80,12 +80,6 @@ const STEPS_META = [
   { label: "Última visita" },
   { label: "Suplementos" },
   { label: "Exposição UV" },
-  { label: "Identificação" },
-  { label: "Saúde" },
-  { label: "Medicações" },
-  { label: "Especializado" },
-  { label: "Consulta" },
-  { label: "Consentimento" },
   { label: "Resultado" },
 ];
 
