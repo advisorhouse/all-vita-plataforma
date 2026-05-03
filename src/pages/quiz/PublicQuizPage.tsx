@@ -481,7 +481,7 @@ const PublicQuizPage: React.FC = () => {
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 12 && (
+          {step < 6 && (
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-black/5">
               <Button
                 variant="ghost"
