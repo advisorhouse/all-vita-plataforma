@@ -1285,34 +1285,7 @@ const PartnerNetwork: React.FC = () => {
           </motion.div>
 
           <motion.div custom={7} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-4">
-            <Card className="border-border shadow-sm h-full">
-              <CardContent className="p-4 space-y-3 h-full flex flex-col">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-accent" />
-                  <h3 className="text-[13px] font-semibold text-foreground">Previsão do Próximo Mês</h3>
-                </div>
-                <p className="text-[11px] text-muted-foreground">Se continuar assim, você vai acumular:</p>
-                <p className="text-2xl font-bold text-foreground">27.170 pts</p>
-                <div className="flex items-center gap-1 text-accent">
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                  <span className="text-[11px] font-semibold">+15% a mais que este mês</span>
-                </div>
-                <div className="flex gap-2 pt-1 flex-1 items-end">
-                  <div className="flex-1 rounded-xl bg-secondary/60 p-2.5">
-                    <p className="text-[9px] text-muted-foreground flex items-center gap-1">
-                      <UserPlus className="h-2.5 w-2.5" /> Novos esperados
-                    </p>
-                    <p className="text-base font-bold text-foreground mt-0.5">+4</p>
-                  </div>
-                  <div className="flex-1 rounded-xl bg-secondary/60 p-2.5">
-                    <p className="text-[9px] text-muted-foreground flex items-center gap-1">
-                      <Coins className="h-2.5 w-2.5" /> Média/paciente
-                    </p>
-                    <p className="text-base font-bold text-foreground mt-0.5">1.490 pts</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AIPredictiveCard tenantId={partner.tenant_id} />
           </motion.div>
         </div>
 
