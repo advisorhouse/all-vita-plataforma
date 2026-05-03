@@ -821,7 +821,7 @@ const RecruitLinkCard: React.FC<{ partner: any; tenant: any }> = ({ partner, ten
 // ─── AI Predictive Card ──────────────────────────────────────
 const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
   const queryClient = useQueryClient();
-  const { data: prediction, isLoading, refetch } = useQuery({
+  const { data: prediction, isLoading } = useQuery({
     queryKey: ["ai-prediction", tenantId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -831,10 +831,10 @@ const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
         .eq("prediction_type", "revenue_forecast")
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error;
-      return data?.data || null;
+      if (error) throw error;
+      return (data?.data as unknown as AIPrediction) || null;
     },
   });
 
@@ -844,7 +844,7 @@ const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
         body: { tenant_id: tenantId },
       });
       if (error) throw error;
-      return data;
+      return data as AIPrediction;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-prediction", tenantId] });
@@ -852,7 +852,7 @@ const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
     },
   });
 
-  const displayData = prediction || {
+  const displayData: AIPrediction = prediction || {
     projected_mrr_3m: 0,
     projected_mrr_12m: 0,
     churn_probability: 0.1,
