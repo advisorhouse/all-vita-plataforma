@@ -59,32 +59,66 @@ const PublicChatPage: React.FC = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = input.trim();
-    if (!text || isTyping) return;
+    if (!text || isTyping || !currentTenant?.id) return;
+    
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
       content: text,
       timestamp: Date.now(),
     };
-    setMessages((prev) => [...prev, userMsg]);
+    
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInput("");
     setIsTyping(true);
 
-    // Placeholder echo response (real AI coming next iteration)
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: newMessages.map(m => ({
+            role: m.role === "attendant" ? "assistant" : "user",
+            content: m.content
+          })),
+          tenant_id: currentTenant.id,
+          partner_id: referralCode, // Pass referring doctor code
+        }),
+      });
+
+      if (!response.ok) throw new Error("Falha na comunicação com a IA");
+
+      const data = await response.json();
+      
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "attendant",
-          content: "Obrigada pela resposta! Em breve continuarei nossa conversa com mais perguntas personalizadas.",
+          content: data.message,
           timestamp: Date.now(),
         },
       ]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "attendant",
+          content: "Desculpe, tive um problema técnico. Pode repetir, por favor?",
+          timestamp: Date.now(),
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
