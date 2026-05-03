@@ -119,7 +119,7 @@ const PremiumLinkWidget: React.FC<PremiumLinkWidgetProps> = ({ referralCode, ten
             {([
               {
                 id: "quiz",
-                label: "Quiz Tradicional",
+                label: "Protocolo Pós-Consulta",
                 desc: "Formulário guiado com perguntas objetivas de saúde.",
                 icon: ClipboardList,
               },
