@@ -125,6 +125,7 @@ export type Database = {
           tone_of_voice: string | null
           updated_at: string
           use_emojis: boolean | null
+          voice_id: string | null
         }
         Insert: {
           active?: boolean | null
@@ -138,6 +139,7 @@ export type Database = {
           tone_of_voice?: string | null
           updated_at?: string
           use_emojis?: boolean | null
+          voice_id?: string | null
         }
         Update: {
           active?: boolean | null
@@ -151,6 +153,7 @@ export type Database = {
           tone_of_voice?: string | null
           updated_at?: string
           use_emojis?: boolean | null
+          voice_id?: string | null
         }
         Relationships: [
           {

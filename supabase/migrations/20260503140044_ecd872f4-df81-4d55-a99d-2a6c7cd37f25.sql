@@ -1,0 +1,1 @@
+ALTER TABLE public.ai_personas ADD COLUMN voice_id TEXT;
