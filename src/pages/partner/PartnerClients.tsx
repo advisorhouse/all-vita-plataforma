@@ -99,6 +99,35 @@ const riskConfig: Record<RiskLevel, { label: string; icon: React.ElementType; cl
 
 // removed unused PARTNER_NAME
 
+const GROWTH_DATA = [
+  { month: "Set", ativos: 18, novos: 6, cancelados: 1 },
+  { month: "Out", ativos: 24, novos: 8, cancelados: 2 },
+  { month: "Nov", ativos: 30, novos: 9, cancelados: 3 },
+  { month: "Dez", ativos: 36, novos: 10, cancelados: 4 },
+  { month: "Jan", ativos: 42, novos: 11, cancelados: 5 },
+  { month: "Fev", ativos: 48, novos: 9, cancelados: 3 },
+];
+
+const PLAN_DISTRIBUTION = [
+  { name: "3 meses", value: 18, color: "hsl(var(--muted-foreground))" },
+  { name: "5 meses", value: 22, color: "hsl(217, 91%, 60%)" },
+  { name: "9 meses", value: 8, color: "hsl(var(--accent))" },
+];
+
+const ENGAGEMENT_INSIGHTS = [
+  { metric: "Login médio semanal", value: "4.2x", trend: "+0.8", up: true, icon: Activity },
+  { metric: "Conteúdos consumidos/mês", value: "8.4", trend: "+1.2", up: true, icon: Star },
+  { metric: "Streak médio (dias)", value: "7.8", trend: "+2.1", up: true, icon: Zap },
+  { metric: "NPS médio", value: "8.1", trend: "+0.4", up: true, icon: Heart },
+];
+
+const tooltipStyle = {
+  background: "hsl(var(--card))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: "8px",
+  fontSize: "12px",
+};
+
 // ─── Component ───────────────────────────────────────────────
 const PartnerClients: React.FC = () => {
   const [filter, setFilter] = useState<FilterType>("all");
