@@ -129,10 +129,6 @@ const PublicChatPage: React.FC = () => {
   const handleAudioSend = async (blob: Blob) => {
     setIsProcessingAudio(true);
     try {
-      // 1. Convert Audio to Text using OpenAI Whisper (via Edge Function or direct if preferred)
-      // For now, we'll implement the UI and the placeholder for the actual transcription
-      // In a real implementation, we'd upload this blob to an Edge Function
-      
       const formData = new FormData();
       formData.append('file', blob);
       formData.append('tenant_id', currentTenant?.id || '');
@@ -191,6 +187,7 @@ const PublicChatPage: React.FC = () => {
           })),
           tenant_id: currentTenant.id,
           partner_id: referralCode, // Pass referring doctor code
+          voice_enabled: voiceMode,
         }),
       });
 
@@ -205,6 +202,7 @@ const PublicChatPage: React.FC = () => {
           role: "attendant",
           content: data.message,
           timestamp: Date.now(),
+          voiceUrl: data.voice_url,
         },
       ]);
     } catch (error) {
