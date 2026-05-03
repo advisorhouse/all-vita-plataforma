@@ -106,7 +106,7 @@ const PublicChatPage: React.FC = () => {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         await handleAudioSend(audioBlob);
       };
 
@@ -130,7 +130,7 @@ const PublicChatPage: React.FC = () => {
     setIsProcessingAudio(true);
     try {
       const formData = new FormData();
-      formData.append('file', blob);
+      formData.append('file', blob, 'audio.webm');
       formData.append('tenant_id', currentTenant?.id || '');
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat-voice`, {
@@ -360,11 +360,16 @@ const PublicChatPage: React.FC = () => {
                 onClick={isRecording ? stopRecording : startRecording}
                 className={cn(
                   "h-9 w-9 rounded-full flex items-center justify-center transition-all",
-                  isRecording ? "bg-red-500 text-white animate-pulse" : "bg-black/5 text-muted-foreground"
+                  isRecording ? "bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]" : "bg-black/5 text-muted-foreground hover:bg-black/10"
                 )}
                 title={isRecording ? "Parar gravação" : "Gravar áudio"}
               >
-                {isRecording ? <Square className="h-4 w-4 fill-white" /> : <Mic className="h-4 w-4" />}
+                {isRecording ? (
+                  <div className="relative flex items-center justify-center">
+                    <Square className="h-4 w-4 fill-white animate-pulse" />
+                    <span className="absolute -inset-1 rounded-full border-2 border-white/30 animate-ping" />
+                  </div>
+                ) : <Mic className="h-4 w-4" />}
               </button>
 
               <input
@@ -372,14 +377,14 @@ const PublicChatPage: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isRecording ? "Gravando áudio..." : "Digite sua resposta..."}
+                placeholder={isRecording ? "Gravando... clique no quadrado para parar" : "Digite sua resposta..."}
                 disabled={isTyping || isRecording}
                 className="flex-1 bg-transparent outline-none text-[14px] placeholder:text-muted-foreground/60 text-foreground disabled:opacity-50"
               />
               <button
                 onClick={() => handleSend()}
                 disabled={(!input.trim() && !isRecording) || isTyping || isProcessingAudio}
-                className="h-9 w-9 rounded-full flex items-center justify-center text-white transition-opacity disabled:opacity-40"
+                className="h-9 w-9 rounded-full flex items-center justify-center text-white transition-all active:scale-95 disabled:opacity-40"
                 style={{ backgroundColor: tenantSecondary }}
                 aria-label="Enviar"
               >
