@@ -371,57 +371,232 @@ const CoreProducts: React.FC = () => {
         </Tabs>
       </motion.div>
 
-      {/* ── Add Product Modal ── */}
+      {/* ── Add/Edit Product Modal (Robust Shopify-like) ── */}
       <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-base">Novo Produto</DialogTitle>
-            <DialogDescription className="text-xs">Cadastre um produto que poderá ser vinculado a parceiros de qualquer especialidade.</DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden flex flex-col">
+          <DialogHeader className="p-6 pb-0">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <ShoppingBag className="h-5 w-5 text-accent" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold">Gerenciar Produto</DialogTitle>
+                <DialogDescription className="text-xs">Configure detalhes, imagens e integrações do seu produto.</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Nome do Produto</Label>
-              <Input placeholder="Ex: DermaCare Pro - 3 Meses" className="text-sm" />
+
+          <ScrollArea className="flex-1 p-6 pt-4">
+            <div className="grid grid-cols-12 gap-6">
+              {/* Left Column: General Info & Images */}
+              <div className="col-span-12 lg:col-span-8 space-y-6">
+                {/* General Info */}
+                <Card className="border-border shadow-none">
+                  <CardHeader className="py-3 px-4 bg-muted/30">
+                    <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      Informações Gerais
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nome do Produto</Label>
+                      <Input placeholder="Ex: Vision Lift - Combo 3 Meses" className="h-9 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Descrição Completa</Label>
+                      <Textarea 
+                        placeholder="Detalhes técnicos, benefícios e composição..." 
+                        className="text-sm min-h-[100px] resize-none" 
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Categoria</Label>
+                        <Select>
+                          <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Marca</Label>
+                        <Input placeholder="Ex: All Vita" className="h-9 text-sm" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Media Management */}
+                <Card className="border-border shadow-none">
+                  <CardHeader className="py-3 px-4 bg-muted/30">
+                    <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      Mídia (Fotos)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-4 gap-3">
+                      <div className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/30 transition-colors">
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[10px] text-muted-foreground font-medium">Adicionar</span>
+                      </div>
+                      {/* Mock images */}
+                      {[1, 2].map((i) => (
+                        <div key={i} className="aspect-square rounded-xl border border-border bg-secondary/20 relative group overflow-hidden">
+                          <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="destructive" size="icon" className="h-5 w-5 rounded-md">
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          {i === 1 && (
+                            <div className="absolute bottom-1 left-1">
+                              <Badge className="text-[8px] h-4 bg-accent/90">Principal</Badge>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Inventory & Shipping */}
+                <Card className="border-border shadow-none">
+                  <CardHeader className="py-3 px-4 bg-muted/30">
+                    <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                      <Box className="h-4 w-4 text-muted-foreground" />
+                      Estoque e Envio
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">SKU</Label>
+                        <Input placeholder="V-LIFT-03M" className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Código de Barras (EAN)</Label>
+                        <Input placeholder="7890000000000" className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Quantidade em Estoque</Label>
+                        <Input type="number" placeholder="0" className="h-9 text-sm" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Peso (kg)</Label>
+                        <Input type="number" placeholder="0.250" className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1.5 col-span-2">
+                        <Label className="text-xs">Dimensões (CxLxA em cm)</Label>
+                        <div className="flex gap-2">
+                          <Input placeholder="C" className="h-9 text-sm" />
+                          <Input placeholder="L" className="h-9 text-sm" />
+                          <Input placeholder="A" className="h-9 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Column: Pricing & Integrations */}
+              <div className="col-span-12 lg:col-span-4 space-y-6">
+                {/* Pricing */}
+                <Card className="border-border shadow-none">
+                  <CardHeader className="py-3 px-4 bg-muted/30">
+                    <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                      <Coins className="h-4 w-4 text-muted-foreground" />
+                      Preços e Recompensas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Preço de Venda (R$)</Label>
+                      <Input type="number" placeholder="0.00" className="h-9 text-sm font-bold text-accent" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Preço de Comparação (R$)</Label>
+                      <Input type="number" placeholder="0.00" className="h-9 text-sm text-muted-foreground" />
+                    </div>
+                    <Separator />
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Vitacoins p/ Partner</Label>
+                      <Input type="number" placeholder="100" className="h-9 text-sm font-semibold" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Automated Integrations */}
+                <Card className="border-accent/20 shadow-sm bg-accent/5">
+                  <CardHeader className="py-3 px-4 bg-accent/10 border-b border-accent/20">
+                    <CardTitle className="text-[13px] font-bold flex items-center gap-2 text-accent">
+                      <Settings2 className="h-4 w-4" />
+                      Automações Integradas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
+                    {/* Bling */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded bg-white border flex items-center justify-center p-1">
+                          <Box className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold">Bling ERP</p>
+                          <p className="text-[9px] text-muted-foreground">Sincronizar Estoque</p>
+                        </div>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    {/* eNotas */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded bg-white border flex items-center justify-center p-1">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold">eNotas</p>
+                          <p className="text-[9px] text-muted-foreground">Nota Fiscal Automática</p>
+                        </div>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    {/* Melhor Envio */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded bg-white border flex items-center justify-center p-1">
+                          <Truck className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold">Melhor Envio</p>
+                          <p className="text-[9px] text-muted-foreground">Rastreio e Etiquetas</p>
+                        </div>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="pt-2">
+                      <Badge variant="outline" className="w-full justify-center py-1 text-[9px] gap-1 bg-white">
+                        <CheckCircle2 className="h-3 w-3 text-success" /> Pronto para venda
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Categoria / Especialidade</Label>
-                <Select>
-                  <SelectTrigger className="text-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Duração (meses)</Label>
-                <Input type="number" placeholder="1" className="text-sm" />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Preço Base (R$)</Label>
-                <Input type="number" placeholder="196.00" className="text-sm" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Desconto (%)</Label>
-                <Input type="number" placeholder="25" className="text-sm" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Pontos por venda</Label>
-                <Input type="number" placeholder="100" className="text-sm" />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Descrição</Label>
-              <Textarea placeholder="Descrição do produto para exibição no quiz e loja..." className="text-sm h-20 resize-none" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>Cancelar</Button>
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"
-              onClick={() => { toast.success("Produto cadastrado!"); setShowAddProduct(false); }}>
-              Cadastrar Produto
+          </ScrollArea>
+
+          <DialogFooter className="p-6 pt-2 border-t bg-muted/20">
+            <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>Descartar</Button>
+            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
+              onClick={() => { toast.success("Produto atualizado e sincronizado!"); setShowAddProduct(false); }}>
+              <RefreshCw className="h-3.5 w-3.5" />
+              Salvar e Sincronizar
             </Button>
           </DialogFooter>
         </DialogContent>
