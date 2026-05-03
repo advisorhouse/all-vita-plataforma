@@ -122,6 +122,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // Redirect to onboarding if needed (but not if already on onboarding page)
   if (needsOnboarding && !location.pathname.endsWith("/onboarding")) {
+    const isPartner = memberships.some(m => m.active && m.role === 'partner');
+    
+    // Partners don't go to /onboarding, they have their own logic or go to /partner
+    if (isPartner && !isSuperAdmin && !platformRole) {
+      const partnerPath = isSubdomainAccess ? "/partner" : (activeSlug ? `/${activeSlug}/partner` : "/partner");
+      console.log("[AuthGuard] Partner needs onboarding but skipping admin onboarding, redirecting to:", partnerPath);
+      return <Navigate to={partnerPath} replace />;
+    }
+
     const onboardingPath = isSubdomainAccess ? "/onboarding" : (activeSlug ? `/${activeSlug}/onboarding` : "/onboarding");
     console.log("[AuthGuard] Redirecting to onboarding:", onboardingPath, "Current location:", location.pathname);
     return <Navigate to={onboardingPath} replace />;
