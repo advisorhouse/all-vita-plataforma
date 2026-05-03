@@ -32,19 +32,23 @@ const PremiumLinkWidget: React.FC<PremiumLinkWidgetProps> = ({ referralCode, ten
   };
 
   const downloadQR = () => {
+    const canvas = document.createElement("canvas");
     const svg = document.getElementById("premium-qr-code");
     if (!svg) return;
+
+    // Use a high scale for better print quality
+    const scale = 4;
     const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
     const img = new Image();
+    
     img.onload = () => {
-      canvas.width = img.width + 40;
-      canvas.height = img.height + 40;
+      canvas.width = (img.width * scale) + 80;
+      canvas.height = (img.height * scale) + 80;
+      const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 20, 20);
+        ctx.drawImage(img, 40, 40, img.width * scale, img.height * scale);
         const pngFile = canvas.toDataURL("image/png");
         const a = document.createElement("a");
         a.download = `qrcode-${channel}-${referralCode}.png`;
