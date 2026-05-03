@@ -261,14 +261,7 @@ const SignupPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p 
-          className="text-center text-[11px] mt-6 transition-colors duration-500"
-          style={{ 
-            color: currentTenant?.primary_color 
-              ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.7)') 
-              : 'var(--muted-foreground)'
-          }}
-        >
+        <p className="text-center text-[11px] mt-6 text-muted-foreground">
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
