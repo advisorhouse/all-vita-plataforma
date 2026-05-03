@@ -130,7 +130,7 @@ const PublicChatPage: React.FC = () => {
     setIsProcessingAudio(true);
     try {
       const formData = new FormData();
-      formData.append('file', blob);
+      formData.append('file', blob, 'audio.webm');
       formData.append('tenant_id', currentTenant?.id || '');
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat-voice`, {
