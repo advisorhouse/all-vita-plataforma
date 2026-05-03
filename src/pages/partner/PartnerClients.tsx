@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PremiumLinkWidget from "@/components/partner/PremiumLinkWidget";
+import ClientDetailView from "@/components/partner/ClientDetailView";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell,
@@ -121,7 +122,7 @@ const tooltipStyle = {
 const PartnerClients: React.FC = () => {
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const [expandedClient, setExpandedClient] = useState<string | null>(null); const [selectedClientForDetail, setSelectedClientForDetail] = useState<Client | null>(null);
   const { currentTenant } = useTenant();
   const { user } = useAuth();
 
@@ -157,8 +158,7 @@ const PartnerClients: React.FC = () => {
     return matchFilter && matchSearch;
   });
 
-  return (
-    <TooltipProvider delayDuration={200}>
+  if (selectedClientForDetail) { return <ClientDetailView client={selectedClientForDetail} onBack={() => setSelectedClientForDetail(null)} />; } return ( <TooltipProvider delayDuration={200}>
       <div className="space-y-5 pb-12">
 
         {/* ═══ Header ═══ */}
