@@ -110,9 +110,21 @@ const RecruitLanding: React.FC = () => {
           <CardContent className="p-7 space-y-6">
             {/* Inviter */}
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+              <div className="h-14 w-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border/50 shadow-sm">
                 {partner.partner_avatar ? (
-                  <img src={partner.partner_avatar} alt={partner.partner_name} className="h-full w-full object-cover" />
+                  <img 
+                    src={partner.partner_avatar} 
+                    alt={partner.partner_name} 
+                    className="h-full w-full object-cover" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).parentElement?.classList.add('flex-col');
+                      const fallback = document.createElement('div');
+                      fallback.className = 'h-full w-full flex items-center justify-center bg-secondary';
+                      fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-circle2 h-8 w-8 text-muted-foreground"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg>';
+                      (e.target as HTMLImageElement).parentElement?.appendChild(fallback);
+                    }}
+                  />
                 ) : (
                   <UserCircle2 className="h-8 w-8 text-muted-foreground" />
                 )}
