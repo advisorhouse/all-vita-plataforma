@@ -806,7 +806,141 @@ const RecruitLinkCard: React.FC<{ partner: any; tenant: any }> = ({ partner, ten
   );
 };
 
-// ─── Main Page ──────────────────────────────────────────────
+
+// ─── AI Predictive Card ──────────────────────────────────────
+const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
+  const queryClient = useQueryClient();
+  const { data: prediction, isLoading, refetch } = useQuery({
+    queryKey: ["ai-prediction", tenantId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_predictions")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("prediction_type", "revenue_forecast")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== "PGRST116") throw error;
+      return data?.data || null;
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("ai-revenue-projections", {
+        body: { tenant_id: tenantId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ai-prediction", tenantId] });
+      toast.success("Previsão atualizada com IA!");
+    },
+  });
+
+  const displayData = prediction || {
+    projected_mrr_3m: 0,
+    projected_mrr_12m: 0,
+    churn_probability: 0.1,
+    avg_ltv: 0,
+    confidence_score: 0,
+    insights: ["Clique em 'Gerar com IA' para uma análise robusta."],
+    recommendations: []
+  };
+
+  return (
+    <Card className="border-accent/30 shadow-md bg-gradient-to-br from-background to-accent/5 overflow-hidden">
+      <CardHeader className="pb-2 border-b border-accent/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-accent/10">
+              <BrainCircuit className="h-5 w-5 text-accent" />
+            </div>
+            <div>
+              <CardTitle className="text-base font-bold">IA Preditiva Robust</CardTitle>
+              <CardDescription className="text-[10px]">Análise via Lovable AI & GPT-5</CardDescription>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 text-[11px] gap-2 rounded-full border-accent/20 hover:bg-accent/10"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+            {prediction ? "Atualizar" : "Gerar com IA"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 space-y-4">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-accent" />
+            <p className="text-[12px] text-muted-foreground">Consultando modelos preditivos...</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase tracking-wider">
+                  MRR Esperado (3m) <Tip text="Receita Recorrente Mensal projetada para daqui a 3 meses." />
+                </p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-bold text-foreground">
+                    R$ {displayData.projected_mrr_3m?.toLocaleString("pt-BR")}
+                  </span>
+                  <span className="text-[10px] text-accent font-semibold flex items-center">
+                    <ArrowUpRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase tracking-wider">
+                  Prob. Churn <Tip text="Probabilidade média de cancelamento dos pacientes na sua rede." />
+                </p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={cn(
+                    "text-xl font-bold",
+                    displayData.churn_probability > 0.3 ? "text-destructive" : "text-success"
+                  )}>
+                    {(displayData.churn_probability * 100).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-muted-foreground font-medium">Confiança da IA</span>
+                <span className="font-bold">{(displayData.confidence_score * 100).toFixed(0)}%</span>
+              </div>
+              <Progress value={displayData.confidence_score * 100} className="h-1.5" />
+            </div>
+
+            <div className="space-y-2 bg-accent/5 rounded-xl p-3 border border-accent/10">
+              <h4 className="text-[11px] font-bold text-accent uppercase flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3" /> Insights Estratégicos
+              </h4>
+              <ul className="space-y-1.5">
+                {displayData.insights?.slice(0, 3).map((insight: string, i: number) => (
+                  <li key={i} className="text-[11px] text-muted-foreground flex items-start gap-2">
+                    <div className="mt-1 h-1 w-1 rounded-full bg-accent shrink-0" />
+                    {insight}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 const PartnerNetwork: React.FC = () => {
   const { data: partner, isLoading: loadingPartner } = useCurrentPartner();
   const { currentTenant } = useTenant();
