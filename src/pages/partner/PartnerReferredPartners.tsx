@@ -217,38 +217,6 @@ const PartnerReferredPartners: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Invite CTA */}
-        <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
-          <Card className="relative overflow-hidden border-accent/30 shadow-sm bg-gradient-to-br from-accent via-accent/90 to-accent/70">
-            <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-white/10" />
-            <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-white/5" />
-            <CardContent className="relative z-10 p-6 text-accent-foreground">
-              <div className="flex items-center gap-2 mb-2">
-                <UserPlus className="h-5 w-5" />
-                <h2 className="text-[15px] font-bold">Indique um colega médico</h2>
-              </div>
-              <p className="text-[12px] text-accent-foreground/70 mb-4 max-w-lg">
-                Quando um colega que você indicou cadastra pacientes e gera vendas, <strong className="text-accent-foreground">você recebe 10% dos pontos dele automaticamente</strong>.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex-1 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2.5 border border-white/20">
-                  <Link2 className="h-4 w-4 text-accent-foreground/50 shrink-0" />
-                  <span className="text-[12px] text-accent-foreground/80 truncate font-mono">{REFERRAL_LINK}</span>
-                </div>
-                <Button onClick={handleCopy} className="rounded-xl h-10 px-5 text-[13px] font-semibold bg-white text-accent hover:bg-white/90 gap-2 shrink-0">
-                  {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {copied ? "Copiado!" : "Copiar"}
-                </Button>
-                <a href={`https://wa.me/?text=${shareMessage}`} target="_blank" rel="noopener noreferrer">
-                  <Button className="rounded-xl h-10 px-5 text-[13px] font-semibold bg-[hsl(142,70%,49%)] hover:bg-[hsl(142,70%,42%)] text-white gap-2 w-full sm:w-auto">
-                    <Smartphone className="h-4 w-4" /> WhatsApp
-                  </Button>
-                </a>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* How it works */}
         <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
           <Card className="border-border shadow-sm">
