@@ -211,32 +211,6 @@ const PartnerReferredPartners: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* How it works */}
-        <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
-          <Card className="border-border shadow-sm">
-            <CardContent className="p-5">
-              <h3 className="text-[13px] font-semibold text-foreground mb-3">Como funciona a rede de indicações</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { step: "1", title: "Você indica", desc: "Envie o link para um colega médico se cadastrar na plataforma.", icon: Share2 },
-                  { step: "2", title: "Colega vende", desc: "O médico indicado cadastra pacientes via quiz e gera vendas normalmente.", icon: Stethoscope },
-                  { step: "3", title: "Você ganha", desc: "A cada venda do paciente dele, você recebe 10% dos pontos gerados automaticamente.", icon: Coins },
-                ].map(({ step, title, desc, icon: Icon }) => (
-                  <div key={step} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent text-[12px] font-bold">
-                      {step}
-                    </div>
-                    <div>
-                      <p className="text-[12px] font-semibold text-foreground">{title}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* Partners Table */}
         <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
           <Card className="border-border shadow-sm">
