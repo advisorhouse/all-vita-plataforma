@@ -546,62 +546,53 @@ const CoreProducts: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                {/* Automated Integrations */}
-                <Card className="border-accent/20 shadow-sm bg-accent/5">
-                  <CardHeader className="py-3 px-4 bg-accent/10 border-b border-accent/20">
-                    <CardTitle className="text-[13px] font-bold flex items-center gap-2 text-accent">
-                      <Settings2 className="h-4 w-4" />
-                      Automações Integradas
+                {/* Store Integrations Status (read-only) */}
+                <Card className="border-border shadow-none">
+                  <CardHeader className="py-3 px-4 bg-muted/30">
+                    <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                      <Settings2 className="h-4 w-4 text-muted-foreground" />
+                      Integrações da Loja
                     </CardTitle>
+                    <CardDescription className="text-[10px] mt-0.5">
+                      Configuração centralizada em Integrações
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-4 space-y-3">
-                    {/* Bling */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded bg-white border flex items-center justify-center p-1">
-                          <Box className="h-4 w-4 text-muted-foreground" />
+                  <CardContent className="p-4 space-y-2.5">
+                    {[
+                      { type: "bling", label: "Bling ERP", desc: "Estoque", Icon: Box },
+                      { type: "enotas", label: "eNotas", desc: "Nota fiscal", Icon: FileText },
+                      { type: "melhorenvio", label: "Melhor Envio", desc: "Rastreio", Icon: Truck },
+                    ].map(({ type, label, desc, Icon }) => {
+                      const s = integrationStatus(type);
+                      return (
+                        <div key={type} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="h-7 w-7 rounded bg-white border flex items-center justify-center p-1">
+                              <Icon className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <p className="text-[11px] font-bold">{label}</p>
+                              <p className="text-[9px] text-muted-foreground">{desc}</p>
+                            </div>
+                          </div>
+                          {s.active ? (
+                            <Badge variant="outline" className="text-[9px] gap-1 bg-emerald-500/10 text-emerald-700 border-emerald-200">
+                              <CheckCircle2 className="h-3 w-3" /> Conectado
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[9px] gap-1 text-muted-foreground">
+                              <AlertCircle className="h-3 w-3" /> Desconectado
+                            </Badge>
+                          )}
                         </div>
-                        <div>
-                          <p className="text-[11px] font-bold">Bling ERP</p>
-                          <p className="text-[9px] text-muted-foreground">Sincronizar Estoque</p>
-                        </div>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-
-                    {/* eNotas */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded bg-white border flex items-center justify-center p-1">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-bold">eNotas</p>
-                          <p className="text-[9px] text-muted-foreground">Nota Fiscal Automática</p>
-                        </div>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-
-                    {/* Melhor Envio */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded bg-white border flex items-center justify-center p-1">
-                          <Truck className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-bold">Melhor Envio</p>
-                          <p className="text-[9px] text-muted-foreground">Rastreio e Etiquetas</p>
-                        </div>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-
-                    <div className="pt-2">
-                      <Badge variant="outline" className="w-full justify-center py-1 text-[9px] gap-1 bg-white">
-                        <CheckCircle2 className="h-3 w-3 text-success" /> Pronto para venda
-                      </Badge>
-                    </div>
+                      );
+                    })}
+                    <Separator />
+                    <Button asChild variant="outline" size="sm" className="w-full text-[11px] h-8 gap-1.5">
+                      <Link to="/core/integrations" onClick={() => setShowAddProduct(false)}>
+                        <Settings2 className="h-3 w-3" /> Gerenciar integrações
+                      </Link>
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
