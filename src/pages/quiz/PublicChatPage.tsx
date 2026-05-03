@@ -21,6 +21,7 @@ const PublicChatPage: React.FC = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(true);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [partnerName, setPartnerName] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Configuration (placeholder — will be tenant-configurable later)
@@ -30,12 +31,33 @@ const PublicChatPage: React.FC = () => {
   const tenantLogo = currentTenant?.logo_url;
   const tenantName = currentTenant?.trade_name || currentTenant?.name || "";
 
-  // Resolve referral
+  // Resolve referral and fetch partner details
   useEffect(() => {
+    const fetchPartner = async (code: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("partners")
+          .select("referral_code, profiles(first_name, last_name)")
+          .eq("referral_code", code.toUpperCase())
+          .single();
+
+        if (data && data.profiles) {
+          const profile = data.profiles as any;
+          setPartnerName(`${profile.first_name} ${profile.last_name}`);
+        }
+      } catch (err) {
+        console.error("Error fetching partner details:", err);
+      }
+    };
+
     const urlRef = searchParams.get("ref");
     const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
     const finalRef = (urlRef || stored || doctorCode || null)?.toUpperCase() ?? null;
+    
     setReferralCode(finalRef);
+    if (finalRef) {
+      fetchPartner(finalRef);
+    }
   }, [doctorCode, searchParams]);
 
   // Initial greeting (simulated — real AI integration comes next)
