@@ -263,7 +263,7 @@ const PartnerLevelExplainer: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white/50 rounded-xl p-3 border border-accent/10 space-y-2">
+        <div className="bg-muted/50 rounded-xl p-3 border border-accent/10 space-y-2">
           <h4 className="text-[12px] font-bold text-foreground flex items-center gap-1.5">
             <Lightbulb className="h-3.5 w-3.5 text-warning" /> Dica de Ouro
           </h4>
@@ -310,7 +310,7 @@ const ProgressionWidget: React.FC<{ partner: any; stats: any }> = ({ partner, st
         <div className={cn("p-5 relative overflow-hidden", current.bg)}>
           <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full opacity-20" style={{ background: "currentColor" }} />
           <div className="relative z-10 flex items-center gap-4">
-            <div className={cn("flex h-14 w-14 items-center justify-center rounded-2xl ring-2 bg-white/80", current.ring)}>
+            <div className={cn("flex h-14 w-14 items-center justify-center rounded-2xl ring-2 bg-background/80", current.ring)}>
               <CurrentIcon className={cn("h-7 w-7", current.color)} />
             </div>
             <div className="flex-1">
@@ -1063,10 +1063,19 @@ const PartnerNetwork: React.FC = () => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-5 pb-12">
+      <div className="space-y-5 pb-12 relative overflow-hidden">
+        {/* Subtle background glow based on tenant color */}
+        <div 
+          className="absolute -top-24 -right-24 h-64 w-64 rounded-full blur-[100px] opacity-10 pointer-events-none"
+          style={{ backgroundColor: current?.color || 'var(--accent)' }}
+        />
+        <div 
+          className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full blur-[100px] opacity-10 pointer-events-none"
+          style={{ backgroundColor: current?.color || 'var(--accent)' }}
+        />
 
         {/* ═══ Header ═══ */}
-        <motion.div custom={-1} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div custom={-1} variants={fadeUp} initial="hidden" animate="visible" className="relative z-10">
            <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2.5">
@@ -1215,7 +1224,7 @@ const PartnerNetwork: React.FC = () => {
         </div>
 
         {/* ═══ ROW 3 — Network Tree (full width) ═══ */}
-        <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible" className="relative z-10">
           <NetworkTreeView nodes={networkTree} partner={partner} stats={stats} />
         </motion.div>
 

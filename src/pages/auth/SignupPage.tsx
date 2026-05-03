@@ -144,11 +144,14 @@ const SignupPage: React.FC = () => {
 
   return (
     <div 
-      className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500"
-      style={{ 
-        backgroundColor: currentTenant?.primary_color || 'var(--background)' 
-      }}
+      className="flex min-h-screen items-center justify-center p-4 transition-colors duration-500 bg-background"
     >
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-20"
+        style={{ 
+          backgroundColor: currentTenant?.primary_color || 'transparent' 
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -162,24 +165,10 @@ const SignupPage: React.FC = () => {
             className="h-16 w-auto mx-auto mb-4 object-contain" 
             style={{ maxHeight: '80px' }}
           />
-          <h1 
-            className="text-2xl font-semibold tracking-tight transition-colors duration-500"
-            style={{ 
-              color: currentTenant?.primary_color 
-                ? (isColorLight(currentTenant.primary_color) ? '#1A1A1A' : 'white') 
-                : 'var(--foreground)'
-            }}
-          >
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Criar conta
           </h1>
-          <p 
-            className="text-sm mt-1 transition-colors duration-500"
-            style={{ 
-              color: currentTenant?.primary_color 
-                ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)') 
-                : 'var(--muted-foreground)'
-            }}
-          >
+          <p className="text-sm mt-1 text-muted-foreground">
             Complete seu cadastro para acessar a {currentTenant?.trade_name || currentTenant?.name || "All Vita"}
           </p>
         </div>
@@ -272,14 +261,7 @@ const SignupPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p 
-          className="text-center text-[11px] mt-6 transition-colors duration-500"
-          style={{ 
-            color: currentTenant?.primary_color 
-              ? (isColorLight(currentTenant.primary_color) ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.7)') 
-              : 'var(--muted-foreground)'
-          }}
-        >
+        <p className="text-center text-[11px] mt-6 text-muted-foreground">
           Powered by <span className="font-medium">All Vita</span>
         </p>
       </motion.div>
