@@ -1063,10 +1063,19 @@ const PartnerNetwork: React.FC = () => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-5 pb-12">
+      <div className="space-y-5 pb-12 relative overflow-hidden">
+        {/* Subtle background glow based on tenant color */}
+        <div 
+          className="absolute -top-24 -right-24 h-64 w-64 rounded-full blur-[100px] opacity-10 pointer-events-none"
+          style={{ backgroundColor: current?.color || 'var(--accent)' }}
+        />
+        <div 
+          className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full blur-[100px] opacity-10 pointer-events-none"
+          style={{ backgroundColor: current?.color || 'var(--accent)' }}
+        />
 
         {/* ═══ Header ═══ */}
-        <motion.div custom={-1} variants={fadeUp} initial="hidden" animate="visible">
+        <motion.div custom={-1} variants={fadeUp} initial="hidden" animate="visible" className="relative z-10">
            <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2.5">
