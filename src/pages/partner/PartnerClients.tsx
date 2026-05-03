@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Search, Users, TrendingUp, ShieldCheck,
-  AlertTriangle, CheckCircle2, Clock, Heart,
-  ArrowUpRight,
-  Zap, BarChart3, Star, Activity,
-  ChevronDown, ChevronUp,
-  MessageSquare, Phone, Mail, Sparkles, Coins, Eye,
+  Search, ClipboardList, Users, TrendingUp, Coins,
+  AlertTriangle, CheckCircle2, ChevronDown, ChevronUp,
+  MessageSquare, Phone, Mail, Eye, Info,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,11 +18,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PremiumLinkWidget from "@/components/partner/PremiumLinkWidget";
-import {
-  BarChart, Bar,
-  XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid,
-  PieChart, Pie, Cell,
-} from "recharts";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
