@@ -72,6 +72,7 @@ interface Client {
 
 const CLIENTS: Client[] = [
   { id: "CL-001", name: "Maria Silva", initials: "MS", email: "maria@email.com", phone: "(11) 98765-4321", status: "active", plan: "9 meses", activeMonths: 8, totalPoints: 5580, monthlyPoints: 697, consistencyScore: 96, engagementScore: 92, riskLevel: "low", lastLogin: "Hoje", nextPayment: "03/03", joinedDate: "Jul/25", contentConsumed: 24, daysStreak: 18, nps: 10 },
+];
 
 const statusConfig: Record<ClientStatus, { label: string; className: string }> = {
   active: { label: "Ativo", className: "bg-accent/10 text-accent" },
