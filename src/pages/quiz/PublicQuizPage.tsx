@@ -454,13 +454,7 @@ const PublicQuizPage: React.FC = () => {
                   onChange={(v) => update({ uvExposure: v })}
                 />
               )}
-              {step === 6 && <QuizStepIdentification data={data} update={update} />}
-              {step === 7 && <QuizStepHealth data={data} update={update} />}
-              {step === 8 && <QuizStepMedications data={data} update={update} />}
-              {step === 9 && <QuizStepOphthalmology data={data} update={update} />}
-              {step === 10 && <QuizStepReason data={data} update={update} />}
-              {step === 11 && <QuizStepConsent data={data} update={update} />}
-              {step === 12 && (
+              {step === 6 && (
                 <QuizStepResult
                   score={computeProtectionScore(data, config.scoreWeights, {
                     screenTime: config.options,
