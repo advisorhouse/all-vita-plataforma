@@ -154,23 +154,49 @@ const PartnerSettings: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center gap-5">
                 <div className="relative group">
-                  <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center text-accent-foreground text-2xl font-bold">
-                    CS
+                  <div className="h-20 w-20 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden border border-border">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center text-accent-foreground text-2xl font-bold">
+                        {profile?.first_name?.[0] || profile?.email?.[0]?.toUpperCase() || "U"}
+                      </div>
+                    )}
                   </div>
-                  <button className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera className="h-5 w-5 text-white" />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadMutation.isPending}
+                    className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                  >
+                    {uploadMutation.isPending ? <Loader2 className="h-5 w-5 text-white animate-spin" /> : <Camera className="h-5 w-5 text-white" />}
                   </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[18px] font-bold text-foreground">Camila Santos</h2>
-                    <Badge variant="secondary" className="text-[9px] bg-accent/10 text-accent border-0">Partner Ouro</Badge>
+                    <h2 className="text-[18px] font-bold text-foreground truncate">
+                      {profile ? `${profile.first_name || ""} ${profile.last_name || ""}` : "Carregando..."}
+                    </h2>
+                    <Badge variant="secondary" className="text-[9px] bg-accent/10 text-accent border-0 shrink-0">Partner Ouro</Badge>
                   </div>
-                  <p className="text-[12px] text-muted-foreground mt-0.5">camila.santos@email.com</p>
+                  <p className="text-[12px] text-muted-foreground mt-0.5 truncate">{profile?.email}</p>
                   <p className="text-[11px] text-muted-foreground">Membro desde Out/2025 · ID: VL-P-00847</p>
                 </div>
-                <Button variant="outline" size="sm" className="text-[12px]">
-                  <Upload className="h-3.5 w-3.5 mr-1.5" /> Alterar foto
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-[12px] hidden sm:flex"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadMutation.isPending}
+                >
+                  {uploadMutation.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1.5" />}
+                  Alterar foto
                 </Button>
               </div>
             </CardContent>
