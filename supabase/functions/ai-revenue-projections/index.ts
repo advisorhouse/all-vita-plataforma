@@ -91,7 +91,7 @@ serve(async (req) => {
             }`
           }
         ],
-        temperature: 0.2,
+        temperature: 1,
         response_format: { type: "json_object" }
       }),
     });
