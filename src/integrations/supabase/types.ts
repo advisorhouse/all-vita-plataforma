@@ -165,6 +165,44 @@ export type Database = {
           },
         ]
       }
+      ai_predictions: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          data: Json
+          expires_at: string | null
+          id: string
+          prediction_type: string
+          tenant_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          data: Json
+          expires_at?: string | null
+          id?: string
+          prediction_type: string
+          tenant_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          data?: Json
+          expires_at?: string | null
+          id?: string
+          prediction_type?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_predictions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       all_vita_staff: {
         Row: {
           created_at: string

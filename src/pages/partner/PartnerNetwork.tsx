@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, TrendingUp, UserPlus, ArrowUpRight,
@@ -9,7 +9,7 @@ import {
   UserCheck, UserMinus, UserX, Sparkles, GitBranch,
   Crown, CircleDot, Minus, Plus, Award, Lock, Gem, Trophy,
   Coins, BookOpen, Lightbulb, GraduationCap, Loader2,
-  Link2, Copy, Smartphone, Stethoscope
+  Link2, Copy, Smartphone, Stethoscope, BrainCircuit, RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { useCurrentPartner } from "@/hooks/useCurrentPartner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -168,6 +168,17 @@ interface NetworkNode {
   nextRenewal: string;
   commissionRate: number;
 }
+
+interface AIPrediction {
+  projected_mrr_3m: number;
+  projected_mrr_12m: number;
+  churn_probability: number;
+  avg_ltv: number;
+  confidence_score: number;
+  insights: string[];
+  recommendations: string[];
+}
+
 
 const NETWORK_TREE: NetworkNode[] = [
   { name: "Maria Silva", initials: "MS", status: "active", months: 8, plan: "9 meses", revenue: 5593, consistency: 96, joinedDate: "Jul/25", lastPurchase: "28/02/26", nextRenewal: "15/03/26", commissionRate: 18 },
@@ -806,7 +817,158 @@ const RecruitLinkCard: React.FC<{ partner: any; tenant: any }> = ({ partner, ten
   );
 };
 
-// ─── Main Page ──────────────────────────────────────────────
+
+// ─── AI Predictive Card ──────────────────────────────────────
+const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
+  const queryClient = useQueryClient();
+  const { data: prediction, isLoading } = useQuery({
+    queryKey: ["ai-prediction", tenantId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_predictions")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("prediction_type", "revenue_forecast")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return (data?.data as unknown as AIPrediction) || null;
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("ai-revenue-projections", {
+        body: { tenant_id: tenantId },
+      });
+      if (error) throw error;
+      return data as AIPrediction;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ai-prediction", tenantId] });
+      toast.success("Previsão atualizada com IA!");
+    },
+  });
+
+  const displayData: AIPrediction = prediction || {
+    projected_mrr_3m: 0,
+    projected_mrr_12m: 0,
+    churn_probability: 0.1,
+    avg_ltv: 0,
+    confidence_score: 0,
+    insights: ["Clique em 'Gerar com IA' para uma análise robusta."],
+    recommendations: []
+  };
+
+  return (
+    <Card className="border-accent/30 shadow-md bg-gradient-to-br from-background to-accent/5 overflow-hidden">
+      <CardHeader className="pb-2 border-b border-accent/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-accent/10">
+              <BrainCircuit className="h-5 w-5 text-accent" />
+            </div>
+            <div>
+              <CardTitle className="text-base font-bold">IA Preditiva Robust</CardTitle>
+              <CardDescription className="text-[10px]">Análise via Lovable AI & GPT-5</CardDescription>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 text-[11px] gap-2 rounded-full border-accent/20 hover:bg-accent/10"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+            {prediction ? "Atualizar" : "Gerar com IA"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 space-y-4">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-accent" />
+            <p className="text-[12px] text-muted-foreground">Consultando modelos preditivos...</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase tracking-wider">
+                  MRR Esperado (3m) <Tip text="Receita Recorrente Mensal projetada para daqui a 3 meses." />
+                </p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-bold text-foreground">
+                    R$ {displayData.projected_mrr_3m?.toLocaleString("pt-BR")}
+                  </span>
+                  <span className="text-[10px] text-accent font-semibold flex items-center">
+                    <ArrowUpRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase tracking-wider">
+                  Prob. Churn <Tip text="Probabilidade média de cancelamento dos pacientes na sua rede." />
+                </p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={cn(
+                    "text-xl font-bold",
+                    displayData.churn_probability > 0.3 ? "text-destructive" : "text-success"
+                  )}>
+                    {(displayData.churn_probability * 100).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-muted-foreground font-medium">Confiança da IA</span>
+                <span className="font-bold">{(displayData.confidence_score * 100).toFixed(0)}%</span>
+              </div>
+              <Progress value={displayData.confidence_score * 100} className="h-1.5" />
+            </div>
+
+            <div className="space-y-2 bg-accent/5 rounded-xl p-3 border border-accent/10">
+              <h4 className="text-[11px] font-bold text-accent uppercase flex-1 flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3" /> Insights Estratégicos
+              </h4>
+              <ul className="space-y-1.5">
+                {displayData.insights?.slice(0, 3).map((insight: string, i: number) => (
+                  <li key={i} className="text-[11px] text-muted-foreground flex items-start gap-2">
+                    <div className="mt-1 h-1 w-1 rounded-full bg-accent shrink-0" />
+                    {insight}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {displayData.recommendations?.length > 0 && (
+              <div className="space-y-2 bg-secondary/30 rounded-xl p-3">
+                <h4 className="text-[11px] font-bold text-foreground uppercase flex items-center gap-1.5">
+                  <Lightbulb className="h-3 w-3 text-warning" /> Próximos Passos
+                </h4>
+                <ul className="space-y-1">
+                  {displayData.recommendations.slice(0, 2).map((rec: string, i: number) => (
+                    <li key={i} className="text-[10px] text-muted-foreground italic flex items-start gap-2">
+                      <ArrowRight className="h-2.5 w-2.5 mt-0.5 text-accent" />
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+
+  );
+};
+
 const PartnerNetwork: React.FC = () => {
   const { data: partner, isLoading: loadingPartner } = useCurrentPartner();
   const { currentTenant } = useTenant();
@@ -979,26 +1141,35 @@ const PartnerNetwork: React.FC = () => {
                       <span className="text-[11px] font-semibold">+167%</span>
                     </div>
                   </div>
-                  <div className="flex-1 min-h-[250px]">
+                  <div className="flex-1 h-[320px] mt-4">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={GROWTH_CHART} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="activeGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3} />
-                            <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.02} />
+                            <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0.01} />
                           </linearGradient>
                         </defs>
-                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} dy={10} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                        <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
+                        <RTooltip 
+                          contentStyle={{ 
+                            background: "hsl(var(--card))", 
+                            border: "1px solid hsl(var(--border))", 
+                            borderRadius: "12px", 
+                            fontSize: "12px",
+                            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+                          }} 
+                        />
                         <Area type="monotone" dataKey="total" stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="4 3" fill="none" name="Na rede" />
-                        <Area type="monotone" dataKey="active" stroke="hsl(217, 91%, 60%)" strokeWidth={2.5} fill="url(#activeGrad)" name="Comprando" />
+                        <Area type="monotone" dataKey="active" stroke="hsl(var(--accent))" strokeWidth={3} fill="url(#activeGrad)" name="Comprando" />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
+
 
             {/* Side info cards */}
             <div className="grid grid-cols-2 gap-4">
@@ -1131,34 +1302,7 @@ const PartnerNetwork: React.FC = () => {
           </motion.div>
 
           <motion.div custom={7} variants={fadeUp} initial="hidden" animate="visible" className="col-span-12 lg:col-span-4">
-            <Card className="border-border shadow-sm h-full">
-              <CardContent className="p-4 space-y-3 h-full flex flex-col">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-accent" />
-                  <h3 className="text-[13px] font-semibold text-foreground">Previsão do Próximo Mês</h3>
-                </div>
-                <p className="text-[11px] text-muted-foreground">Se continuar assim, você vai acumular:</p>
-                <p className="text-2xl font-bold text-foreground">27.170 pts</p>
-                <div className="flex items-center gap-1 text-accent">
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                  <span className="text-[11px] font-semibold">+15% a mais que este mês</span>
-                </div>
-                <div className="flex gap-2 pt-1 flex-1 items-end">
-                  <div className="flex-1 rounded-xl bg-secondary/60 p-2.5">
-                    <p className="text-[9px] text-muted-foreground flex items-center gap-1">
-                      <UserPlus className="h-2.5 w-2.5" /> Novos esperados
-                    </p>
-                    <p className="text-base font-bold text-foreground mt-0.5">+4</p>
-                  </div>
-                  <div className="flex-1 rounded-xl bg-secondary/60 p-2.5">
-                    <p className="text-[9px] text-muted-foreground flex items-center gap-1">
-                      <Coins className="h-2.5 w-2.5" /> Média/paciente
-                    </p>
-                    <p className="text-base font-bold text-foreground mt-0.5">1.490 pts</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AIPredictiveCard tenantId={partner.tenant_id} />
           </motion.div>
         </div>
 
