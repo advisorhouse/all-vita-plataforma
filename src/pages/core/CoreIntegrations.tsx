@@ -6,7 +6,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import {
   ShoppingCart, CreditCard, Brain, Mic, Settings2,
   CheckCircle2, XCircle, Loader2, ExternalLink, Plug,
-  Key, Globe, RefreshCw, ChevronRight, Truck, ScrollText
+  Key, Globe, RefreshCw, ChevronRight, Truck, ScrollText,
+  Box
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,86 +43,69 @@ interface IntegrationConfig {
 
 const integrations: IntegrationConfig[] = [
   {
-    id: "shopify",
-    name: "Shopify",
-    description: "E-commerce e gestão de produtos. Sincronize catálogo, pedidos e estoque automaticamente.",
-    icon: ShoppingCart,
-    color: "bg-emerald-500/10 text-emerald-600",
-    docsUrl: "https://shopify.dev/docs/api",
+    id: "bling",
+    name: "Bling ERP",
+    description: "Gestão de estoque, pedidos e integração com marketplaces. Centralize sua operação.",
+    icon: Box,
+    color: "bg-orange-500/10 text-orange-600",
+    docsUrl: "https://ajuda.bling.com.br/hc/pt-br/articles/360046425313-API-do-Bling",
     fields: [
-      { key: "store_url", label: "URL da Loja", placeholder: "minha-loja.myshopify.com" },
-      { key: "api_key", label: "API Key", placeholder: "shpat_...", secret: true },
-      { key: "webhook_secret", label: "Webhook Secret", placeholder: "whsec_...", secret: true },
+      { key: "api_key", label: "API Key (V2 ou V3)", placeholder: "apikey_...", secret: true },
     ],
-    features: ["Sincronização de produtos", "Importação de pedidos", "Webhooks de pagamento", "Gestão de estoque"],
-  },
-  {
-    id: "pagarme",
-    name: "Pagar.me",
-    description: "Gateway de pagamento brasileiro. Processe transações e gerencie recorrências.",
-    icon: CreditCard,
-    color: "bg-blue-500/10 text-blue-600",
-    docsUrl: "https://docs.pagar.me",
-    fields: [
-      { key: "api_key", label: "API Key", placeholder: "ak_live_...", secret: true },
-      { key: "encryption_key", label: "Encryption Key", placeholder: "ek_live_...", secret: true },
-      { key: "webhook_url", label: "Webhook URL", placeholder: "Gerado automaticamente" },
-    ],
-    features: ["Processamento de pagamentos", "Assinaturas recorrentes", "Split de pagamento", "Webhooks automáticos"],
-  },
-  {
-    id: "melhorenvio",
-    name: "Melhor Envio",
-    description: "Gestão de fretes e logística. Calcule fretes, gere etiquetas e rastreie envios.",
-    icon: Truck,
-    color: "bg-blue-600/10 text-blue-700",
-    docsUrl: "https://docs.melhorenvio.com.br",
-    fields: [
-      { key: "api_token", label: "API Token", placeholder: "Bearer ...", secret: true },
-      { key: "sandbox", label: "Ambiente Sandbox", placeholder: "true/false" },
-    ],
-    features: ["Cálculo de frete", "Geração de etiquetas", "Rastreamento", "Logística reversa"],
+    features: ["Sincronização de estoque", "Importação de pedidos", "Gestão de produtos"],
   },
   {
     id: "enotas",
     name: "eNotas",
     description: "Emissão automatizada de notas fiscais de serviço (NFS-e) e produto (NF-e).",
     icon: ScrollText,
-    color: "bg-orange-500/10 text-orange-600",
+    color: "bg-blue-500/10 text-blue-600",
     docsUrl: "https://docs.enotas.com.br",
     fields: [
-      { key: "api_key", label: "API Key", placeholder: "..." },
+      { key: "api_key", label: "API Key", placeholder: "...", secret: true },
       { key: "company_id", label: "ID da Empresa", placeholder: "..." },
     ],
-    features: ["Emissão de NFS-e", "Emissão de NF-e", "Cancelamento automático", "Envio por e-mail"],
+    features: ["Emissão de NFS-e", "Emissão de NF-e", "Cancelamento automático"],
+  },
+  {
+    id: "melhorenvio",
+    name: "Melhor Envio",
+    description: "Gestão de fretes e logística. Calcule fretes, gere etiquetas e rastreie envios.",
+    icon: Truck,
+    color: "bg-yellow-500/10 text-yellow-700",
+    docsUrl: "https://docs.melhorenvio.com.br",
+    fields: [
+      { key: "api_token", label: "API Token", placeholder: "Bearer ...", secret: true },
+    ],
+    features: ["Cálculo de frete", "Geração de etiquetas", "Rastreamento"],
+  },
+  {
+    id: "pagarme",
+    name: "Pagar.me",
+    description: "Gateway de pagamento brasileiro. Processe transações e gerencie recorrências.",
+    icon: CreditCard,
+    color: "bg-emerald-500/10 text-emerald-600",
+    docsUrl: "https://docs.pagar.me",
+    fields: [
+      { key: "api_key", label: "API Key", placeholder: "ak_live_...", secret: true },
+      { key: "encryption_key", label: "Encryption Key", placeholder: "ek_live_...", secret: true },
+    ],
+    features: ["Pagamentos", "Assinaturas", "Split de pagamento"],
   },
   {
     id: "openai",
     name: "OpenAI",
-    description: "Inteligência artificial para predição de churn, projeções financeiras e assistentes inteligentes.",
+    description: "IA para predição de churn, projeções financeiras e assistentes inteligentes.",
     icon: Brain,
     color: "bg-violet-500/10 text-violet-600",
     docsUrl: "https://platform.openai.com/docs",
     fields: [
       { key: "api_key", label: "API Key", placeholder: "sk-...", secret: true },
-      { key: "model", label: "Modelo Padrão", placeholder: "gpt-4o-mini" },
     ],
-    features: ["Predição de churn", "Projeções de LTV", "Assistente IA", "Análise de sentimento"],
-  },
-  {
-    id: "elevenlabs",
-    name: "ElevenLabs",
-    description: "Geração de voz por IA para agentes de atendimento e conteúdos personalizados.",
-    icon: Mic,
-    color: "bg-amber-500/10 text-amber-600",
-    docsUrl: "https://elevenlabs.io/docs",
-    fields: [
-      { key: "api_key", label: "API Key", placeholder: "xi-...", secret: true },
-      { key: "voice_id", label: "Voice ID Padrão", placeholder: "ID da voz personalizada" },
-    ],
-    features: ["Text-to-Speech", "Agente de voz", "Clonagem de voz", "Áudio para conteúdo"],
+    features: ["Predição de churn", "Projeções de LTV", "Análise de dados"],
   },
 ];
+
 
 const CoreIntegrations: React.FC = () => {
   const { currentTenant } = useTenant();

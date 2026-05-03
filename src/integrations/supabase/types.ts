@@ -1434,42 +1434,136 @@ export type Database = {
         }
         Relationships: []
       }
+      product_images: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          order: number | null
+          product_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          order?: number | null
+          product_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          order?: number | null
+          product_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_integrations: {
+        Row: {
+          created_at: string
+          external_id: string | null
+          id: string
+          integration_type: string
+          last_sync_at: string | null
+          metadata: Json | null
+          product_id: string
+          sync_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          integration_type: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          product_id: string
+          sync_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          integration_type?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          product_id?: string
+          sync_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_integrations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active: boolean
+          barcodes: Json | null
+          brand: string | null
+          category: string | null
           created_at: string
           description: string | null
           id: string
           metadata: Json | null
           name: string
           price: number
+          sku: string | null
+          stock_quantity: number | null
           tenant_id: string
           type: string
           updated_at: string
+          weight: number | null
         }
         Insert: {
           active?: boolean
+          barcodes?: Json | null
+          brand?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
           metadata?: Json | null
           name: string
           price?: number
+          sku?: string | null
+          stock_quantity?: number | null
           tenant_id: string
           type?: string
           updated_at?: string
+          weight?: number | null
         }
         Update: {
           active?: boolean
+          barcodes?: Json | null
+          brand?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
           metadata?: Json | null
           name?: string
           price?: number
+          sku?: string | null
+          stock_quantity?: number | null
           tenant_id?: string
           type?: string
           updated_at?: string
+          weight?: number | null
         }
         Relationships: [
           {
