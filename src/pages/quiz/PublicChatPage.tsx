@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Eye, ShieldCheck, Send, Loader2 } from "lucide-react";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatMessage {
   id: string;
@@ -21,6 +22,7 @@ const PublicChatPage: React.FC = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(true);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [partnerName, setPartnerName] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Configuration (placeholder — will be tenant-configurable later)
@@ -30,12 +32,33 @@ const PublicChatPage: React.FC = () => {
   const tenantLogo = currentTenant?.logo_url;
   const tenantName = currentTenant?.trade_name || currentTenant?.name || "";
 
-  // Resolve referral
+  // Resolve referral and fetch partner details
   useEffect(() => {
+    const fetchPartner = async (code: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("partners")
+          .select("referral_code, profiles(first_name, last_name)")
+          .eq("referral_code", code.toUpperCase())
+          .single();
+
+        if (data && data.profiles) {
+          const profile = data.profiles as any;
+          setPartnerName(`${profile.first_name} ${profile.last_name}`);
+        }
+      } catch (err) {
+        console.error("Error fetching partner details:", err);
+      }
+    };
+
     const urlRef = searchParams.get("ref");
     const stored = typeof window !== "undefined" ? localStorage.getItem("allvita_partner_ref") : null;
     const finalRef = (urlRef || stored || doctorCode || null)?.toUpperCase() ?? null;
+    
     setReferralCode(finalRef);
+    if (finalRef) {
+      fetchPartner(finalRef);
+    }
   }, [doctorCode, searchParams]);
 
   // Initial greeting (simulated — real AI integration comes next)
@@ -154,6 +177,11 @@ const PublicChatPage: React.FC = () => {
           <h1 className="text-[30px] font-bold text-[#1a1a1a] leading-tight">
             Diagnóstico Visual Personalizado
           </h1>
+          {partnerName && (
+            <p className="text-[14px] text-accent font-semibold mt-2">
+              {partnerName} recomendou esta avaliação
+            </p>
+          )}
           <p className="text-[14px] text-muted-foreground mt-2 max-w-[520px] mx-auto leading-relaxed">
             Converse com a {attendantName} e descubra seu nível de proteção ocular em menos de 3 minutos.
           </p>
