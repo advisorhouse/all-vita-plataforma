@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, TrendingUp, UserPlus, ArrowUpRight,
@@ -9,7 +9,7 @@ import {
   UserCheck, UserMinus, UserX, Sparkles, GitBranch,
   Crown, CircleDot, Minus, Plus, Award, Lock, Gem, Trophy,
   Coins, BookOpen, Lightbulb, GraduationCap, Loader2,
-  Link2, Copy, Smartphone, Stethoscope
+  Link2, Copy, Smartphone, Stethoscope, BrainCircuit, RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { useCurrentPartner } from "@/hooks/useCurrentPartner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
