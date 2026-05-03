@@ -152,7 +152,7 @@ const PartnerClients: React.FC = () => {
               </p>
             </div>
             <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5">
-              <Zap className="h-3 w-3 text-warning" />
+              <Info className="h-3 w-3 text-muted-foreground" />
               <p className="text-[10px] text-muted-foreground">Vínculo: <span className="font-semibold text-foreground">Último Quiz</span></p>
               <Tip text="Modelo Último Click: o paciente é vinculado ao médico cujo quiz foi preenchido por último." />
             </div>
