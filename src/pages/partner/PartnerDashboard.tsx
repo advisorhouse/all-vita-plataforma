@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import PremiumLinkWidget from "@/components/partner/PremiumLinkWidget";
 
 // ─── Helpers ─────────────────────────────────────────────────
 const fadeUp = {
