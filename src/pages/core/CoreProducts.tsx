@@ -320,8 +320,15 @@ const CoreProducts: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProducts.map((p) => (
-                      <TableRow key={p.id} className="hover:bg-secondary/20">
+                    {filteredProducts.map((p: any) => (
+                      <TableRow 
+                        key={p.id} 
+                        className="hover:bg-secondary/20 cursor-pointer"
+                        onClick={() => {
+                          setSelectedProduct(p);
+                          setShowAddProduct(true);
+                        }}
+                      >
                         <TableCell className="font-medium text-xs">{p.name}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px] gap-1">
@@ -335,18 +342,13 @@ const CoreProducts: React.FC = () => {
                         <TableCell className="text-right text-xs font-medium text-foreground">
                           R$ {p.discountedPrice.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-center text-xs">{p.months} mês{p.months > 1 ? "es" : ""}</TableCell>
-                        <TableCell className="text-center text-xs font-medium text-accent">{p.points.toLocaleString()}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <span className="text-xs">{p.partners}</span>
-                            {p.exclusivePartners > 0 && (
-                              <Badge variant="outline" className="text-[9px] border-warning/30 text-warning bg-warning/5">
-                                {p.exclusivePartners} excl.
-                              </Badge>
-                            )}
-                          </div>
+                        <TableCell className="text-center text-xs">
+                          {(p.metadata as any)?.months || 1} mês{((p.metadata as any)?.months || 1) > 1 ? "es" : ""}
                         </TableCell>
+                        <TableCell className="text-center text-xs font-medium text-accent">
+                          {((p.metadata as any)?.points || 0).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-center text-xs">0</TableCell>
                         <TableCell className="text-center">
                           {p.active ? (
                             <Badge className="bg-success/10 text-success border-success/20 text-[10px]">Ativo</Badge>
@@ -354,7 +356,7 @@ const CoreProducts: React.FC = () => {
                             <Badge variant="outline" className="text-[10px]">Inativo</Badge>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-7 w-7">
                             <MoreHorizontal className="h-3.5 w-3.5" />
                           </Button>
