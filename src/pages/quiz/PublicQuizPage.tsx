@@ -145,7 +145,7 @@ const DEFAULT_HEADER = {
   subtitle: "Complete este diagnóstico complementar para que seu protocolo de proteção seja personalizado ao seu perfil clínico",
   question_title: "Vamos começar pelo dia a dia — quanto tempo você passa olhando para telas?",
   question_subtitle: "Pode ser computador, celular, tablet ou TV. Soma tudo, sem culpa.",
-  badges: ["Dados criptografados", "LGPD compliant", "Validado por oftalmologistas"],
+  badges: ["Seus dados estão protegidos", "LGPD compliant", "Validado por oftalmologistas"],
 };
 
 const PublicQuizPage: React.FC = () => {
