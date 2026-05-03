@@ -9,7 +9,7 @@ import {
   UserCheck, UserMinus, UserX, Sparkles, GitBranch,
   Crown, CircleDot, Minus, Plus, Award, Lock, Gem, Trophy,
   Coins, BookOpen, Lightbulb, GraduationCap, Loader2,
-  Link2, Copy, Smartphone
+  Link2, Copy, Smartphone, Stethoscope
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,9 @@ import { useTenant } from "@/contexts/TenantContext";
 import { buildTenantUrl } from "@/lib/tenant-routing";
 import { toast } from "sonner";
 import productVisionLift from "@/assets/product-vision-lift-1month.png";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -976,9 +979,9 @@ const PartnerNetwork: React.FC = () => {
                       <span className="text-[11px] font-semibold">+167%</span>
                     </div>
                   </div>
-                  <div className="flex-1 min-h-[160px]">
+                  <div className="flex-1 min-h-[250px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={GROWTH_CHART} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                      <AreaChart data={GROWTH_CHART} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="activeGrad" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3} />
@@ -1303,5 +1306,78 @@ const PartnerNetwork: React.FC = () => {
     </TooltipProvider>
   );
 };
+
+        {/* ═══ ROW 7 — Referred Partners Detail (Integrated) ═══ */}
+        <motion.div custom={11} variants={fadeUp} initial="hidden" animate="visible">
+          <Card className="border-border shadow-sm">
+            <CardContent className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+                    <Users className="h-4 w-4 text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-foreground">Detalhamento de Parceiros Indicados</h3>
+                    <p className="text-[11px] text-muted-foreground">Métricas individuais dos colegas da sua rede</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex flex-col text-right">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Total Gerado</p>
+                    <p className="text-sm font-bold text-accent">+4.313 pts</p>
+                  </div>
+                  <Tip text="Visão detalhada de cada parceiro indicado, seus pacientes e pontos gerados para você (10% das vendas deles)." />
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-[11px]">Parceiro</TableHead>
+                      <TableHead className="text-[11px]">Status</TableHead>
+                      <TableHead className="text-[11px] text-center">Quiz</TableHead>
+                      <TableHead className="text-[11px] text-right">Pacientes</TableHead>
+                      <TableHead className="text-[11px] text-right">Compras</TableHead>
+                      <TableHead className="text-[11px] text-right">Seus Pontos (10%)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[
+                      { name: "Dr. Carlos Mendes", initials: "CM", specialty: "Oftalmologia", status: "active", patients: "15/18", purchases: 42, share: 1873 },
+                      { name: "Dra. Fernanda Alves", initials: "FA", specialty: "Geriatria", status: "active", patients: "10/12", purchases: 28, share: 1249 },
+                      { name: "Dr. Bruno Oliveira", initials: "BO", specialty: "Clínica Geral", status: "active", patients: "7/8", purchases: 15, share: 669 },
+                    ].map((p) => (
+                      <TableRow key={p.name}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[11px] font-bold text-foreground">
+                              {p.initials}
+                            </div>
+                            <div>
+                              <p className="text-[12px] font-medium text-foreground">{p.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{p.specialty}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent">Ativo</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <CheckCircle2 className="h-4 w-4 text-accent mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-right text-[12px] font-medium">{p.patients}</TableCell>
+                        <TableCell className="text-right text-[12px]">{p.purchases}</TableCell>
+                        <TableCell className="text-right">
+                          <span className="text-[12px] font-bold text-accent">+{p.share.toLocaleString("pt-BR")}</span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
 export default PartnerNetwork;
