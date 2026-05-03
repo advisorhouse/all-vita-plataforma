@@ -9,7 +9,7 @@ import {
   UserCheck, UserMinus, UserX, Sparkles, GitBranch,
   Crown, CircleDot, Minus, Plus, Award, Lock, Gem, Trophy,
   Coins, BookOpen, Lightbulb, GraduationCap, Loader2,
-  Link2, Copy, Smartphone
+  Link2, Copy, Smartphone, Stethoscope
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,9 @@ import { useTenant } from "@/contexts/TenantContext";
 import { buildTenantUrl } from "@/lib/tenant-routing";
 import { toast } from "sonner";
 import productVisionLift from "@/assets/product-vision-lift-1month.png";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
