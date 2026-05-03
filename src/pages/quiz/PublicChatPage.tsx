@@ -11,6 +11,7 @@ interface ChatMessage {
   role: "user" | "attendant";
   content: string;
   timestamp: number;
+  voiceUrl?: string | null;
 }
 
 const PublicChatPage: React.FC = () => {
