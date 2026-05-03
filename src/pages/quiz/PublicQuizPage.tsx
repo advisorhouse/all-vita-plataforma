@@ -12,12 +12,7 @@ import { toast } from "sonner";
 import { useTenant } from "@/contexts/TenantContext";
 import { toTitleCase } from "@/lib/utils";
 
-import QuizStepIdentification from "@/components/quiz/QuizStepIdentification";
-import QuizStepHealth from "@/components/quiz/QuizStepHealth";
-import QuizStepMedications from "@/components/quiz/QuizStepMedications";
-import QuizStepOphthalmology from "@/components/quiz/QuizStepOphthalmology";
-import QuizStepReason from "@/components/quiz/QuizStepReason";
-import QuizStepConsent from "@/components/quiz/QuizStepConsent";
+// Form steps identification, health, medications, etc removed as per user request
 import QuizStepScreenTime, { ScreenTimeOption } from "@/components/quiz/QuizStepScreenTime";
 import QuizStepSymptoms, { SymptomOption } from "@/components/quiz/QuizStepSymptoms";
 import QuizStepLastVisit, { LastVisitOption } from "@/components/quiz/QuizStepLastVisit";
