@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import {
@@ -8,10 +8,13 @@ import {
   Search, Filter, MoreHorizontal, Link2, Users,
   Pencil, Trash2, ToggleLeft, ToggleRight,
   ArrowUpDown, Tag, ShoppingBag, Coins,
+  Upload, X, Box, Barcode, FileText, Truck,
+  Settings2, CheckCircle2, AlertCircle, RefreshCw,
+  Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -30,6 +33,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 // ─── Data ────────────────────────────────────────────────────
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
