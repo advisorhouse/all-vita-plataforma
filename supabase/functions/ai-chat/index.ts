@@ -66,6 +66,13 @@ serve(async (req) => {
     });
 
     const openAiData = await openAiResponse.json();
+    console.log("OpenAI raw response:", JSON.stringify(openAiData));
+
+    if (!openAiData.choices || openAiData.choices.length === 0) {
+      console.error("OpenAI Error:", openAiData);
+      throw new Error(openAiData.error?.message || "OpenAI failed to return choices");
+    }
+
     const assistantMessage = openAiData.choices[0].message.content;
 
     let voiceUrl = null;
