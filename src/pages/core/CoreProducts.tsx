@@ -513,20 +513,46 @@ const CoreProducts: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      ref={fileInputRef} 
+                      onChange={handleFileUpload} 
+                      accept="image/*"
+                    />
                     <div className="grid grid-cols-4 gap-3">
-                      <div className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/30 transition-colors">
-                        <Upload className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[10px] text-muted-foreground font-medium">Adicionar</span>
+                      <div 
+                        className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/30 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                        ) : (
+                          <Upload className="h-5 w-5 text-muted-foreground" />
+                        )}
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          {isUploading ? "Enviando..." : "Adicionar"}
+                        </span>
                       </div>
-                      {/* Mock images */}
-                      {[1, 2].map((i) => (
-                        <div key={i} className="aspect-square rounded-xl border border-border bg-secondary/20 relative group overflow-hidden">
+                      
+                      {selectedProduct?.images?.map((img: any) => (
+                        <div key={img.id} className="aspect-square rounded-xl border border-border bg-secondary/20 relative group overflow-hidden">
+                          <img 
+                            src={img.url} 
+                            alt="Produto" 
+                            className="w-full h-full object-cover"
+                          />
                           <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="destructive" size="icon" className="h-5 w-5 rounded-md">
+                            <Button 
+                              variant="destructive" 
+                              size="icon" 
+                              className="h-5 w-5 rounded-md"
+                              onClick={() => deleteImageMutation.mutate(img.id)}
+                            >
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
-                          {i === 1 && (
+                          {img.is_primary && (
                             <div className="absolute bottom-1 left-1">
                               <Badge className="text-[8px] h-4 bg-accent/90">Principal</Badge>
                             </div>
