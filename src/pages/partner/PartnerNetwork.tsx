@@ -1124,26 +1124,35 @@ const PartnerNetwork: React.FC = () => {
                       <span className="text-[11px] font-semibold">+167%</span>
                     </div>
                   </div>
-                  <div className="flex-1 min-h-[250px]">
+                  <div className="flex-1 h-[320px] mt-4">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={GROWTH_CHART} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="activeGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3} />
-                            <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.02} />
+                            <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0.01} />
                           </linearGradient>
                         </defs>
-                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} dy={10} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                        <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
+                        <RTooltip 
+                          contentStyle={{ 
+                            background: "hsl(var(--card))", 
+                            border: "1px solid hsl(var(--border))", 
+                            borderRadius: "12px", 
+                            fontSize: "12px",
+                            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+                          }} 
+                        />
                         <Area type="monotone" dataKey="total" stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="4 3" fill="none" name="Na rede" />
-                        <Area type="monotone" dataKey="active" stroke="hsl(217, 91%, 60%)" strokeWidth={2.5} fill="url(#activeGrad)" name="Comprando" />
+                        <Area type="monotone" dataKey="active" stroke="hsl(var(--accent))" strokeWidth={3} fill="url(#activeGrad)" name="Comprando" />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
+
 
             {/* Side info cards */}
             <div className="grid grid-cols-2 gap-4">
