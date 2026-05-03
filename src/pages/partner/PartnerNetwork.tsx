@@ -933,7 +933,7 @@ const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
             </div>
 
             <div className="space-y-2 bg-accent/5 rounded-xl p-3 border border-accent/10">
-              <h4 className="text-[11px] font-bold text-accent uppercase flex items-center gap-1.5">
+              <h4 className="text-[11px] font-bold text-accent uppercase flex-1 flex items-center gap-1.5">
                 <Sparkles className="h-3 w-3" /> Insights Estratégicos
               </h4>
               <ul className="space-y-1.5">
@@ -945,10 +945,27 @@ const AIPredictiveCard: React.FC<{ tenantId: string }> = ({ tenantId }) => {
                 ))}
               </ul>
             </div>
+
+            {displayData.recommendations?.length > 0 && (
+              <div className="space-y-2 bg-secondary/30 rounded-xl p-3">
+                <h4 className="text-[11px] font-bold text-foreground uppercase flex items-center gap-1.5">
+                  <Lightbulb className="h-3 w-3 text-warning" /> Próximos Passos
+                </h4>
+                <ul className="space-y-1">
+                  {displayData.recommendations.slice(0, 2).map((rec: string, i: number) => (
+                    <li key={i} className="text-[10px] text-muted-foreground italic flex items-start gap-2">
+                      <ArrowRight className="h-2.5 w-2.5 mt-0.5 text-accent" />
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </>
         )}
       </CardContent>
     </Card>
+
   );
 };
 
