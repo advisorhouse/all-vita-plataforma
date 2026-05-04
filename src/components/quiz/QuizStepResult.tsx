@@ -1,6 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Zap, ShoppingCart, ChevronRight } from "lucide-react";
+import { AlertTriangle, Zap, ShoppingCart, ChevronRight, Loader2 } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ResultLevel {
   max: number;
@@ -28,15 +30,57 @@ const QuizStepResult: React.FC<Props> = ({
   score, title, subtitle, levels, productEyebrow, productName,
   productPoweredBy, ctaLabel, ctaUrl, disclaimer,
 }) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [syncing, setSyncing] = React.useState(false);
+
   const sorted = [...levels].sort((a, b) => a.max - b.max);
   const level = sorted.find((l) => score <= l.max) || sorted[sorted.length - 1];
   const color = level?.color || "#D97757";
   const circumference = 2 * Math.PI * 70;
   const offset = circumference - (score / 100) * circumference;
 
-  const handleCta = () => {
-    if (!ctaUrl) return;
-    window.open(ctaUrl, "_blank", "noopener,noreferrer");
+  const handleCta = async () => {
+    // If it's already a full URL, open it
+    if (ctaUrl && (ctaUrl.startsWith("http://") || ctaUrl.startsWith("https://"))) {
+      window.open(ctaUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // If it's a relative path (likely /checkout/:productId), navigate to it
+    if (ctaUrl && ctaUrl.startsWith("/")) {
+      const ref = searchParams.get("ref") || localStorage.getItem("allvita_partner_ref");
+      const qs = ref ? `?ref=${ref}` : "";
+      navigate(`${ctaUrl}${qs}`);
+      return;
+    }
+
+    // Fallback: If no URL is set, try to find the first synced product for this tenant
+    setSyncing(true);
+    try {
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, checkout_url")
+        .not("pagarme_product_id", "is", null)
+        .limit(1);
+
+      if (products && products.length > 0) {
+        const ref = searchParams.get("ref") || localStorage.getItem("allvita_partner_ref");
+        const qs = ref ? `?ref=${ref}` : "";
+        
+        if (products[0].checkout_url) {
+          navigate(`${products[0].checkout_url}${qs}`);
+        } else {
+          navigate(`/checkout/${products[0].id}${qs}`);
+        }
+      } else {
+        window.alert("Nenhum produto disponível para compra no momento.");
+      }
+    } catch (err) {
+      console.error("Error finding product:", err);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   return (
@@ -94,13 +138,13 @@ const QuizStepResult: React.FC<Props> = ({
         )}
         <button
           onClick={handleCta}
-          disabled={!ctaUrl}
+          disabled={syncing}
           className="mt-2 inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 h-12 rounded-xl text-white font-medium text-sm shadow-sm transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
           style={{ backgroundColor: color }}
         >
-          <ShoppingCart className="h-4 w-4" strokeWidth={2} />
+          {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" strokeWidth={2} />}
           {ctaLabel}
-          <ChevronRight className="h-4 w-4" />
+          {!syncing && <ChevronRight className="h-4 w-4" />}
         </button>
       </div>
 
