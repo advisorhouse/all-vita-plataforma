@@ -272,7 +272,7 @@ const CoreCommissions: React.FC = () => {
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Regras Ativas", value: `${activeRules}/${RULES.length}`, icon: Layers, accent: false, tip: "Quantidade de regras de comissão ativas sobre o total configurado." },
+              { label: "Regras Ativas", value: `${activeRules}/${rules.length}`, icon: Layers, accent: false, tip: "Quantidade de regras de comissão ativas sobre o total configurado." },
               { label: "Comissão (30d)", value: `R$ ${(totalCommission).toFixed(0)}`, icon: DollarSign, accent: true, tip: "Total de comissões processadas nos últimos 30 dias." },
               { label: "Margem Média", value: `${avgMargin}%`, icon: Shield, accent: false, tip: "Margem líquida média após comissões. Abaixo de 20% aciona alerta de proteção." },
               { label: "Alertas Margem", value: marginAlerts.toString(), icon: AlertTriangle, accent: false, warn: marginAlerts > 0, tip: "Transações onde a margem ficou abaixo do limite seguro de proteção." },
