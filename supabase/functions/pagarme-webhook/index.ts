@@ -14,10 +14,23 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const pagarmeSecret = Deno.env.get("PAGARME_SECRET_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const body = await req.json();
     const { type, data, id: webhook_id } = body;
+
+    // Optional: Basic Auth Validation (Pagar.me V5 sends secret key in Auth header)
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      // Basic Auth is usually b64(apiKey:)
+      const expectedAuth = `Basic ${btoa(`${pagarmeSecret}:`)}`;
+      if (authHeader !== expectedAuth) {
+        console.warn(`Unauthorized webhook attempt for ${webhook_id}. Invalid Auth header.`);
+        // For security, we might still return 200 to not leak existence, 
+        // but here we'll log it and we can decide to reject or just monitor.
+      }
+    }
 
     console.log(`Received Pagar.me webhook: ${type} (${webhook_id})`);
 
@@ -92,6 +105,19 @@ serve(async (req) => {
           .update({ 
             payment_status: "failed",
             metadata: { pagarme_failure: data }
+          })
+          .eq("id", order_id);
+        break;
+      }
+
+      case "order.canceled": {
+        const order_id = data.code;
+        await supabase
+          .from("orders")
+          .update({ 
+            payment_status: "canceled",
+            status: "canceled",
+            metadata: { pagarme_cancellation: data }
           })
           .eq("id", order_id);
         break;

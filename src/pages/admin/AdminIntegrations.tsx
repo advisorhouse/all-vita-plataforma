@@ -12,6 +12,7 @@ import IntegrationsKpiCards from "@/components/admin/integrations/IntegrationsKp
 import GatewaysPanel from "@/components/admin/integrations/GatewaysPanel";
 import ExternalApisPanel from "@/components/admin/integrations/ExternalApisPanel";
 import WebhooksPanel from "@/components/admin/integrations/WebhooksPanel";
+import PagarmeWebhooksPanel from "@/components/admin/integrations/PagarmeWebhooksPanel";
 import IntegrationLogsTable from "@/components/admin/integrations/IntegrationLogsTable";
 import type { PaymentGateway } from "@/components/admin/integrations/GatewaysPanel";
 import type { ExternalApi } from "@/components/admin/integrations/ExternalApisPanel";
@@ -213,6 +214,7 @@ const AdminIntegrations: React.FC = () => {
           <TabsTrigger value="gateways">Gateways</TabsTrigger>
           <TabsTrigger value="apis">APIs Externas</TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsTrigger value="pagarme">Eventos Pagar.me</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
 
@@ -244,6 +246,10 @@ const AdminIntegrations: React.FC = () => {
             onToggle={handleToggleWebhook}
             onResend={handleResendWebhook}
           />
+        </TabsContent>
+
+        <TabsContent value="pagarme" className="mt-4">
+          <PagarmeWebhooksPanel />
         </TabsContent>
 
         <TabsContent value="logs" className="mt-4">

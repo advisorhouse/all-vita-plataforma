@@ -60,7 +60,15 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = config.api_key_encrypted; 
+    let apiKey = config?.api_key_encrypted || Deno.env.get("PAGARME_SECRET_KEY");
+    
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "Pagar.me API Key not configured" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const auth = btoa(`${apiKey}:`);
 
     let endpoint = "";
