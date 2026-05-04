@@ -210,7 +210,27 @@ const CoreProducts: React.FC = () => {
             <Tag className="h-3.5 w-3.5 mr-1.5" />
             Nova Categoria
           </Button>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setShowAddProduct(true)}>
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => {
+            setSelectedProduct(null);
+            setFormData({
+              name: "",
+              description: "",
+              price: 0,
+              type: "Geral",
+              active: true,
+              sku: "",
+              brand: "",
+              stock_quantity: 0,
+              weight: 0,
+              height_cm: 0,
+              width_cm: 0,
+              length_cm: 0,
+              billing_type: "prepaid",
+              max_installments: 12,
+              metadata: { months: 1, points: 0 }
+            });
+            setShowAddProduct(true);
+          }}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Novo Produto
           </Button>
