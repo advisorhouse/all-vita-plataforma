@@ -534,8 +534,59 @@ const CoreGamification: React.FC = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
-      </div>
-    </TooltipProvider>
+        <Dialog open={rewardModalOpen} onOpenChange={setRewardModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{editingReward?.id ? "Editar Recompensa" : "Nova Recompensa"}</DialogTitle>
+              <DialogDescription>
+                Defina o item que seus parceiros e clientes poderão trocar por Vitacoins.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">Nome da Recompensa</label>
+                <Input 
+                  placeholder="Ex: iPhone 15 Pro Max"
+                  value={editingReward?.name || ""}
+                  onChange={(e) => setEditingReward({ ...editingReward, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">Descrição</label>
+                <Input 
+                  placeholder="Detalhes sobre a recompensa"
+                  value={editingReward?.description || ""}
+                  onChange={(e) => setEditingReward({ ...editingReward, description: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Custo (Vitacoins)</label>
+                  <Input 
+                    type="number"
+                    value={editingReward?.cost_vitacoins || 0}
+                    onChange={(e) => setEditingReward({ ...editingReward, cost_vitacoins: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Estoque</label>
+                  <Input 
+                    type="number"
+                    value={editingReward?.stock || 0}
+                    onChange={(e) => setEditingReward({ ...editingReward, stock: parseInt(e.target.value) })}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRewardModalOpen(false)}>Cancelar</Button>
+              <Button onClick={() => upsertRewardMutation.mutate(editingReward)}>
+                {upsertRewardMutation.isPending ? "Salvando..." : "Salvar Recompensa"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
   );
 };
 
