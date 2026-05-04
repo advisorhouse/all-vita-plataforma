@@ -415,6 +415,8 @@ serve(async (req) => {
               parent_partner_id: inviterPartnerId,
               level: String(partnerLevel),
               active: true,
+              pix_key_type: partner_data?.pix?.type || null,
+              pix_key: partner_data?.pix?.key || null,
               metadata: partner_data || {},
             });
           }
