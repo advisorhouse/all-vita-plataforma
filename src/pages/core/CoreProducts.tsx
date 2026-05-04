@@ -363,6 +363,23 @@ const CoreProducts: React.FC = () => {
                         className="hover:bg-secondary/20 cursor-pointer"
                         onClick={() => {
                           setSelectedProduct(p);
+                          setFormData({
+                            name: p.name || "",
+                            description: p.description || "",
+                            price: p.price || 0,
+                            type: p.type || "Geral",
+                            active: p.active ?? true,
+                            sku: p.sku || "",
+                            brand: p.brand || "",
+                            stock_quantity: p.stock_quantity || 0,
+                            weight: p.weight || 0,
+                            height_cm: p.height_cm || 0,
+                            width_cm: p.width_cm || 0,
+                            length_cm: p.length_cm || 0,
+                            billing_type: p.billing_type || "prepaid",
+                            max_installments: p.max_installments || 12,
+                            metadata: p.metadata || { months: 1, points: 0 }
+                          });
                           setShowAddProduct(true);
                         }}
                       >
