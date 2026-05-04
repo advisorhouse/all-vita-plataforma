@@ -30,6 +30,16 @@ interface TenantFormData {
   address_district: string;
   address_city: string;
   address_state: string;
+  // Pagar.me Recipient
+  legal_name: string;
+  bank_code: string;
+  bank_agency: string;
+  bank_agency_dv: string;
+  bank_account: string;
+  bank_account_dv: string;
+  bank_account_type: string;
+  bank_holder_name: string;
+  bank_holder_document: string;
 }
 
 interface TenantDraftData {
