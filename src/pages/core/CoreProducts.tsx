@@ -577,28 +577,43 @@ const CoreProducts: React.FC = () => {
                   <CardContent className="p-4 space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Nome do Produto</Label>
-                      <Input placeholder="Ex: Vision Lift - Combo 3 Meses" className="h-9 text-sm" />
+                      <Input 
+                        placeholder="Ex: Vision Lift - Combo 3 Meses" 
+                        className="h-9 text-sm" 
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Descrição Completa</Label>
                       <Textarea 
                         placeholder="Detalhes técnicos, benefícios e composição..." 
                         className="text-sm min-h-[100px] resize-none" 
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Categoria</Label>
-                        <Select>
+                        <Label className="text-xs">Categoria / Tipo</Label>
+                        <Select 
+                          value={formData.type} 
+                          onValueChange={(v) => setFormData({ ...formData, type: v })}
+                        >
                           <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
                           <SelectContent>
-                            {CATEGORIES.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
+                            {CATEGORIES.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs">Marca</Label>
-                        <Input placeholder="Ex: All Vita" className="h-9 text-sm" />
+                        <Input 
+                          placeholder="Ex: All Vita" 
+                          className="h-9 text-sm" 
+                          value={formData.brand}
+                          onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        />
                       </div>
                     </div>
                   </CardContent>
