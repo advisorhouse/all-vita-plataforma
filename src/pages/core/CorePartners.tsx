@@ -150,11 +150,13 @@ const CorePartners: React.FC = () => {
 
 
   const filtered = partners.filter((p) => {
-    if (statusFilter !== "all" && p.status !== statusFilter) return false;
+    if (statusFilter === "active" && !p.rawActive) return false;
+    if (statusFilter === "inactive" && p.rawActive) return false;
     if (levelFilter !== "all" && p.level !== levelFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
 
 
 
