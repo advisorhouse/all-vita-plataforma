@@ -383,19 +383,19 @@ const Checkout: React.FC = () => {
                 <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome Completo</Label>
-                    <Input id="name" name="name" placeholder="Como no documento" required onChange={handleInputChange} />
+                    <Input id="name" name="name" value={formData.name} placeholder="Como no documento" required onChange={handleInputChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">E-mail</Label>
-                    <Input id="email" name="email" type="email" placeholder="Para receber seu acesso" required onChange={handleInputChange} />
+                    <Input id="email" name="email" value={formData.email} type="email" placeholder="Para receber seu acesso" required onChange={handleInputChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cpf">CPF</Label>
-                    <Input id="cpf" name="cpf" placeholder="000.000.000-00" required onChange={handleInputChange} />
+                    <Input id="cpf" name="cpf" value={formData.cpf} placeholder="000.000.000-00" required onChange={handleInputChange} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Celular (WhatsApp)</Label>
-                    <Input id="phone" name="phone" placeholder="(00) 00000-0000" required onChange={handleInputChange} />
+                    <Input id="phone" name="phone" value={formData.phone} placeholder="(00) 00000-0000" required onChange={handleInputChange} />
                   </div>
                 </CardContent>
               </Card>
@@ -411,31 +411,31 @@ const Checkout: React.FC = () => {
                 <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-6 gap-4">
                   <div className="sm:col-span-2 space-y-2">
                     <Label htmlFor="zipCode">CEP</Label>
-                    <Input id="zipCode" name="zipCode" placeholder="00000-000" required onChange={handleInputChange} />
+                    <Input id="zipCode" name="zipCode" value={formData.zipCode} placeholder="00000-000" required onChange={handleInputChange} />
                   </div>
                   <div className="sm:col-span-4 space-y-2">
                     <Label htmlFor="street">Endereço</Label>
-                    <Input id="street" name="street" required onChange={handleInputChange} />
+                    <Input id="street" name="street" value={formData.street} required onChange={handleInputChange} />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <Label htmlFor="number">Número</Label>
-                    <Input id="number" name="number" required onChange={handleInputChange} />
+                    <Input id="number" name="number" value={formData.number} required onChange={handleInputChange} />
                   </div>
                   <div className="sm:col-span-4 space-y-2">
                     <Label htmlFor="complement">Complemento</Label>
-                    <Input id="complement" name="complement" placeholder="Apto, Bloco..." onChange={handleInputChange} />
+                    <Input id="complement" name="complement" value={formData.complement} placeholder="Apto, Bloco..." onChange={handleInputChange} />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <Label htmlFor="neighborhood">Bairro</Label>
-                    <Input id="neighborhood" name="neighborhood" required onChange={handleInputChange} />
+                    <Input id="neighborhood" name="neighborhood" value={formData.neighborhood} required onChange={handleInputChange} />
                   </div>
                   <div className="sm:col-span-3 space-y-2">
                     <Label htmlFor="city">Cidade</Label>
-                    <Input id="city" name="city" required onChange={handleInputChange} />
+                    <Input id="city" name="city" value={formData.city} required onChange={handleInputChange} />
                   </div>
                   <div className="sm:col-span-1 space-y-2">
                     <Label htmlFor="state">UF</Label>
-                    <Input id="state" name="state" required onChange={handleInputChange} />
+                    <Input id="state" name="state" value={formData.state} required onChange={handleInputChange} />
                   </div>
                 </CardContent>
               </Card>
@@ -489,19 +489,19 @@ const Checkout: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="cardNumber">Número do Cartão</Label>
-                            <Input id="cardNumber" name="cardNumber" placeholder="0000 0000 0000 0000" onChange={handleInputChange} />
+                            <Input id="cardNumber" name="cardNumber" value={formData.cardNumber} placeholder="0000 0000 0000 0000" onChange={handleInputChange} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="cardHolder">Nome no Cartão</Label>
-                            <Input id="cardHolder" name="cardHolder" placeholder="Como impresso no cartão" onChange={handleInputChange} />
+                            <Input id="cardHolder" name="cardHolder" value={formData.cardHolder} placeholder="Como impresso no cartão" onChange={handleInputChange} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="cardExpiry">Validade</Label>
-                            <Input id="cardExpiry" name="cardExpiry" placeholder="MM/AA" onChange={handleInputChange} />
+                            <Input id="cardExpiry" name="cardExpiry" value={formData.cardExpiry} placeholder="MM/AA" onChange={handleInputChange} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="cardCvv">CVV</Label>
-                            <Input id="cardCvv" name="cardCvv" placeholder="123" onChange={handleInputChange} />
+                            <Input id="cardCvv" name="cardCvv" value={formData.cardCvv} placeholder="123" onChange={handleInputChange} />
                           </div>
                         </div>
                       </motion.div>
