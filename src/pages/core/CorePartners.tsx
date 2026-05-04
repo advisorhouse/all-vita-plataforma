@@ -53,8 +53,10 @@ const CorePartners: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [levelFilter, setLevelFilter] = useState<FilterLevel>("all");
   const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
 
   const { data: partners = [], isLoading } = useQuery({
+
     queryKey: ["core-partners", currentTenant?.id],
     queryFn: async () => {
       if (!currentTenant?.id) return [];
