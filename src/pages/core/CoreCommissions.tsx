@@ -314,10 +314,29 @@ const CoreCommissions: React.FC = () => {
             <TabsContent value="rules" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground">Regras de Comissão</p>
-                <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5 text-xs"
+                  onClick={() => {
+                    setEditingRule({
+                      name: "",
+                      type: "initial",
+                      level: "all",
+                      percentage: 10,
+                      active: true,
+                      priority_order: (rules.length || 0) + 1,
+                      min_months: 0,
+                      allow_stack: false,
+                      mlm_depth: 0
+                    });
+                    setRuleModalOpen(true);
+                  }}
+                >
                   <Plus className="h-3.5 w-3.5" />
                   Nova Regra
                 </Button>
+
               </div>
 
               <Card className="border-border overflow-hidden">
