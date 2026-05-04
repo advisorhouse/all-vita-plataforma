@@ -74,7 +74,9 @@ const CoreProducts: React.FC = () => {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+
   const [formData, setFormData] = useState<any>({
     name: "",
     description: "",
@@ -191,12 +193,28 @@ const CoreProducts: React.FC = () => {
         console.error("Sync function call failed:", e);
       }
 
+      // Se houver um arquivo pendente, faz o upload agora que temos o ID
+      if (pendingFile) {
+        try {
+          await uploadImageMutation.mutateAsync({ productId, file: pendingFile });
+          setPendingFile(null);
+        } catch (uploadErr) {
+          console.error("Delayed upload error:", uploadErr);
+        }
+      }
+
       return productId;
     },
     onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["core-products"] });
-      toast.success("Produto salvo! Agora você já pode adicionar fotos.");
+      if (selectedProduct?.id) {
+        toast.success("Produto atualizado com sucesso!");
+      } else {
+        toast.success("Produto criado com sucesso!");
+      }
+      setShowAddProduct(false);
     },
+
     onError: (error: any) => {
       toast.error("Erro ao salvar produto: " + error.message);
     }
@@ -207,8 +225,9 @@ const CoreProducts: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (!selectedProduct?.id) {
-        toast.info("Por favor, salve o produto primeiro antes de adicionar fotos.");
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        // Se for um novo produto, guarda o arquivo para subir após salvar o produto
+        setPendingFile(file);
+        toast.info("Foto selecionada! Ela será enviada automaticamente ao salvar o produto.");
         return;
       }
       
@@ -216,15 +235,14 @@ const CoreProducts: React.FC = () => {
       try {
         await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
       } catch (error) {
-
         console.error("Upload error:", error);
       } finally {
         setIsUploading(false);
-        // Limpa o input para permitir selecionar o mesmo arquivo novamente se necessário
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     }
   };
+
 
   const deleteImageMutation = useMutation({
     mutationFn: async (imageId: string) => {
@@ -297,8 +315,10 @@ const CoreProducts: React.FC = () => {
               max_installments: 12,
               metadata: { months: 1, points: 0 }
             });
+            setPendingFile(null);
             setShowAddProduct(true);
           }}>
+
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Novo Produto
           </Button>
@@ -660,29 +680,50 @@ const CoreProducts: React.FC = () => {
                     <div className="grid grid-cols-4 gap-3">
                       <div 
                         className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
-                          !selectedProduct?.id 
-                            ? "border-muted-foreground/10 bg-muted/5 opacity-50" 
+                          isUploading 
+                            ? "border-accent bg-accent/5" 
                             : "border-muted-foreground/20 hover:bg-muted/30"
                         }`}
-                        onClick={() => {
-                          if (!selectedProduct?.id) {
-                            toast.info("Salve o produto para habilitar o envio de fotos.");
-                            return;
-                          }
-                          fileInputRef.current?.click();
-                        }}
+                        onClick={() => fileInputRef.current?.click()}
                       >
                         {isUploading ? (
-                          <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                          <Loader2 className="h-5 w-5 text-accent animate-spin" />
+                        ) : pendingFile ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <CheckCircle2 className="h-5 w-5 text-success" />
+                            <span className="text-[10px] text-success font-medium">Foto Pronta</span>
+                          </div>
                         ) : (
-                          <Upload className="h-5 w-5 text-muted-foreground" />
+                          <>
+                            <Upload className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-[10px] text-muted-foreground font-medium text-center px-2">
+                              Adicionar Foto
+                            </span>
+                          </>
                         )}
-                        <span className="text-[10px] text-muted-foreground font-medium text-center px-2">
-                          {isUploading ? "Enviando..." : !selectedProduct?.id ? "Salve para adicionar" : "Adicionar Foto"}
-                        </span>
                       </div>
+
+                      {pendingFile && !selectedProduct?.id && (
+                        <div className="aspect-square rounded-xl border border-dashed border-success bg-success/5 relative group overflow-hidden flex items-center justify-center">
+                          <span className="text-[9px] text-success font-bold text-center px-2 uppercase">Aguardando Salvamento</span>
+                          <div className="absolute top-1 right-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5 text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPendingFile(null);
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                       
                       {selectedProduct?.images?.map((img: any) => (
+
                         <div key={img.id} className="aspect-square rounded-xl border border-border bg-secondary/20 relative group overflow-hidden">
                           <img 
                             src={img.url} 
