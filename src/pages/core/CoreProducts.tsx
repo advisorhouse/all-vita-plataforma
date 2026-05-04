@@ -11,8 +11,9 @@ import {
   ArrowUpDown, Tag, ShoppingBag, Coins,
   Upload, X, Box, Barcode, FileText, Truck,
   Settings2, CheckCircle2, AlertCircle, RefreshCw,
-  Image as ImageIcon, Loader2
+  Image as ImageIcon, Loader2, Save
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -175,32 +176,39 @@ const CoreProducts: React.FC = () => {
           .single();
         if (error) throw error;
         productId = data.id;
+        
+        // Se for um novo produto, atualizamos o estado local para permitir upload de fotos
+        setSelectedProduct({ ...payload, id: productId, images: [] });
       }
 
       // Sincronizar com Pagar.me
-      const { data: syncData, error: syncError } = await supabase.functions.invoke("pagarme-sync-product", {
-        body: { product_id: productId }
-      });
+      try {
+        const { data: syncData, error: syncError } = await supabase.functions.invoke("pagarme-sync-product", {
+          body: { product_id: productId }
+        });
+        if (syncError) console.error("Sync error:", syncError);
+      } catch (e) {
+        console.error("Sync function call failed:", e);
+      }
 
-      if (syncError) throw syncError;
-      return syncData;
+      return productId;
     },
-    onSuccess: (data) => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["core-products"] });
-      toast.success(data?.success ? "Produto salvo e sincronizado com Pagar.me!" : "Produto salvo localmente, mas erro na sincronização.");
-      setShowAddProduct(false);
+      toast.success("Produto salvo! Agora você já pode adicionar fotos.");
     },
     onError: (error: any) => {
       toast.error("Erro ao salvar produto: " + error.message);
     }
   });
 
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Se não houver produto selecionado (novo produto), precisamos avisar que deve salvar primeiro
       if (!selectedProduct?.id) {
         toast.info("Por favor, salve o produto primeiro antes de adicionar fotos.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
       
@@ -208,6 +216,7 @@ const CoreProducts: React.FC = () => {
       try {
         await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
       } catch (error) {
+
         console.error("Upload error:", error);
       } finally {
         setIsUploading(false);
@@ -952,18 +961,21 @@ const CoreProducts: React.FC = () => {
           </ScrollArea>
 
           <DialogFooter className="p-6 pt-2 border-t bg-muted/20">
-            <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>Descartar</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>
+              {selectedProduct?.id ? "Fechar" : "Descartar"}
+            </Button>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
               disabled={saveProductMutation.isPending}
               onClick={() => saveProductMutation.mutate()}>
               {saveProductMutation.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <RefreshCw className="h-3.5 w-3.5" />
+                <Save className="h-3.5 w-3.5" />
               )}
-              {selectedProduct ? "Salvar e Sincronizar" : "Criar e Sincronizar"}
+              {selectedProduct?.id ? "Salvar Alterações" : "Salvar Produto"}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
