@@ -225,7 +225,13 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
       if (error) throw error;
       if (res?.error) throw new Error(res.error);
 
+      // Reset search params and trigger refresh
+      const newParams = new URLSearchParams(window.location.search);
+      newParams.delete("register");
+      window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
+      
       setDone(true);
+
     } catch (err: any) {
       console.error("Error creating partner:", err);
       toast.error("Erro ao cadastrar parceiro", { description: err.message });
