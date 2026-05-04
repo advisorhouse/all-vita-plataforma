@@ -8,8 +8,9 @@ import {
   Users, DollarSign, TrendingUp, ShieldCheck, Package,
   Award, AlertTriangle, BarChart3, ArrowUpRight, ArrowDownRight,
   Crown, Activity, Repeat, Brain, Zap, ChevronRight, Eye,
-  Percent, Handshake, Gift, ExternalLink, UserPlus,
+  Percent, Handshake, Gift, ExternalLink, UserPlus, FileText, Download,
 } from "lucide-react";
+import { generateManualPDF } from "@/lib/manualGenerator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -193,6 +194,13 @@ const CoreDashboard: React.FC = () => {
               >
                 <UserPlus className="h-3.5 w-3.5" />
                 Cadastrar Partner
+              </button>
+              <button
+                onClick={generateManualPDF}
+                className="flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-secondary/80 transition-colors"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Baixar Manual de Testes
               </button>
               <div className="flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-1.5 text-[11px] text-muted-foreground">
                 <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
