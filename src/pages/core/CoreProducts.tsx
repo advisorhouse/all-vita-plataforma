@@ -690,29 +690,74 @@ const CoreProducts: React.FC = () => {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label className="text-xs">SKU</Label>
-                        <Input placeholder="V-LIFT-03M" className="h-9 text-sm" />
+                        <Input 
+                          placeholder="V-LIFT-03M" 
+                          className="h-9 text-sm" 
+                          value={formData.sku}
+                          onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                        />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Código de Barras (EAN)</Label>
-                        <Input placeholder="7890000000000" className="h-9 text-sm" />
+                        <Label className="text-xs">Status do Produto</Label>
+                        <div className="flex items-center space-x-2 h-9">
+                          <Switch 
+                            checked={formData.active} 
+                            onCheckedChange={(v) => setFormData({ ...formData, active: v })} 
+                          />
+                          <Label className="text-xs font-normal">{formData.active ? "Ativo" : "Inativo"}</Label>
+                        </div>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs">Quantidade em Estoque</Label>
-                        <Input type="number" placeholder="0" className="h-9 text-sm" />
+                        <Input 
+                          type="number" 
+                          placeholder="0" 
+                          className="h-9 text-sm" 
+                          value={formData.stock_quantity}
+                          onChange={(e) => setFormData({ ...formData, stock_quantity: Number(e.target.value) })}
+                        />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-1.5">
                         <Label className="text-xs">Peso (kg)</Label>
-                        <Input type="number" placeholder="0.250" className="h-9 text-sm" />
+                        <Input 
+                          type="number" 
+                          placeholder="0.250" 
+                          className="h-9 text-sm" 
+                          value={formData.weight}
+                          onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
+                        />
                       </div>
-                      <div className="space-y-1.5 col-span-2">
-                        <Label className="text-xs">Dimensões (CxLxA em cm)</Label>
-                        <div className="flex gap-2">
-                          <Input placeholder="C" className="h-9 text-sm" />
-                          <Input placeholder="L" className="h-9 text-sm" />
-                          <Input placeholder="A" className="h-9 text-sm" />
-                        </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Comp. (cm)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="C" 
+                          className="h-9 text-sm" 
+                          value={formData.length_cm}
+                          onChange={(e) => setFormData({ ...formData, length_cm: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Larg. (cm)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="L" 
+                          className="h-9 text-sm" 
+                          value={formData.width_cm}
+                          onChange={(e) => setFormData({ ...formData, width_cm: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Alt. (cm)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="A" 
+                          className="h-9 text-sm" 
+                          value={formData.height_cm}
+                          onChange={(e) => setFormData({ ...formData, height_cm: Number(e.target.value) })}
+                        />
                       </div>
                     </div>
                   </CardContent>
