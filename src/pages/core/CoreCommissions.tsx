@@ -97,6 +97,7 @@ const TEMPLATES = [
   { id: "t3", name: "Modelo Conservador", description: "Comissão inicial 10% + recorrente 8% para proteção de margem", rulesCount: 2, active: false },
 ];
 
+const CoreCommissions: React.FC = () => {
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
   const [auditSearch, setAuditSearch] = useState("");
@@ -124,6 +125,7 @@ const TEMPLATES = [
     },
     enabled: !!currentTenant?.id
   });
+
 
   // Fetch real commissions
   const { data: commissions = [], isLoading: loadingCommissions } = useQuery({
