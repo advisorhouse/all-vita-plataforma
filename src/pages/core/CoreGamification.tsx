@@ -289,9 +289,25 @@ const CoreGamification: React.FC = () => {
                   <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input value={benefitSearch} onChange={(e) => setBenefitSearch(e.target.value)} placeholder="Buscar benefício..." className="pl-9 h-9 text-sm" />
                 </div>
-                <Button size="sm" variant="outline" className="gap-1.5 text-xs">
-                  <Plus className="h-3.5 w-3.5" />Novo Benefício
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5 text-xs"
+                  onClick={() => {
+                    setEditingReward({
+                      name: "",
+                      description: "",
+                      type: "discount",
+                      cost_vitacoins: 100,
+                      stock: 10,
+                      active: true
+                    });
+                    setRewardModalOpen(true);
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" />Nova Recompensa
                 </Button>
+
               </div>
 
               <Card className="border-border overflow-hidden">
