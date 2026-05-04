@@ -193,12 +193,28 @@ const CoreProducts: React.FC = () => {
         console.error("Sync function call failed:", e);
       }
 
+      // Se houver um arquivo pendente, faz o upload agora que temos o ID
+      if (pendingFile) {
+        try {
+          await uploadImageMutation.mutateAsync({ productId, file: pendingFile });
+          setPendingFile(null);
+        } catch (uploadErr) {
+          console.error("Delayed upload error:", uploadErr);
+        }
+      }
+
       return productId;
     },
     onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["core-products"] });
-      toast.success("Produto salvo! Agora você já pode adicionar fotos.");
+      if (selectedProduct?.id) {
+        toast.success("Produto atualizado com sucesso!");
+      } else {
+        toast.success("Produto criado com sucesso!");
+      }
+      setShowAddProduct(false);
     },
+
     onError: (error: any) => {
       toast.error("Erro ao salvar produto: " + error.message);
     }
