@@ -499,6 +499,8 @@ export type Database = {
           id: string
           level: number
           metadata: Json | null
+          min_months: number | null
+          name: string | null
           percentage: number
           tenant_id: string
           type: string
@@ -509,6 +511,8 @@ export type Database = {
           id?: string
           level?: number
           metadata?: Json | null
+          min_months?: number | null
+          name?: string | null
           percentage?: number
           tenant_id: string
           type?: string
@@ -519,6 +523,8 @@ export type Database = {
           id?: string
           level?: number
           metadata?: Json | null
+          min_months?: number | null
+          name?: string | null
           percentage?: number
           tenant_id?: string
           type?: string
