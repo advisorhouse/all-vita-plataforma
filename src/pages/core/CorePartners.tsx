@@ -165,10 +165,36 @@ const CorePartners: React.FC = () => {
   const totalClients = partners.reduce((sum, p) => sum + p.activeClients, 0);
 
   const totalCommission = partners.reduce((sum, p) => sum + p.commission, 0);
+  const isStaff = !!localStorage.getItem("all_vita_staff");
+
   return (
     <TooltipProvider delayDuration={200}>
-
       <div className="space-y-5 pb-12">
+        {isStaff && (
+          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center gap-3 text-accent">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <div>
+                <p className="text-sm font-bold">Debug Mode (Staff)</p>
+                <p className="text-[10px] opacity-80">Você está vendo {partners.length} partners (Filtro: {statusFilter})</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="xs" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent" onClick={() => {
+                console.log("Current Partners Data:", partners);
+                toast.info("Dados enviados para o console");
+              }}>
+                Log Data
+              </Button>
+              <Button size="xs" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent" onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ["core-partners"] });
+              }}>
+                Invalidate Cache
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* ═══ HEADER ═══ */}
         <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
           <div className="flex items-center justify-between">
