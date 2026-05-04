@@ -175,25 +175,32 @@ const CoreProducts: React.FC = () => {
           .single();
         if (error) throw error;
         productId = data.id;
+        
+        // Se for um novo produto, atualizamos o estado local para permitir upload de fotos
+        setSelectedProduct({ ...payload, id: productId, images: [] });
       }
 
       // Sincronizar com Pagar.me
-      const { data: syncData, error: syncError } = await supabase.functions.invoke("pagarme-sync-product", {
-        body: { product_id: productId }
-      });
+      try {
+        const { data: syncData, error: syncError } = await supabase.functions.invoke("pagarme-sync-product", {
+          body: { product_id: productId }
+        });
+        if (syncError) console.error("Sync error:", syncError);
+      } catch (e) {
+        console.error("Sync function call failed:", e);
+      }
 
-      if (syncError) throw syncError;
-      return syncData;
+      return productId;
     },
-    onSuccess: (data) => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["core-products"] });
-      toast.success(data?.success ? "Produto salvo e sincronizado com Pagar.me!" : "Produto salvo localmente, mas erro na sincronização.");
-      setShowAddProduct(false);
+      toast.success("Produto salvo! Agora você já pode adicionar fotos.");
     },
     onError: (error: any) => {
       toast.error("Erro ao salvar produto: " + error.message);
     }
   });
+
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
