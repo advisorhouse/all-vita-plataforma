@@ -639,7 +639,4 @@ const CoreCommissions: React.FC = () => {
   );
 };
 
-// Add Loader2 to imports if missing
-import { Loader2 } from "lucide-react";
-
 export default CoreCommissions;
