@@ -30,6 +30,8 @@ const Checkout: React.FC = () => {
   const { currentTenant } = useTenant();
   
   const [loading, setLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [orderResult, setOrderResult] = useState<any>(null);
   const [product, setProduct] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("credit_card");
   const [formData, setFormData] = useState({
@@ -84,8 +86,147 @@ const Checkout: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Processando pagamento... (Simulação)");
-    // This will be implemented with actual Pagar.me integration in Stage 3/5
+    if (isProcessing) return;
+    
+    setIsProcessing(true);
+    const loadingToast = toast.loading("Processando seu pedido...");
+    
+    try {
+      // 1. Get Partner ID if referral exists
+      let partnerId = null;
+      if (referralCode) {
+        const { data: partnerData } = await supabase
+          .from("partners")
+          .select("id")
+          .eq("referral_code", referralCode)
+          .single();
+        if (partnerData) partnerId = partnerData.id;
+      }
+
+      // 2. Upsert Client
+      const { data: client, error: clientErr } = await supabase
+        .from("clients")
+        .upsert({
+          tenant_id: currentTenant?.id,
+          full_name: formData.name,
+          email: formData.email,
+          document: formData.cpf.replace(/\D/g, ""),
+          phone: formData.phone.replace(/\D/g, ""),
+          metadata: {
+            address: {
+              zip_code: formData.zipCode,
+              street: formData.street,
+              number: formData.number,
+              complement: formData.complement,
+              neighborhood: formData.neighborhood,
+              city: formData.city,
+              state: formData.state
+            }
+          }
+        }, { onConflict: "email,tenant_id" })
+        .select()
+        .single();
+
+      if (clientErr) throw clientErr;
+
+      // 3. Create Order record
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .insert({
+          tenant_id: currentTenant?.id,
+          client_id: client.id,
+          product_id: product.id,
+          amount: product.price,
+          status: "pending",
+          payment_status: "pending",
+          partner_id: partnerId,
+          metadata: {
+            payment_method: paymentMethod
+          }
+        })
+        .select()
+        .single();
+
+      if (orderErr) throw orderErr;
+
+      // 4. Prepare Pagar.me Payload
+      const pagarmePayload: any = {
+        items: [
+          {
+            amount: Math.round(product.price * 100),
+            description: product.name,
+            quantity: 1,
+            code: product.id
+          }
+        ],
+        customer: {
+          name: formData.name,
+          email: formData.email,
+          document: formData.cpf.replace(/\D/g, ""),
+          type: "individual",
+          phones: {
+            mobile_phone: {
+              country_code: "55",
+              area_code: formData.phone.replace(/\D/g, "").substring(0, 2),
+              number: formData.phone.replace(/\D/g, "").substring(2)
+            }
+          }
+        },
+        payments: [
+          {
+            payment_method: paymentMethod === "credit_card" ? "credit_card" : paymentMethod,
+            [paymentMethod]: paymentMethod === "credit_card" ? {
+              card: {
+                number: formData.cardNumber.replace(/\D/g, ""),
+                holder_name: formData.cardHolder,
+                exp_month: parseInt(formData.cardExpiry.split("/")[0]),
+                exp_year: parseInt(formData.cardExpiry.split("/")[1]),
+                cvv: formData.cardCvv,
+              },
+              installments: 1,
+              statement_descriptor: currentTenant?.trade_name?.substring(0, 13) || "ALLVITA"
+            } : (paymentMethod === "pix" ? {
+              expires_in: 3600 // 1 hour
+            } : {
+              expires_in: 86400 * 3 // 3 days
+            })
+          }
+        ],
+        code: order.id // Local Order UUID as Pagar.me code
+      };
+
+      // 5. Call Pagar.me Edge Function
+      const { data: pagarmeResult, error: pagarmeErr } = await supabase.functions.invoke("pagarme-api", {
+        body: {
+          action: "create_order",
+          params: pagarmePayload,
+          tenant_id: currentTenant?.id,
+          partner_id: partnerId
+        }
+      });
+
+      if (pagarmeErr || pagarmeResult.error) {
+        console.error("Pagarme error:", pagarmeErr || pagarmeResult.error);
+        throw new Error("Erro ao processar pagamento com Pagar.me");
+      }
+
+      // 6. Handle Result
+      setOrderResult(pagarmeResult);
+      toast.success("Pedido gerado com sucesso!");
+      
+      // Update local order with external ID
+      await supabase
+        .from("orders")
+        .update({ external_id: pagarmeResult.id })
+        .eq("id", order.id);
+
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      toast.error(err.message || "Erro ao processar pedido");
+    } finally {
+      setIsProcessing(false);
+      toast.dismiss(loadingToast);
+    }
   };
 
   if (loading) {
@@ -99,6 +240,93 @@ const Checkout: React.FC = () => {
   if (!product) return null;
 
   const tenantSecondary = currentTenant?.secondary_color || "#D97757";
+
+  if (orderResult) {
+    const isPix = orderResult.checkouts?.[0]?.payment_method === "pix" || orderResult.charges?.[0]?.last_transaction?.transaction_type === "pix";
+    const pixData = orderResult.charges?.[0]?.last_transaction;
+    const isBoleto = orderResult.charges?.[0]?.payment_method === "boleto";
+    const boletoData = orderResult.charges?.[0]?.last_transaction;
+
+    return (
+      <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4">
+        <Card className="max-w-md w-full border-none shadow-xl overflow-hidden">
+          <div className="bg-emerald-500 py-8 text-center text-white">
+            <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-white/20 mb-4">
+              <ShieldCheck className="h-8 w-8" />
+            </div>
+            <h1 className="text-2xl font-bold">Pedido Recebido!</h1>
+            <p className="opacity-90">Obrigado por sua compra.</p>
+          </div>
+          
+          <CardContent className="pt-8 space-y-6">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">Número do Pedido</p>
+              <p className="text-xl font-mono font-bold">{orderResult.id}</p>
+            </div>
+
+            {isPix && pixData && (
+              <div className="space-y-4">
+                <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 flex flex-col items-center text-center">
+                  <QrCode className="h-10 w-10 text-primary mb-2" />
+                  <p className="font-bold text-primary">Pagamento via PIX</p>
+                  <p className="text-xs text-muted-foreground mb-4">Escaneie o QR Code abaixo ou copie a chave</p>
+                  
+                  {pixData.qr_code_url && (
+                    <img src={pixData.qr_code_url} alt="PIX QR Code" className="h-48 w-48 border rounded-lg bg-white p-2 mb-4" />
+                  )}
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full text-xs"
+                    onClick={() => {
+                      navigator.clipboard.writeText(pixData.qr_code);
+                      toast.success("Código PIX copiado!");
+                    }}
+                  >
+                    Copiar Código PIX
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {isBoleto && boletoData && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-xl border flex flex-col items-center text-center">
+                  <FileText className="h-10 w-10 text-muted-foreground mb-2" />
+                  <p className="font-bold">Pagamento via Boleto</p>
+                  <p className="text-xs text-muted-foreground mb-4">Seu boleto foi gerado e enviado para seu e-mail.</p>
+                  
+                  <Button 
+                    asChild
+                    className="w-full"
+                    style={{ backgroundColor: tenantSecondary }}
+                  >
+                    <a href={boletoData.pdf} target="_blank" rel="noopener noreferrer">
+                      Visualizar Boleto
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!isPix && !isBoleto && (
+              <div className="p-6 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-4">
+                <BadgeCheck className="h-8 w-8 text-emerald-500" />
+                <div>
+                  <p className="font-bold text-emerald-900">Cartão Aprovado</p>
+                  <p className="text-sm text-emerald-700">Seu acesso será enviado por e-mail em instantes.</p>
+                </div>
+              </div>
+            )}
+
+            <Button variant="ghost" className="w-full" onClick={() => navigate("/")}>
+              Voltar para a Loja
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] pb-20">
@@ -301,10 +529,18 @@ const Checkout: React.FC = () => {
               <Button 
                 type="submit" 
                 size="lg" 
+                disabled={isProcessing}
                 className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg transition-transform hover:scale-[1.01] active:scale-[0.99]"
                 style={{ backgroundColor: tenantSecondary }}
               >
-                Finalizar Compra
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  "Finalizar Compra"
+                )}
               </Button>
             </div>
           </form>
