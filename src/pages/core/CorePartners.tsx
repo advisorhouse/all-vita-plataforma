@@ -9,8 +9,10 @@ import { toast } from "sonner";
 import {
   Handshake, Search, Users, DollarSign, TrendingUp, ShieldCheck,
   ArrowUpRight, ArrowDownRight, ChevronRight, Eye, MoreHorizontal,
-  Crown, Award, Star, AlertTriangle, Filter, UserPlus, Mail, Loader2
+  Crown, Award, Star, AlertTriangle, Filter, UserPlus, Mail, Loader2,
+  AlertCircle
 } from "lucide-react";
+
 
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -85,6 +87,7 @@ const CorePartners: React.FC = () => {
           email: profile?.email || "Sem email",
           level: p.level || "basic",
           status: p.active ? "active" : "inactive",
+          rawActive: p.active,
           pixKey: p.pix_key,
           pixType: p.pix_key_type,
           clients: (p.metadata as any)?.clients || 0,
@@ -98,6 +101,7 @@ const CorePartners: React.FC = () => {
           riskClients: (p.metadata as any)?.riskClients || 0
         };
       });
+
     },
     refetchInterval: 5000, // Força atualização a cada 5s para detectar novos cadastros
 
@@ -146,11 +150,13 @@ const CorePartners: React.FC = () => {
 
 
   const filtered = partners.filter((p) => {
-    if (statusFilter !== "all" && p.status !== statusFilter) return false;
+    if (statusFilter === "active" && !p.rawActive) return false;
+    if (statusFilter === "inactive" && p.rawActive) return false;
     if (levelFilter !== "all" && p.level !== levelFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
 
 
 
@@ -163,10 +169,37 @@ const CorePartners: React.FC = () => {
   const totalClients = partners.reduce((sum, p) => sum + p.activeClients, 0);
 
   const totalCommission = partners.reduce((sum, p) => sum + p.commission, 0);
+  const isStaff = !!localStorage.getItem("all_vita_staff");
+
   return (
     <TooltipProvider delayDuration={200}>
-
       <div className="space-y-5 pb-12">
+        {isStaff && (
+          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center gap-3 text-accent">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <div>
+                <p className="text-sm font-bold">Debug Mode (Staff)</p>
+                <p className="text-[10px] opacity-80">Você está vendo {partners.length} partners (Filtro: {statusFilter})</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent px-2" onClick={() => {
+                console.log("Current Partners Data:", partners);
+                toast.info("Dados enviados para o console");
+              }}>
+                Log Data
+              </Button>
+              <Button size="sm" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent px-2" onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ["core-partners"] });
+              }}>
+                Invalidate Cache
+              </Button>
+
+            </div>
+          </div>
+        )}
+
         {/* ═══ HEADER ═══ */}
         <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
           <div className="flex items-center justify-between">
