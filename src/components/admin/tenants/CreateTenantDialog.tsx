@@ -676,7 +676,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       >
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
           <DialogTitle className="text-2xl flex items-center justify-between">
-            {step === "form" ? "Cadastrar nova empresa" : step === "branding" ? "Identidade Visual da Empresa" : "Empresa Pronta"}
+            {step === "form" ? "Cadastrar nova empresa" : step === "banking" ? "Dados Bancários e Fiscais (Pagar.me)" : step === "branding" ? "Identidade Visual da Empresa" : "Empresa Pronta"}
             {step === "form" && (
               <Button 
                 variant="ghost" 
