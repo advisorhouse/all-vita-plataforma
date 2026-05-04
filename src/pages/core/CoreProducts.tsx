@@ -74,7 +74,9 @@ const CoreProducts: React.FC = () => {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+
   const [formData, setFormData] = useState<any>({
     name: "",
     description: "",
