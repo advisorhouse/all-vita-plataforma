@@ -22,9 +22,26 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 const PagarmeWebhooksPanel: React.FC = () => {
   const [isSimulating, setIsSimulating] = React.useState(false);
+  const [targetTenantId, setTargetTenantId] = React.useState<string>("global");
+
+  const { data: tenants = [] } = useQuery({
+    queryKey: ["admin-tenants-simple"],
+    queryFn: async () => {
+      const { data } = await supabase.from("tenants").select("id, name").eq("active", true);
+      return data || [];
+    },
+  });
+
   const { data: webhooks = [], isLoading, refetch } = useQuery({
     queryKey: ["pagarme-webhooks-logs"],
     queryFn: async () => {
