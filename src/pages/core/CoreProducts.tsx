@@ -149,6 +149,52 @@ const CoreProducts: React.FC = () => {
     }
   });
 
+  const saveProductMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentTenant?.id) throw new Error("Tenant não identificado");
+
+      const payload = {
+        ...formData,
+        tenant_id: currentTenant.id,
+        updated_at: new Date().toISOString()
+      };
+
+      let productId = selectedProduct?.id;
+
+      if (productId) {
+        const { error } = await supabase
+          .from("products")
+          .update(payload)
+          .eq("id", productId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("products")
+          .insert(payload)
+          .select()
+          .single();
+        if (error) throw error;
+        productId = data.id;
+      }
+
+      // Sincronizar com Pagar.me
+      const { data: syncData, error: syncError } = await supabase.functions.invoke("pagarme-sync-product", {
+        body: { product_id: productId }
+      });
+
+      if (syncError) throw syncError;
+      return syncData;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["core-products"] });
+      toast.success(data?.success ? "Produto salvo e sincronizado com Pagar.me!" : "Produto salvo localmente, mas erro na sincronização.");
+      setShowAddProduct(false);
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao salvar produto: " + error.message);
+    }
+  });
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && selectedProduct) {
