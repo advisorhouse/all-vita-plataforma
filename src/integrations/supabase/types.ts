@@ -583,8 +583,13 @@ export type Database = {
           id: string
           metadata: Json | null
           order_id: string | null
+          paid_at: string | null
+          paid_by: string | null
           paid_status: string
           partner_id: string
+          payment_method: string | null
+          payment_notes: string | null
+          payment_proof_url: string | null
           percentage_applied: number
           tenant_id: string
         }
@@ -596,8 +601,13 @@ export type Database = {
           id?: string
           metadata?: Json | null
           order_id?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
           paid_status?: string
           partner_id: string
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_proof_url?: string | null
           percentage_applied?: number
           tenant_id: string
         }
@@ -609,8 +619,13 @@ export type Database = {
           id?: string
           metadata?: Json | null
           order_id?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
           paid_status?: string
           partner_id?: string
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_proof_url?: string | null
           percentage_applied?: number
           tenant_id?: string
         }
@@ -1303,14 +1318,66 @@ export type Database = {
           },
         ]
       }
+      pagarme_webhook_events: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          event_type: string
+          id: string
+          payload: Json
+          process_error: string | null
+          processed: boolean
+          processed_at: string | null
+          resource_id: string | null
+          resource_type: string | null
+          retry_count: number
+          signature: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          process_error?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          retry_count?: number
+          signature?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          process_error?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          retry_count?: number
+          signature?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           active: boolean
+          bank_holder_document: string | null
+          bank_holder_name: string | null
           created_at: string
           id: string
           level: string | null
           metadata: Json | null
           parent_partner_id: string | null
+          pix_key: string | null
+          pix_key_type: string | null
           referral_code: string
           tenant_id: string
           updated_at: string
@@ -1318,11 +1385,15 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          bank_holder_document?: string | null
+          bank_holder_name?: string | null
           created_at?: string
           id?: string
           level?: string | null
           metadata?: Json | null
           parent_partner_id?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
           referral_code: string
           tenant_id: string
           updated_at?: string
@@ -1330,11 +1401,15 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          bank_holder_document?: string | null
+          bank_holder_name?: string | null
           created_at?: string
           id?: string
           level?: string | null
           metadata?: Json | null
           parent_partner_id?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
           referral_code?: string
           tenant_id?: string
           updated_at?: string
@@ -1559,56 +1634,92 @@ export type Database = {
         Row: {
           active: boolean
           barcodes: Json | null
+          billing_type: string | null
           brand: string | null
           category: string | null
+          checkout_url: string | null
           created_at: string
           description: string | null
+          height_cm: number | null
           id: string
+          length_cm: number | null
+          max_installments: number | null
           metadata: Json | null
           name: string
+          pagarme_last_sync_at: string | null
+          pagarme_product_id: string | null
+          pagarme_sync_error: string | null
+          pagarme_sync_status: string | null
           price: number
           sku: string | null
           stock_quantity: number | null
+          subscription_interval: string | null
+          subscription_interval_count: number | null
           tenant_id: string
           type: string
           updated_at: string
           weight: number | null
+          width_cm: number | null
         }
         Insert: {
           active?: boolean
           barcodes?: Json | null
+          billing_type?: string | null
           brand?: string | null
           category?: string | null
+          checkout_url?: string | null
           created_at?: string
           description?: string | null
+          height_cm?: number | null
           id?: string
+          length_cm?: number | null
+          max_installments?: number | null
           metadata?: Json | null
           name: string
+          pagarme_last_sync_at?: string | null
+          pagarme_product_id?: string | null
+          pagarme_sync_error?: string | null
+          pagarme_sync_status?: string | null
           price?: number
           sku?: string | null
           stock_quantity?: number | null
+          subscription_interval?: string | null
+          subscription_interval_count?: number | null
           tenant_id: string
           type?: string
           updated_at?: string
           weight?: number | null
+          width_cm?: number | null
         }
         Update: {
           active?: boolean
           barcodes?: Json | null
+          billing_type?: string | null
           brand?: string | null
           category?: string | null
+          checkout_url?: string | null
           created_at?: string
           description?: string | null
+          height_cm?: number | null
           id?: string
+          length_cm?: number | null
+          max_installments?: number | null
           metadata?: Json | null
           name?: string
+          pagarme_last_sync_at?: string | null
+          pagarme_product_id?: string | null
+          pagarme_sync_error?: string | null
+          pagarme_sync_status?: string | null
           price?: number
           sku?: string | null
           stock_quantity?: number | null
+          subscription_interval?: string | null
+          subscription_interval_count?: number | null
           tenant_id?: string
           type?: string
           updated_at?: string
           weight?: number | null
+          width_cm?: number | null
         }
         Relationships: [
           {
@@ -2798,6 +2909,14 @@ export type Database = {
         Row: {
           activation_email_sent: boolean | null
           active: boolean
+          bank_account: string | null
+          bank_account_dv: string | null
+          bank_account_type: string | null
+          bank_agency: string | null
+          bank_agency_dv: string | null
+          bank_code: string | null
+          bank_holder_document: string | null
+          bank_holder_name: string | null
           cnpj: string | null
           created_at: string
           custom_transaction_fee: number | null
@@ -2809,10 +2928,16 @@ export type Database = {
           favicon_url: string | null
           id: string
           isotipo_url: string | null
+          legal_document: string | null
+          legal_document_type: string | null
+          legal_name: string | null
           logo_url: string | null
           manual_activation_required: boolean | null
           name: string
           pagarme_customer_id: string | null
+          pagarme_recipient_created_at: string | null
+          pagarme_recipient_status: string | null
+          pagarme_recipient_status_reason: string | null
           pending_registration_notification: boolean | null
           primary_color: string | null
           registration_status: string | null
@@ -2828,6 +2953,14 @@ export type Database = {
         Insert: {
           activation_email_sent?: boolean | null
           active?: boolean
+          bank_account?: string | null
+          bank_account_dv?: string | null
+          bank_account_type?: string | null
+          bank_agency?: string | null
+          bank_agency_dv?: string | null
+          bank_code?: string | null
+          bank_holder_document?: string | null
+          bank_holder_name?: string | null
           cnpj?: string | null
           created_at?: string
           custom_transaction_fee?: number | null
@@ -2839,10 +2972,16 @@ export type Database = {
           favicon_url?: string | null
           id?: string
           isotipo_url?: string | null
+          legal_document?: string | null
+          legal_document_type?: string | null
+          legal_name?: string | null
           logo_url?: string | null
           manual_activation_required?: boolean | null
           name: string
           pagarme_customer_id?: string | null
+          pagarme_recipient_created_at?: string | null
+          pagarme_recipient_status?: string | null
+          pagarme_recipient_status_reason?: string | null
           pending_registration_notification?: boolean | null
           primary_color?: string | null
           registration_status?: string | null
@@ -2858,6 +2997,14 @@ export type Database = {
         Update: {
           activation_email_sent?: boolean | null
           active?: boolean
+          bank_account?: string | null
+          bank_account_dv?: string | null
+          bank_account_type?: string | null
+          bank_agency?: string | null
+          bank_agency_dv?: string | null
+          bank_code?: string | null
+          bank_holder_document?: string | null
+          bank_holder_name?: string | null
           cnpj?: string | null
           created_at?: string
           custom_transaction_fee?: number | null
@@ -2869,10 +3016,16 @@ export type Database = {
           favicon_url?: string | null
           id?: string
           isotipo_url?: string | null
+          legal_document?: string | null
+          legal_document_type?: string | null
+          legal_name?: string | null
           logo_url?: string | null
           manual_activation_required?: boolean | null
           name?: string
           pagarme_customer_id?: string | null
+          pagarme_recipient_created_at?: string | null
+          pagarme_recipient_status?: string | null
+          pagarme_recipient_status_reason?: string | null
           pending_registration_notification?: boolean | null
           primary_color?: string | null
           registration_status?: string | null

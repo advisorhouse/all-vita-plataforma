@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug, Copy, Check, Settings } from "lucide-react";
 import { IMaskInput } from "react-imask";
+import BankingStep from "./BankingStep";
 
 interface TenantFormData {
   name: string;
@@ -30,6 +31,16 @@ interface TenantFormData {
   address_district: string;
   address_city: string;
   address_state: string;
+  // Pagar.me Recipient
+  legal_name: string;
+  bank_code: string;
+  bank_agency: string;
+  bank_agency_dv: string;
+  bank_account: string;
+  bank_account_dv: string;
+  bank_account_type: string;
+  bank_holder_name: string;
+  bank_holder_document: string;
 }
 
 interface TenantDraftData {
@@ -54,6 +65,9 @@ const emptyForm: TenantFormData = {
   owner_name: "", owner_email: "", owner_phone: "", owner_cpf: "",
   address_cep: "", address_street: "", address_number: "",
   address_complement: "", address_district: "", address_city: "", address_state: "",
+  legal_name: "", bank_code: "", bank_agency: "", bank_agency_dv: "",
+  bank_account: "", bank_account_dv: "", bank_account_type: "checking",
+  bank_holder_name: "", bank_holder_document: "",
 };
 
  interface CreateTenantDialogProps {
@@ -71,7 +85,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     setInternalOpen(val);
   };
 
-  const [step, setStep] = useState<"form" | "branding" | "dns">("form");
+  const [step, setStep] = useState<"form" | "banking" | "branding" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -475,8 +489,37 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
           if (url) updates.favicon_url = url;
         }
 
+        // Persist Pagar.me / banking fields
+        const bankingUpdates: Record<string, any> = {
+          legal_name: formData.legal_name || formData.name,
+          legal_document: formData.cnpj?.replace(/\D/g, "") || null,
+          legal_document_type: "cnpj",
+          bank_code: formData.bank_code || null,
+          bank_agency: formData.bank_agency || null,
+          bank_agency_dv: formData.bank_agency_dv || null,
+          bank_account: formData.bank_account || null,
+          bank_account_dv: formData.bank_account_dv || null,
+          bank_account_type: formData.bank_account_type || "checking",
+          bank_holder_name: formData.bank_holder_name || formData.legal_name || formData.name,
+          bank_holder_document: (formData.bank_holder_document || formData.cnpj || "").replace(/\D/g, "") || null,
+          pagarme_recipient_status: "pending",
+        };
+        Object.assign(updates, bankingUpdates);
+
         if (Object.keys(updates).length > 0) {
           await supabase.from("tenants").update(updates).eq("id", tenantId);
+        }
+
+        // Fire-and-forget Pagar.me Recipient creation (KYC 1-3 dias)
+        try {
+          const recipientRes = await supabase.functions.invoke("pagarme-create-recipient", {
+            body: { tenant_id: tenantId },
+          });
+          if (recipientRes.error || recipientRes.data?.error) {
+            console.warn("Recipient creation failed", recipientRes.error || recipientRes.data?.error);
+          }
+        } catch (e) {
+          console.warn("pagarme-create-recipient invoke failed", e);
         }
       }
       return res.data;
@@ -663,7 +706,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
       >
         <DialogHeader className="max-w-4xl mx-auto w-full pt-8">
           <DialogTitle className="text-2xl flex items-center justify-between">
-            {step === "form" ? "Cadastrar nova empresa" : step === "branding" ? "Identidade Visual da Empresa" : "Empresa Pronta"}
+            {step === "form" ? "Cadastrar nova empresa" : step === "banking" ? "Dados Bancários e Fiscais (Pagar.me)" : step === "branding" ? "Identidade Visual da Empresa" : "Empresa Pronta"}
             {step === "form" && (
               <Button 
                 variant="ghost" 
@@ -697,7 +740,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               toast.error("Segmento Obrigatório", { description: "Por favor, informe o segmento ou nicho da empresa." });
               return;
             }
-            setStep("branding");
+            setStep("banking");
           }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
             {/* Company Info */}
             <div className="space-y-6">
@@ -842,10 +885,17 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
             <div className="pt-6 border-t">
               <Button type="submit" size="lg" className="w-full text-lg h-14">
-                Próximo Passo: Identidade Visual
+                Próximo Passo: Dados Bancários
               </Button>
             </div>
           </form>
+        ) : step === "banking" ? (
+          <BankingStep
+            form={form}
+            setForm={setForm}
+            onBack={() => setStep("form")}
+            onNext={() => setStep("branding")}
+          />
         ) : step === "branding" ? (
           <div className="max-w-4xl mx-auto w-full pb-12 space-y-8">
             <div className="text-center space-y-2">
