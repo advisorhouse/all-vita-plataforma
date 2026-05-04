@@ -9,7 +9,7 @@ import {
   Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText,
   ChevronRight, ArrowUpRight, ArrowDownRight, Eye, Layers,
   CheckCircle, XCircle, Clock, Search, Filter, Banknote,
-  Upload, ExternalLink, Loader2,
+  Upload, ExternalLink, Loader2, Save, X
 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +33,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 /* ─── Animation ─────────────────────────────────────────── */
@@ -46,10 +53,11 @@ const fadeUp = {
 
 /* ─── Type Config ───────────────────────────────────────── */
 const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  initial: { label: "Inicial", color: "text-accent", bg: "bg-accent/10" },
+  initial: { label: "Venda Direta", color: "text-accent", bg: "bg-accent/10" },
   recurring: { label: "Recorrente", color: "text-success", bg: "bg-success/10" },
-  bonus_retention: { label: "Bônus Retenção", color: "text-warning", bg: "bg-warning/10" },
-  bonus_volume: { label: "Bônus Volume", color: "text-foreground", bg: "bg-secondary" },
+  bonus_6m: { label: "Bônus 6 Meses", color: "text-warning", bg: "bg-warning/10" },
+  bonus_12m: { label: "Bônus 12 Meses", color: "text-warning", bg: "bg-warning/10" },
+  mlm: { label: "Indireta (MLM)", color: "text-blue-500", bg: "bg-blue-500/10" },
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -57,6 +65,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.
   paid: { label: "Pago", color: "text-success", icon: CheckCircle },
   cancelled: { label: "Cancelado", color: "text-destructive", icon: XCircle },
 };
+
 
 /* ─── Mock Data ─────────────────────────────────────────── */
 const RULES = [
