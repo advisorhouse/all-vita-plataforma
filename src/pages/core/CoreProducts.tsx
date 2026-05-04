@@ -197,10 +197,23 @@ const CoreProducts: React.FC = () => {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && selectedProduct) {
+    if (file) {
+      // Se não houver produto selecionado (novo produto), precisamos avisar que deve salvar primeiro
+      if (!selectedProduct?.id) {
+        toast.info("Por favor, salve o produto primeiro antes de adicionar fotos.");
+        return;
+      }
+      
       setIsUploading(true);
-      await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
-      setIsUploading(false);
+      try {
+        await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
+      } catch (error) {
+        console.error("Upload error:", error);
+      } finally {
+        setIsUploading(false);
+        // Limpa o input para permitir selecionar o mesmo arquivo novamente se necessário
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -637,16 +650,26 @@ const CoreProducts: React.FC = () => {
                     />
                     <div className="grid grid-cols-4 gap-3">
                       <div 
-                        className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/30 transition-colors"
-                        onClick={() => fileInputRef.current?.click()}
+                        className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
+                          !selectedProduct?.id 
+                            ? "border-muted-foreground/10 bg-muted/5 opacity-50" 
+                            : "border-muted-foreground/20 hover:bg-muted/30"
+                        }`}
+                        onClick={() => {
+                          if (!selectedProduct?.id) {
+                            toast.info("Salve o produto para habilitar o envio de fotos.");
+                            return;
+                          }
+                          fileInputRef.current?.click();
+                        }}
                       >
                         {isUploading ? (
                           <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
                         ) : (
                           <Upload className="h-5 w-5 text-muted-foreground" />
                         )}
-                        <span className="text-[10px] text-muted-foreground font-medium">
-                          {isUploading ? "Enviando..." : "Adicionar"}
+                        <span className="text-[10px] text-muted-foreground font-medium text-center px-2">
+                          {isUploading ? "Enviando..." : !selectedProduct?.id ? "Salve para adicionar" : "Adicionar Foto"}
                         </span>
                       </div>
                       
