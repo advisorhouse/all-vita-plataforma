@@ -303,8 +303,8 @@ const CoreCommissions: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {rules.map((r) => {
-                        const tp = TYPE_LABELS[r.commission_type] || TYPE_LABELS.initial;
+                      {rules.map((r: any) => {
+                        const tp = TYPE_LABELS[r.type] || TYPE_LABELS.initial;
                         return (
                           <TableRow key={r.id} className="group">
                             <TableCell className="text-[11px] font-mono text-muted-foreground">#1</TableCell>
@@ -323,7 +323,7 @@ const CoreCommissions: React.FC = () => {
                             <TableCell className="text-right text-sm font-semibold text-foreground">{r.percentage}%</TableCell>
                             <TableCell className="text-right text-sm text-foreground">—</TableCell>
                             <TableCell className="text-center text-[11px] text-muted-foreground">
-                              {r.min_months > 0 ? `≥ ${r.min_months}m` : "—"}
+                              {(r.min_months || 0) > 0 ? `≥ ${r.min_months}m` : "—"}
                             </TableCell>
                             <TableCell className="text-center">
                               <span className="text-[10px] text-muted-foreground">Não</span>
