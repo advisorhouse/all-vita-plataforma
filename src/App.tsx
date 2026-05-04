@@ -24,7 +24,8 @@ import PublicChatPage from "./pages/quiz/PublicChatPage";
 import ProtocolLandingPage from "./pages/quiz/ProtocolLandingPage";
 import ProtocolConsentPage from "./pages/quiz/ProtocolConsentPage";
 import TermsOfUse from "./pages/TermsOfUse";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
+import PrivacyPolicy from "./privacy/PrivacyPolicy";
+import Checkout from "./pages/Checkout";
 
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import LoginPage from "./pages/auth/LoginPage";
@@ -187,6 +188,7 @@ const App = () => (
               <Route path="/quiz" element={<ProtocolLandingPage />} />
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/checkout/:productId" element={<Checkout />} />
               <Route path="/auth/accept-invitation" element={<AcceptInvitation />} />
 
               {/* Auth routes (global) */}
