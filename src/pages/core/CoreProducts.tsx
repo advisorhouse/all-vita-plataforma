@@ -678,29 +678,50 @@ const CoreProducts: React.FC = () => {
                     <div className="grid grid-cols-4 gap-3">
                       <div 
                         className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
-                          !selectedProduct?.id 
-                            ? "border-muted-foreground/10 bg-muted/5 opacity-50" 
+                          isUploading 
+                            ? "border-accent bg-accent/5" 
                             : "border-muted-foreground/20 hover:bg-muted/30"
                         }`}
-                        onClick={() => {
-                          if (!selectedProduct?.id) {
-                            toast.info("Salve o produto para habilitar o envio de fotos.");
-                            return;
-                          }
-                          fileInputRef.current?.click();
-                        }}
+                        onClick={() => fileInputRef.current?.click()}
                       >
                         {isUploading ? (
-                          <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                          <Loader2 className="h-5 w-5 text-accent animate-spin" />
+                        ) : pendingFile ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <CheckCircle2 className="h-5 w-5 text-success" />
+                            <span className="text-[10px] text-success font-medium">Foto Pronta</span>
+                          </div>
                         ) : (
-                          <Upload className="h-5 w-5 text-muted-foreground" />
+                          <>
+                            <Upload className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-[10px] text-muted-foreground font-medium text-center px-2">
+                              Adicionar Foto
+                            </span>
+                          </>
                         )}
-                        <span className="text-[10px] text-muted-foreground font-medium text-center px-2">
-                          {isUploading ? "Enviando..." : !selectedProduct?.id ? "Salve para adicionar" : "Adicionar Foto"}
-                        </span>
                       </div>
+
+                      {pendingFile && !selectedProduct?.id && (
+                        <div className="aspect-square rounded-xl border border-dashed border-success bg-success/5 relative group overflow-hidden flex items-center justify-center">
+                          <span className="text-[9px] text-success font-bold text-center px-2 uppercase">Aguardando Salvamento</span>
+                          <div className="absolute top-1 right-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5 text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPendingFile(null);
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                       
                       {selectedProduct?.images?.map((img: any) => (
+
                         <div key={img.id} className="aspect-square rounded-xl border border-border bg-secondary/20 relative group overflow-hidden">
                           <img 
                             src={img.url} 
