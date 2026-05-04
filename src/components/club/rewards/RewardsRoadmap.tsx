@@ -28,7 +28,8 @@ export interface Reward {
   id: string;
   name: string;
   description: string;
-  cost_vitacoins: number;
+  cost_in_coins: number;
+
   type: string;
   stock: number;
   active: boolean;
