@@ -206,9 +206,9 @@ const CoreProducts: React.FC = () => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Se não houver produto selecionado (novo produto), precisamos avisar que deve salvar primeiro
       if (!selectedProduct?.id) {
         toast.info("Por favor, salve o produto primeiro antes de adicionar fotos.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
       
@@ -216,6 +216,7 @@ const CoreProducts: React.FC = () => {
       try {
         await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
       } catch (error) {
+
         console.error("Upload error:", error);
       } finally {
         setIsUploading(false);
