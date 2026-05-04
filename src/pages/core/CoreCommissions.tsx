@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import {
   Percent, DollarSign, Shield, AlertTriangle, TrendingUp,
   Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText,
   ChevronRight, ArrowUpRight, ArrowDownRight, Eye, Layers,
-  CheckCircle, XCircle, Clock, Search, Filter,
+  CheckCircle, XCircle, Clock, Search, Filter, Banknote,
+  Upload, ExternalLink, Loader2,
 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +25,14 @@ import {
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 /* ─── Animation ─────────────────────────────────────────── */
@@ -77,19 +90,145 @@ const TEMPLATES = [
 
 /* ─── Component ─────────────────────────────────────────── */
 const CoreCommissions: React.FC = () => {
+  const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
   const [auditSearch, setAuditSearch] = useState("");
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<any>(null);
+  const [proofUrl, setProofUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
 
-  const totalCommission = AUDIT_LOG.reduce((s, a) => s + a.commission, 0);
-  const avgMargin = Math.round(AUDIT_LOG.reduce((s, a) => s + a.margin, 0) / AUDIT_LOG.length);
-  const marginAlerts = AUDIT_LOG.filter((a) => !a.marginOk).length;
-  const activeRules = RULES.filter((r) => r.active).length;
+  // Fetch real commissions
+  const { data: commissions = [], isLoading: loadingCommissions } = useQuery({
+    queryKey: ["commissions", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("commissions")
+        .select(`
+          *,
+          partners (
+            id,
+            pix_key,
+            pix_key_type,
+            profiles:user_id (first_name, last_name, email)
+          ),
+          orders (amount)
+        `)
+        .eq("tenant_id", currentTenant.id)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
 
-  const filteredAudit = AUDIT_LOG.filter((a) =>
-    !auditSearch ||
-    a.partner.toLowerCase().includes(auditSearch.toLowerCase()) ||
-    a.client.toLowerCase().includes(auditSearch.toLowerCase()) ||
-    a.rule.toLowerCase().includes(auditSearch.toLowerCase())
-  );
+  const payMutation = useMutation({
+    mutationFn: async ({ partnerId, proof }: { partnerId: string; proof: string }) => {
+      const { error } = await supabase
+        .from("commissions")
+        .update({
+          paid_status: "paid",
+          paid_at: new Date().toISOString(),
+          payment_proof_url: proof
+        })
+        .eq("partner_id", partnerId)
+        .eq("paid_status", "pending")
+        .eq("tenant_id", currentTenant?.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["commissions"] });
+      toast.success("Pagamentos marcados como concluídos!");
+      setPaymentModalOpen(false);
+      setSelectedPartner(null);
+      setProofUrl("");
+    },
+    onError: (error) => {
+      toast.error("Erro ao processar pagamento: " + error.message);
+    }
+  });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentTenant?.id) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${currentTenant.id}/proofs/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+      setProofUrl(publicUrl);
+      toast.success("Comprovante enviado!");
+    } catch (error: any) {
+      toast.error("Erro no upload: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const totalCommission = commissions.reduce((s, a) => s + (a.amount || 0), 0);
+  const avgMargin = 45; // Placeholder for now
+  const marginAlerts = 0;
+  const activeRulesCount = commissions.length; // Placeholder or we fetch rules below
+  
+  // Fetch rules
+  const { data: rules = [] } = useQuery({
+    queryKey: ["commission-rules", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("commission_rules")
+        .select("*")
+        .eq("tenant_id", currentTenant.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const activeRules = rules.filter((r) => r.active).length;
+
+  const filteredAudit = commissions.filter((a: any) => {
+    const partnerName = `${a.partners?.profiles?.first_name || ""} ${a.partners?.profiles?.last_name || ""}`.toLowerCase();
+    const search = auditSearch.toLowerCase();
+    return !auditSearch || partnerName.includes(search) || a.commission_type.includes(search);
+  });
+
+  // Group pending payments by partner
+  const pendingByPartner = commissions.reduce((acc: any, curr: any) => {
+    if (curr.paid_status !== "pending") return acc;
+    const pId = curr.partner_id;
+    if (!acc[pId]) {
+      const p = curr.partners;
+      acc[pId] = {
+        partnerId: pId,
+        name: `${p?.profiles?.first_name || ""} ${p?.profiles?.last_name || ""}`.trim() || "Partner",
+        email: p?.profiles?.email,
+        pixKey: p?.pix_key,
+        pixType: p?.pix_key_type,
+        total: 0,
+        count: 0
+      };
+    }
+    acc[pId].total += curr.amount;
+    acc[pId].count += 1;
+    return acc;
+  }, {});
+
+  const pendingList = Object.values(pendingByPartner);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -128,8 +267,9 @@ const CoreCommissions: React.FC = () => {
         {/* ═══ TABS ═══ */}
         <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
           <Tabs defaultValue="rules" className="w-full">
-            <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-lg">
+            <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-2xl">
               <TabsTrigger value="rules" className="gap-1.5 text-xs"><Percent className="h-3.5 w-3.5" />Regras</TabsTrigger>
+              <TabsTrigger value="payments" className="gap-1.5 text-xs"><Banknote className="h-3.5 w-3.5" />Pagamentos</TabsTrigger>
               <TabsTrigger value="audit" className="gap-1.5 text-xs"><FileText className="h-3.5 w-3.5" />Auditoria</TabsTrigger>
               <TabsTrigger value="margin" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Proteção</TabsTrigger>
               <TabsTrigger value="templates" className="gap-1.5 text-xs"><Layers className="h-3.5 w-3.5" />Templates</TabsTrigger>
@@ -163,36 +303,30 @@ const CoreCommissions: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {RULES.map((r) => {
-                        const tp = TYPE_LABELS[r.type] || TYPE_LABELS.initial;
+                      {rules.map((r) => {
+                        const tp = TYPE_LABELS[r.commission_type] || TYPE_LABELS.initial;
                         return (
                           <TableRow key={r.id} className="group">
-                            <TableCell className="text-[11px] font-mono text-muted-foreground">#{r.priority}</TableCell>
+                            <TableCell className="text-[11px] font-mono text-muted-foreground">#1</TableCell>
                             <TableCell>
                               <div>
-                                <p className="text-sm font-medium text-foreground">{r.name}</p>
-                                <p className="text-[10px] text-muted-foreground">{r.description}</p>
+                                <p className="text-sm font-medium text-foreground">{r.name || "Regra de Comissão"}</p>
+                                <p className="text-[10px] text-muted-foreground">Nível {r.level}</p>
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold", tp.bg, tp.color)}>{tp.label}</span>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px]">{r.level === "all" ? "Todos" : r.level}</Badge>
+                              <Badge variant="secondary" className="text-[10px]">{r.level}</Badge>
                             </TableCell>
                             <TableCell className="text-right text-sm font-semibold text-foreground">{r.percentage}%</TableCell>
-                            <TableCell className="text-right text-sm text-foreground">
-                              {r.fixedBonus > 0 ? `R$ ${r.fixedBonus}` : "—"}
-                            </TableCell>
+                            <TableCell className="text-right text-sm text-foreground">—</TableCell>
                             <TableCell className="text-center text-[11px] text-muted-foreground">
-                              {r.minMonths > 0 ? `≥ ${r.minMonths}m` : "—"}
+                              {r.min_months > 0 ? `≥ ${r.min_months}m` : "—"}
                             </TableCell>
                             <TableCell className="text-center">
-                              {r.allowStack ? (
-                                <span className="text-[10px] font-medium text-success">Sim</span>
-                              ) : (
-                                <span className="text-[10px] text-muted-foreground">Não</span>
-                              )}
+                              <span className="text-[10px] text-muted-foreground">Não</span>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className={cn(
@@ -217,6 +351,68 @@ const CoreCommissions: React.FC = () => {
               </Card>
             </TabsContent>
 
+            {/* ─── PAYMENTS TAB ─── */}
+            <TabsContent value="payments" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-foreground">Pagamentos Pendentes (PIX Manual)</p>
+              </div>
+
+              <Card className="border-border overflow-hidden">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-secondary/30 hover:bg-secondary/30">
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Partner</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Chave PIX</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Qtde</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Total a Pagar</TableHead>
+                        <TableHead className="w-[120px]" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingList.map((p: any) => (
+                        <TableRow key={p.partnerId}>
+                          <TableCell>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{p.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{p.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <Badge variant="secondary" className="text-[9px] uppercase">{p.pixType}</Badge>
+                              <span className="text-[12px] font-mono">{p.pixKey || "Não cadastrada"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center text-sm">{p.count}</TableCell>
+                          <TableCell className="text-right text-sm font-bold text-foreground">R$ {p.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              size="sm" 
+                              className="h-8 text-[11px] gap-1.5" 
+                              onClick={() => {
+                                setSelectedPartner(p);
+                                setPaymentModalOpen(true);
+                              }}
+                            >
+                              Pagar Agora
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {pendingList.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-12 text-sm text-muted-foreground">
+                            Nenhum pagamento pendente no momento.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* ─── AUDIT TAB ─── */}
             <TabsContent value="audit" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-3">
@@ -234,36 +430,38 @@ const CoreCommissions: React.FC = () => {
                       <TableRow className="bg-secondary/30 hover:bg-secondary/30">
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Data</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Partner</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Cliente</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Regra</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Tipo</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Pedido</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">%</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Comissão</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Margem</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredAudit.map((a) => {
-                        const tp = TYPE_LABELS[a.type] || TYPE_LABELS.initial;
+                      {filteredAudit.map((a: any) => {
+                        const tp = TYPE_LABELS[a.commission_type] || TYPE_LABELS.initial;
+                        const status = STATUS_LABELS[a.paid_status] || STATUS_LABELS.pending;
+                        const StatusIcon = status.icon;
+                        const partnerName = `${a.partners?.profiles?.first_name || ""} ${a.partners?.profiles?.last_name || ""}`.trim() || "Partner";
+                        
                         return (
                           <TableRow key={a.id}>
-                            <TableCell className="text-[11px] text-muted-foreground">{a.date}</TableCell>
-                            <TableCell className="text-sm font-medium text-foreground">{a.partner}</TableCell>
-                            <TableCell className="text-sm text-foreground">{a.client}</TableCell>
+                            <TableCell className="text-[11px] text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-sm font-medium text-foreground">{partnerName}</TableCell>
                             <TableCell>
-                              <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium", tp.bg, tp.color)}>{a.rule}</span>
+                              <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium", tp.bg, tp.color)}>{tp.label}</span>
                             </TableCell>
-                            <TableCell className="text-right text-sm text-foreground">R$ {a.orderAmount.toFixed(2)}</TableCell>
-                            <TableCell className="text-right text-sm font-medium text-foreground">{a.percentage}%</TableCell>
-                            <TableCell className="text-right text-sm font-semibold text-foreground">R$ {a.commission.toFixed(2)}</TableCell>
+                            <TableCell className="text-right text-sm text-foreground">R$ {(a.orders?.amount || 0).toFixed(2)}</TableCell>
+                            <TableCell className="text-right text-sm font-semibold text-foreground">R$ {a.amount.toFixed(2)}</TableCell>
                             <TableCell className="text-center">
-                              <span className={cn(
-                                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
-                                a.marginOk ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                              )}>
-                                {a.marginOk ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                                {a.margin}%
-                              </span>
+                              <div className={cn("flex items-center justify-center gap-1 text-[10px] font-medium", status.color)}>
+                                <StatusIcon className="h-3 w-3" />
+                                {status.label}
+                                {a.payment_proof_url && (
+                                  <a href={a.payment_proof_url} target="_blank" rel="noreferrer">
+                                    <ExternalLink className="h-3 w-3 ml-1" />
+                                  </a>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
@@ -385,6 +583,68 @@ const CoreCommissions: React.FC = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
+        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirmar Pagamento</DialogTitle>
+              <DialogDescription>
+                Você está marcando as comissões de <strong>{selectedPartner?.name}</strong> como pagas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="rounded-lg bg-secondary/30 p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total a transferir:</span>
+                  <span className="font-bold text-foreground">R$ {selectedPartner?.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tipo PIX:</span>
+                  <span className="font-medium text-foreground uppercase">{selectedPartner?.pixType}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Chave PIX:</span>
+                  <span className="font-mono text-foreground">{selectedPartner?.pixKey}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase">Comprovante de Pagamento (Opcional)</label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-10 border-dashed"
+                    onClick={() => document.getElementById('proof-upload')?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                    {proofUrl ? "Trocar arquivo" : "Fazer upload do comprovante"}
+                  </Button>
+                  <input
+                    id="proof-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/*,application/pdf"
+                    onChange={handleFileUpload}
+                  />
+                </div>
+                {proofUrl && (
+                  <p className="text-[10px] text-success flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" /> Arquivo anexado com sucesso
+                  </p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setPaymentModalOpen(false)}>Cancelar</Button>
+              <Button 
+                onClick={() => payMutation.mutate({ partnerId: selectedPartner.partnerId, proof: proofUrl })}
+                disabled={payMutation.isPending}
+              >
+                {payMutation.isPending ? "Processando..." : "Confirmar Pagamento"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );

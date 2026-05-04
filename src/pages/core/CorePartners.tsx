@@ -63,6 +63,8 @@ const CorePartners: React.FC = () => {
           level,
           active,
           metadata,
+          pix_key,
+          pix_key_type,
           profiles:user_id (email, first_name, last_name)
         `)
         .eq("tenant_id", currentTenant.id);
@@ -77,6 +79,8 @@ const CorePartners: React.FC = () => {
           email: profile?.email || "Sem email",
           level: p.level || "basic",
           status: p.active ? "active" : "inactive",
+          pixKey: p.pix_key,
+          pixType: p.pix_key_type,
           clients: (p.metadata as any)?.clients || 0,
           activeClients: (p.metadata as any)?.activeClients || 0,
           retention: (p.metadata as any)?.retention || 0,
@@ -226,6 +230,11 @@ const CorePartners: React.FC = () => {
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
                               <p className="text-[10px] text-muted-foreground truncate">{p.email}</p>
+                              {p.pixKey && (
+                                <Badge variant="secondary" className="mt-1 h-4 text-[8px] px-1 py-0 uppercase">
+                                  PIX: {p.pixType}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </TableCell>
