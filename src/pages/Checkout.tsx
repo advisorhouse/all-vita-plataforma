@@ -81,7 +81,21 @@ const Checkout: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let maskedValue = value;
+
+    if (name === "cpf") {
+      maskedValue = value.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").substring(0, 14);
+    } else if (name === "phone") {
+      maskedValue = value.replace(/\D/g, "").replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3").substring(0, 15);
+    } else if (name === "zipCode") {
+      maskedValue = value.replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2").substring(0, 9);
+    } else if (name === "cardExpiry") {
+      maskedValue = value.replace(/\D/g, "").replace(/(\d{2})(\d{2})/, "$1/$2").substring(0, 5);
+    } else if (name === "cardNumber") {
+      maskedValue = value.replace(/\D/g, "").replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, "$1 $2 $3 $4").substring(0, 19);
+    }
+
+    setFormData(prev => ({ ...prev, [name]: maskedValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
