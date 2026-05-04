@@ -73,7 +73,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
         .select("*")
         .eq("tenant_id", currentTenant?.id)
         .eq("active", true)
-        .order("cost_vitacoins", { ascending: true });
+        .order("cost_in_coins", { ascending: true });
       if (error) throw error;
       return data as Reward[];
     },
@@ -82,7 +82,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
 
   const redeemMutation = useMutation({
     mutationFn: async (reward: Reward) => {
-      if ((wallet?.balance || 0) < reward.cost_vitacoins) {
+      if ((wallet?.balance || 0) < reward.cost_in_coins) {
         throw new Error("Saldo insuficiente de Vitacoins.");
       }
 
@@ -91,7 +91,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
         tenant_id: currentTenant?.id,
         user_id: user?.id,
         reward_id: reward.id,
-        amount: reward.cost_vitacoins,
+        amount: reward.cost_in_coins,
         status: "pending",
         metadata: { reward_name: reward.name }
       });
@@ -102,7 +102,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
       const { error: transError } = await supabase.from("vitacoin_transactions").insert({
         tenant_id: currentTenant?.id,
         user_id: user?.id,
-        amount: reward.cost_vitacoins,
+        amount: reward.cost_in_coins,
         type: "debit",
         source: "redemption",
         description: `Resgate de recompensa: ${reward.name}`
@@ -113,7 +113,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
       // 3. Update wallet balance
       const { error: walletError } = await supabase
         .from("vitacoins_wallet")
-        .update({ balance: (wallet?.balance || 0) - reward.cost_vitacoins })
+        .update({ balance: (wallet?.balance || 0) - reward.cost_in_coins })
         .eq("tenant_id", currentTenant?.id)
         .eq("user_id", user?.id);
       
@@ -169,7 +169,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
               <Loader2 className="h-8 w-8 animate-spin text-accent" />
             </div>
           ) : rewards.map((reward, i) => {
-            const canAfford = balance >= reward.cost_vitacoins;
+            const canAfford = balance >= reward.cost_in_coins;
             const isOutOfStock = (reward.stock || 0) <= 0;
 
             return (
@@ -189,7 +189,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
                 >
                   <div className="flex items-center justify-between mb-3">
                     <Badge variant="secondary" className="bg-accent/10 text-accent border-0 text-[10px] font-bold">
-                      {reward.cost_vitacoins} VITACOINS
+                      {reward.cost_in_coins} VITACOINS
                     </Badge>
                     {isOutOfStock ? (
                       <Badge variant="destructive" className="text-[10px]">ESGOTADO</Badge>
@@ -286,7 +286,7 @@ const RewardsRoadmap: React.FC<RewardsRoadmapProps> = ({ currentMonth, onRedeem 
 
                 <div className="flex items-center justify-between px-2">
                   <span className="text-sm text-muted-foreground">Custo do resgate:</span>
-                  <span className="text-lg font-bold text-accent">-{selectedReward.cost_vitacoins} VC</span>
+                  <span className="text-lg font-bold text-accent">-{selectedReward.cost_in_coins} VC</span>
                 </div>
                 
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/5 border border-accent/10">
