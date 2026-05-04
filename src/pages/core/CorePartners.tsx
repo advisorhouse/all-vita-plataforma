@@ -180,17 +180,18 @@ const CorePartners: React.FC = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button size="xs" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent" onClick={() => {
+              <Button size="sm" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent px-2" onClick={() => {
                 console.log("Current Partners Data:", partners);
                 toast.info("Dados enviados para o console");
               }}>
                 Log Data
               </Button>
-              <Button size="xs" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent" onClick={() => {
+              <Button size="sm" variant="outline" className="h-7 text-[10px] border-accent/30 hover:bg-accent/10 text-accent px-2" onClick={() => {
                 queryClient.invalidateQueries({ queryKey: ["core-partners"] });
               }}>
                 Invalidate Cache
               </Button>
+
             </div>
           </div>
         )}
