@@ -79,6 +79,8 @@ const CorePartners: React.FC = () => {
           email: profile?.email || "Sem email",
           level: p.level || "basic",
           status: p.active ? "active" : "inactive",
+          pixKey: p.pix_key,
+          pixType: p.pix_key_type,
           clients: (p.metadata as any)?.clients || 0,
           activeClients: (p.metadata as any)?.activeClients || 0,
           retention: (p.metadata as any)?.retention || 0,
