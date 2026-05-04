@@ -315,39 +315,32 @@ const CoreGamification: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-secondary/30 hover:bg-secondary/30">
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Benefício</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Recompensa</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Tipo</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Meses</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Desbloqueados</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Resgatados</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Taxa</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Custo (VC)</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Estoque</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Status</TableHead>
                         <TableHead className="w-[80px]" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredBenefits.map((b) => {
+                      {filteredBenefits.map((b: any) => {
                         const tp = BENEFIT_TYPES[b.type] || BENEFIT_TYPES.discount;
-                        const rate = b.totalUnlocked > 0 ? Math.round((b.redeemedCount / b.totalUnlocked) * 100) : 0;
                         return (
                           <TableRow key={b.id} className="group">
                             <TableCell>
-                              <p className="text-sm font-medium text-foreground">{b.title}</p>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{b.name}</p>
+                                <p className="text-[10px] text-muted-foreground">{b.description}</p>
+                              </div>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold", tp.bg, tp.color)}>{tp.label}</span>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px]">≥ {b.requiredMonths}m</Badge>
+                              <Badge variant="secondary" className="text-[10px] font-bold">{b.cost_vitacoins} VC</Badge>
                             </TableCell>
-                            <TableCell className="text-right text-sm font-medium text-foreground">{b.totalUnlocked}</TableCell>
-                            <TableCell className="text-right text-sm text-foreground">{b.redeemedCount}</TableCell>
-                            <TableCell className="text-center">
-                              <span className={cn(
-                                "text-[11px] font-semibold",
-                                rate >= 70 ? "text-success" : rate >= 40 ? "text-warning" : "text-destructive"
-                              )}>{rate}%</span>
-                            </TableCell>
+                            <TableCell className="text-right text-sm font-medium text-foreground">{b.stock}</TableCell>
                             <TableCell className="text-center">
                               <span className={cn(
                                 "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
@@ -358,8 +351,23 @@ const CoreGamification: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"><Pencil className="h-3 w-3" /></button>
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"
+                                  onClick={() => {
+                                    setEditingReward(b);
+                                    setRewardModalOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                                  onClick={() => {
+                                    if(confirm("Deseja remover esta recompensa?")) deleteRewardMutation.mutate(b.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -369,6 +377,7 @@ const CoreGamification: React.FC = () => {
                   </Table>
                 </CardContent>
               </Card>
+
             </TabsContent>
 
             {/* ─── CHALLENGES TAB ─── */}
