@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import RegisterPartnerModal from "@/components/core/RegisterPartnerModal";
+import { toast } from "sonner";
 import {
   Handshake, Search, Users, DollarSign, TrendingUp, ShieldCheck,
   ArrowUpRight, ArrowDownRight, ChevronRight, Eye, MoreHorizontal,
-  Crown, Award, Star, AlertTriangle, Filter, UserPlus,
+  Crown, Award, Star, AlertTriangle, Filter, UserPlus, Mail, Loader2
 } from "lucide-react";
+
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
