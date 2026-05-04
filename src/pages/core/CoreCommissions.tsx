@@ -392,9 +392,25 @@ const CoreCommissions: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"><Pencil className="h-3 w-3" /></button>
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"
+                                  onClick={() => {
+                                    setEditingRule(r);
+                                    setRuleModalOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                                  onClick={() => {
+                                    if(confirm("Deseja remover esta regra?")) deleteRuleMutation.mutate(r.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
                               </div>
+
                             </TableCell>
                           </TableRow>
                         );
