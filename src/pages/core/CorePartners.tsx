@@ -159,8 +159,9 @@ const CorePartners: React.FC = () => {
   const totalClients = partners.reduce((sum, p) => sum + p.activeClients, 0);
 
   const totalCommission = partners.reduce((sum, p) => sum + p.commission, 0);
-
+  return (
     <TooltipProvider delayDuration={200}>
+
       <div className="space-y-5 pb-12">
         {/* ═══ HEADER ═══ */}
         <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
