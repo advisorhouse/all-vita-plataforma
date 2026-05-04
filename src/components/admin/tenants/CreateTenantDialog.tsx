@@ -64,6 +64,9 @@ const emptyForm: TenantFormData = {
   owner_name: "", owner_email: "", owner_phone: "", owner_cpf: "",
   address_cep: "", address_street: "", address_number: "",
   address_complement: "", address_district: "", address_city: "", address_state: "",
+  legal_name: "", bank_code: "", bank_agency: "", bank_agency_dv: "",
+  bank_account: "", bank_account_dv: "", bank_account_type: "checking",
+  bank_holder_name: "", bank_holder_document: "",
 };
 
  interface CreateTenantDialogProps {
