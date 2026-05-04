@@ -230,7 +230,9 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
       newParams.delete("register");
       window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
       
+      queryClient.invalidateQueries({ queryKey: ["core-partners"] });
       setDone(true);
+
 
     } catch (err: any) {
       console.error("Error creating partner:", err);
