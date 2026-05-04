@@ -150,7 +150,7 @@ const CorePartners: React.FC = () => {
   });
 
 
-  const totalPartners = partners.length;
+  const pendingInvitations = partners.filter(p => authStatus[p.userId] && !authStatus[p.userId].email_confirmed_at).length;
   const activePartners = partners.filter((p) => p.status === "active").length;
   const totalMRR = partners.reduce((sum, p) => sum + p.mrr, 0);
   const avgRetention = activePartners > 0 ? Math.round(partners.filter(p => p.status === "active").reduce((s, p) => s + p.retention, 0) / activePartners) : 0;
