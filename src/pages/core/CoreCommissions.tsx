@@ -87,25 +87,34 @@ const AUDIT_LOG = [
   { id: "a8", date: "28/02/2026", partner: "Ana P.", client: "Patrícia D.", rule: "Comissão Recorrente", orderAmount: 149.90, percentage: 10, commission: 14.99, type: "recurring", marginOk: true, margin: 53 },
 ];
 
-const MARGIN_RULES = [
-  { id: "m1", name: "Proteção Padrão", maxPct: 30, alertThreshold: 20, blockThreshold: 10, maxPerClient: 500, active: true },
-];
-
-const TEMPLATES = [
-  { id: "t1", name: "Modelo Padrão", description: "Comissão inicial 15% + recorrente 10% + bônus retenção", rulesCount: 4, active: true },
-  { id: "t2", name: "Modelo Agressivo", description: "Comissão inicial 20% + recorrente 12% para campanhas especiais", rulesCount: 3, active: false },
-  { id: "t3", name: "Modelo Conservador", description: "Comissão inicial 10% + recorrente 8% para proteção de margem", rulesCount: 2, active: false },
-];
-
-/* ─── Component ─────────────────────────────────────────── */
 const CoreCommissions: React.FC = () => {
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
   const [auditSearch, setAuditSearch] = useState("");
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [ruleModalOpen, setRuleModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [proofUrl, setProofUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  // New Rule State
+  const [editingRule, setEditingRule] = useState<any>(null);
+
+  // Fetch real rules
+  const { data: rules = [], isLoading: loadingRules } = useQuery({
+    queryKey: ["commission-rules", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("commission_rules")
+        .select("*")
+        .eq("tenant_id", currentTenant.id)
+        .order("priority_order", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
 
   // Fetch real commissions
   const { data: commissions = [], isLoading: loadingCommissions } = useQuery({
@@ -132,6 +141,38 @@ const CoreCommissions: React.FC = () => {
     },
     enabled: !!currentTenant?.id
   });
+
+  const upsertRuleMutation = useMutation({
+    mutationFn: async (rule: any) => {
+      const payload = { ...rule, tenant_id: currentTenant?.id };
+      if (rule.id) {
+        const { error } = await supabase.from("commission_rules").update(payload).eq("id", rule.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("commission_rules").insert([payload]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["commission-rules"] });
+      toast.success(editingRule?.id ? "Regra atualizada!" : "Regra criada!");
+      setRuleModalOpen(false);
+      setEditingRule(null);
+    },
+    onError: (err: any) => toast.error("Erro ao salvar regra: " + err.message)
+  });
+
+  const deleteRuleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("commission_rules").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["commission-rules"] });
+      toast.success("Regra removida!");
+    }
+  });
+
 
   const payMutation = useMutation({
     mutationFn: async ({ partnerId, proof }: { partnerId: string; proof: string }) => {
