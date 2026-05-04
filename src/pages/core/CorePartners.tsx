@@ -156,7 +156,7 @@ const CorePartners: React.FC = () => {
 
   const totalMRR = partners.reduce((sum, p) => sum + p.mrr, 0);
   const avgRetention = activePartners > 0 ? Math.round(partners.filter(p => p.status === "active").reduce((s, p) => s + p.retention, 0) / activePartners) : 0;
-  const totalCommission = partners.reduce((sum, p) => sum + p.commission, 0);
+  const totalClients = partners.reduce((sum, p) => sum + p.activeClients, 0);
 
   return (
     <TooltipProvider delayDuration={200}>
