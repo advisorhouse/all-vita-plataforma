@@ -158,7 +158,8 @@ const CorePartners: React.FC = () => {
   const avgRetention = activePartners > 0 ? Math.round(partners.filter(p => p.status === "active").reduce((s, p) => s + p.retention, 0) / activePartners) : 0;
   const totalClients = partners.reduce((sum, p) => sum + p.activeClients, 0);
 
-  return (
+  const totalCommission = partners.reduce((sum, p) => sum + p.commission, 0);
+
     <TooltipProvider delayDuration={200}>
       <div className="space-y-5 pb-12">
         {/* ═══ HEADER ═══ */}
