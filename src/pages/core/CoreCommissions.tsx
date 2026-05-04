@@ -90,19 +90,128 @@ const TEMPLATES = [
 
 /* ─── Component ─────────────────────────────────────────── */
 const CoreCommissions: React.FC = () => {
+  const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
   const [auditSearch, setAuditSearch] = useState("");
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<any>(null);
+  const [proofUrl, setProofUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
 
-  const totalCommission = AUDIT_LOG.reduce((s, a) => s + a.commission, 0);
-  const avgMargin = Math.round(AUDIT_LOG.reduce((s, a) => s + a.margin, 0) / AUDIT_LOG.length);
-  const marginAlerts = AUDIT_LOG.filter((a) => !a.marginOk).length;
+  // Fetch real commissions
+  const { data: commissions = [], isLoading: loadingCommissions } = useQuery({
+    queryKey: ["commissions", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("commissions")
+        .select(`
+          *,
+          partners (
+            id,
+            pix_key,
+            pix_key_type,
+            profiles:user_id (first_name, last_name, email)
+          ),
+          orders (amount)
+        `)
+        .eq("tenant_id", currentTenant.id)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const payMutation = useMutation({
+    mutationFn: async ({ partnerId, proof }: { partnerId: string; proof: string }) => {
+      const { error } = await supabase
+        .from("commissions")
+        .update({
+          paid_status: "paid",
+          paid_at: new Date().toISOString(),
+          payment_proof_url: proof
+        })
+        .eq("partner_id", partnerId)
+        .eq("paid_status", "pending")
+        .eq("tenant_id", currentTenant?.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["commissions"] });
+      toast.success("Pagamentos marcados como concluídos!");
+      setPaymentModalOpen(false);
+      setSelectedPartner(null);
+      setProofUrl("");
+    },
+    onError: (error) => {
+      toast.error("Erro ao processar pagamento: " + error.message);
+    }
+  });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentTenant?.id) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${currentTenant.id}/proofs/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+      setProofUrl(publicUrl);
+      toast.success("Comprovante enviado!");
+    } catch (error: any) {
+      toast.error("Erro no upload: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const totalCommission = commissions.reduce((s, a) => s + (a.amount || 0), 0);
+  const avgMargin = 45; // Placeholder for now
+  const marginAlerts = 0;
   const activeRules = RULES.filter((r) => r.active).length;
 
-  const filteredAudit = AUDIT_LOG.filter((a) =>
-    !auditSearch ||
-    a.partner.toLowerCase().includes(auditSearch.toLowerCase()) ||
-    a.client.toLowerCase().includes(auditSearch.toLowerCase()) ||
-    a.rule.toLowerCase().includes(auditSearch.toLowerCase())
-  );
+  const filteredAudit = commissions.filter((a: any) => {
+    const partnerName = `${a.partners?.profiles?.first_name || ""} ${a.partners?.profiles?.last_name || ""}`.toLowerCase();
+    const search = auditSearch.toLowerCase();
+    return !auditSearch || partnerName.includes(search) || a.commission_type.includes(search);
+  });
+
+  // Group pending payments by partner
+  const pendingByPartner = commissions.reduce((acc: any, curr: any) => {
+    if (curr.paid_status !== "pending") return acc;
+    const pId = curr.partner_id;
+    if (!acc[pId]) {
+      const p = curr.partners;
+      acc[pId] = {
+        partnerId: pId,
+        name: `${p?.profiles?.first_name || ""} ${p?.profiles?.last_name || ""}`.trim() || "Partner",
+        email: p?.profiles?.email,
+        pixKey: p?.pix_key,
+        pixType: p?.pix_key_type,
+        total: 0,
+        count: 0
+      };
+    }
+    acc[pId].total += curr.amount;
+    acc[pId].count += 1;
+    return acc;
+  }, {});
+
+  const pendingList = Object.values(pendingByPartner);
 
   return (
     <TooltipProvider delayDuration={200}>
