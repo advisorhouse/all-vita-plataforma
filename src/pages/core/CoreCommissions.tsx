@@ -340,6 +340,68 @@ const CoreCommissions: React.FC = () => {
               </Card>
             </TabsContent>
 
+            {/* ─── PAYMENTS TAB ─── */}
+            <TabsContent value="payments" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-foreground">Pagamentos Pendentes (PIX Manual)</p>
+              </div>
+
+              <Card className="border-border overflow-hidden">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-secondary/30 hover:bg-secondary/30">
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Partner</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Chave PIX</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Qtde</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Total a Pagar</TableHead>
+                        <TableHead className="w-[120px]" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingList.map((p: any) => (
+                        <TableRow key={p.partnerId}>
+                          <TableCell>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{p.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{p.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <Badge variant="secondary" className="text-[9px] uppercase">{p.pixType}</Badge>
+                              <span className="text-[12px] font-mono">{p.pixKey || "Não cadastrada"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center text-sm">{p.count}</TableCell>
+                          <TableCell className="text-right text-sm font-bold text-foreground">R$ {p.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              size="sm" 
+                              className="h-8 text-[11px] gap-1.5" 
+                              onClick={() => {
+                                setSelectedPartner(p);
+                                setPaymentModalOpen(true);
+                              }}
+                            >
+                              Pagar Agora
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {pendingList.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-12 text-sm text-muted-foreground">
+                            Nenhum pagamento pendente no momento.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* ─── AUDIT TAB ─── */}
             <TabsContent value="audit" className="space-y-4 mt-4">
               <div className="flex items-center justify-between gap-3">
@@ -357,36 +419,38 @@ const CoreCommissions: React.FC = () => {
                       <TableRow className="bg-secondary/30 hover:bg-secondary/30">
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Data</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Partner</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Cliente</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Regra</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Tipo</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Pedido</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">%</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Comissão</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Margem</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredAudit.map((a) => {
-                        const tp = TYPE_LABELS[a.type] || TYPE_LABELS.initial;
+                      {filteredAudit.map((a: any) => {
+                        const tp = TYPE_LABELS[a.commission_type] || TYPE_LABELS.initial;
+                        const status = STATUS_LABELS[a.paid_status] || STATUS_LABELS.pending;
+                        const StatusIcon = status.icon;
+                        const partnerName = `${a.partners?.profiles?.first_name || ""} ${a.partners?.profiles?.last_name || ""}`.trim() || "Partner";
+                        
                         return (
                           <TableRow key={a.id}>
-                            <TableCell className="text-[11px] text-muted-foreground">{a.date}</TableCell>
-                            <TableCell className="text-sm font-medium text-foreground">{a.partner}</TableCell>
-                            <TableCell className="text-sm text-foreground">{a.client}</TableCell>
+                            <TableCell className="text-[11px] text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-sm font-medium text-foreground">{partnerName}</TableCell>
                             <TableCell>
-                              <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium", tp.bg, tp.color)}>{a.rule}</span>
+                              <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium", tp.bg, tp.color)}>{tp.label}</span>
                             </TableCell>
-                            <TableCell className="text-right text-sm text-foreground">R$ {a.orderAmount.toFixed(2)}</TableCell>
-                            <TableCell className="text-right text-sm font-medium text-foreground">{a.percentage}%</TableCell>
-                            <TableCell className="text-right text-sm font-semibold text-foreground">R$ {a.commission.toFixed(2)}</TableCell>
+                            <TableCell className="text-right text-sm text-foreground">R$ {(a.orders?.amount || 0).toFixed(2)}</TableCell>
+                            <TableCell className="text-right text-sm font-semibold text-foreground">R$ {a.amount.toFixed(2)}</TableCell>
                             <TableCell className="text-center">
-                              <span className={cn(
-                                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
-                                a.marginOk ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                              )}>
-                                {a.marginOk ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                                {a.margin}%
-                              </span>
+                              <div className={cn("flex items-center justify-center gap-1 text-[10px] font-medium", status.color)}>
+                                <StatusIcon className="h-3 w-3" />
+                                {status.label}
+                                {a.payment_proof_url && (
+                                  <a href={a.payment_proof_url} target="_blank" rel="noreferrer">
+                                    <ExternalLink className="h-3 w-3 ml-1" />
+                                  </a>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
