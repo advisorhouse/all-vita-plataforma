@@ -824,7 +824,6 @@ const CoreCommissions: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        </Dialog>
       </div>
     </TooltipProvider>
   );
