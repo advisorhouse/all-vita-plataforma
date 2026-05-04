@@ -21,6 +21,8 @@ import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
 import { useCEPLookup } from "@/hooks/use-cep-lookup";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 interface RegisterPartnerModalProps {
   open: boolean;
@@ -130,8 +132,10 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
   const { lookupCNPJ, loading: loadingCNPJ } = useCNPJLookup();
   const { lookupCEP, loading: loadingCEP } = useCEPLookup();
+
 
   const update = (partial: Partial<PartnerFormData>) => setData((d) => ({ ...d, ...partial }));
 
@@ -230,7 +234,9 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
       newParams.delete("register");
       window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`);
       
+      queryClient.invalidateQueries({ queryKey: ["core-partners"] });
       setDone(true);
+
 
     } catch (err: any) {
       console.error("Error creating partner:", err);

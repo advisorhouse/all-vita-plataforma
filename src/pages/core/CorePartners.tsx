@@ -99,6 +99,8 @@ const CorePartners: React.FC = () => {
         };
       });
     },
+    refetchInterval: 5000, // Força atualização a cada 5s para detectar novos cadastros
+
 
     enabled: !!currentTenant?.id
   });
@@ -115,15 +117,16 @@ const CorePartners: React.FC = () => {
     },
     onSuccess: () => {
       toast.success("Convite reenviado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["core-partners"] });
+      refetchAuthStatus();
     },
     onError: (err: any) => {
       toast.error("Erro ao reenviar convite", { description: err.message });
     }
   });
 
-  const { data: authStatus = {} } = useQuery({
-    queryKey: ["partners-auth-status", partners.map(p => p.userId).filter(Boolean)],
+  const { data: authStatus = {}, refetch: refetchAuthStatus } = useQuery({
+
+    queryKey: ["partners-auth-status", currentTenant?.id, partners.map(p => p.userId).filter(Boolean)],
     queryFn: async () => {
       const userIds = partners.map(p => p.userId).filter(Boolean);
       if (!userIds.length) return {};
@@ -148,6 +151,7 @@ const CorePartners: React.FC = () => {
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
 
 
   const pendingInvitations = partners.filter(p => authStatus[p.userId] && !authStatus[p.userId].email_confirmed_at).length;
