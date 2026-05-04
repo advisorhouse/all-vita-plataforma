@@ -959,18 +959,21 @@ const CoreProducts: React.FC = () => {
           </ScrollArea>
 
           <DialogFooter className="p-6 pt-2 border-t bg-muted/20">
-            <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>Descartar</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>
+              {selectedProduct?.id ? "Fechar" : "Descartar"}
+            </Button>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
               disabled={saveProductMutation.isPending}
               onClick={() => saveProductMutation.mutate()}>
               {saveProductMutation.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <RefreshCw className="h-3.5 w-3.5" />
+                <Save className="h-3.5 w-3.5" />
               )}
-              {selectedProduct ? "Salvar e Sincronizar" : "Criar e Sincronizar"}
+              {selectedProduct?.id ? "Salvar Alterações" : "Salvar Produto"}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
