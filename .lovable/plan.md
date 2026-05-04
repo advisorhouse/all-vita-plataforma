@@ -1,143 +1,171 @@
-# Integração Pagar.me v5 — Marketplace + Checkout Transparente
 
-## Visão geral
+# Fluxo Pagar.me — Marketplace All Vita
 
-A All Vita opera como **conta master/marketplace** no Pagar.me. Cada tenant é cadastrado como **Recipient** (`rp_...`) dentro dessa conta master, com seus próprios dados bancários e CNPJ. Toda venda passa pela API da master, com **split automático** entre o recipient do tenant e o recipient da All Vita (fee).
+## Conceito (resumo das decisões)
 
-Como o marketplace ainda não está habilitado, o desenvolvimento será 100% em **Sandbox**. O modelo de split fica codificado e pronto; quando você liberar o marketplace em produção, basta trocar as chaves.
+- **Tenant** = vira Recipient no Pagar.me (recebe o dinheiro da venda).
+- **All Vita** = Recipient master (recebe a fee de plataforma).
+- **Partner** = NÃO vira Recipient. Apenas divulga o link e ganha comissão paga **manualmente via PIX** pelo tenant (saldo aparece no painel do partner e do tenant).
+- **Produto** = cadastrado no banco local + espelhado no Pagar.me (`/products`) para gerar checkout transparente vinculado.
+- **Cliente final** = compra pelo `/club` (ou direto pelo link do partner) via checkout transparente.
+
+## Fluxo end-to-end
 
 ```text
-Cliente paga R$100
-   ↓ POST /orders (Secret Key da All Vita)
-[Pagar.me]
-   ├─ split → Recipient Tenant (ex: 90%)  → R$90
-   └─ split → Recipient All Vita (10% fee) → R$10
-        ↓ webhook
-[Edge Function payment-webhook] → atualiza orders + dispara comissões
+Admin cria Tenant (modal: dados + branding + dados bancários/CNPJ)
+   ↓ tenant-signup chama pagarme-create-recipient
+Pagar.me processa KYC (1-3 dias)
+   ↓ webhook recipient.status_changed
+Notificação in-app + email para Admin e para o Tenant ("Pagamentos liberados")
+   ↓
+Tenant cadastra produto em /core/products (modal com campos Pagar.me)
+   ↓ pagarme-sync-product cria/atualiza no Pagar.me
+Produto fica disponível com link público de checkout transparente
+   ↓
+Tenant cadastra Partner (apenas dados pessoais + chave PIX, SEM KYC)
+   ↓ partner recebe seu referral_code e link /q/CODIGO
+Partner divulga link → cliente final faz quiz → vê produto recomendado
+   ↓ botão "Comprar" leva para /core/checkout/:productId?ref=CODIGO
+Checkout transparente: cartão (tokenizado) | PIX | Boleto
+   ↓ pagarme-create-order com split: tenant 90% + All Vita 10%
+Pagar.me processa → webhook order.paid
+   ↓ payment-webhook
+1. Atualiza orders.payment_status = paid
+2. process-commission credita comissão do partner em commissions (status=pending)
+3. Atualiza saldo do partner (somatório de commissions pending)
+   ↓
+Tenant entra em /core/commissions, vê lista de comissões pendentes por partner
+   ↓ clica "Marcar como pago" após pagar PIX manualmente fora da plataforma
+commissions.paid_status = paid + audit log
 ```
 
-## 1. Schema do banco
+## 1. Banco de dados (migrations)
 
-**Migrations necessárias:**
+**products** — adicionar colunas Pagar.me:
+- `pagarme_product_id text`
+- `pagarme_sync_status text default 'pending'` (pending | synced | error)
+- `pagarme_last_sync_at timestamptz`
+- `pagarme_sync_error text`
+- `checkout_url text` (link público gerado)
 
-- **`tenants.settings.pagarme`** — passa a guardar apenas configurações não sensíveis (env, eventos de webhook). Chaves API saem daqui.
-- **`payment_integrations`** já existe. Vamos usá-la:
-  - `provider = 'pagarme'`
-  - `api_key_encrypted` → Secret Key da All Vita (única, salva pelo super admin)
-  - `webhook_secret` → segredo HMAC do Pagar.me
-  - `recipient_id` → `rp_...` do tenant (um registro por tenant)
-  - `metadata` → `{ env, public_key, fee_percentage, bank_account, document }`
-- **Nova tabela `tenant_pagarme_recipients`** (para a All Vita master ter UM registro especial com `tenant_id IS NULL`):
-  - já cabe em `payment_integrations` com `tenant_id = NULL` representando a master
-- **`orders`** já tem `all_vita_fee` e `tenant_amount`. Vamos popular esses campos no momento da criação.
-- **Nova tabela `payment_transactions`** para logar todas chamadas/respostas do Pagar.me (charges, status, refunds), facilitando auditoria e reconciliação.
+**partners** — adicionar dados bancários (apenas para PIX manual):
+- `pix_key text`, `pix_key_type text` (cpf|cnpj|email|phone|random)
+- `bank_holder_name text`, `bank_holder_document text`
 
-```sql
-CREATE TABLE payment_transactions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL,
-  order_id uuid,
-  pagarme_order_id text,
-  pagarme_charge_id text,
-  status text NOT NULL,
-  amount numeric NOT NULL,
-  payment_method text,           -- credit_card | pix | boleto
-  installments int,
-  raw_request jsonb,
-  raw_response jsonb,
-  created_at timestamptz DEFAULT now()
-);
--- RLS: super admin ALL; tenant admins SELECT por tenant_id
-```
+**tenants** — adicionar dados para Recipient:
+- `legal_name text`, `legal_document text` (CNPJ), `legal_document_type text`
+- `bank_code text`, `bank_agency text`, `bank_account text`, `bank_account_type text`, `bank_holder_name text`
+- `pagarme_recipient_status text` (pending|registration|affiliation|active|refused)
+- `pagarme_recipient_created_at timestamptz`
 
-## 2. Secrets
+**commissions** já existe — apenas garantir que tenha `paid_status`, `paid_at`, `payment_method`, `payment_proof_url`.
 
-Adicionar via `add_secret` (não vão ao banco):
-- `PAGARME_SECRET_KEY` (sk_test_... em Sandbox)
-- `PAGARME_WEBHOOK_SECRET`
+**Nova tabela `pagarme_webhook_events`** (já existe `payment_transactions`; reaproveitar adicionando coluna `event_type` se faltar para registrar `recipient.*`, `order.*`, `charge.*`).
 
-A **Public Key** é pública e pode viver em `payment_integrations.metadata.public_key` para o frontend tokenizar cartão.
+## 2. Edge Functions
 
-## 3. Edge Functions (todas com `verify_jwt = false`, validação interna)
+**Novas:**
+- `pagarme-create-recipient` (chamada pelo `tenant-signup` após criar tenant). Lê dados bancários do tenant, cria Recipient, salva `recipient_id` em `payment_integrations` + atualiza `tenants.pagarme_recipient_status`.
+- `pagarme-sync-product` (chamada ao salvar produto). Cria/atualiza no `/products` do Pagar.me e devolve URL de checkout. Salva em `products.pagarme_product_id` + `checkout_url`.
 
-### a) `pagarme-create-recipient` (POST, autenticado)
-Chamado pela tela "Configurações > Pagamentos" do tenant. Recebe CNPJ, banco, agência, conta, titular. Faz `POST /recipients` na API do Pagar.me e salva `recipient_id` em `payment_integrations` para o `tenant_id` do chamador.
+**Reescrever:**
+- `pagarme-webhook` — adicionar handlers para `recipient.status_changed` (dispara notificação + email). Manter handlers de `order.paid`, `order.payment_failed`, `charge.refunded`, `order.canceled`.
+- `payment-webhook` ou `process-commission` — após `order.paid`, criar registros em `commissions` (status=pending) com base em `commission_rules` do tenant + cadeia de upline do partner.
 
-### b) `pagarme-create-order` (POST, autenticado)
-Recebe `{ order_id, payment_method, card_token?, installments?, customer, billing_address }`.
-1. Lê `orders.amount` e `tenant_id`.
-2. Busca `recipient_id` do tenant + `fee_percentage` (de `payment_integrations.metadata`).
-3. Calcula split: `tenant_amount = total * (1 - fee%)`, `all_vita_fee = total * fee%`.
-4. Monta payload Pagar.me com `splits: [{recipient_id: tenant_rp, amount: tenant_amount}, {recipient_id: master_rp, amount: fee, charge_processing_fee: true}]`.
-5. `POST /orders` no Pagar.me com `payments: [{ payment_method, credit_card|pix|boleto: {...} }]`.
-6. Atualiza `orders` com `external_id`, `all_vita_fee`, `tenant_amount`, `payment_status`.
-7. Loga em `payment_transactions`.
-8. Retorna ao frontend: status, qr_code (PIX), boleto_url, ou approved (cartão).
+**Manter:**
+- `pagarme-api` — gateway genérico já existente.
 
-### c) `payment-webhook` (POST, público)
-Substituir o atual. Recebe webhook do Pagar.me. Valida assinatura HMAC com `PAGARME_WEBHOOK_SECRET`. Mapeia eventos:
-- `order.paid` / `charge.paid` → `payment_status='paid'`, dispara `process-commission`
-- `order.payment_failed` / `charge.payment_failed` → `payment_status='failed'`
-- `charge.refunded` → `payment_status='refunded'`
-- `charge.chargeback_*` → marca `chargeback`
+## 3. Frontend
 
-### d) `pagarme-tokenize-card` (não precisa) — tokenização vai direto do browser para o endpoint público do Pagar.me usando a Public Key.
+**a) `src/components/admin/tenants/CreateTenantDialog`** (modal de criação)
+Adicionar **Step "Dados Bancários e Fiscais"** antes do submit:
+- CNPJ, Razão Social, Banco (select), Agência, Conta, Tipo (corrente/poupança), Titular.
+- Aviso: "O Pagar.me leva 1-3 dias úteis para aprovar a conta. Você será notificado."
+Após criar tenant, chama `pagarme-create-recipient`.
 
-## 4. Frontend
+**b) `src/pages/admin/AdminTenantDetail`**
+Bloco "Status Pagar.me" mostrando: Recipient ID, status (badge: pendente/aprovado/recusado), botão "Reenviar dados" se recusado.
 
-### a) `src/pages/core/CoreSettings.tsx` — aba "Pagamentos"
-Remover campos de chave API. Substituir por:
-- Status: "Conta Pagar.me da All Vita: conectada (Sandbox)" (read-only, vem do super admin).
-- **Formulário de Recipient** (se ainda não criado): Razão social, CNPJ, banco, agência, conta, dígito, tipo, titular. Botão "Criar conta de recebimento" → chama `pagarme-create-recipient`.
-- Após criado: mostra `recipient_id`, status (registration: pending/affiliated), dados bancários mascarados, botão "Editar".
-- **Fee da All Vita** (apenas super admin enxerga editar; tenant vê read-only): % por tenant, salvo em `payment_integrations.metadata.fee_percentage`.
-- URL do webhook (já existe).
+**c) `src/pages/core/CoreProducts`** — modal "Gerenciar Produto"
+Adicionar campos Pagar.me obrigatórios para checkout:
+- Tipo de cobrança (única / assinatura → frequência)
+- Quantidade de parcelas máximas
+- Frete (se físico): peso, dimensões
+- Imagens (já existe via `product_images`)
+- Categoria fiscal (NCM, CFOP) — opcional inicial
+Ao salvar, chamar `pagarme-sync-product`. Mostrar badge: Sincronizado/Pendente/Erro + botão "Copiar link de checkout".
 
-### b) `src/pages/admin/...` — nova tela super admin
-Listar todos `payment_integrations`, ver fee por tenant, status do recipient, log de transações.
+**d) `src/pages/core/CorePartners`** — modal de cadastro de partner
+Manter simples — adicionar **só** seção "Dados para recebimento de comissão (PIX)":
+- Tipo de chave PIX + chave + titular + CPF/CNPJ do titular.
+- Aviso: "Você receberá suas comissões via PIX manual do tenant após aprovação."
 
-### c) Componente `<PagarmeCheckout />`
-Usado em telas onde o cliente compra produto. Fluxo:
-1. Tabs: Cartão | PIX | Boleto.
-2. **Cartão**: campos número, validade, CVV, nome. Ao submeter, chama `https://api.pagar.me/core/v5/tokens?appId=PUBLIC_KEY` direto do browser → recebe `card_token`. Em seguida chama `pagarme-create-order` com o token. Trata 3DS quando necessário.
-3. **PIX**: chama `pagarme-create-order` direto, exibe QR code + copia-cola, faz polling de `orders.payment_status` (Realtime).
-4. **Boleto**: chama `pagarme-create-order`, exibe link/linha digitável.
+**e) Novo `src/pages/core/CoreCommissions`** (já existe — refatorar)
+Tabela de comissões agrupadas por partner:
+- Colunas: Partner | Total a pagar | Nº comissões | PIX | Última venda | Ações
+- Botão "Marcar como pago" (abre modal: confirma valor, anexa comprovante opcional, chave PIX exibida).
+- Filtros: pendente / pago / período.
 
-### d) Página de checkout
-Nova rota `/core/checkout/:orderId` (ou modal a partir do produto) que carrega o pedido pendente e renderiza `<PagarmeCheckout />`.
+**f) Novo `src/pages/partner/PartnerRevenue`** (já existe — atualizar)
+Mostrar saldo a receber, histórico de pagamentos recebidos, chave PIX cadastrada (com botão editar).
 
-## 5. Fluxo de comissões (já existente)
-`process-commission` continua sendo disparado pelo webhook em `order.paid`. Ele já lê `orders.tenant_amount` para distribuir entre partners — então passa a refletir corretamente o valor líquido recebido pelo tenant.
+**g) Novo `src/pages/core/CoreCheckout` (`/core/checkout/:productId`)**
+Componente `<PagarmeCheckout />`:
+- Tabs: Cartão | PIX | Boleto
+- Cartão: tokeniza no browser via Public Key → chama `pagarme-api` (action `create_order`)
+- PIX: gera QR code + polling Realtime em `orders.payment_status`
+- Boleto: link/linha digitável
+- Persiste `?ref=CODIGO` para atribuição ao partner
+
+**h) `src/components/quiz/QuizStepCheckout`**
+Substituir botão "Finalizar e Assinar" por redirect para `/core/checkout/:productId?ref=CODIGO_PARTNER` com produto recomendado pré-carregado e foto.
+
+## 4. Notificações & emails
+
+- `recipient.status_changed → active`: notificação in-app + email "Pagamentos liberados" para Admin do tenant + super admin.
+- `recipient.status_changed → refused`: notificação + email "Ajuste necessário" com motivo.
+- `order.paid`: notificação para tenant ("Nova venda R$X via Partner Y").
+- Comissão registrada: notificação para partner ("Você ganhou R$X — saldo a receber: R$Y").
+- Comissão paga: notificação para partner ("Tenant pagou R$X via PIX").
+
+## 5. Detalhes técnicos
+
+- **Tokenização cartão**: feita no browser direto ao endpoint `https://api.pagar.me/core/v5/tokens?appId=PUBLIC_KEY`. Public Key fica em `payment_integrations.metadata.public_key` (master).
+- **Split**: já implementado no `pagarme-api`. Mantém percentual da fee All Vita por tenant (custom ou plano).
+- **Idempotência webhook**: usar `payment_transactions.pagarme_charge_id` como chave única.
+- **RLS commissions**: partner vê só as próprias; tenant admin vê todas do tenant; manter já existente.
+- **Comissão multi-nível**: `process-commission` lê `partners.parent_partner_id` recursivamente e aplica `commission_rules` por nível.
 
 ## 6. Roadmap de entrega
 
 ```text
-Etapa 1 — Backend & schema
-  • Migration: payment_transactions + RLS
-  • add_secret: PAGARME_SECRET_KEY, PAGARME_WEBHOOK_SECRET (Sandbox)
-  • Edge Functions: pagarme-create-recipient, pagarme-create-order
-  • Reescrita: payment-webhook (Pagar.me v5)
+Etapa 1 — Schema + Recipients
+  • Migration tenants/partners/products
+  • Edge: pagarme-create-recipient
+  • Atualizar tenant-signup para disparar
+  • Modal Admin: step dados bancários
+  • Webhook recipient.status_changed + notificações
 
-Etapa 2 — UI Tenant
-  • CoreSettings → aba Pagamentos refatorada
-  • Formulário cadastro de recipient
-  • Configuração de fee% (read-only ao tenant)
+Etapa 2 — Produtos no Pagar.me
+  • Edge: pagarme-sync-product
+  • Modal CoreProducts com campos Pagar.me
+  • Badge sync + link checkout
 
-Etapa 3 — UI Super Admin
-  • Tela /admin/pagamentos: lista recipients + fees + transações
+Etapa 3 — Checkout transparente
+  • CoreCheckout + PagarmeCheckout component
+  • QuizStepCheckout redirect com ref
+  • Realtime PIX
 
-Etapa 4 — Checkout
-  • <PagarmeCheckout /> (Cartão+PIX+Boleto)
-  • Rota /core/checkout/:orderId
-  • Realtime para confirmação PIX
+Etapa 4 — Comissões PIX manual
+  • Modal partner: chave PIX
+  • CoreCommissions: agrupado por partner + Marcar como pago
+  • PartnerRevenue: saldo + histórico
+  • Notificações
 ```
 
-## Observações importantes
+## Pendências que vou pedir no momento certo
 
-1. **Sandbox primeiro**: tudo será testado com `sk_test_...`. Quando você confirmar marketplace em produção, basta trocar o secret e o env.
-2. **KYC do recipient**: cada recipient passa por análise do Pagar.me (1–3 dias). Antes de afiliar, vendas até dão erro — vou sinalizar status na UI.
-3. **Fee por tenant**: super admin define no momento de criar/editar a integração de cada tenant. Default sugerido: 10%.
-4. **Boleto e PIX** entram no split igual ao cartão — não muda a lógica.
-5. **Não armazenar dados de cartão** no nosso banco. Sempre tokenizar no Pagar.me.
+- Confirmar se `PAGARME_SECRET_KEY` atual é Sandbox ou Live (se Live, recomendo trocar por Sandbox até validar).
+- Public Key do Pagar.me da conta master (necessária para tokenização no browser).
 
-Após sua aprovação, começo pela Etapa 1 (schema + edge functions). Vou pedir as chaves Sandbox no momento certo.
+Após aprovar, começo pela Etapa 1.
