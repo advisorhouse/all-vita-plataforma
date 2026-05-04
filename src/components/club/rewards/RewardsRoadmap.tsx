@@ -1,12 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import {
   Gift, Check, Lock, ChevronRight, Star,
   Percent, Stethoscope, Glasses, Truck, Heart, Sparkles,
+  Loader2, ShoppingBag, X, Info
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import imgProduct1 from "@/assets/product-vision-lift-1month.png";
 import imgProduct3 from "@/assets/product-vision-lift-3month.png";
@@ -15,16 +29,15 @@ import imgProductPro from "@/assets/product-vision-lift-pro.png";
 
 export interface Reward {
   id: string;
-  month: number;
-  title: string;
+  name: string;
   description: string;
-  icon: React.ElementType;
-  unlocked: boolean;
-  redeemed: boolean;
-  partner?: string;
-  image?: string;
-  color: string; // tailwind accent class suffix
+  cost_vitacoins: number;
+  type: string;
+  stock: number;
+  active: boolean;
+  image_url?: string;
 }
+
 
 const REWARDS: Reward[] = [
   {
