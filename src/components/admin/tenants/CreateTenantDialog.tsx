@@ -488,8 +488,37 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
           if (url) updates.favicon_url = url;
         }
 
+        // Persist Pagar.me / banking fields
+        const bankingUpdates: Record<string, any> = {
+          legal_name: formData.legal_name || formData.name,
+          legal_document: formData.cnpj?.replace(/\D/g, "") || null,
+          legal_document_type: "cnpj",
+          bank_code: formData.bank_code || null,
+          bank_agency: formData.bank_agency || null,
+          bank_agency_dv: formData.bank_agency_dv || null,
+          bank_account: formData.bank_account || null,
+          bank_account_dv: formData.bank_account_dv || null,
+          bank_account_type: formData.bank_account_type || "checking",
+          bank_holder_name: formData.bank_holder_name || formData.legal_name || formData.name,
+          bank_holder_document: (formData.bank_holder_document || formData.cnpj || "").replace(/\D/g, "") || null,
+          pagarme_recipient_status: "pending",
+        };
+        Object.assign(updates, bankingUpdates);
+
         if (Object.keys(updates).length > 0) {
           await supabase.from("tenants").update(updates).eq("id", tenantId);
+        }
+
+        // Fire-and-forget Pagar.me Recipient creation (KYC 1-3 dias)
+        try {
+          const recipientRes = await supabase.functions.invoke("pagarme-create-recipient", {
+            body: { tenant_id: tenantId },
+          });
+          if (recipientRes.error || recipientRes.data?.error) {
+            console.warn("Recipient creation failed", recipientRes.error || recipientRes.data?.error);
+          }
+        } catch (e) {
+          console.warn("pagarme-create-recipient invoke failed", e);
         }
       }
       return res.data;
