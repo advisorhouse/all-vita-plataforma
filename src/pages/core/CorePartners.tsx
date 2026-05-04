@@ -87,6 +87,7 @@ const CorePartners: React.FC = () => {
           email: profile?.email || "Sem email",
           level: p.level || "basic",
           status: p.active ? "active" : "inactive",
+          rawActive: p.active,
           pixKey: p.pix_key,
           pixType: p.pix_key_type,
           clients: (p.metadata as any)?.clients || 0,
@@ -100,6 +101,7 @@ const CorePartners: React.FC = () => {
           riskClients: (p.metadata as any)?.riskClients || 0
         };
       });
+
     },
     refetchInterval: 5000, // Força atualização a cada 5s para detectar novos cadastros
 
