@@ -139,11 +139,13 @@ const CorePartners: React.FC = () => {
   });
 
 
+  const filtered = partners.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (levelFilter !== "all" && p.level !== levelFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
 
   const totalPartners = partners.length;
   const activePartners = partners.filter((p) => p.status === "active").length;
