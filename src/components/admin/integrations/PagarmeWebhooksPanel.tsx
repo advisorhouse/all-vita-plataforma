@@ -64,15 +64,35 @@ const PagarmeWebhooksPanel: React.FC = () => {
   const handleSimulatePayment = async () => {
     setIsSimulating(true);
     try {
-      // Simula o envio de um webhook de pedido pago
+      // 1. Create a dummy order if target is a tenant
+      let orderId = `test_uuid_${Math.random().toString(36).slice(2, 7)}`;
+      
+      if (targetTenantId !== "global") {
+        const { data: newOrder, error: orderErr } = await supabase
+          .from("orders")
+          .insert({
+            tenant_id: targetTenantId,
+            amount: 199.90,
+            payment_status: "pending",
+            status: "pending",
+            metadata: { simulation: true, all_vita_fee_percentage: 10 }
+          })
+          .select()
+          .single();
+        
+        if (orderErr) throw orderErr;
+        orderId = newOrder.id;
+      }
+
+      // 2. Simulate the webhook call
       const { error } = await supabase.functions.invoke("pagarme-webhook", {
         body: {
           id: `sim_${Math.random().toString(36).slice(2, 9)}`,
           type: "order.paid",
           data: {
             id: `or_${Math.random().toString(36).slice(2, 9)}`,
-            code: "TEST_UUID_123",
-            amount: 15000,
+            code: orderId,
+            amount: 19990, // R$ 199,90 em centavos
             status: "paid",
             payment_method: "credit_card"
           }
@@ -81,7 +101,10 @@ const PagarmeWebhooksPanel: React.FC = () => {
 
       if (error) throw error;
       
-      toast.success("Simulação de pagamento enviada!");
+      toast.success(targetTenantId === "global" 
+        ? "Simulação enviada! (Log registrado)" 
+        : `Simulação concluída para ${tenants.find(t => t.id === targetTenantId)?.name}!`);
+      
       setTimeout(() => refetch(), 1000);
     } catch (error: any) {
       toast.error("Erro na simulação: " + error.message);
@@ -92,12 +115,24 @@ const PagarmeWebhooksPanel: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h3 className="text-lg font-medium">Eventos do Pagar.me</h3>
           <p className="text-xs text-muted-foreground">Últimos logs recebidos via webhook</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={targetTenantId} onValueChange={setTargetTenantId}>
+            <SelectTrigger className="w-[200px] h-9">
+              <SelectValue placeholder="Selecione a Empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="global">Simulação Global</SelectItem>
+              {tenants.map((t) => (
+                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Button 
             variant="outline" 
             size="sm" 
@@ -106,7 +141,7 @@ const PagarmeWebhooksPanel: React.FC = () => {
             className="border-dashed"
           >
             {isSimulating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-            Simular Pagamento
+            Disparar Webhook
           </Button>
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
