@@ -35,7 +35,9 @@ const QuizStepResult: React.FC<Props> = ({
   const [syncing, setSyncing] = React.useState(false);
 
   const sorted = [...levels].sort((a, b) => a.max - b.max);
-...
+  const level = sorted.find((l) => score <= l.max) || sorted[sorted.length - 1];
+  const color = level?.color || "#D97757";
+  const circumference = 2 * Math.PI * 70;
   const offset = circumference - (score / 100) * circumference;
 
   const handleCta = async () => {
