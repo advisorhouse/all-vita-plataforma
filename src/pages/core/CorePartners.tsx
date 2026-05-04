@@ -356,10 +356,42 @@ const CorePartners: React.FC = () => {
 
                         {/* Actions */}
                         <TableCell>
-                          <button className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-secondary transition-all">
-                            <Eye className="h-3.5 w-3.5" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            {authStatus[p.userId] && !authStatus[p.userId].email_confirmed_at && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-7 w-7 text-warning hover:text-warning hover:bg-warning/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      resendInviteMutation.mutate({ 
+                                        email: p.email, 
+                                        name: p.name, 
+                                        userId: p.userId 
+                                      });
+                                    }}
+                                    disabled={resendInviteMutation.isPending}
+                                  >
+                                    {resendInviteMutation.isPending ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <Mail className="h-3.5 w-3.5" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="left" className="text-[11px]">
+                                  Reenviar convite (Ainda não ativou a conta)
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                            <button className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-secondary transition-all">
+                              <Eye className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </TableCell>
+
                       </TableRow>
                     );
                   })}
