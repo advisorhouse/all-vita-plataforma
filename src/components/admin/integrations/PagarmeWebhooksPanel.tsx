@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const PagarmeWebhooksPanel: React.FC = () => {
+  const [isSimulating, setIsSimulating] = React.useState(false);
   const { data: webhooks = [], isLoading, refetch } = useQuery({
     queryKey: ["pagarme-webhooks-logs"],
     queryFn: async () => {
