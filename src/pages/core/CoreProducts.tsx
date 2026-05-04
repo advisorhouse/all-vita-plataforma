@@ -931,9 +931,14 @@ const CoreProducts: React.FC = () => {
           <DialogFooter className="p-6 pt-2 border-t bg-muted/20">
             <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>Descartar</Button>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
-              onClick={() => { toast.success("Produto atualizado e sincronizado!"); setShowAddProduct(false); }}>
-              <RefreshCw className="h-3.5 w-3.5" />
-              Salvar e Sincronizar
+              disabled={saveProductMutation.isPending}
+              onClick={() => saveProductMutation.mutate()}>
+              {saveProductMutation.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              {selectedProduct ? "Salvar e Sincronizar" : "Criar e Sincronizar"}
             </Button>
           </DialogFooter>
         </DialogContent>
