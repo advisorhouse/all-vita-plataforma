@@ -115,7 +115,7 @@ const CorePartners: React.FC = () => {
     },
     onSuccess: () => {
       toast.success("Convite reenviado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["core-partners"] });
+      refetchAuthStatus();
     },
     onError: (err: any) => {
       toast.error("Erro ao reenviar convite", { description: err.message });
