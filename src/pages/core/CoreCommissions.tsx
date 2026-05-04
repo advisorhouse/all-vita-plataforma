@@ -303,36 +303,30 @@ const CoreCommissions: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {RULES.map((r) => {
-                        const tp = TYPE_LABELS[r.type] || TYPE_LABELS.initial;
+                      {rules.map((r) => {
+                        const tp = TYPE_LABELS[r.commission_type] || TYPE_LABELS.initial;
                         return (
                           <TableRow key={r.id} className="group">
-                            <TableCell className="text-[11px] font-mono text-muted-foreground">#{r.priority}</TableCell>
+                            <TableCell className="text-[11px] font-mono text-muted-foreground">#1</TableCell>
                             <TableCell>
                               <div>
-                                <p className="text-sm font-medium text-foreground">{r.name}</p>
-                                <p className="text-[10px] text-muted-foreground">{r.description}</p>
+                                <p className="text-sm font-medium text-foreground">{r.name || "Regra de Comissão"}</p>
+                                <p className="text-[10px] text-muted-foreground">Nível {r.level}</p>
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold", tp.bg, tp.color)}>{tp.label}</span>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px]">{r.level === "all" ? "Todos" : r.level}</Badge>
+                              <Badge variant="secondary" className="text-[10px]">{r.level}</Badge>
                             </TableCell>
                             <TableCell className="text-right text-sm font-semibold text-foreground">{r.percentage}%</TableCell>
-                            <TableCell className="text-right text-sm text-foreground">
-                              {r.fixedBonus > 0 ? `R$ ${r.fixedBonus}` : "—"}
-                            </TableCell>
+                            <TableCell className="text-right text-sm text-foreground">—</TableCell>
                             <TableCell className="text-center text-[11px] text-muted-foreground">
-                              {r.minMonths > 0 ? `≥ ${r.minMonths}m` : "—"}
+                              {r.min_months > 0 ? `≥ ${r.min_months}m` : "—"}
                             </TableCell>
                             <TableCell className="text-center">
-                              {r.allowStack ? (
-                                <span className="text-[10px] font-medium text-success">Sim</span>
-                              ) : (
-                                <span className="text-[10px] text-muted-foreground">Não</span>
-                              )}
+                              <span className="text-[10px] text-muted-foreground">Não</span>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className={cn(
