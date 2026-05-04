@@ -1147,13 +1147,15 @@ const PartnerRevenue: React.FC = () => {
               )}
             </motion.div>
           </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </TooltipProvider>
   );
 };
 
 export default PartnerRevenue;
+
 
 
 
