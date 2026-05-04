@@ -21,6 +21,8 @@ import { useCNPJLookup } from "@/hooks/use-cnpj-lookup";
 import { useCEPLookup } from "@/hooks/use-cep-lookup";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 interface RegisterPartnerModalProps {
   open: boolean;
