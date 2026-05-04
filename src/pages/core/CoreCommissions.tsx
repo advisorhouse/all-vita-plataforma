@@ -832,7 +832,6 @@ const TEMPLATES = [
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
       </div>
     </TooltipProvider>
   );
