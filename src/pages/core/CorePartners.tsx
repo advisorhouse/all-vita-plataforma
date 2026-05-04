@@ -100,7 +100,45 @@ const CorePartners: React.FC = () => {
     enabled: !!currentTenant?.id
   });
 
-  const filtered = partners.filter((p) => {
+  const resendInviteMutation = useMutation({
+    mutationFn: async ({ email, name, userId }: { email: string; name: string, userId: string }) => {
+      const { data: res, error } = await supabase.functions.invoke("manage-users/resend-invite", {
+        headers: { "X-Tenant-Id": currentTenant?.id || "" },
+        body: { email, full_name: name, userId },
+      });
+      if (error) throw error;
+      if (res?.error) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("Convite reenviado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["core-partners"] });
+    },
+    onError: (err: any) => {
+      toast.error("Erro ao reenviar convite", { description: err.message });
+    }
+  });
+
+  const { data: authStatus = {} } = useQuery({
+    queryKey: ["partners-auth-status", partners.map(p => p.userId).filter(Boolean)],
+    queryFn: async () => {
+      const userIds = partners.map(p => p.userId).filter(Boolean);
+      if (!userIds.length) return {};
+      const { data, error } = await supabase.functions.invoke("manage-users/auth-status", {
+        body: { userIds }
+      });
+      if (error) throw error;
+      const statusMap: Record<string, any> = {};
+      data.data.forEach((s: any) => {
+        statusMap[s.id] = s;
+      });
+      return statusMap;
+    },
+    enabled: partners.length > 0,
+    refetchInterval: 30000 // A cada 30s
+  });
+
+
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (levelFilter !== "all" && p.level !== levelFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
