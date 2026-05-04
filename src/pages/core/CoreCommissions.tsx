@@ -572,9 +572,74 @@ const CoreCommissions: React.FC = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
+        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirmar Pagamento</DialogTitle>
+              <DialogDescription>
+                Você está marcando as comissões de <strong>{selectedPartner?.name}</strong> como pagas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="rounded-lg bg-secondary/30 p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total a transferir:</span>
+                  <span className="font-bold text-foreground">R$ {selectedPartner?.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tipo PIX:</span>
+                  <span className="font-medium text-foreground uppercase">{selectedPartner?.pixType}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Chave PIX:</span>
+                  <span className="font-mono text-foreground">{selectedPartner?.pixKey}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase">Comprovante de Pagamento (Opcional)</label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-10 border-dashed"
+                    onClick={() => document.getElementById('proof-upload')?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                    {proofUrl ? "Trocar arquivo" : "Fazer upload do comprovante"}
+                  </Button>
+                  <input
+                    id="proof-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/*,application/pdf"
+                    onChange={handleFileUpload}
+                  />
+                </div>
+                {proofUrl && (
+                  <p className="text-[10px] text-success flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" /> Arquivo anexado com sucesso
+                  </p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setPaymentModalOpen(false)}>Cancelar</Button>
+              <Button 
+                onClick={() => payMutation.mutate({ partnerId: selectedPartner.partnerId, proof: proofUrl })}
+                disabled={payMutation.isPending}
+              >
+                {payMutation.isPending ? "Processando..." : "Confirmar Pagamento"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
 };
+
+// Add Loader2 to imports if missing
+import { Loader2 } from "lucide-react";
 
 export default CoreCommissions;
