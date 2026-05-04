@@ -74,6 +74,23 @@ const CoreProducts: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [formData, setFormData] = useState<any>({
+    name: "",
+    description: "",
+    price: 0,
+    type: "Geral",
+    active: true,
+    sku: "",
+    brand: "",
+    stock_quantity: 0,
+    weight: 0,
+    height_cm: 0,
+    width_cm: 0,
+    length_cm: 0,
+    billing_type: "prepaid",
+    max_installments: 12,
+    metadata: { months: 1, points: 0 }
+  });
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["core-products", currentTenant?.id],
@@ -129,6 +146,52 @@ const CoreProducts: React.FC = () => {
     },
     onError: (error: any) => {
       toast.error("Erro ao enviar imagem: " + error.message);
+    }
+  });
+
+  const saveProductMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentTenant?.id) throw new Error("Tenant não identificado");
+
+      const payload = {
+        ...formData,
+        tenant_id: currentTenant.id,
+        updated_at: new Date().toISOString()
+      };
+
+      let productId = selectedProduct?.id;
+
+      if (productId) {
+        const { error } = await supabase
+          .from("products")
+          .update(payload)
+          .eq("id", productId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("products")
+          .insert(payload)
+          .select()
+          .single();
+        if (error) throw error;
+        productId = data.id;
+      }
+
+      // Sincronizar com Pagar.me
+      const { data: syncData, error: syncError } = await supabase.functions.invoke("pagarme-sync-product", {
+        body: { product_id: productId }
+      });
+
+      if (syncError) throw syncError;
+      return syncData;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["core-products"] });
+      toast.success(data?.success ? "Produto salvo e sincronizado com Pagar.me!" : "Produto salvo localmente, mas erro na sincronização.");
+      setShowAddProduct(false);
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao salvar produto: " + error.message);
     }
   });
 
@@ -193,7 +256,27 @@ const CoreProducts: React.FC = () => {
             <Tag className="h-3.5 w-3.5 mr-1.5" />
             Nova Categoria
           </Button>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setShowAddProduct(true)}>
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => {
+            setSelectedProduct(null);
+            setFormData({
+              name: "",
+              description: "",
+              price: 0,
+              type: "Geral",
+              active: true,
+              sku: "",
+              brand: "",
+              stock_quantity: 0,
+              weight: 0,
+              height_cm: 0,
+              width_cm: 0,
+              length_cm: 0,
+              billing_type: "prepaid",
+              max_installments: 12,
+              metadata: { months: 1, points: 0 }
+            });
+            setShowAddProduct(true);
+          }}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Novo Produto
           </Button>
@@ -326,6 +409,23 @@ const CoreProducts: React.FC = () => {
                         className="hover:bg-secondary/20 cursor-pointer"
                         onClick={() => {
                           setSelectedProduct(p);
+                          setFormData({
+                            name: p.name || "",
+                            description: p.description || "",
+                            price: p.price || 0,
+                            type: p.type || "Geral",
+                            active: p.active ?? true,
+                            sku: p.sku || "",
+                            brand: p.brand || "",
+                            stock_quantity: p.stock_quantity || 0,
+                            weight: p.weight || 0,
+                            height_cm: p.height_cm || 0,
+                            width_cm: p.width_cm || 0,
+                            length_cm: p.length_cm || 0,
+                            billing_type: p.billing_type || "prepaid",
+                            max_installments: p.max_installments || 12,
+                            metadata: p.metadata || { months: 1, points: 0 }
+                          });
                           setShowAddProduct(true);
                         }}
                       >
@@ -477,28 +577,43 @@ const CoreProducts: React.FC = () => {
                   <CardContent className="p-4 space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Nome do Produto</Label>
-                      <Input placeholder="Ex: Vision Lift - Combo 3 Meses" className="h-9 text-sm" />
+                      <Input 
+                        placeholder="Ex: Vision Lift - Combo 3 Meses" 
+                        className="h-9 text-sm" 
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Descrição Completa</Label>
                       <Textarea 
                         placeholder="Detalhes técnicos, benefícios e composição..." 
                         className="text-sm min-h-[100px] resize-none" 
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Categoria</Label>
-                        <Select>
+                        <Label className="text-xs">Categoria / Tipo</Label>
+                        <Select 
+                          value={formData.type} 
+                          onValueChange={(v) => setFormData({ ...formData, type: v })}
+                        >
                           <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
                           <SelectContent>
-                            {CATEGORIES.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
+                            {CATEGORIES.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs">Marca</Label>
-                        <Input placeholder="Ex: All Vita" className="h-9 text-sm" />
+                        <Input 
+                          placeholder="Ex: All Vita" 
+                          className="h-9 text-sm" 
+                          value={formData.brand}
+                          onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        />
                       </div>
                     </div>
                   </CardContent>
@@ -575,29 +690,74 @@ const CoreProducts: React.FC = () => {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label className="text-xs">SKU</Label>
-                        <Input placeholder="V-LIFT-03M" className="h-9 text-sm" />
+                        <Input 
+                          placeholder="V-LIFT-03M" 
+                          className="h-9 text-sm" 
+                          value={formData.sku}
+                          onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                        />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Código de Barras (EAN)</Label>
-                        <Input placeholder="7890000000000" className="h-9 text-sm" />
+                        <Label className="text-xs">Status do Produto</Label>
+                        <div className="flex items-center space-x-2 h-9">
+                          <Switch 
+                            checked={formData.active} 
+                            onCheckedChange={(v) => setFormData({ ...formData, active: v })} 
+                          />
+                          <Label className="text-xs font-normal">{formData.active ? "Ativo" : "Inativo"}</Label>
+                        </div>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs">Quantidade em Estoque</Label>
-                        <Input type="number" placeholder="0" className="h-9 text-sm" />
+                        <Input 
+                          type="number" 
+                          placeholder="0" 
+                          className="h-9 text-sm" 
+                          value={formData.stock_quantity}
+                          onChange={(e) => setFormData({ ...formData, stock_quantity: Number(e.target.value) })}
+                        />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-1.5">
                         <Label className="text-xs">Peso (kg)</Label>
-                        <Input type="number" placeholder="0.250" className="h-9 text-sm" />
+                        <Input 
+                          type="number" 
+                          placeholder="0.250" 
+                          className="h-9 text-sm" 
+                          value={formData.weight}
+                          onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
+                        />
                       </div>
-                      <div className="space-y-1.5 col-span-2">
-                        <Label className="text-xs">Dimensões (CxLxA em cm)</Label>
-                        <div className="flex gap-2">
-                          <Input placeholder="C" className="h-9 text-sm" />
-                          <Input placeholder="L" className="h-9 text-sm" />
-                          <Input placeholder="A" className="h-9 text-sm" />
-                        </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Comp. (cm)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="C" 
+                          className="h-9 text-sm" 
+                          value={formData.length_cm}
+                          onChange={(e) => setFormData({ ...formData, length_cm: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Larg. (cm)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="L" 
+                          className="h-9 text-sm" 
+                          value={formData.width_cm}
+                          onChange={(e) => setFormData({ ...formData, width_cm: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Alt. (cm)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="A" 
+                          className="h-9 text-sm" 
+                          value={formData.height_cm}
+                          onChange={(e) => setFormData({ ...formData, height_cm: Number(e.target.value) })}
+                        />
                       </div>
                     </div>
                   </CardContent>
@@ -617,19 +777,103 @@ const CoreProducts: React.FC = () => {
                   <CardContent className="p-4 space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Preço de Venda (R$)</Label>
-                      <Input type="number" placeholder="0.00" className="h-9 text-sm font-bold text-accent" />
+                      <Input 
+                        type="number" 
+                        placeholder="0.00" 
+                        className="h-9 text-sm font-bold text-accent" 
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                      />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Preço de Comparação (R$)</Label>
-                      <Input type="number" placeholder="0.00" className="h-9 text-sm text-muted-foreground" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Tipo de Cobrança</Label>
+                        <Select 
+                          value={formData.billing_type} 
+                          onValueChange={(v) => setFormData({ ...formData, billing_type: v })}
+                        >
+                          <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="prepaid">Pagamento Único</SelectItem>
+                            <SelectItem value="subscription">Assinatura</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Parcelas Máx.</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="12" 
+                          className="h-9 text-sm" 
+                          value={formData.max_installments}
+                          onChange={(e) => setFormData({ ...formData, max_installments: Number(e.target.value) })}
+                        />
+                      </div>
                     </div>
                     <Separator />
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Vitacoins p/ Partner</Label>
-                      <Input type="number" placeholder="100" className="h-9 text-sm font-semibold" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Meses de Tratamento</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="1" 
+                          className="h-9 text-sm" 
+                          value={formData.metadata.months}
+                          onChange={(e) => setFormData({ ...formData, metadata: { ...formData.metadata, months: Number(e.target.value) } })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Vitacoins p/ Partner</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="100" 
+                          className="h-9 text-sm font-semibold" 
+                          value={formData.metadata.points}
+                          onChange={(e) => setFormData({ ...formData, metadata: { ...formData.metadata, points: Number(e.target.value) } })}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Pagar.me Sync Status */}
+                {selectedProduct && (
+                  <Card className="border-border shadow-none bg-accent/5 border-accent/20">
+                    <CardHeader className="py-3 px-4">
+                      <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                        <RefreshCw className={`h-4 w-4 ${selectedProduct.pagarme_sync_status === 'synced' ? 'text-success' : 'text-muted-foreground'}`} />
+                        Status Pagar.me
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Status:</span>
+                        <Badge variant="outline" className={`text-[10px] ${selectedProduct.pagarme_sync_status === 'synced' ? 'bg-success/10 text-success border-success/20' : 'bg-warning/10 text-warning border-warning/20'}`}>
+                          {selectedProduct.pagarme_sync_status === 'synced' ? 'Sincronizado' : 'Não Sincronizado'}
+                        </Badge>
+                      </div>
+                      {selectedProduct.checkout_url && (
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-muted-foreground">Link de Checkout:</span>
+                          <div className="flex items-center gap-2 p-2 rounded bg-white border border-border">
+                            <code className="text-[10px] truncate flex-1">{selectedProduct.checkout_url}</code>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5" 
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}${selectedProduct.checkout_url}`);
+                                toast.success("Link copiado!");
+                              }}
+                            >
+                              <Link2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Store Integrations Status (read-only) */}
                 <Card className="border-border shadow-none">
@@ -687,9 +931,14 @@ const CoreProducts: React.FC = () => {
           <DialogFooter className="p-6 pt-2 border-t bg-muted/20">
             <Button variant="outline" size="sm" onClick={() => setShowAddProduct(false)}>Descartar</Button>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
-              onClick={() => { toast.success("Produto atualizado e sincronizado!"); setShowAddProduct(false); }}>
-              <RefreshCw className="h-3.5 w-3.5" />
-              Salvar e Sincronizar
+              disabled={saveProductMutation.isPending}
+              onClick={() => saveProductMutation.mutate()}>
+              {saveProductMutation.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              {selectedProduct ? "Salvar e Sincronizar" : "Criar e Sincronizar"}
             </Button>
           </DialogFooter>
         </DialogContent>

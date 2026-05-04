@@ -41,7 +41,16 @@ serve(async (req) => {
       description: (product.description || product.name || "").slice(0, 256),
       amount: Math.round(Number(product.price) * 100),
       status: product.active ? "active" : "inactive",
+      category: product.type || "Geral",
       code: product.id,
+      metadata: {
+        billing_type: product.billing_type || "prepaid",
+        max_installments: String(product.max_installments || 12),
+        weight: String(product.weight || 0),
+        height: String(product.height_cm || 0),
+        width: String(product.width_cm || 0),
+        length: String(product.length_cm || 0),
+      }
     };
 
     let pagarmeProductId: string | null = product.pagarme_product_id || null;
