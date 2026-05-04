@@ -266,9 +266,48 @@ const PartnerRevenue: React.FC = () => {
     fontSize: "12px",
   };
 
+  const queryClient = useQueryClient();
+
+  const redeemPointsMutation = useMutation({
+    mutationFn: async (amount: number) => {
+      if (availablePoints < amount) throw new Error("Saldo insuficiente.");
+      
+      const { error: reqError } = await supabase.from("redemption_requests").insert({
+        tenant_id: partner?.tenant_id,
+        user_id: partner?.user_id,
+        amount,
+        status: "pending",
+        metadata: { method: selectedOption }
+      });
+      if (reqError) throw reqError;
+
+      const { error: transError } = await supabase.from("vitacoin_transactions").insert({
+        tenant_id: partner?.tenant_id,
+        user_id: partner?.user_id,
+        amount,
+        type: "debit",
+        source: "redemption",
+        description: `Solicitação de resgate via ${selectedOption}`
+      });
+      if (transError) throw transError;
+
+      const { error: walletError } = await supabase
+        .from("vitacoins_wallet")
+        .update({ balance: availablePoints - amount })
+        .eq("tenant_id", partner?.tenant_id)
+        .eq("user_id", partner?.user_id);
+      if (walletError) throw walletError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["partner-wallet"] });
+      setRedeemStep("success");
+      toast({ title: "Resgate solicitado!", description: "Seu resgate será processado em até 48h." });
+    },
+    onError: (err: any) => toast({ title: "Erro no resgate", description: err.message, variant: "destructive" })
+  });
+
   const handleRedeem = () => {
-    setRedeemStep("success");
-    toast({ title: "Resgate solicitado!", description: "Seu resgate será processado em até 48h." });
+    redeemPointsMutation.mutate(redeemAmount[0]);
   };
 
   const closeRedeemModal = () => {
@@ -282,7 +321,11 @@ const PartnerRevenue: React.FC = () => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-5 pb-12">
+      <div className="space-y-8 pb-12">
+        <RewardsRoadmap currentMonth={1} />
+
+        <div className="space-y-5">
+
 
         {/* ═══ ROW 0 — Standardized Header ═══ */}
         <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
