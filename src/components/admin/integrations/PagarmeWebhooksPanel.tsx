@@ -68,8 +68,9 @@ const PagarmeWebhooksPanel: React.FC = () => {
       let orderId = `test_uuid_${Math.random().toString(36).slice(2, 7)}`;
       
       if (targetTenantId !== "global") {
-        const { data: newOrder, error: orderErr } = await supabase
-          .from("orders")
+        // Usamos 'as any' para evitar erros de tipagem caso o schema local esteja desatualizado
+        const { data: newOrder, error: orderErr } = await (supabase
+          .from("orders") as any)
           .insert({
             tenant_id: targetTenantId,
             amount: 199.90,
