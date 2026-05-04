@@ -99,6 +99,8 @@ const CorePartners: React.FC = () => {
         };
       });
     },
+    refetchInterval: 5000, // Força atualização a cada 5s para detectar novos cadastros
+
 
     enabled: !!currentTenant?.id
   });
