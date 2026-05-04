@@ -87,7 +87,16 @@ const AUDIT_LOG = [
   { id: "a8", date: "28/02/2026", partner: "Ana P.", client: "Patrícia D.", rule: "Comissão Recorrente", orderAmount: 149.90, percentage: 10, commission: 14.99, type: "recurring", marginOk: true, margin: 53 },
 ];
 
-const CoreCommissions: React.FC = () => {
+const MARGIN_RULES = [
+  { id: "m1", name: "Proteção Padrão", maxPct: 30, alertThreshold: 20, blockThreshold: 10, maxPerClient: 500, active: true },
+];
+
+const TEMPLATES = [
+  { id: "t1", name: "Modelo Padrão", description: "Comissão inicial 15% + recorrente 10% + bônus retenção", rulesCount: 4, active: true },
+  { id: "t2", name: "Modelo Agressivo", description: "Comissão inicial 20% + recorrente 12% para campanhas especiais", rulesCount: 3, active: false },
+  { id: "t3", name: "Modelo Conservador", description: "Comissão inicial 10% + recorrente 8% para proteção de margem", rulesCount: 2, active: false },
+];
+
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
   const [auditSearch, setAuditSearch] = useState("");
