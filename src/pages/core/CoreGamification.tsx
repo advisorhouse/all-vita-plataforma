@@ -586,8 +586,10 @@ const CoreGamification: React.FC = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
+      </div>
+    </TooltipProvider>
   );
 };
 
 export default CoreGamification;
+
