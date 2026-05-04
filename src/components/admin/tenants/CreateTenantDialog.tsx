@@ -710,7 +710,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
               toast.error("Segmento Obrigatório", { description: "Por favor, informe o segmento ou nicho da empresa." });
               return;
             }
-            setStep("branding");
+            setStep("banking");
           }} className="space-y-8 max-w-4xl mx-auto w-full pb-12">
             {/* Company Info */}
             <div className="space-y-6">
