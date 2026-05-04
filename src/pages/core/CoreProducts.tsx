@@ -74,6 +74,23 @@ const CoreProducts: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [formData, setFormData] = useState<any>({
+    name: "",
+    description: "",
+    price: 0,
+    type: "Geral",
+    active: true,
+    sku: "",
+    brand: "",
+    stock_quantity: 0,
+    weight: 0,
+    height_cm: 0,
+    width_cm: 0,
+    length_cm: 0,
+    billing_type: "prepaid",
+    max_installments: 12,
+    metadata: { months: 1, points: 0 }
+  });
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["core-products", currentTenant?.id],
