@@ -29,10 +29,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import RewardsRoadmap from "@/components/club/rewards/RewardsRoadmap";
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+// ... removed duplicate imports
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
