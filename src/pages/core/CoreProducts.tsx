@@ -836,6 +836,45 @@ const CoreProducts: React.FC = () => {
                   </CardContent>
                 </Card>
 
+                {/* Pagar.me Sync Status */}
+                {selectedProduct && (
+                  <Card className="border-border shadow-none bg-accent/5 border-accent/20">
+                    <CardHeader className="py-3 px-4">
+                      <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                        <RefreshCw className={`h-4 w-4 ${selectedProduct.pagarme_sync_status === 'synced' ? 'text-success' : 'text-muted-foreground'}`} />
+                        Status Pagar.me
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Status:</span>
+                        <Badge variant="outline" className={`text-[10px] ${selectedProduct.pagarme_sync_status === 'synced' ? 'bg-success/10 text-success border-success/20' : 'bg-warning/10 text-warning border-warning/20'}`}>
+                          {selectedProduct.pagarme_sync_status === 'synced' ? 'Sincronizado' : 'Não Sincronizado'}
+                        </Badge>
+                      </div>
+                      {selectedProduct.checkout_url && (
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-muted-foreground">Link de Checkout:</span>
+                          <div className="flex items-center gap-2 p-2 rounded bg-white border border-border">
+                            <code className="text-[10px] truncate flex-1">{selectedProduct.checkout_url}</code>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5" 
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}${selectedProduct.checkout_url}`);
+                                toast.success("Link copiado!");
+                              }}
+                            >
+                              <Link2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Store Integrations Status (read-only) */}
                 <Card className="border-border shadow-none">
                   <CardHeader className="py-3 px-4 bg-muted/30">
