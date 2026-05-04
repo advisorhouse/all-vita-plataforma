@@ -777,16 +777,61 @@ const CoreProducts: React.FC = () => {
                   <CardContent className="p-4 space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Preço de Venda (R$)</Label>
-                      <Input type="number" placeholder="0.00" className="h-9 text-sm font-bold text-accent" />
+                      <Input 
+                        type="number" 
+                        placeholder="0.00" 
+                        className="h-9 text-sm font-bold text-accent" 
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                      />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Preço de Comparação (R$)</Label>
-                      <Input type="number" placeholder="0.00" className="h-9 text-sm text-muted-foreground" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Tipo de Cobrança</Label>
+                        <Select 
+                          value={formData.billing_type} 
+                          onValueChange={(v) => setFormData({ ...formData, billing_type: v })}
+                        >
+                          <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="prepaid">Pagamento Único</SelectItem>
+                            <SelectItem value="subscription">Assinatura</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Parcelas Máx.</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="12" 
+                          className="h-9 text-sm" 
+                          value={formData.max_installments}
+                          onChange={(e) => setFormData({ ...formData, max_installments: Number(e.target.value) })}
+                        />
+                      </div>
                     </div>
                     <Separator />
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Vitacoins p/ Partner</Label>
-                      <Input type="number" placeholder="100" className="h-9 text-sm font-semibold" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Meses de Tratamento</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="1" 
+                          className="h-9 text-sm" 
+                          value={formData.metadata.months}
+                          onChange={(e) => setFormData({ ...formData, metadata: { ...formData.metadata, months: Number(e.target.value) } })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Vitacoins p/ Partner</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="100" 
+                          className="h-9 text-sm font-semibold" 
+                          value={formData.metadata.points}
+                          onChange={(e) => setFormData({ ...formData, metadata: { ...formData.metadata, points: Number(e.target.value) } })}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
