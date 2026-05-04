@@ -67,25 +67,8 @@ const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.
 };
 
 
-/* ─── Mock Data ─────────────────────────────────────────── */
-const RULES = [
-  { id: "1", name: "Comissão Inicial", type: "initial", level: "all", percentage: 15, fixedBonus: 0, minMonths: 0, maxMonths: null, allowStack: false, active: true, priority: 1, description: "Comissão padrão na primeira venda" },
-  { id: "2", name: "Comissão Recorrente", type: "recurring", level: "all", percentage: 10, fixedBonus: 0, minMonths: 1, maxMonths: null, allowStack: false, active: true, priority: 2, description: "Comissão mensal por cliente ativo" },
-  { id: "3", name: "Bônus 6 Meses", type: "bonus_retention", level: "silver", percentage: 5, fixedBonus: 25, minMonths: 6, maxMonths: null, allowStack: true, active: true, priority: 3, description: "Bônus por cliente que completa 6 meses" },
-  { id: "4", name: "Bônus 12 Meses", type: "bonus_retention", level: "gold", percentage: 5, fixedBonus: 50, minMonths: 12, maxMonths: null, allowStack: true, active: true, priority: 4, description: "Bônus por cliente que completa 12 meses" },
-  { id: "5", name: "Bônus Volume Elite", type: "bonus_volume", level: "platinum", percentage: 3, fixedBonus: 0, minMonths: 0, maxMonths: null, allowStack: true, active: false, priority: 5, description: "Bônus extra para partners Platinum com +20 clientes" },
-];
+const AUDIT_LOG = [];
 
-const AUDIT_LOG = [
-  { id: "a1", date: "03/03/2026", partner: "Camila S.", client: "Maria S.", rule: "Comissão Recorrente", orderAmount: 149.90, percentage: 10, commission: 14.99, type: "recurring", marginOk: true, margin: 55 },
-  { id: "a2", date: "03/03/2026", partner: "Ana P.", client: "Juliana M.", rule: "Comissão Recorrente", orderAmount: 199.90, percentage: 10, commission: 19.99, type: "recurring", marginOk: true, margin: 52 },
-  { id: "a3", date: "02/03/2026", partner: "Camila S.", client: "Beatriz O.", rule: "Bônus 6 Meses", orderAmount: 149.90, percentage: 5, commission: 7.50, type: "bonus_retention", marginOk: true, margin: 48 },
-  { id: "a4", date: "02/03/2026", partner: "Julia M.", client: "Carla R.", rule: "Comissão Inicial", orderAmount: 149.90, percentage: 15, commission: 22.49, type: "initial", marginOk: true, margin: 42 },
-  { id: "a5", date: "01/03/2026", partner: "Fernanda R.", client: "Larissa A.", rule: "Comissão Recorrente", orderAmount: 99.90, percentage: 10, commission: 9.99, type: "recurring", marginOk: false, margin: 18 },
-  { id: "a6", date: "01/03/2026", partner: "Patrícia L.", client: "Roberta F.", rule: "Comissão Inicial", orderAmount: 149.90, percentage: 15, commission: 22.49, type: "initial", marginOk: true, margin: 45 },
-  { id: "a7", date: "28/02/2026", partner: "Camila S.", client: "Fernanda L.", rule: "Bônus 12 Meses", orderAmount: 199.90, percentage: 5, commission: 10.00, type: "bonus_retention", marginOk: true, margin: 50 },
-  { id: "a8", date: "28/02/2026", partner: "Ana P.", client: "Patrícia D.", rule: "Comissão Recorrente", orderAmount: 149.90, percentage: 10, commission: 14.99, type: "recurring", marginOk: true, margin: 53 },
-];
 
 const MARGIN_RULES = [
   { id: "m1", name: "Proteção Padrão", maxPct: 30, alertThreshold: 20, blockThreshold: 10, maxPerClient: 500, active: true },
