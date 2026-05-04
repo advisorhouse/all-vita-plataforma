@@ -143,19 +143,13 @@ const CorePartners: React.FC = () => {
   });
 
 
-  const { refetch: refetchPartners } = useQuery({
-    queryKey: ["core-partners", currentTenant?.id],
-    queryFn: async () => {
-      // ... (already defined above, just getting refetch)
-    }
-  });
-
-
+  const filtered = partners.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (levelFilter !== "all" && p.level !== levelFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
 
 
   const pendingInvitations = partners.filter(p => authStatus[p.userId] && !authStatus[p.userId].email_confirmed_at).length;
