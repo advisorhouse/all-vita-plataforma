@@ -761,6 +761,7 @@ const CoreCommissions: React.FC = () => {
           </DialogContent>
         </Dialog>
 
+        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Confirmar Pagamento</DialogTitle>
@@ -821,6 +822,8 @@ const CoreCommissions: React.FC = () => {
               </Button>
             </DialogFooter>
           </DialogContent>
+        </Dialog>
+
         </Dialog>
       </div>
     </TooltipProvider>
