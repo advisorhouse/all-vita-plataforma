@@ -250,8 +250,9 @@ const CoreCommissions: React.FC = () => {
         {/* ═══ TABS ═══ */}
         <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
           <Tabs defaultValue="rules" className="w-full">
-            <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-lg">
+            <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-2xl">
               <TabsTrigger value="rules" className="gap-1.5 text-xs"><Percent className="h-3.5 w-3.5" />Regras</TabsTrigger>
+              <TabsTrigger value="payments" className="gap-1.5 text-xs"><Banknote className="h-3.5 w-3.5" />Pagamentos</TabsTrigger>
               <TabsTrigger value="audit" className="gap-1.5 text-xs"><FileText className="h-3.5 w-3.5" />Auditoria</TabsTrigger>
               <TabsTrigger value="margin" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Proteção</TabsTrigger>
               <TabsTrigger value="templates" className="gap-1.5 text-xs"><Layers className="h-3.5 w-3.5" />Templates</TabsTrigger>
