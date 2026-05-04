@@ -63,6 +63,8 @@ const CorePartners: React.FC = () => {
           level,
           active,
           metadata,
+          pix_key,
+          pix_key_type,
           profiles:user_id (email, first_name, last_name)
         `)
         .eq("tenant_id", currentTenant.id);
