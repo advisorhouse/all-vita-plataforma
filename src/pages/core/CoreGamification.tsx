@@ -90,16 +90,68 @@ const AFFILIATE_LEVELS = [
 
 /* ─── Component ─────────────────────────────────────────── */
 const CoreGamification: React.FC = () => {
+  const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
   const [benefitSearch, setBenefitSearch] = useState("");
+  const [rewardModalOpen, setRewardModalOpen] = useState(false);
+  const [editingReward, setEditingReward] = useState<any>(null);
+
+  // Fetch real rewards for this tenant
+  const { data: rewards = [], isLoading: loadingRewards } = useQuery({
+    queryKey: ["rewards-catalog", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("rewards_catalog")
+        .select("*")
+        .eq("tenant_id", currentTenant.id)
+        .order("cost_vitacoins", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const upsertRewardMutation = useMutation({
+    mutationFn: async (reward: any) => {
+      const payload = { ...reward, tenant_id: currentTenant?.id };
+      if (reward.id) {
+        const { error } = await supabase.from("rewards_catalog").update(payload).eq("id", reward.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("rewards_catalog").insert([payload]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rewards-catalog"] });
+      toast.success(editingReward?.id ? "Recompensa atualizada!" : "Recompensa criada!");
+      setRewardModalOpen(false);
+      setEditingReward(null);
+    },
+    onError: (err: any) => toast.error("Erro ao salvar: " + err.message)
+  });
+
+  const deleteRewardMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("rewards_catalog").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rewards-catalog"] });
+      toast.success("Removido com sucesso!");
+    }
+  });
 
   const totalClients = CLIENT_LEVELS.reduce((s, l) => s + l.clients, 0);
-  const totalBenefitsUnlocked = BENEFITS.reduce((s, b) => s + b.totalUnlocked, 0);
-  const totalRedeemed = BENEFITS.reduce((s, b) => s + b.redeemedCount, 0);
-  const redemptionRate = totalBenefitsUnlocked > 0 ? Math.round((totalRedeemed / totalBenefitsUnlocked) * 100) : 0;
+  const totalBenefitsUnlocked = rewards.length; // Usando recompensas reais agora
+  const totalRedeemed = 0; // Seria buscado de redemption_requests
+  const redemptionRate = 0;
 
-  const filteredBenefits = BENEFITS.filter((b) =>
+  const filteredBenefits = rewards.filter((b: any) =>
     !benefitSearch || b.title.toLowerCase().includes(benefitSearch.toLowerCase())
   );
+
 
   const currentChallenge = CHALLENGES.find((c) => c.active);
 
