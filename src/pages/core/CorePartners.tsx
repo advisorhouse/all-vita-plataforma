@@ -230,6 +230,11 @@ const CorePartners: React.FC = () => {
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
                               <p className="text-[10px] text-muted-foreground truncate">{p.email}</p>
+                              {p.pixKey && (
+                                <Badge variant="secondary" className="mt-1 h-4 text-[8px] px-1 py-0 uppercase">
+                                  PIX: {p.pixType}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </TableCell>
