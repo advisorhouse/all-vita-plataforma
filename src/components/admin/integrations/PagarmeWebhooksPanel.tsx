@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, RefreshCw } from "lucide-react";
+import { Eye, RefreshCw, CreditCard, Loader2 } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 const PagarmeWebhooksPanel: React.FC = () => {
   const [isSimulating, setIsSimulating] = React.useState(false);
@@ -43,14 +44,58 @@ const PagarmeWebhooksPanel: React.FC = () => {
     return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20";
   };
 
+  const handleSimulatePayment = async () => {
+    setIsSimulating(true);
+    try {
+      // Simula o envio de um webhook de pedido pago
+      const { error } = await supabase.functions.invoke("pagarme-webhook", {
+        body: {
+          id: `sim_${Math.random().toString(36).slice(2, 9)}`,
+          type: "order.paid",
+          data: {
+            id: `or_${Math.random().toString(36).slice(2, 9)}`,
+            code: "TEST_UUID_123",
+            amount: 15000,
+            status: "paid",
+            payment_method: "credit_card"
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success("Simulação de pagamento enviada!");
+      setTimeout(() => refetch(), 1000);
+    } catch (error: any) {
+      toast.error("Erro na simulação: " + error.message);
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Eventos do Pagar.me</h3>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
+        <div>
+          <h3 className="text-lg font-medium">Eventos do Pagar.me</h3>
+          <p className="text-xs text-muted-foreground">Últimos logs recebidos via webhook</p>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSimulatePayment} 
+            disabled={isSimulating}
+            className="border-dashed"
+          >
+            {isSimulating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
+            Simular Pagamento
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       <div className="border rounded-md">
@@ -103,7 +148,7 @@ const PagarmeWebhooksPanel: React.FC = () => {
                           <DialogHeader>
                             <DialogTitle>Detalhes do Webhook: {eventType}</DialogTitle>
                           </DialogHeader>
-                          <pre className="bg-muted p-4 rounded-md mt-4 overflow-x-auto whitespace-pre-wrap">
+                          <pre className="bg-muted p-4 rounded-md mt-4 overflow-x-auto whitespace-pre-wrap text-[10px]">
                             {JSON.stringify(details, null, 2)}
                           </pre>
                         </DialogContent>
