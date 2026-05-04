@@ -498,40 +498,120 @@ export type Database = {
           },
         ]
       }
+      commission_audit_log: {
+        Row: {
+          amount_calculated: number
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          order_id: string | null
+          partner_id: string | null
+          percentage_applied: number | null
+          rule_id: string | null
+          status: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          amount_calculated: number
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          partner_id?: string | null
+          percentage_applied?: number | null
+          rule_id?: string | null
+          status?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          amount_calculated?: number
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          partner_id?: string | null
+          percentage_applied?: number | null
+          rule_id?: string | null
+          status?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_audit_log_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_audit_log_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_audit_log_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "commission_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commission_rules: {
         Row: {
           active: boolean
+          allow_stack: boolean | null
           created_at: string
           id: string
           level: number
+          max_active_months: number | null
           metadata: Json | null
           min_months: number | null
+          mlm_depth: number | null
           name: string | null
           percentage: number
+          priority_order: number | null
           tenant_id: string
           type: string
         }
         Insert: {
           active?: boolean
+          allow_stack?: boolean | null
           created_at?: string
           id?: string
           level?: number
+          max_active_months?: number | null
           metadata?: Json | null
           min_months?: number | null
+          mlm_depth?: number | null
           name?: string | null
           percentage?: number
+          priority_order?: number | null
           tenant_id: string
           type?: string
         }
         Update: {
           active?: boolean
+          allow_stack?: boolean | null
           created_at?: string
           id?: string
           level?: number
+          max_active_months?: number | null
           metadata?: Json | null
           min_months?: number | null
+          mlm_depth?: number | null
           name?: string | null
           percentage?: number
+          priority_order?: number | null
           tenant_id?: string
           type?: string
         }

@@ -9,7 +9,7 @@ import {
   Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText,
   ChevronRight, ArrowUpRight, ArrowDownRight, Eye, Layers,
   CheckCircle, XCircle, Clock, Search, Filter, Banknote,
-  Upload, ExternalLink, Loader2,
+  Upload, ExternalLink, Loader2, Save, X
 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +33,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 /* ─── Animation ─────────────────────────────────────────── */
@@ -46,10 +53,11 @@ const fadeUp = {
 
 /* ─── Type Config ───────────────────────────────────────── */
 const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  initial: { label: "Inicial", color: "text-accent", bg: "bg-accent/10" },
+  initial: { label: "Venda Direta", color: "text-accent", bg: "bg-accent/10" },
   recurring: { label: "Recorrente", color: "text-success", bg: "bg-success/10" },
-  bonus_retention: { label: "Bônus Retenção", color: "text-warning", bg: "bg-warning/10" },
-  bonus_volume: { label: "Bônus Volume", color: "text-foreground", bg: "bg-secondary" },
+  bonus_6m: { label: "Bônus 6 Meses", color: "text-warning", bg: "bg-warning/10" },
+  bonus_12m: { label: "Bônus 12 Meses", color: "text-warning", bg: "bg-warning/10" },
+  mlm: { label: "Indireta (MLM)", color: "text-blue-500", bg: "bg-blue-500/10" },
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -58,25 +66,9 @@ const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.
   cancelled: { label: "Cancelado", color: "text-destructive", icon: XCircle },
 };
 
-/* ─── Mock Data ─────────────────────────────────────────── */
-const RULES = [
-  { id: "1", name: "Comissão Inicial", type: "initial", level: "all", percentage: 15, fixedBonus: 0, minMonths: 0, maxMonths: null, allowStack: false, active: true, priority: 1, description: "Comissão padrão na primeira venda" },
-  { id: "2", name: "Comissão Recorrente", type: "recurring", level: "all", percentage: 10, fixedBonus: 0, minMonths: 1, maxMonths: null, allowStack: false, active: true, priority: 2, description: "Comissão mensal por cliente ativo" },
-  { id: "3", name: "Bônus 6 Meses", type: "bonus_retention", level: "silver", percentage: 5, fixedBonus: 25, minMonths: 6, maxMonths: null, allowStack: true, active: true, priority: 3, description: "Bônus por cliente que completa 6 meses" },
-  { id: "4", name: "Bônus 12 Meses", type: "bonus_retention", level: "gold", percentage: 5, fixedBonus: 50, minMonths: 12, maxMonths: null, allowStack: true, active: true, priority: 4, description: "Bônus por cliente que completa 12 meses" },
-  { id: "5", name: "Bônus Volume Elite", type: "bonus_volume", level: "platinum", percentage: 3, fixedBonus: 0, minMonths: 0, maxMonths: null, allowStack: true, active: false, priority: 5, description: "Bônus extra para partners Platinum com +20 clientes" },
-];
 
-const AUDIT_LOG = [
-  { id: "a1", date: "03/03/2026", partner: "Camila S.", client: "Maria S.", rule: "Comissão Recorrente", orderAmount: 149.90, percentage: 10, commission: 14.99, type: "recurring", marginOk: true, margin: 55 },
-  { id: "a2", date: "03/03/2026", partner: "Ana P.", client: "Juliana M.", rule: "Comissão Recorrente", orderAmount: 199.90, percentage: 10, commission: 19.99, type: "recurring", marginOk: true, margin: 52 },
-  { id: "a3", date: "02/03/2026", partner: "Camila S.", client: "Beatriz O.", rule: "Bônus 6 Meses", orderAmount: 149.90, percentage: 5, commission: 7.50, type: "bonus_retention", marginOk: true, margin: 48 },
-  { id: "a4", date: "02/03/2026", partner: "Julia M.", client: "Carla R.", rule: "Comissão Inicial", orderAmount: 149.90, percentage: 15, commission: 22.49, type: "initial", marginOk: true, margin: 42 },
-  { id: "a5", date: "01/03/2026", partner: "Fernanda R.", client: "Larissa A.", rule: "Comissão Recorrente", orderAmount: 99.90, percentage: 10, commission: 9.99, type: "recurring", marginOk: false, margin: 18 },
-  { id: "a6", date: "01/03/2026", partner: "Patrícia L.", client: "Roberta F.", rule: "Comissão Inicial", orderAmount: 149.90, percentage: 15, commission: 22.49, type: "initial", marginOk: true, margin: 45 },
-  { id: "a7", date: "28/02/2026", partner: "Camila S.", client: "Fernanda L.", rule: "Bônus 12 Meses", orderAmount: 199.90, percentage: 5, commission: 10.00, type: "bonus_retention", marginOk: true, margin: 50 },
-  { id: "a8", date: "28/02/2026", partner: "Ana P.", client: "Patrícia D.", rule: "Comissão Recorrente", orderAmount: 149.90, percentage: 10, commission: 14.99, type: "recurring", marginOk: true, margin: 53 },
-];
+const AUDIT_LOG = [];
+
 
 const MARGIN_RULES = [
   { id: "m1", name: "Proteção Padrão", maxPct: 30, alertThreshold: 20, blockThreshold: 10, maxPerClient: 500, active: true },
@@ -88,15 +80,35 @@ const TEMPLATES = [
   { id: "t3", name: "Modelo Conservador", description: "Comissão inicial 10% + recorrente 8% para proteção de margem", rulesCount: 2, active: false },
 ];
 
-/* ─── Component ─────────────────────────────────────────── */
 const CoreCommissions: React.FC = () => {
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
   const [auditSearch, setAuditSearch] = useState("");
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [ruleModalOpen, setRuleModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [proofUrl, setProofUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  // New Rule State
+  const [editingRule, setEditingRule] = useState<any>(null);
+
+  // Fetch real rules
+  const { data: rules = [], isLoading: loadingRules } = useQuery({
+    queryKey: ["commission-rules", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("commission_rules")
+        .select("*")
+        .eq("tenant_id", currentTenant.id)
+        .order("priority_order", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
+
 
   // Fetch real commissions
   const { data: commissions = [], isLoading: loadingCommissions } = useQuery({
@@ -123,6 +135,38 @@ const CoreCommissions: React.FC = () => {
     },
     enabled: !!currentTenant?.id
   });
+
+  const upsertRuleMutation = useMutation({
+    mutationFn: async (rule: any) => {
+      const payload = { ...rule, tenant_id: currentTenant?.id };
+      if (rule.id) {
+        const { error } = await supabase.from("commission_rules").update(payload).eq("id", rule.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("commission_rules").insert([payload]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["commission-rules"] });
+      toast.success(editingRule?.id ? "Regra atualizada!" : "Regra criada!");
+      setRuleModalOpen(false);
+      setEditingRule(null);
+    },
+    onError: (err: any) => toast.error("Erro ao salvar regra: " + err.message)
+  });
+
+  const deleteRuleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("commission_rules").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["commission-rules"] });
+      toast.success("Regra removida!");
+    }
+  });
+
 
   const payMutation = useMutation({
     mutationFn: async ({ partnerId, proof }: { partnerId: string; proof: string }) => {
@@ -182,24 +226,9 @@ const CoreCommissions: React.FC = () => {
   const totalCommission = commissions.reduce((s, a) => s + (a.amount || 0), 0);
   const avgMargin = 45; // Placeholder for now
   const marginAlerts = 0;
-  const activeRulesCount = commissions.length; // Placeholder or we fetch rules below
   
-  // Fetch rules
-  const { data: rules = [] } = useQuery({
-    queryKey: ["commission-rules", currentTenant?.id],
-    queryFn: async () => {
-      if (!currentTenant?.id) return [];
-      const { data, error } = await supabase
-        .from("commission_rules")
-        .select("*")
-        .eq("tenant_id", currentTenant.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!currentTenant?.id
-  });
-
   const activeRules = rules.filter((r) => r.active).length;
+
 
   const filteredAudit = commissions.filter((a: any) => {
     const partnerName = `${a.partners?.profiles?.first_name || ""} ${a.partners?.profiles?.last_name || ""}`.toLowerCase();
@@ -243,7 +272,7 @@ const CoreCommissions: React.FC = () => {
         <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Regras Ativas", value: `${activeRules}/${RULES.length}`, icon: Layers, accent: false, tip: "Quantidade de regras de comissão ativas sobre o total configurado." },
+              { label: "Regras Ativas", value: `${activeRules}/${rules.length}`, icon: Layers, accent: false, tip: "Quantidade de regras de comissão ativas sobre o total configurado." },
               { label: "Comissão (30d)", value: `R$ ${(totalCommission).toFixed(0)}`, icon: DollarSign, accent: true, tip: "Total de comissões processadas nos últimos 30 dias." },
               { label: "Margem Média", value: `${avgMargin}%`, icon: Shield, accent: false, tip: "Margem líquida média após comissões. Abaixo de 20% aciona alerta de proteção." },
               { label: "Alertas Margem", value: marginAlerts.toString(), icon: AlertTriangle, accent: false, warn: marginAlerts > 0, tip: "Transações onde a margem ficou abaixo do limite seguro de proteção." },
@@ -279,10 +308,29 @@ const CoreCommissions: React.FC = () => {
             <TabsContent value="rules" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground">Regras de Comissão</p>
-                <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5 text-xs"
+                  onClick={() => {
+                    setEditingRule({
+                      name: "",
+                      type: "initial",
+                      level: "all",
+                      percentage: 10,
+                      active: true,
+                      priority_order: (rules.length || 0) + 1,
+                      min_months: 0,
+                      allow_stack: false,
+                      mlm_depth: 0
+                    });
+                    setRuleModalOpen(true);
+                  }}
+                >
                   <Plus className="h-3.5 w-3.5" />
                   Nova Regra
                 </Button>
+
               </div>
 
               <Card className="border-border overflow-hidden">
@@ -338,9 +386,25 @@ const CoreCommissions: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"><Pencil className="h-3 w-3" /></button>
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"
+                                  onClick={() => {
+                                    setEditingRule(r);
+                                    setRuleModalOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                                  onClick={() => {
+                                    if(confirm("Deseja remover esta regra?")) deleteRuleMutation.mutate(r.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
                               </div>
+
                             </TableCell>
                           </TableRow>
                         );
@@ -583,6 +647,114 @@ const CoreCommissions: React.FC = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
+        <Dialog open={ruleModalOpen} onOpenChange={setRuleModalOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{editingRule?.id ? "Editar Regra" : "Nova Regra de Comissão"}</DialogTitle>
+              <DialogDescription>
+                Configure os critérios de aplicação e o percentual de repasse.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Nome da Regra</label>
+                  <Input 
+                    placeholder="Ex: Venda Direta Ouro"
+                    value={editingRule?.name || ""}
+                    onChange={(e) => setEditingRule({ ...editingRule, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Tipo</label>
+                  <Select 
+                    value={editingRule?.type} 
+                    onValueChange={(val) => setEditingRule({ ...editingRule, type: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="initial">Venda Direta</SelectItem>
+                      <SelectItem value="recurring">Recorrente</SelectItem>
+                      <SelectItem value="mlm">Indireta (MLM)</SelectItem>
+                      <SelectItem value="bonus_6m">Bônus 6 Meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Percentual (%)</label>
+                  <Input 
+                    type="number"
+                    value={editingRule?.percentage || 0}
+                    onChange={(e) => setEditingRule({ ...editingRule, percentage: parseFloat(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Prioridade</label>
+                  <Input 
+                    type="number"
+                    value={editingRule?.priority_order || 0}
+                    onChange={(e) => setEditingRule({ ...editingRule, priority_order: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Nível Req.</label>
+                  <Select 
+                    value={editingRule?.level} 
+                    onValueChange={(val) => setEditingRule({ ...editingRule, level: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="silver">Silver</SelectItem>
+                      <SelectItem value="gold">Gold</SelectItem>
+                      <SelectItem value="platinum">Platinum</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {editingRule?.type === 'mlm' && (
+                <div className="space-y-2 p-3 bg-blue-500/5 rounded-lg border border-blue-500/10">
+                  <label className="text-xs font-semibold uppercase text-blue-500 flex items-center gap-1.5">
+                    <TrendingUp className="h-3 w-3" /> Configuração Multi-nível (MLM)
+                  </label>
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground">Profundidade (Geração)</p>
+                      <Input 
+                        type="number" 
+                        placeholder="Ex: 1 (Direto), 2 (Neto)..." 
+                        value={editingRule?.mlm_depth || 0}
+                        onChange={(e) => setEditingRule({ ...editingRule, mlm_depth: parseInt(e.target.value) })}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <Switch 
+                        checked={editingRule?.allow_stack}
+                        onCheckedChange={(val) => setEditingRule({ ...editingRule, allow_stack: val })}
+                      />
+                      <label className="text-[11px] font-medium text-foreground">Acumular com Direta?</label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRuleModalOpen(false)}>Cancelar</Button>
+              <Button onClick={() => upsertRuleMutation.mutate(editingRule)}>
+                {upsertRuleMutation.isPending ? "Salvando..." : "Salvar Regra"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>

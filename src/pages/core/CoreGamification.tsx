@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import {
   Gift, Trophy, Star, Target, Calendar, Users, TrendingUp,
   Plus, Pencil, Trash2, Eye, ChevronRight, Award,
   Zap, Crown, Shield, Heart, Gem, Clock, CheckCircle,
-  ArrowUpRight, Sparkles, BarChart3,
+  ArrowUpRight, Sparkles, BarChart3, Loader2, Save
 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +24,16 @@ import {
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+
 
 /* ─── Animation ─────────────────────────────────────────── */
 const fadeUp = {
@@ -77,16 +90,68 @@ const AFFILIATE_LEVELS = [
 
 /* ─── Component ─────────────────────────────────────────── */
 const CoreGamification: React.FC = () => {
+  const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
   const [benefitSearch, setBenefitSearch] = useState("");
+  const [rewardModalOpen, setRewardModalOpen] = useState(false);
+  const [editingReward, setEditingReward] = useState<any>(null);
+
+  // Fetch real rewards for this tenant
+  const { data: rewards = [], isLoading: loadingRewards } = useQuery({
+    queryKey: ["rewards-catalog", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("rewards_catalog")
+        .select("*")
+        .eq("tenant_id", currentTenant.id)
+        .order("cost_vitacoins", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const upsertRewardMutation = useMutation({
+    mutationFn: async (reward: any) => {
+      const payload = { ...reward, tenant_id: currentTenant?.id };
+      if (reward.id) {
+        const { error } = await supabase.from("rewards_catalog").update(payload).eq("id", reward.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("rewards_catalog").insert([payload]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rewards-catalog"] });
+      toast.success(editingReward?.id ? "Recompensa atualizada!" : "Recompensa criada!");
+      setRewardModalOpen(false);
+      setEditingReward(null);
+    },
+    onError: (err: any) => toast.error("Erro ao salvar: " + err.message)
+  });
+
+  const deleteRewardMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("rewards_catalog").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rewards-catalog"] });
+      toast.success("Removido com sucesso!");
+    }
+  });
 
   const totalClients = CLIENT_LEVELS.reduce((s, l) => s + l.clients, 0);
-  const totalBenefitsUnlocked = BENEFITS.reduce((s, b) => s + b.totalUnlocked, 0);
-  const totalRedeemed = BENEFITS.reduce((s, b) => s + b.redeemedCount, 0);
-  const redemptionRate = totalBenefitsUnlocked > 0 ? Math.round((totalRedeemed / totalBenefitsUnlocked) * 100) : 0;
+  const totalBenefitsUnlocked = rewards.length; // Usando recompensas reais agora
+  const totalRedeemed = 0; // Seria buscado de redemption_requests
+  const redemptionRate = 0;
 
-  const filteredBenefits = BENEFITS.filter((b) =>
+  const filteredBenefits = rewards.filter((b: any) =>
     !benefitSearch || b.title.toLowerCase().includes(benefitSearch.toLowerCase())
   );
+
 
   const currentChallenge = CHALLENGES.find((c) => c.active);
 
@@ -224,9 +289,25 @@ const CoreGamification: React.FC = () => {
                   <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input value={benefitSearch} onChange={(e) => setBenefitSearch(e.target.value)} placeholder="Buscar benefício..." className="pl-9 h-9 text-sm" />
                 </div>
-                <Button size="sm" variant="outline" className="gap-1.5 text-xs">
-                  <Plus className="h-3.5 w-3.5" />Novo Benefício
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5 text-xs"
+                  onClick={() => {
+                    setEditingReward({
+                      name: "",
+                      description: "",
+                      type: "discount",
+                      cost_vitacoins: 100,
+                      stock: 10,
+                      active: true
+                    });
+                    setRewardModalOpen(true);
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" />Nova Recompensa
                 </Button>
+
               </div>
 
               <Card className="border-border overflow-hidden">
@@ -234,39 +315,32 @@ const CoreGamification: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-secondary/30 hover:bg-secondary/30">
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Benefício</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold">Recompensa</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Tipo</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Meses</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Desbloqueados</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Resgatados</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Taxa</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Custo (VC)</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-right">Estoque</TableHead>
                         <TableHead className="text-[10px] uppercase tracking-wider font-semibold text-center">Status</TableHead>
                         <TableHead className="w-[80px]" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredBenefits.map((b) => {
+                      {filteredBenefits.map((b: any) => {
                         const tp = BENEFIT_TYPES[b.type] || BENEFIT_TYPES.discount;
-                        const rate = b.totalUnlocked > 0 ? Math.round((b.redeemedCount / b.totalUnlocked) * 100) : 0;
                         return (
                           <TableRow key={b.id} className="group">
                             <TableCell>
-                              <p className="text-sm font-medium text-foreground">{b.title}</p>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{b.name}</p>
+                                <p className="text-[10px] text-muted-foreground">{b.description}</p>
+                              </div>
                             </TableCell>
                             <TableCell className="text-center">
                               <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold", tp.bg, tp.color)}>{tp.label}</span>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="secondary" className="text-[10px]">≥ {b.requiredMonths}m</Badge>
+                              <Badge variant="secondary" className="text-[10px] font-bold">{b.cost_vitacoins} VC</Badge>
                             </TableCell>
-                            <TableCell className="text-right text-sm font-medium text-foreground">{b.totalUnlocked}</TableCell>
-                            <TableCell className="text-right text-sm text-foreground">{b.redeemedCount}</TableCell>
-                            <TableCell className="text-center">
-                              <span className={cn(
-                                "text-[11px] font-semibold",
-                                rate >= 70 ? "text-success" : rate >= 40 ? "text-warning" : "text-destructive"
-                              )}>{rate}%</span>
-                            </TableCell>
+                            <TableCell className="text-right text-sm font-medium text-foreground">{b.stock}</TableCell>
                             <TableCell className="text-center">
                               <span className={cn(
                                 "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
@@ -277,8 +351,23 @@ const CoreGamification: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"><Pencil className="h-3 w-3" /></button>
-                                <button className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground"
+                                  onClick={() => {
+                                    setEditingReward(b);
+                                    setRewardModalOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button 
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                                  onClick={() => {
+                                    if(confirm("Deseja remover esta recompensa?")) deleteRewardMutation.mutate(b.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -288,6 +377,7 @@ const CoreGamification: React.FC = () => {
                   </Table>
                 </CardContent>
               </Card>
+
             </TabsContent>
 
             {/* ─── CHALLENGES TAB ─── */}
@@ -444,9 +534,62 @@ const CoreGamification: React.FC = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
+        <Dialog open={rewardModalOpen} onOpenChange={setRewardModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{editingReward?.id ? "Editar Recompensa" : "Nova Recompensa"}</DialogTitle>
+              <DialogDescription>
+                Defina o item que seus parceiros e clientes poderão trocar por Vitacoins.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">Nome da Recompensa</label>
+                <Input 
+                  placeholder="Ex: iPhone 15 Pro Max"
+                  value={editingReward?.name || ""}
+                  onChange={(e) => setEditingReward({ ...editingReward, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">Descrição</label>
+                <Input 
+                  placeholder="Detalhes sobre a recompensa"
+                  value={editingReward?.description || ""}
+                  onChange={(e) => setEditingReward({ ...editingReward, description: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Custo (Vitacoins)</label>
+                  <Input 
+                    type="number"
+                    value={editingReward?.cost_vitacoins || 0}
+                    onChange={(e) => setEditingReward({ ...editingReward, cost_vitacoins: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Estoque</label>
+                  <Input 
+                    type="number"
+                    value={editingReward?.stock || 0}
+                    onChange={(e) => setEditingReward({ ...editingReward, stock: parseInt(e.target.value) })}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRewardModalOpen(false)}>Cancelar</Button>
+              <Button onClick={() => upsertRewardMutation.mutate(editingReward)}>
+                {upsertRewardMutation.isPending ? "Salvando..." : "Salvar Recompensa"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
 };
 
 export default CoreGamification;
+
