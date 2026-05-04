@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import {
   Gift, Trophy, Star, Target, Calendar, Users, TrendingUp,
   Plus, Pencil, Trash2, Eye, ChevronRight, Award,
   Zap, Crown, Shield, Heart, Gem, Clock, CheckCircle,
-  ArrowUpRight, Sparkles, BarChart3,
+  ArrowUpRight, Sparkles, BarChart3, Loader2, Save
 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +24,16 @@ import {
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+
 
 /* ─── Animation ─────────────────────────────────────────── */
 const fadeUp = {
