@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, Loader2, Upload, X, Image, Search, Globe, Plug, Copy, Check, Settings } from "lucide-react";
 import { IMaskInput } from "react-imask";
+import BankingStep from "./BankingStep";
 
 interface TenantFormData {
   name: string;
