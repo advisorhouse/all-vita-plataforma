@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import {
   Percent, DollarSign, Shield, AlertTriangle, TrendingUp,
   Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText,
   ChevronRight, ArrowUpRight, ArrowDownRight, Eye, Layers,
-  CheckCircle, XCircle, Clock, Search, Filter,
+  CheckCircle, XCircle, Clock, Search, Filter, Banknote,
+  Upload, ExternalLink,
 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +25,14 @@ import {
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 /* ─── Animation ─────────────────────────────────────────── */
