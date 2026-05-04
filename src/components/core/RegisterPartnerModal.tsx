@@ -132,8 +132,10 @@ const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({ open, onOpe
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
   const { lookupCNPJ, loading: loadingCNPJ } = useCNPJLookup();
   const { lookupCEP, loading: loadingCEP } = useCEPLookup();
+
 
   const update = (partial: Partial<PartnerFormData>) => setData((d) => ({ ...d, ...partial }));
 
