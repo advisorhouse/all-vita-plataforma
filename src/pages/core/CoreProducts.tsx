@@ -225,8 +225,9 @@ const CoreProducts: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (!selectedProduct?.id) {
-        toast.info("Por favor, salve o produto primeiro antes de adicionar fotos.");
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        // Se for um novo produto, guarda o arquivo para subir após salvar o produto
+        setPendingFile(file);
+        toast.info("Foto selecionada! Ela será enviada automaticamente ao salvar o produto.");
         return;
       }
       
@@ -234,15 +235,14 @@ const CoreProducts: React.FC = () => {
       try {
         await uploadImageMutation.mutateAsync({ productId: selectedProduct.id, file });
       } catch (error) {
-
         console.error("Upload error:", error);
       } finally {
         setIsUploading(false);
-        // Limpa o input para permitir selecionar o mesmo arquivo novamente se necessário
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     }
   };
+
 
   const deleteImageMutation = useMutation({
     mutationFn: async (imageId: string) => {
