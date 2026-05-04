@@ -182,7 +182,24 @@ const CoreCommissions: React.FC = () => {
   const totalCommission = commissions.reduce((s, a) => s + (a.amount || 0), 0);
   const avgMargin = 45; // Placeholder for now
   const marginAlerts = 0;
-  const activeRules = RULES.filter((r) => r.active).length;
+  const activeRulesCount = commissions.length; // Placeholder or we fetch rules below
+  
+  // Fetch rules
+  const { data: rules = [] } = useQuery({
+    queryKey: ["commission-rules", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return [];
+      const { data, error } = await supabase
+        .from("commission_rules")
+        .select("*")
+        .eq("tenant_id", currentTenant.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentTenant?.id
+  });
+
+  const activeRules = rules.filter((r) => r.active).length;
 
   const filteredAudit = commissions.filter((a: any) => {
     const partnerName = `${a.partners?.profiles?.first_name || ""} ${a.partners?.profiles?.last_name || ""}`.toLowerCase();
