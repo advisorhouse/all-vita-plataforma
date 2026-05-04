@@ -124,7 +124,7 @@ const CorePartners: React.FC = () => {
 
   const { data: authStatus = {}, refetch: refetchAuthStatus } = useQuery({
 
-    queryKey: ["partners-auth-status", partners.map(p => p.userId).filter(Boolean)],
+    queryKey: ["partners-auth-status", currentTenant?.id, partners.map(p => p.userId).filter(Boolean)],
     queryFn: async () => {
       const userIds = partners.map(p => p.userId).filter(Boolean);
       if (!userIds.length) return {};
