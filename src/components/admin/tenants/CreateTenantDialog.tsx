@@ -855,10 +855,17 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
 
             <div className="pt-6 border-t">
               <Button type="submit" size="lg" className="w-full text-lg h-14">
-                Próximo Passo: Identidade Visual
+                Próximo Passo: Dados Bancários
               </Button>
             </div>
           </form>
+        ) : step === "banking" ? (
+          <BankingStep
+            form={form}
+            setForm={setForm}
+            onBack={() => setStep("form")}
+            onNext={() => setStep("branding")}
+          />
         ) : step === "branding" ? (
           <div className="max-w-4xl mx-auto w-full pb-12 space-y-8">
             <div className="text-center space-y-2">
