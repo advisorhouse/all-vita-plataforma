@@ -653,7 +653,114 @@ const CoreCommissions: React.FC = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
-        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <Dialog open={ruleModalOpen} onOpenChange={setRuleModalOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{editingRule?.id ? "Editar Regra" : "Nova Regra de Comissão"}</DialogTitle>
+              <DialogDescription>
+                Configure os critérios de aplicação e o percentual de repasse.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Nome da Regra</label>
+                  <Input 
+                    placeholder="Ex: Venda Direta Ouro"
+                    value={editingRule?.name || ""}
+                    onChange={(e) => setEditingRule({ ...editingRule, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Tipo</label>
+                  <Select 
+                    value={editingRule?.type} 
+                    onValueChange={(val) => setEditingRule({ ...editingRule, type: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="initial">Venda Direta</SelectItem>
+                      <SelectItem value="recurring">Recorrente</SelectItem>
+                      <SelectItem value="mlm">Indireta (MLM)</SelectItem>
+                      <SelectItem value="bonus_6m">Bônus 6 Meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Percentual (%)</label>
+                  <Input 
+                    type="number"
+                    value={editingRule?.percentage || 0}
+                    onChange={(e) => setEditingRule({ ...editingRule, percentage: parseFloat(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Prioridade</label>
+                  <Input 
+                    type="number"
+                    value={editingRule?.priority_order || 0}
+                    onChange={(e) => setEditingRule({ ...editingRule, priority_order: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Nível Req.</label>
+                  <Select 
+                    value={editingRule?.level} 
+                    onValueChange={(val) => setEditingRule({ ...editingRule, level: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="silver">Silver</SelectItem>
+                      <SelectItem value="gold">Gold</SelectItem>
+                      <SelectItem value="platinum">Platinum</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {editingRule?.type === 'mlm' && (
+                <div className="space-y-2 p-3 bg-blue-500/5 rounded-lg border border-blue-500/10">
+                  <label className="text-xs font-semibold uppercase text-blue-500 flex items-center gap-1.5">
+                    <TrendingUp className="h-3 w-3" /> Configuração Multi-nível (MLM)
+                  </label>
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground">Profundidade (Geração)</p>
+                      <Input 
+                        type="number" 
+                        placeholder="Ex: 1 (Direto), 2 (Neto)..." 
+                        value={editingRule?.mlm_depth || 0}
+                        onChange={(e) => setEditingRule({ ...editingRule, mlm_depth: parseInt(e.target.value) })}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <Switch 
+                        checked={editingRule?.allow_stack}
+                        onCheckedChange={(val) => setEditingRule({ ...editingRule, allow_stack: val })}
+                      />
+                      <label className="text-[11px] font-medium text-foreground">Acumular com Direta?</label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRuleModalOpen(false)}>Cancelar</Button>
+              <Button onClick={() => upsertRuleMutation.mutate(editingRule)}>
+                {upsertRuleMutation.isPending ? "Salvando..." : "Salvar Regra"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Confirmar Pagamento</DialogTitle>
