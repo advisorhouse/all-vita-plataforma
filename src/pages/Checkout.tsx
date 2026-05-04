@@ -107,7 +107,7 @@ const Checkout: React.FC = () => {
       const { data: client, error: clientErr } = await supabase
         .from("clients")
         .upsert({
-          tenant_id: currentTenant?.id,
+          tenant_id: currentTenant?.id as string,
           full_name: formData.name,
           email: formData.email,
           document: formData.cpf.replace(/\D/g, ""),
@@ -123,7 +123,7 @@ const Checkout: React.FC = () => {
               state: formData.state
             }
           }
-        }, { onConflict: "email,tenant_id" })
+        } as any, { onConflict: "email,tenant_id" })
         .select()
         .single();
 
