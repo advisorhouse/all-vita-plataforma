@@ -64,6 +64,7 @@ const CorePartners: React.FC = () => {
         .from("partners")
         .select(`
           id,
+          user_id,
           level,
           active,
           metadata,
@@ -79,6 +80,7 @@ const CorePartners: React.FC = () => {
         const profile = p.profiles as any;
         return {
           id: p.id,
+          userId: p.user_id,
           name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "Sem nome",
           email: profile?.email || "Sem email",
           level: p.level || "basic",
@@ -97,6 +99,7 @@ const CorePartners: React.FC = () => {
         };
       });
     },
+
     enabled: !!currentTenant?.id
   });
 
