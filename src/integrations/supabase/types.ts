@@ -1404,6 +1404,51 @@ export type Database = {
           },
         ]
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          installments: number | null
+          order_id: string | null
+          pagarme_charge_id: string | null
+          pagarme_order_id: string | null
+          payment_method: string | null
+          raw_request: Json | null
+          raw_response: Json | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          installments?: number | null
+          order_id?: string | null
+          pagarme_charge_id?: string | null
+          pagarme_order_id?: string | null
+          payment_method?: string | null
+          raw_request?: Json | null
+          raw_response?: Json | null
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          installments?: number | null
+          order_id?: string | null
+          pagarme_charge_id?: string | null
+          pagarme_order_id?: string | null
+          payment_method?: string | null
+          raw_request?: Json | null
+          raw_response?: Json | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       platform_role_permissions: {
         Row: {
           action: string
