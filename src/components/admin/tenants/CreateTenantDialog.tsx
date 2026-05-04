@@ -84,7 +84,7 @@ const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ trigger, resume
     setInternalOpen(val);
   };
 
-  const [step, setStep] = useState<"form" | "branding" | "dns">("form");
+  const [step, setStep] = useState<"form" | "banking" | "branding" | "dns">("form");
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [createdTenant, setCreatedTenant] = useState<any>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
