@@ -16,7 +16,7 @@ serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
   const authHeader = req.headers.get("Authorization");
-  const isAdminToken = authHeader?.replace("Bearer ", "") === serviceKey || req.headers.get("apikey") === serviceKey;
+  const isAdminToken = authHeader?.replace("Bearer ", "") === serviceKey || req.headers.get("apikey") === serviceKey || req.headers.get("Authorization") === serviceKey;
   let callerUserId = "";
 
   if (isAdminToken) {
