@@ -57,11 +57,13 @@ serve(async (req) => {
   const pathParts = url.pathname.split("/").filter(Boolean);
   const action = pathParts[pathParts.length - 1] || "";
   
-  console.log(`[ManageUsers] Action: ${action}, Caller: ${callerUserId}, Tenant: ${tenantId}`);
+  console.log(`[ManageUsers] Executing Action: ${action}, Tenant: ${tenantId}`);
 
-  // Simple bypass for system/admin calls
-  const isAllowed = isAdminToken;
-    if (action === "preview-email") {
+  if (!isAllowed) {
+    return jsonRes(403, { error: `Você não tem permissão para realizar esta ação.` });
+  }
+
+  try {
       const body = await req.json();
       const { email, full_name, role, is_staff, tenant_id: targetId, type } = body;
       
