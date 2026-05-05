@@ -13,8 +13,9 @@ serve(async (req) => {
   console.log("=== AUTH EMAIL HOOK CALLED ===");
   try {
     const payload = await req.json();
-    console.log("Payload Type:", payload.type || payload.event || payload.email_action_type || "unknown");
-    console.log("Full Payload:", JSON.stringify(payload));
+    console.log("=== PAYLOAD START ===");
+    console.log(JSON.stringify(payload, null, 2));
+    console.log("=== PAYLOAD END ===");
 
     // Supabase Auth Hooks can have data nested in various ways
     // Try different paths to find the user and email data
