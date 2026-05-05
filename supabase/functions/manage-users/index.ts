@@ -15,12 +15,18 @@ serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-  const authHeader = req.headers.get("Authorization");
-  const isAdminToken = authHeader?.replace("Bearer ", "") === serviceKey;
+  const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+  const apikeyHeader = (req.headers.get("apikey") || req.headers.get("x-api-key"))?.trim();
+  
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader?.trim();
+  const serviceKeyCheck = (token === serviceKey.trim()) || (apikeyHeader === serviceKey.trim());
+  
   let callerUserId = "";
+  let isAdminToken = false;
 
-  if (isAdminToken) {
+  if (serviceKeyCheck) {
     callerUserId = "00000000-0000-0000-0000-000000000000";
+    isAdminToken = true;
   } else {
     if (!authHeader?.startsWith("Bearer ")) {
       return jsonRes(401, { error: "Unauthorized" });
@@ -28,15 +34,21 @@ serve(async (req) => {
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userData, error: authError } = await userClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    const { data: userData, error: authError } = await userClient.auth.getUser(token || "");
     if (authError || !userData?.user) {
       return jsonRes(401, { error: "Invalid token" });
     }
     callerUserId = userData.user.id;
+    
+    const adminClient = createClient(supabaseUrl, serviceKey);
+    const { data: staffData } = await adminClient
+      .from("all_vita_staff")
+      .select("role")
+      .eq("user_id", callerUserId)
+      .maybeSingle();
+    
+    isAdminToken = staffData?.role === 'super_admin' || staffData?.role === 'admin';
   }
-
-
-
 
   const tenantId = req.headers.get("X-Tenant-Id");
   const adminClient = createClient(supabaseUrl, serviceKey);
@@ -44,57 +56,17 @@ serve(async (req) => {
   const url = new URL(req.url);
   const pathParts = url.pathname.split("/").filter(Boolean);
   const action = pathParts[pathParts.length - 1] || "";
+  
+  console.log(`[ManageUsers] Executing Action: ${action}, Tenant: ${tenantId}`);
 
-  console.log(`[ManageUsers] Action: ${action}, Caller: ${callerUserId}, Tenant: ${tenantId}`);
-
-
-
-  // Helper to check permissions using the unified RBAC function
-  const checkPermission = async (res: string, act: string, tId: string | null) => {
-    const { data: allowed, error: rpcError } = await adminClient.rpc('can', {
-      _user_id: callerUserId,
-      _resource: res,
-      _action: act,
-      _tenant_id: tId
-    });
-    if (rpcError) {
-      console.error(`[RBAC] Error checking ${res}:${act} for user ${callerUserId}:`, rpcError);
-      return false;
-    }
-    return !!allowed;
-  };
-
-  // Determine required resource and action based on the requested endpoint
-  let requiredResource = "memberships";
-  let requiredAction = "read";
-
-  switch (action) {
-    case "create": requiredAction = "create"; break;
-    case "update":
-    case "deactivate":
-    case "reset-password":
-    case "resend-invite": requiredAction = "update"; break;
-    case "delete": requiredAction = "delete"; break;
-    case "list": requiredAction = "read"; break;
-    case "auth-status": requiredAction = "read"; break; // Needs higher privilege in practice, but usually fine for staff
-    case "preview-email": requiredAction = "read"; break;
+  if (!isAdminToken) {
+    // Optional: allow RBAC check if needed, but for now we only trust admin token
+    // const isAllowed = await checkPermission(requiredResource, requiredAction, tenantId);
+    // if (!isAllowed) ...
+    return jsonRes(403, { error: `Você não tem permissão para realizar esta ação.` });
   }
-
-  const isAllowed = isAdminToken || await checkPermission(requiredResource, requiredAction, tenantId);
-
-  if (!isAllowed) {
-    // Specialized error for delete which traditionally only super admin did
-    if (action === "delete") {
-      return jsonRes(403, { error: "Apenas usuários com permissão de exclusão podem realizar esta ação." });
-    }
-    return jsonRes(403, { error: `Você não tem permissão para ${requiredAction} em ${requiredResource}.` });
-  }
-
-
-
 
   try {
-    if (action === "preview-email") {
       const body = await req.json();
       const { email, full_name, role, is_staff, tenant_id: targetId, type } = body;
       
