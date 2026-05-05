@@ -20,7 +20,7 @@ serve(async (req) => {
   
   console.log(`[ManageUsers] Auth: ${authHeader ? 'present' : 'missing'}, ApiKey: ${apikeyHeader ? 'present' : 'missing'}`);
   
-  const serviceKeyCheck = (authHeader?.replace("Bearer ", "") === serviceKey) || (apikeyHeader === serviceKey) || (authHeader === serviceKey);
+  const serviceKeyCheck = (authHeader?.replace("Bearer ", "").trim() === serviceKey.trim()) || (apikeyHeader?.trim() === serviceKey.trim()) || (authHeader?.trim() === serviceKey.trim());
   
   let callerUserId = "";
   let isAdminToken = false;
