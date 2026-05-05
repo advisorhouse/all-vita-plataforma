@@ -129,7 +129,6 @@ serve(async (req) => {
         const { email } = body;
         if (!email) return jsonRes(400, { error: "Email is required" });
 
-        // Try to find the existing user to get metadata
         const { data: usersData } = await adminClient.auth.admin.listUsers();
         const existingUser = usersData?.users?.find((u: any) => u.email === email);
         
@@ -142,19 +141,23 @@ serve(async (req) => {
           ? `https://${tenantSlug}.allvita.com.br/auth/reset-password`
           : `https://app.allvita.com.br/auth/reset-password`;
 
-        console.log(`[ManageUsers] Resending invite for ${email} with redirectTo: ${inviteRedirectTo}`);
+        console.log(`[ManageUsers] Generating recovery link for ${email} with redirectTo: ${inviteRedirectTo}`);
 
-        const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-          data: metadata,
-          redirectTo: inviteRedirectTo,
+        const { data, error } = await adminClient.auth.admin.generateLink({
+          type: 'recovery',
+          email: email,
+          options: {
+            redirectTo: inviteRedirectTo,
+            data: metadata
+          }
         });
 
         if (error) {
-          console.error("[ManageUsers] Resend invite error:", error);
+          console.error("[ManageUsers] Link generation error:", error);
           return jsonRes(400, { error: error.message });
         }
 
-        return jsonRes(200, { success: true, message: "Invitation resent successfully" });
+        return jsonRes(200, { success: true, message: "Invitation (recovery link) sent successfully via Auth Hook" });
       }
 
       case "list": {
