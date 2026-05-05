@@ -18,6 +18,8 @@ serve(async (req) => {
   const authHeader = req.headers.get("Authorization");
   const apikeyHeader = req.headers.get("apikey");
   
+  console.log(`[ManageUsers] Auth: ${authHeader ? 'present' : 'missing'}, ApiKey: ${apikeyHeader ? 'present' : 'missing'}`);
+  
   const serviceKeyCheck = (authHeader?.replace("Bearer ", "") === serviceKey) || (apikeyHeader === serviceKey) || (authHeader === serviceKey);
   
   let callerUserId = "";
