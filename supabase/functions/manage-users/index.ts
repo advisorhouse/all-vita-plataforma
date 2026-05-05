@@ -272,8 +272,8 @@ serve(async (req) => {
 
         const inviteRedirectTo = usePartnerInvite
           ? (tenantSlugForRedirect
-              ? `https://${tenantSlugForRedirect}.allvita.com.br/auth/set-password`
-              : `https://app.allvita.com.br/auth/set-password`)
+              ? `https://${tenantSlugForRedirect}.allvita.com.br/auth/reset-password`
+              : `https://app.allvita.com.br/auth/reset-password`)
           : undefined;
 
         // Resolve inviter (parent partner) info if provided
@@ -794,7 +794,7 @@ serve(async (req) => {
             tenant_id: tenant_id,
             tenant_slug: "lumyss"
           },
-          redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
+          redirectTo: `https://lumyss.allvita.com.br/auth/reset-password`
         });
 
         if (inviteError) {
@@ -814,7 +814,7 @@ serve(async (req) => {
                   tenant_id: tenant_id,
                   tenant_slug: "lumyss"
                 },
-                redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
+                redirectTo: `https://lumyss.allvita.com.br/auth/reset-password`
               }
             });
             

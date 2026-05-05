@@ -30,6 +30,7 @@ import Checkout from "./pages/Checkout";
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import { Navigate } from "react-router-dom";
 
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
@@ -196,6 +197,7 @@ const App = () => (
               <Route path="/auth/signup" element={<SignupPage />} />
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/auth/set-password" element={<Navigate to="/auth/reset-password" replace />} />
               <Route path="/auth/mfa-setup" element={<AuthGuard requireTenant={false}><MfaSetupPage /></AuthGuard>} />
 
               {/* Auth routes (tenant-scoped) — preserves slug in URL */}
@@ -203,6 +205,7 @@ const App = () => (
               <Route path="/:slug/auth/signup" element={<SignupPage />} />
               <Route path="/:slug/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/:slug/auth/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/:slug/auth/set-password" element={<ResetPasswordPage />} />
               <Route path="/:slug/onboarding" element={<AuthGuard requireTenant={false}><AdminOnboarding /></AuthGuard>} />
 
               {/* Club (Cliente) - Protected */}
