@@ -205,6 +205,7 @@ const App = () => (
               <Route path="/:slug/auth/signup" element={<SignupPage />} />
               <Route path="/:slug/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/:slug/auth/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/:slug/auth/set-password" element={<ResetPasswordPage />} />
               <Route path="/:slug/onboarding" element={<AuthGuard requireTenant={false}><AdminOnboarding /></AuthGuard>} />
 
               {/* Club (Cliente) - Protected */}
