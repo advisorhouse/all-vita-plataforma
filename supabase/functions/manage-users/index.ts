@@ -272,8 +272,8 @@ serve(async (req) => {
 
         const inviteRedirectTo = usePartnerInvite
           ? (tenantSlugForRedirect
-              ? `https://${tenantSlugForRedirect}.allvita.com.br/auth/set-password`
-              : `https://app.allvita.com.br/auth/set-password`)
+              ? `https://${tenantSlugForRedirect}.allvita.com.br/auth/reset-password`
+              : `https://app.allvita.com.br/auth/reset-password`)
           : undefined;
 
         // Resolve inviter (parent partner) info if provided
