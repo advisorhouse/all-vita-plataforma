@@ -3,186 +3,203 @@ import { autoTable } from "jspdf-autotable";
 
 export const generateManualPDF = () => {
   const doc = new jsPDF();
-  const primaryColor: [number, number, number] = [217, 119, 87]; // #D97757
-  const secondaryColor: [number, number, number] = [45, 55, 72]; // Dark slate
-
+  const primaryColor: [number, number, number] = [217, 119, 87]; // All Vita Brand Color
+  const secondaryColor: [number, number, number] = [45, 55, 72];
+  
   let currentY = 0;
 
-  // Helper for text wrapping and page management
-  const checkPageOverflow = (neededHeight: number) => {
-    if (currentY + neededHeight > 270) {
-      doc.addPage();
-      currentY = 20;
+  // Configuration for consistent spacing
+  const PAGE_WIDTH = 210;
+  const PAGE_HEIGHT = 297;
+  const MARGIN = 20;
+  const CONTENT_WIDTH = PAGE_WIDTH - (MARGIN * 2);
+
+  // Helper: New Page with Header
+  const addNewPage = () => {
+    doc.addPage();
+    currentY = MARGIN;
+  };
+
+  // Helper: Space Check & Flow
+  const checkSpace = (needed: number) => {
+    if (currentY + needed > PAGE_HEIGHT - MARGIN - 20) {
+      addNewPage();
     }
   };
 
-  const addSectionTitle = (text: string) => {
-    checkPageOverflow(20);
+  // UI Components
+  const addTitle = (text: string) => {
+    checkSpace(25);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
+    doc.setFontSize(18);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text(text, 20, currentY + 10);
-    doc.setLineWidth(0.5);
+    doc.text(text, MARGIN, currentY + 10);
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.line(20, currentY + 12, 190, currentY + 12);
-    currentY += 22;
+    doc.setLineWidth(0.8);
+    doc.line(MARGIN, currentY + 13, MARGIN + 60, currentY + 13);
+    currentY += 25;
   };
 
-  const addSubSectionTitle = (text: string) => {
-    checkPageOverflow(15);
+  const addSubtitle = (text: string) => {
+    checkSpace(15);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
+    doc.setFontSize(14);
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    doc.text(text, 20, currentY + 5);
-    currentY += 12;
+    doc.text(text, MARGIN, currentY);
+    currentY += 10;
   };
 
-  const addBodyText = (text: string, isBold = false) => {
-    doc.setFont("helvetica", isBold ? "bold" : "normal");
-    doc.setFontSize(11);
+  const addParagraph = (text: string) => {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
     doc.setTextColor(60, 60, 60);
-    const lines = doc.splitTextToSize(text, 170);
-    const neededHeight = lines.length * 7;
-    checkPageOverflow(neededHeight);
-    doc.text(lines, 20, currentY);
-    currentY += neededHeight + 3;
+    const lines = doc.splitTextToSize(text, CONTENT_WIDTH);
+    const height = lines.length * 6;
+    checkSpace(height + 5);
+    doc.text(lines, MARGIN, currentY);
+    currentY += height + 5;
   };
 
-  const addBulletPoint = (label: string, description: string) => {
+  const addListItem = (label: string, text: string) => {
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(60, 60, 60);
-    checkPageOverflow(10);
-    doc.text(`• ${label}:`, 25, currentY);
+    doc.setFontSize(10);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    checkSpace(10);
+    doc.text(`• ${label}:`, MARGIN + 5, currentY);
     
     doc.setFont("helvetica", "normal");
-    const descLines = doc.splitTextToSize(description, 155);
-    const neededHeight = descLines.length * 7;
-    checkPageOverflow(neededHeight);
-    doc.text(descLines, 35, currentY + (descLines.length > 1 ? 0 : 0));
-    currentY += Math.max(7, neededHeight) + 2;
+    doc.setTextColor(60, 60, 60);
+    const fullText = ` ${text}`;
+    const lines = doc.splitTextToSize(fullText, CONTENT_WIDTH - 35);
+    doc.text(lines, MARGIN + 35, currentY);
+    currentY += (lines.length * 6) + 2;
   };
 
-  // --- Cover Page ---
+  // --- CAPA ---
   doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.rect(0, 0, 210, 297, "F");
+  doc.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, "F");
   
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(40);
+  doc.setFontSize(36);
   doc.setFont("helvetica", "bold");
-  doc.text("ALL VITA", 105, 100, { align: "center" });
+  doc.text("ALL VITA", PAGE_WIDTH / 2, 100, { align: "center" });
   
-  doc.setFontSize(20);
-  doc.text("Manual Operacional e Guia de Testes", 105, 120, { align: "center" });
-  
-  doc.setFontSize(14);
+  doc.setFontSize(18);
   doc.setFont("helvetica", "normal");
-  doc.text("Versão 2.0 - Guia Completo da Plataforma", 105, 140, { align: "center" });
+  doc.text("Guia Oficial da Plataforma - Versão 2.5", PAGE_WIDTH / 2, 120, { align: "center" });
+  
+  doc.setFontSize(12);
+  doc.text("Ecossistema de Saúde, Longevidade e Gestão", PAGE_WIDTH / 2, 130, { align: "center" });
   
   doc.setDrawColor(255, 255, 255);
-  doc.setLineWidth(1);
-  doc.line(40, 150, 170, 150);
+  doc.setLineWidth(0.5);
+  doc.line(PAGE_WIDTH / 2 - 40, 140, PAGE_WIDTH / 2 + 40, 140);
 
-  doc.addPage();
-  currentY = 30;
+  // --- INTRODUÇÃO ---
+  addNewPage();
+  addTitle("1. Introdução");
+  addParagraph("A All Vita é uma plataforma tecnológica inovadora que une saúde preventiva, inteligência artificial e um modelo de negócios escalável. O objetivo é proporcionar aos profissionais de saúde (Partners) as ferramentas necessárias para prescrever com precisão, enquanto oferece aos pacientes (Clientes) uma jornada de acompanhamento gamificada no Clube All Vita.");
 
-  // --- Section 1: Introduction ---
-  addSectionTitle("1. Sobre a All Vita");
-  addBodyText("A All Vita é uma ecossistema de saúde e bem-estar projetado para revolucionar a forma como profissionais de saúde e pacientes interagem. Nossa plataforma combina tecnologia de Inteligência Artificial, gamificação e gestão de rede para promover longevidade e saúde preventiva.");
+  addSubtitle("O Propósito");
+  addParagraph("Nascemos para resolver a falta de adesão aos protocolos de saúde. Através da tecnologia, transformamos o uso de suplementos e medicamentos em uma experiência recompensadora e monitorada.");
+
+  // --- TENANTS & ARQUITETURA ---
+  addTitle("2. Conceitos de Tenants");
+  addParagraph("A All Vita opera sob uma arquitetura Multi-Tenant. Um 'Tenant' é uma instância isolada do sistema para uma empresa ou clínica específica.");
   
-  addSubSectionTitle("Visão Geral");
-  addBodyText("Diferente de sistemas comuns de gestão, a All Vita foca na experiência do usuário final através do 'Clube All Vita' e no empoderamento do profissional através do sistema de 'Partners'.");
+  addSubtitle("Características de um Tenant:");
+  addListItem("Isolamento Total", "Os dados de clientes, partners e faturamento são 100% segregados.");
+  addListItem("Personalização (White Label)", "Cada Tenant define seu próprio subdomínio (ex: clinica.allvita.com.br), logo e identidade visual.");
+  addListItem("Regras Próprias", "As taxas de comissão, metas de Vitacoins e integrações de pagamento são configuradas por Tenant.");
 
-  // --- Section 2: Tenants ---
-  addSectionTitle("2. Conceito de Tenants (Multi-empresa)");
-  addBodyText("O sistema All Vita é construído sobre uma arquitetura multi-tenant. Isso significa que cada organização (Tenant) opera em um ambiente isolado, com suas próprias configurações, usuários e regras.");
-  
-  addSubSectionTitle("Por que usar Tenants?");
-  addBulletPoint("Isolamento de Dados", "Garante que as informações de uma clínica ou rede não se misturem com outras.");
-  addBulletPoint("Personalização", "Cada Tenant pode configurar suas próprias taxas de comissão, integrações e catálogo de produtos.");
-  addBulletPoint("Escalabilidade", "Permite que a All Vita cresça suportando milhares de parceiros independentes sob o mesmo núcleo tecnológico.");
+  // --- FUNCIONALIDADES CORE (ADMIN) ---
+  addTitle("3. Painel Administrativo (CORE)");
+  addParagraph("É o coração da gestão do Tenant. Aqui o administrador configura a inteligência do negócio.");
 
-  // --- Section 3: Admin Configurations ---
-  addSectionTitle("3. Configurações Disponíveis (Admin)");
-  addBodyText("Como administrador, você tem controle total sobre o funcionamento do seu Tenant através da aba 'CORE'.");
-  
-  addSubSectionTitle("Áreas de Configuração:");
-  addBulletPoint("Configurações do Tenant", "Definição de nome, logo, subdomínio e informações de contato da sua organização.");
-  addBulletPoint("Comissões", "Regras de bonificação para a rede. Define quanto um Partner ganha por venda direta e quanto os níveis acima recebem (Marketing de Rede).");
-  addBulletPoint("Gamificação (Vitacoins)", "Configuração das metas de saúde. Quantos pontos o cliente ganha por consistência e como os Partners podem trocar pontos por recompensas.");
-  addBulletPoint("Integrações", "Configuração de chaves de API para gateways de pagamento (Pagar.me), serviços de e-mail e modelos de IA.");
+  addSubtitle("Configurações Disponíveis:");
+  addListItem("Usuários & Permissões", "Criação de perfis (Admin, Staff, Financeiro) com matriz de acesso granular.");
+  addListItem("Catálogo de Produtos", "Gestão de estoque, preços e vinculação com Partners específicos.");
+  addListItem("Financeiro & Comissões", "Configuração de split de pagamento e níveis de marketing de rede.");
+  addListItem("Gamificação", "Regras para ganho de Vitacoins por consistência no tratamento.");
+  addListItem("Integrações", "Configuração de Pagar.me para pagamentos e chaves de IA para os assistentes virtuais.");
 
-  // --- Section 4: Functional Flow ---
-  addSectionTitle("4. Funcionalidades Detalhadas");
-  
-  addSubSectionTitle("4.1 O Ecossistema de Partners");
-  addBodyText("O Partner (Médico, Nutricionista ou Afiliado) é o centro da distribuição. Ao se cadastrar, ele recebe:");
-  addBulletPoint("Landing Pages Personalizadas", "Páginas de captura com sua foto e nome para gerar autoridade.");
-  addBulletPoint("Quiz de Saúde Inteligente", "Um formulário interativo que usa IA para diagnosticar necessidades e sugerir produtos.");
-  addBulletPoint("Dashboard de Vendas", "Monitoramento em tempo real de leads, conversões e comissões acumuladas.");
+  // --- JORNADA DO PARTNER ---
+  addNewPage();
+  addTitle("4. O Ecossistema do Partner");
+  addParagraph("O Partner (Médico ou Afiliado) é quem impulsiona a plataforma através de prescrições e indicações.");
 
-  addSubSectionTitle("4.2 O Clube All Vita (Cliente)");
-  addBodyText("O cliente não apenas compra um produto, ele entra em um programa de acompanhamento:");
-  addBulletPoint("Calendário de Consistência", "Onde o cliente marca o uso diário dos suplementos/medicamentos.");
-  addBulletPoint("Ranking e Recompensas", "O engajamento gera Vitacoins que podem ser usados para descontos futuros.");
-  addBulletPoint("Conteúdo Educativo", "Acesso a vídeos e artigos curados para o seu perfil de saúde.");
+  addSubtitle("Ferramentas do Partner:");
+  addListItem("Links de Captura", "Links personalizados que rastreiam o lead desde o primeiro clique.");
+  addListItem("Quiz de Protocolo", "Questionário inteligente que gera uma recomendação personalizada baseada em IA.");
+  addListItem("IA Assistant", "Chatbot treinado para tirar dúvidas dos pacientes sobre longevidade e produtos.");
+  addListItem("Gestão de Rede", "Visualização de sua árvore de indicações e bônus de performance.");
 
-  // --- Section 5: Step-by-Step Testing ---
-  addSectionTitle("5. Passo a Passo para Testes Operacionais");
-  addBodyText("Siga este roteiro para garantir que sua instância está configurada corretamente:");
+  // --- JORNADA DO CLIENTE (CLUBE) ---
+  addTitle("5. O Clube All Vita (Cliente)");
+  addParagraph("Focado na retenção e sucesso do tratamento do paciente.");
 
-  addSubSectionTitle("Passo 1: Configuração Core");
-  addBodyText("Acesse 'Core > Usuários' e crie um usuário com perfil 'Partner'. Verifique se o e-mail de boas-vindas foi disparado corretamente.");
+  addSubtitle("Funcionalidades:");
+  addListItem("Calendário de Consistência", "Interface onde o cliente marca o uso diário, gerando dados de adesão.");
+  addListItem("Carteira de Vitacoins", "Moedas virtuais acumuladas que podem ser trocadas por novos produtos ou PIX.");
+  addListItem("Área de Conteúdo", "Vídeos educativos e dicas de saúde personalizadas.");
 
-  addSubSectionTitle("Passo 2: Jornada do Lead");
-  addBodyText("Acesse o link público do Partner criado. Preencha o Quiz como se fosse um paciente. Ao final, verifique se a recomendação de produtos faz sentido com as respostas dadas.");
+  // --- GUIA DE TESTES (PASSO A PASSO) ---
+  addNewPage();
+  addTitle("6. Passo a Passo de Testes Operacionais");
+  addParagraph("Para validar sua implementação, realize este fluxo completo:");
 
-  addSubSectionTitle("Passo 3: Ciclo Financeiro");
-  addBodyText("Realize uma compra em modo 'test' no checkout. Verifique no Admin se o pedido foi criado e se a comissão foi calculada corretamente para o Partner que indicou.");
+  addSubtitle("Fase 1: Configuração Inicial");
+  addParagraph("1. No Admin, acesse CORE > Comissões e defina 10% de venda direta.");
+  addParagraph("2. Acesse CORE > Integrações e garanta que o modo Sandbox está ativo.");
 
-  // --- Checklist Table ---
-  addSectionTitle("6. Checklist Final de Lançamento");
-  const checklist = [
-    ["ID", "Ação de Teste", "Resultado Esperado"],
-    ["T1", "Cadastro de Partner", "Dashboard criado e links ativos."],
-    ["T2", "Uso do Quiz de IA", "Lead capturado e recomendação gerada."],
-    ["T3", "Pagamento de Pedido", "Status muda para 'Pago' e libera o Clube."],
-    ["T4", "Acesso ao Clube", "Cliente consegue ver seus produtos e calendário."],
-    ["T5", "Saque de Comissão", "Partner solicita saque e Admin recebe a notificação."]
+  addSubtitle("Fase 2: Simulação de Venda");
+  addParagraph("1. Crie um Partner e acesse o link de Quiz dele.");
+  addParagraph("2. Preencha o Quiz e siga para o Checkout.");
+  addParagraph("3. Realize a compra com cartão de teste.");
+
+  addSubtitle("Fase 3: Validação de Resultados");
+  addParagraph("1. Verifique se a comissão apareceu no saldo do Partner.");
+  addParagraph("2. Acesse o Clube com o e-mail do cliente e veja se o produto está liberado.");
+
+  // --- TABELA DE CHECKLIST ---
+  addTitle("7. Checklist de Auditoria");
+  const auditData = [
+    ["Módulo", "Funcionalidade", "Status de Verificação"],
+    ["AUTH", "Login MFA & Recuperação", "[ ] Testado"],
+    ["CORE", "Matriz de Permissões", "[ ] Testado"],
+    ["PARTNER", "Links de Recrutamento", "[ ] Testado"],
+    ["CHECKOUT", "Split de Pagamento", "[ ] Testado"],
+    ["CLUBE", "Sync de Calendário", "[ ] Testado"]
   ];
-  
+
   autoTable(doc, {
     startY: currentY,
-    head: [checklist[0]],
-    body: checklist.slice(1),
+    head: [auditData[0]],
+    body: auditData.slice(1),
     theme: "grid",
-    headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontStyle: "bold" },
-    styles: { fontSize: 9 },
-    margin: { left: 20, right: 20 }
+    headStyles: { fillColor: primaryColor },
+    margin: { left: MARGIN, right: MARGIN }
   });
 
-  // Footer on each page
+  // Footer & Page Numbers
   const pageCount = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    // Draw line above footer
-    doc.setDrawColor(200);
-    doc.setLineWidth(0.1);
-    doc.line(20, 280, 190, 280);
-    
-    doc.setFontSize(10);
+    doc.setDrawColor(220);
+    doc.line(MARGIN, PAGE_HEIGHT - 15, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 15);
+    doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`All Vita - Manual Oficial de Operação`, 20, 287);
-    doc.text(`Página ${i} de ${pageCount}`, 190, 287, { align: "right" });
+    doc.text("All Vita - Ecossistema de Saúde Digital - Manual de Operações", MARGIN, PAGE_HEIGHT - 10);
+    doc.text(`Página ${i} de ${pageCount}`, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 10, { align: "right" });
   }
 
-  // Download Trigger
+  // Final Download
   try {
     const pdfBlob = doc.output("blob");
     const url = URL.createObjectURL(pdfBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", "Manual_Completo_AllVita.pdf");
+    link.setAttribute("download", "Manual_AllVita_Completo.pdf");
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();
@@ -191,7 +208,6 @@ export const generateManualPDF = () => {
       URL.revokeObjectURL(url);
     }, 100);
   } catch (error) {
-    console.error("Error generating PDF:", error);
-    doc.save("Manual_Completo_AllVita.pdf");
+    doc.save("Manual_AllVita_Completo.pdf");
   }
 };
