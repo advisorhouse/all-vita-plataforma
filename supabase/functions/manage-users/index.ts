@@ -141,7 +141,7 @@ serve(async (req) => {
           ? `https://${tenantSlug}.allvita.com.br/auth/reset-password`
           : `https://app.allvita.com.br/auth/reset-password`;
 
-        console.log(`[ManageUsers] Generating recovery link for ${email} with redirectTo: ${inviteRedirectTo}`);
+        console.log(`[ManageUsers] Sending recovery email for ${email} with redirectTo: ${inviteRedirectTo}`);
 
         const { data, error } = await adminClient.auth.admin.generateLink({
           type: 'recovery',
@@ -157,7 +157,46 @@ serve(async (req) => {
           return jsonRes(400, { error: error.message });
         }
 
-        return jsonRes(200, { success: true, message: "Invitation (recovery link) sent successfully via Auth Hook" });
+        // Now manually send the email since the hook isn't catching the background process
+        const resendApiKey = Deno.env.get("RESEND_API_KEY");
+        if (resendApiKey) {
+          try {
+            const { Resend } = await import("npm:resend");
+            const resend = new Resend(resendApiKey);
+            
+            // Extract branding (minimal version of what hook does)
+            let tenantName = metadata.tenant_name || "All Vita";
+            let subject = `Sua jornada como parceiro(a) na ${tenantName} foi aprovada!`;
+            
+            const authApiUrl = "https://fmkcxsyudgtimpbjwcjv.supabase.co/auth/v1";
+            const confirmationUrl = `${authApiUrl}/verify?token=${data.properties.hashed_token}&type=recovery&redirect_to=${encodeURIComponent(inviteRedirectTo)}`;
+            
+            const html = `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2>Bem-vindo(a), ${metadata.full_name || email}!</h2>
+                <p>Sua nova jornada com a <strong>${tenantName}</strong> foi aprovada.</p>
+                <p>Clique no botão abaixo para definir sua senha e ativar sua conta:</p>
+                <div style="margin: 30px 0; text-align: center;">
+                  <a href="${confirmationUrl}" style="background-color: #6B8E23; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                    Ativar minha conta de parceiro
+                  </a>
+                </div>
+              </div>
+            `;
+
+            await resend.emails.send({
+              from: `${tenantName} <no-reply@app.allvita.com.br>`,
+              to: [email],
+              subject: subject,
+              html: html,
+            });
+            console.log("[ManageUsers] Email sent manually via Resend");
+          } catch (resendErr) {
+            console.error("[ManageUsers] Manual Resend error:", resendErr);
+          }
+        }
+
+        return jsonRes(200, { success: true, message: "Invitation (recovery link) sent successfully" });
       }
 
       case "list": {
