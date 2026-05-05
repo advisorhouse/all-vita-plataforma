@@ -286,11 +286,13 @@ const AdminDashboard: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={generateManualPDF}
+              asChild
               className="h-8 text-xs gap-2 bg-card"
             >
-              <Download className="h-3.5 w-3.5" />
-              Baixar Manual de Testes
+              <a href="/manuais/Manual_AllVita_Completo.pdf" download="Manual_AllVita_Completo.pdf">
+                <Download className="h-3.5 w-3.5" />
+                Baixar Manual de Testes
+              </a>
             </Button>
             
             <div className="flex items-center gap-2">
