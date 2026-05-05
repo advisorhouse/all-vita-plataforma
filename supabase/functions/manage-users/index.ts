@@ -794,7 +794,7 @@ serve(async (req) => {
             tenant_id: tenant_id,
             tenant_slug: "lumyss"
           },
-          redirectTo: `https://lumyss.allvita.com.br/auth/set-password`
+          redirectTo: `https://lumyss.allvita.com.br/auth/reset-password`
         });
 
         if (inviteError) {
