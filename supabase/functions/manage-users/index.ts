@@ -67,12 +67,13 @@ serve(async (req) => {
   }
 
   try {
+    if (action === "preview-email") {
       const body = await req.json();
-      const { email, full_name, role, is_staff, tenant_id: targetId, type } = body;
-      
+      const { full_name, is_staff, tenant_id: targetId, type } = body;
+
       let tenantName = "All Vita";
-      let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png"; // Official URL from project storage
-      
+      let tenantLogo = "https://fmkcxsyudgtimpbjwcjv.supabase.co/storage/v1/object/public/system-assets/allvita-logo.png";
+
       if (!is_staff && targetId) {
         const { data: tenant } = await adminClient
           .from("tenants")
@@ -91,42 +92,13 @@ serve(async (req) => {
 
       if (type === "reset-password") {
         title = "Sua senha foi resetada";
-        content = `
-          <p>Um administrador resetou sua senha na plataforma <strong>${tenantName}</strong>.</p>
-          <p>Utilize os dados abaixo para o seu próximo acesso:</p>
-          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
-            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua nova senha provisória:</p>
-            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
-          </div>
-          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Você deverá trocar esta senha no seu próximo acesso para garantir a segurança da sua conta.</p>
-        `;
+        content = `<p>Um administrador resetou sua senha na plataforma <strong>${tenantName}</strong>.</p>`;
         ctaText = "Ir para o Login";
       } else if (is_staff) {
         title = "Bem-vindo à Equipe All Vita!";
-        content = `
-          <p>Você acaba de ser integrado à plataforma oficial da <strong>All Vita</strong> como membro da equipe.</p>
-          <p>Como parte do nosso time, você terá acesso às ferramentas essenciais para nossa operação:</p>
-          <ul style="padding-left: 20px; color: #475569;">
-            <li><strong>Gestão Estratégica:</strong> Controle de parceiros, clientes e fluxos operacionais.</li>
-            <li><strong>Inteligência de Dados:</strong> Acesso a dashboards e relatórios de performance em tempo real.</li>
-            <li><strong>Segurança e Auditoria:</strong> Ambiente protegido com monitoramento de ações e segurança avançada.</li>
-          </ul>
-          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
-            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha de acesso temporária:</p>
-            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
-          </div>
-          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Segurança: Por política interna, altere sua senha imediatamente após o primeiro acesso.</p>
-        `;
+        content = `<p>Você acaba de ser integrado à plataforma oficial da <strong>All Vita</strong>.</p>`;
       } else {
-        content = `
-          <p>Você foi convidado para fazer parte da plataforma <strong>${tenantName}</strong>.</p>
-          <p>Estamos muito felizes em ter você conosco! Sua conta já foi criada e você pode começar a explorar todas as funcionalidades agora mesmo.</p>
-          <div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #6B8E23">
-            <p style="margin:0;color:#666;font-size:12px uppercase;letter-spacing:1px">Sua senha de acesso temporária:</p>
-            <p style="margin:8px 0 0;font-size:20px;font-family:monospace;color:#1a1a2e;font-weight:bold">${tempPassword}</p>
-          </div>
-          <p style="color:#e74c3c;font-size:14px;font-weight:bold">⚠️ Importante: Troque sua senha no primeiro acesso para manter seus dados protegidos.</p>
-        `;
+        content = `<p>Você foi convidado para fazer parte da plataforma <strong>${tenantName}</strong>.</p>`;
       }
 
       const html = renderEmail({
@@ -138,7 +110,7 @@ serve(async (req) => {
         ctaText,
         ctaUrl
       });
-      
+
       return jsonRes(200, { html, tenantName });
     }
 
