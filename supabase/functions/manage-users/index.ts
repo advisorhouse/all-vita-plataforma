@@ -7,12 +7,9 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  const method = req.method;
-  if (method === "OPTIONS") {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
-  console.log(`[ManageUsers] Request received: ${method} ${req.url}`);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -24,18 +21,14 @@ serve(async (req) => {
   const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader?.trim();
   const serviceKeyCheck = (token === serviceKey.trim()) || (apikeyHeader === serviceKey.trim());
   
-  console.log(`[ManageUsers] Auth info - Token length: ${token?.length || 0}, ServiceKey length: ${serviceKey.trim().length}, Check: ${serviceKeyCheck}`);
-
   let callerUserId = "";
   let isAdminToken = false;
 
   if (serviceKeyCheck) {
-    console.log("[ManageUsers] Admin access granted via service key");
     callerUserId = "00000000-0000-0000-0000-000000000000";
     isAdminToken = true;
   } else {
     if (!authHeader?.startsWith("Bearer ")) {
-      console.log("[ManageUsers] Unauthorized: Missing or invalid Authorization header");
       return jsonRes(401, { error: "Unauthorized" });
     }
     const userClient = createClient(supabaseUrl, anonKey, {
@@ -43,7 +36,6 @@ serve(async (req) => {
     });
     const { data: userData, error: authError } = await userClient.auth.getUser(token || "");
     if (authError || !userData?.user) {
-      console.log(`[ManageUsers] Unauthorized: ${authError?.message || "Invalid token"}`);
       return jsonRes(401, { error: "Invalid token" });
     }
     callerUserId = userData.user.id;
@@ -56,7 +48,6 @@ serve(async (req) => {
       .maybeSingle();
     
     isAdminToken = staffData?.role === 'super_admin' || staffData?.role === 'admin';
-    console.log(`[ManageUsers] User ${callerUserId} - isAdminToken: ${isAdminToken}`);
   }
 
   const tenantId = req.headers.get("X-Tenant-Id");
@@ -65,10 +56,11 @@ serve(async (req) => {
   const url = new URL(req.url);
   const pathParts = url.pathname.split("/").filter(Boolean);
   const action = pathParts[pathParts.length - 1] || "";
+  
+  console.log(`[ManageUsers] Action: ${action}, Caller: ${callerUserId}, Tenant: ${tenantId}`);
 
-  console.log(`[ManageUsers] Executing Action: ${action}, Tenant: ${tenantId}`);
-
-  try {
+  // Simple bypass for system/admin calls
+  const isAllowed = isAdminToken;
     if (action === "preview-email") {
       const body = await req.json();
       const { email, full_name, role, is_staff, tenant_id: targetId, type } = body;
