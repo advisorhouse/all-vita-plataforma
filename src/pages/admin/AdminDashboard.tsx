@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Filter, X } from "lucide-react";
+import { CalendarDays, Download, Filter, X } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,6 +21,7 @@ import GamificationMetrics from "@/components/admin/dashboard/GamificationMetric
 import PendingTenantsWidget from "@/components/admin/dashboard/PendingTenantsWidget";
 import CreateTenantDialog from "@/components/admin/tenants/CreateTenantDialog";
 import { cn } from "@/lib/utils";
+import { generateManualPDF } from "@/lib/manualGenerator";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -281,6 +282,16 @@ const AdminDashboard: React.FC = () => {
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Plataforma online
             </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generateManualPDF}
+              className="h-8 text-xs gap-2 bg-card"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Baixar Manual de Testes
+            </Button>
             
             <div className="flex items-center gap-2">
               <Select value={period} onValueChange={(val) => {

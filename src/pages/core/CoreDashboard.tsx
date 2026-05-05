@@ -187,7 +187,7 @@ const CoreDashboard: React.FC = () => {
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">Visão consolidada do ecossistema — clientes, partners e receita.</p>
             </div>
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => navigate("/core/partners?register=true")}
                 className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[11px] font-medium text-accent-foreground hover:bg-accent/90 transition-colors"
