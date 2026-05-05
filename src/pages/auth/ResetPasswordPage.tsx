@@ -76,7 +76,7 @@ const ResetPasswordPage: React.FC = () => {
         <Card className="w-full max-w-sm">
           <CardContent className="pt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Link de recuperação inválido ou expirado.
+              Link de autenticação inválido ou expirado.
             </p>
             <Button variant="outline" className="mt-4" onClick={() => navigate("/auth/forgot-password")}>
               Solicitar novo link
