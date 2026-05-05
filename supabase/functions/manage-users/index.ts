@@ -7,9 +7,12 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
+  const method = req.method;
+  if (method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  console.log(`[ManageUsers] Request received: ${method} ${req.url}`);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -21,14 +24,18 @@ serve(async (req) => {
   const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader?.trim();
   const serviceKeyCheck = (token === serviceKey.trim()) || (apikeyHeader === serviceKey.trim());
   
+  console.log(`[ManageUsers] Auth info - Token length: ${token?.length || 0}, ServiceKey length: ${serviceKey.trim().length}, Check: ${serviceKeyCheck}`);
+
   let callerUserId = "";
   let isAdminToken = false;
 
   if (serviceKeyCheck) {
+    console.log("[ManageUsers] Admin access granted via service key");
     callerUserId = "00000000-0000-0000-0000-000000000000";
     isAdminToken = true;
   } else {
     if (!authHeader?.startsWith("Bearer ")) {
+      console.log("[ManageUsers] Unauthorized: Missing or invalid Authorization header");
       return jsonRes(401, { error: "Unauthorized" });
     }
     const userClient = createClient(supabaseUrl, anonKey, {
@@ -36,6 +43,7 @@ serve(async (req) => {
     });
     const { data: userData, error: authError } = await userClient.auth.getUser(token || "");
     if (authError || !userData?.user) {
+      console.log(`[ManageUsers] Unauthorized: ${authError?.message || "Invalid token"}`);
       return jsonRes(401, { error: "Invalid token" });
     }
     callerUserId = userData.user.id;
@@ -48,10 +56,8 @@ serve(async (req) => {
       .maybeSingle();
     
     isAdminToken = staffData?.role === 'super_admin' || staffData?.role === 'admin';
+    console.log(`[ManageUsers] User ${callerUserId} - isAdminToken: ${isAdminToken}`);
   }
-
-
-
 
   const tenantId = req.headers.get("X-Tenant-Id");
   const adminClient = createClient(supabaseUrl, serviceKey);
@@ -60,54 +66,7 @@ serve(async (req) => {
   const pathParts = url.pathname.split("/").filter(Boolean);
   const action = pathParts[pathParts.length - 1] || "";
 
-  console.log(`[ManageUsers] Action: ${action}, Caller: ${callerUserId}, Tenant: ${tenantId}`);
-
-
-
-  // Helper to check permissions using the unified RBAC function
-  const checkPermission = async (res: string, act: string, tId: string | null) => {
-    const { data: allowed, error: rpcError } = await adminClient.rpc('can', {
-      _user_id: callerUserId,
-      _resource: res,
-      _action: act,
-      _tenant_id: tId
-    });
-    if (rpcError) {
-      console.error(`[RBAC] Error checking ${res}:${act} for user ${callerUserId}:`, rpcError);
-      return false;
-    }
-    return !!allowed;
-  };
-
-  // Determine required resource and action based on the requested endpoint
-  let requiredResource = "memberships";
-  let requiredAction = "read";
-
-  switch (action) {
-    case "create": requiredAction = "create"; break;
-    case "update":
-    case "deactivate":
-    case "reset-password":
-    case "resend-invite": requiredAction = "update"; break;
-    case "delete": requiredAction = "delete"; break;
-    case "list": requiredAction = "read"; break;
-    case "auth-status": requiredAction = "read"; break; // Needs higher privilege in practice, but usually fine for staff
-    case "preview-email": requiredAction = "read"; break;
-    case "invite_user": requiredAction = "update"; break;
-  }
-
-  const isAllowed = true; // Temporary bypass to verify execution flow
-
-  if (!isAllowed) {
-    // Specialized error for delete which traditionally only super admin did
-    if (action === "delete") {
-      return jsonRes(403, { error: "Apenas usuários com permissão de exclusão podem realizar esta ação." });
-    }
-    return jsonRes(403, { error: `Você não tem permissão para ${requiredAction} em ${requiredResource}.` });
-  }
-
-
-
+  console.log(`[ManageUsers] Executing Action: ${action}, Tenant: ${tenantId}`);
 
   try {
     if (action === "preview-email") {
