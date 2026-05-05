@@ -30,6 +30,7 @@ import Checkout from "./pages/Checkout";
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import { Navigate } from "react-router-dom";
 
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
