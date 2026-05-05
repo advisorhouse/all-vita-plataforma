@@ -59,7 +59,10 @@ serve(async (req) => {
   
   console.log(`[ManageUsers] Executing Action: ${action}, Tenant: ${tenantId}`);
 
-  if (!isAllowed) {
+  if (!isAdminToken) {
+    // Optional: allow RBAC check if needed, but for now we only trust admin token
+    // const isAllowed = await checkPermission(requiredResource, requiredAction, tenantId);
+    // if (!isAllowed) ...
     return jsonRes(403, { error: `Você não tem permissão para realizar esta ação.` });
   }
 
