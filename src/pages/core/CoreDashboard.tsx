@@ -10,7 +10,7 @@ import {
   Crown, Activity, Repeat, Brain, Zap, ChevronRight, Eye,
   Percent, Handshake, Gift, ExternalLink, UserPlus, FileText, Download,
 } from "lucide-react";
-import { generateManualPDF } from "@/lib/manualGenerator";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
