@@ -197,6 +197,7 @@ const App = () => (
               <Route path="/auth/signup" element={<SignupPage />} />
               <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/auth/set-password" element={<Navigate to="/auth/reset-password" replace />} />
               <Route path="/auth/mfa-setup" element={<AuthGuard requireTenant={false}><MfaSetupPage /></AuthGuard>} />
 
               {/* Auth routes (tenant-scoped) — preserves slug in URL */}
