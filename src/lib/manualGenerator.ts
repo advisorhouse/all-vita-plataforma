@@ -113,10 +113,17 @@ export const generateManualPDF = () => {
   }
 
   // Finalize
-  const pdfBlob = doc.output("blob");
-  const url = URL.createObjectURL(pdfBlob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "Manual_AllVita_Testes.pdf";
-  link.click();
+  try {
+    doc.save("Manual_AllVita_Testes.pdf");
+  } catch (error) {
+    console.error("Error saving PDF:", error);
+    const pdfBlob = doc.output("blob");
+    const url = URL.createObjectURL(pdfBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Manual_AllVita_Testes.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 };
