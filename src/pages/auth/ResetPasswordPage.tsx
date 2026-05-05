@@ -26,7 +26,8 @@ const ResetPasswordPage: React.FC = () => {
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
+    // Allow both recovery (forgot password) and invite/signup flows
+    if (hash.includes("type=recovery") || hash.includes("type=invite") || hash.includes("type=signup")) {
       setIsRecovery(true);
     }
   }, []);
