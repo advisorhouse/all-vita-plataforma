@@ -3,7 +3,7 @@ import { autoTable } from "jspdf-autotable";
 
 export const generateManualPDF = () => {
   const doc = new jsPDF();
-  const primaryColor = [217, 119, 87]; // #D97757 (Accent color typical in the project)
+  const primaryColor: [number, number, number] = [217, 119, 87]; // #D97757 (Accent color typical in the project)
 
   // Helper for title
   const addSectionTitle = (text: string, y: number) => {
