@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 
 export const generateManualPDF = () => {
   const doc = new jsPDF();
@@ -95,7 +95,7 @@ export const generateManualPDF = () => {
     ["4", "Consistência no Clube", "Marcar 7 dias de uso e ver se a barra de progresso avança."],
     ["5", "Resgate de Vitacoins", "Solicitar um resgate como partner e aprovar como admin."]
   ];
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [checklist[0]],
     body: checklist.slice(1),
