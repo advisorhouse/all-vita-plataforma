@@ -18,13 +18,15 @@ serve(async (req) => {
   const authHeader = req.headers.get("Authorization");
   const apikeyHeader = req.headers.get("apikey");
   
-  const isAdminToken = (authHeader?.replace("Bearer ", "") === serviceKey) || (apikeyHeader === serviceKey) || (authHeader === serviceKey);
+  const serviceKeyCheck = (authHeader?.replace("Bearer ", "") === serviceKey) || (apikeyHeader === serviceKey) || (authHeader === serviceKey);
   
   let callerUserId = "";
+  let isAdminToken = false;
 
-  if (isAdminToken) {
+  if (serviceKeyCheck) {
     console.log("[ManageUsers] Admin access granted via service key");
     callerUserId = "00000000-0000-0000-0000-000000000000";
+    isAdminToken = true;
   } else {
     if (!authHeader?.startsWith("Bearer ")) {
       console.log("[ManageUsers] Missing Bearer token");
@@ -39,6 +41,15 @@ serve(async (req) => {
       return jsonRes(401, { error: "Invalid token" });
     }
     callerUserId = userData.user.id;
+    
+    const adminClient = createClient(supabaseUrl, serviceKey);
+    const { data: staffData } = await adminClient
+      .from("all_vita_staff")
+      .select("role")
+      .eq("user_id", callerUserId)
+      .maybeSingle();
+    
+    isAdminToken = staffData?.role === 'super_admin' || staffData?.role === 'admin';
   }
 
 
