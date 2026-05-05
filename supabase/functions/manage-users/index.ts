@@ -16,13 +16,18 @@ serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
   const authHeader = req.headers.get("Authorization");
-  const isAdminToken = authHeader?.replace("Bearer ", "") === serviceKey || req.headers.get("apikey") === serviceKey || req.headers.get("Authorization") === serviceKey;
+  const apikeyHeader = req.headers.get("apikey");
+  
+  const isAdminToken = (authHeader?.replace("Bearer ", "") === serviceKey) || (apikeyHeader === serviceKey) || (authHeader === serviceKey);
+  
   let callerUserId = "";
 
   if (isAdminToken) {
+    console.log("[ManageUsers] Admin access granted via service key");
     callerUserId = "00000000-0000-0000-0000-000000000000";
   } else {
     if (!authHeader?.startsWith("Bearer ")) {
+      console.log("[ManageUsers] Missing Bearer token");
       return jsonRes(401, { error: "Unauthorized" });
     }
     const userClient = createClient(supabaseUrl, anonKey, {
@@ -30,6 +35,7 @@ serve(async (req) => {
     });
     const { data: userData, error: authError } = await userClient.auth.getUser(authHeader.replace("Bearer ", ""));
     if (authError || !userData?.user) {
+      console.log("[ManageUsers] Invalid user token:", authError?.message);
       return jsonRes(401, { error: "Invalid token" });
     }
     callerUserId = userData.user.id;
