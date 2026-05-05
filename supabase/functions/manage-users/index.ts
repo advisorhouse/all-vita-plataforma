@@ -18,28 +18,24 @@ serve(async (req) => {
   const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
   const apikeyHeader = (req.headers.get("apikey") || req.headers.get("x-api-key"))?.trim();
   
-  const serviceKeyCheck = (authHeader?.replace("Bearer ", "").trim() === serviceKey.trim()) || 
-                          (apikeyHeader === serviceKey.trim()) || 
-                          (authHeader?.trim() === serviceKey.trim());
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader?.trim();
+  const serviceKeyCheck = (token === serviceKey.trim()) || (apikeyHeader === serviceKey.trim());
   
   let callerUserId = "";
   let isAdminToken = false;
 
   if (serviceKeyCheck) {
-    console.log("[ManageUsers] Admin access granted via service key");
     callerUserId = "00000000-0000-0000-0000-000000000000";
     isAdminToken = true;
   } else {
     if (!authHeader?.startsWith("Bearer ")) {
-      console.log("[ManageUsers] Missing Bearer token");
       return jsonRes(401, { error: "Unauthorized" });
     }
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userData, error: authError } = await userClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    const { data: userData, error: authError } = await userClient.auth.getUser(token || "");
     if (authError || !userData?.user) {
-      console.log("[ManageUsers] Invalid user token:", authError?.message);
       return jsonRes(401, { error: "Invalid token" });
     }
     callerUserId = userData.user.id;
