@@ -21,7 +21,7 @@ import GamificationMetrics from "@/components/admin/dashboard/GamificationMetric
 import PendingTenantsWidget from "@/components/admin/dashboard/PendingTenantsWidget";
 import CreateTenantDialog from "@/components/admin/tenants/CreateTenantDialog";
 import { cn } from "@/lib/utils";
-import { generateManualPDF } from "@/lib/manualGenerator";
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -286,11 +286,13 @@ const AdminDashboard: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={generateManualPDF}
+              asChild
               className="h-8 text-xs gap-2 bg-card"
             >
-              <Download className="h-3.5 w-3.5" />
-              Baixar Manual de Testes
+              <a href="/manuais/Manual_AllVita_Completo.pdf" download="Manual_AllVita_Completo.pdf">
+                <Download className="h-3.5 w-3.5" />
+                Baixar Manual de Testes
+              </a>
             </Button>
             
             <div className="flex items-center gap-2">
