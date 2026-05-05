@@ -98,6 +98,7 @@ serve(async (req) => {
     case "invite_user": requiredAction = "update"; break;
   }
 
+  console.log(`[ManageUsers] isAdminToken: ${isAdminToken}, Action: ${action}`);
   const isAllowed = isAdminToken || await checkPermission(requiredResource, requiredAction, tenantId);
 
   if (!isAllowed) {
