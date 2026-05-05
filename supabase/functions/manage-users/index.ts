@@ -16,11 +16,13 @@ serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
   const authHeader = req.headers.get("Authorization");
-  const apikeyHeader = req.headers.get("apikey");
+  const apikeyHeader = req.headers.get("apikey")?.trim();
   
-  console.log(`[ManageUsers] Auth: ${authHeader ? 'present' : 'missing'}, ApiKey: ${apikeyHeader ? 'present' : 'missing'}`);
+  console.log(`[ManageUsers] AuthHeader: ${authHeader?.substring(0, 10)}... (length: ${authHeader?.length})`);
+  console.log(`[ManageUsers] ServiceKey: ${serviceKey?.substring(0, 10)}... (length: ${serviceKey?.length})`);
   
-  const serviceKeyCheck = (authHeader?.replace("Bearer ", "").trim() === serviceKey.trim()) || (apikeyHeader?.trim() === serviceKey.trim()) || (authHeader?.trim() === serviceKey.trim());
+  const token = authHeader?.replace("Bearer ", "").trim();
+  const serviceKeyCheck = (token === serviceKey.trim()) || (apikeyHeader === serviceKey.trim()) || (authHeader?.trim() === serviceKey.trim());
   
   let callerUserId = "";
   let isAdminToken = false;
