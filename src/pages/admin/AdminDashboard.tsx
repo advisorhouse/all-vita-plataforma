@@ -21,7 +21,7 @@ import GamificationMetrics from "@/components/admin/dashboard/GamificationMetric
 import PendingTenantsWidget from "@/components/admin/dashboard/PendingTenantsWidget";
 import CreateTenantDialog from "@/components/admin/tenants/CreateTenantDialog";
 import { cn } from "@/lib/utils";
-import { generateManualPDF } from "@/lib/manualGenerator";
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
