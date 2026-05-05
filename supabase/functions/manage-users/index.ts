@@ -95,6 +95,7 @@ serve(async (req) => {
     case "list": requiredAction = "read"; break;
     case "auth-status": requiredAction = "read"; break; // Needs higher privilege in practice, but usually fine for staff
     case "preview-email": requiredAction = "read"; break;
+    case "invite_user": requiredAction = "update"; break;
   }
 
   const isAllowed = isAdminToken || await checkPermission(requiredResource, requiredAction, tenantId);
